@@ -1,0 +1,64 @@
+import { Meta, Story, ArgsTable } from '@storybook/addon-docs'
+
+<Meta title="Guidelines" />
+
+# Storybook Guidelines
+
+Storybook is a powerful tool for developing UI components in isolation. This guide will help you understand how to create meaningful stories for your components.
+
+## What to Include in Your Stories
+
+### Do's:
+
+- **Component-Level Stories**: Focus on creating stories for individual, reusable components rather than entire pages. This allows you to test and document each component independently.
+
+  - **Examples**:
+    - Instead of creating a story for the entire **Login Page**, create stories for individual components like **Input Fields**, **Buttons**, **Dropdowns**, etc.
+    - Instead of creating a story for the entire **Message Screen**, create stories for components like **Single Message Card**, **Chat Bubble**, **Message Input**, etc.
+
+- **Documenting Library Components**:
+  - If you're using components directly from a library like Material UI, Chakra UI, etc., it's still a good idea to document them in Storybook.
+  - Even though the library provides pre-built components, you may customize them to fit your specific use case, and documenting this customization is beneficial.
+  - Remember, Material UI or any other library has many components, and not all of them will be used in your project. Focus on documenting the ones you use and customize. This will also allow developers to have a complete view of all components used in their application.
+
+### Don'ts:
+
+- **Avoid Page-Level Stories**: Do not create stories for entire pages like **Registration Page**, **Dashboard**, or **User Profile Page**. These are too complex for effective isolated testing and documentation.
+
+- **Overloading Stories**: Avoid adding too many variations within a single story. Keep each story focused and concise to make it easier to understand and test.
+
+## Tips for Working with Storybook
+
+- **Use Addons**: Storybook offers a wide range of addons to enhance your development experience. For example:
+
+  - [Mobile View Addon](https://storybook.js.org/docs/configure/user-interface/storybook-addons): Use this addon to make Storybook display components in mobile view by default.
+  - Explore other [Storybook Addons](https://storybook.js.org/addons) to find ones that suit your needs.
+
+- **Use Decorators**: Decorators are a way to wrap your components with additional functionality or context (e.g., providers, themes) that you may want to apply across multiple stories.
+
+  - Learn more about [Decorators in Storybook](https://storybook.js.org/docs/writing-stories/decorators).
+
+- **Enable Auto Docs**: You can automatically generate documentation for your components by setting `docs` as a parameter in your Storybook configuration.
+
+  - Learn how to [Enable Auto Docs](https://storybook.js.org/docs/writing-docs/autodocs).
+
+- **Storybook for Product Development**: Working with Storybook is not just about documenting components; it’s a great initiative for product development. It allows you to build components that are consistent, reusable, and easy to test.
+
+## Additional Resources
+
+Here are some additional resources to help you get the most out of Storybook:
+
+- [Storybook Documentation](https://storybook.js.org/docs)
+- [Writing Stories with Args](https://storybook.js.org/docs/writing-stories/args)
+- [Using Decorators in Stories](https://storybook.js.org/docs/writing-stories/decorators)
+- [Using the Play Function](https://storybook.js.org/docs/writing-stories/play-function)
+- [Mocking Data and Modules](https://storybook.js.org/docs/writing-stories/mocking-data-and-modules/mocking-modules)
+- [Mocking Network Requests](https://storybook.js.org/docs/writing-stories/mocking-data-and-modules/mocking-network-requests)
+- [Writing Auto Docs](https://storybook.js.org/docs/writing-docs/autodocs)
+- [Writing Docs in MDX](https://storybook.js.org/docs/writing-docs/mdx)
+- [Configuring Storybook Addons](https://storybook.js.org/docs/configure/user-interface/storybook-addons)
+- [Publishing Your Storybook](https://storybook.js.org/docs/sharing/publish-storybook)
+
+---
+
+By following these guidelines and utilizing the resources provided, you'll be able to create well-documented, testable components that contribute to the overall quality of your project.

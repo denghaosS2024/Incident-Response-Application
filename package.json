@@ -1,0 +1,21 @@
+{
+  "name": "sem-ir-app",
+  "version": "1.0.0",
+  "description": "SEM IR App",
+  "scripts": {
+    "lint": "echo \"lint not implemented\"",
+    "lint:fix": "echo \"lint:fix not implemented\"",
+    "install:client": "cd client && npm install && cd ..",
+    "install:server": "cd server && npm install && cd ..",
+    "install": "npm run install:client && npm run install:server",
+    "dev:client": "cd client && npm start && cd ..",
+    "dev:server": "cd server && npm run dev && cd ..",
+    "dev": "concurrently --kill-others-on-fail \"npm run dev:server\" \"npm run dev:client\"",
+    "test": "cd server && npm test && cd ..",
+    "clean": "rm -rf node_modules && cd client && rm -rf node_modules && cd .. && cd server && rm -rf node_modules && cd ..",
+    "reinstall": "npm run clean && npm install"
+  },
+  "dependencies": {
+    "concurrently": "^5.3.0"
+  }
+}

@@ -1,0 +1,32 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-bottom: 8px;
+  padding-top: 12px;
+}
+
+.root + .root {
+  border-top: 1px solid #ddd;
+}
+
+.name {
+  color: rgb(29, 28, 29);
+  font-size: 15px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.timestamp {
+  color: rgb(97, 96, 97);
+  font-size: 12px;
+  line-height: 1;
+  margin-left: 4px;
+}
+
+.content {
+  margin-top: 8px;
+  color: rgb(29, 28, 29);
+  font-size: 15px;
+  line-height: 22px;
+}
