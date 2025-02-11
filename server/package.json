@@ -22,7 +22,6 @@
     "mongoose": "^8.1.1",
     "mongoose-autopopulate": "^1.1.0",
     "nodemon": "^3.0.3",
-    "server": "file:",
     "socket.io": "^4.7.4",
     "supertest": "^6.3.4",
     "ts-jest": "^29.1.2",
