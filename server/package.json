@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec \"ts-node\" src/index.ts",
     "build": "tsc",
     "test": "jest --coverage",
     "test:debug": "node --inspect-brk ./node_modules/.bin/jest --runInBand"
@@ -22,6 +22,7 @@
     "mongoose": "^8.1.1",
     "mongoose-autopopulate": "^1.1.0",
     "nodemon": "^3.0.3",
+    "server": "file:",
     "socket.io": "^4.7.4",
     "supertest": "^6.3.4",
     "ts-jest": "^29.1.2",
