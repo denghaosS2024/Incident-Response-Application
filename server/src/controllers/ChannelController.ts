@@ -2,6 +2,7 @@
 // It interacts with the Channel and User models and manages user connections.
 
 import { FilterQuery, Types } from 'mongoose'
+import { v4 as uuidv4 } from 'uuid'
 import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from '../models/Channel'
 import User from '../models/User'
 import Message from '../models/Message'
@@ -137,6 +138,63 @@ class ChannelController {
   getMessages = async () => {
     // TODO: Implement this method to retrieve messages for a channel
     throw new Error('Not Implemented')
+  }
+
+  /**
+   * Start a video conference in a channel.
+   * - Retrieves the sender and channel from the database.
+   * - Generates a unique room ID and constructs a video conference link (using Jitsi Meet).
+   * - Creates a new message with the conference link and appends it to the channel.
+   * - Notifies other online users in the channel.
+   *
+   * @param channelId - The ID of the channel to start the conference in.
+   * @param senderId - The ID of the user starting the conference.
+   * @returns The newly created message object containing the conference link.
+   * @throws Error if the sender or channel is not found.
+   */
+  startVideoConference = async (
+    channelId: Types.ObjectId,
+    senderId: Types.ObjectId,
+  ) => {
+    // Retrieve the sender from the database
+    const sender = await User.findById(senderId).exec()
+    if (!sender) {
+      throw new Error(`Sender(${senderId.toHexString()}) not found.`)
+    }
+
+    // Retrieve the channel from the database
+    const channel = await Channel.findById(channelId).exec()
+    if (!channel) {
+      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
+    }
+
+    // Generate a unique room ID and construct the video conference link
+    const roomId = uuidv4()
+    const conferenceLink = `https://meet.jit.si/${roomId}`
+
+    const content = `Video conference started! Join here: ${conferenceLink}`
+
+    // Create and save the new message
+    const message = await new Message({
+      content,
+      sender,
+      channelId: channel._id,
+    }).save()
+
+    // Append the new message to the channel
+    channel.messages!.push(message)
+    await channel.save()
+
+    // Notify other online users in the channel
+    channel.users.forEach((user) => {
+      if (user._id.equals(senderId)) return
+      const id = user._id.toHexString()
+      if (!UserConnections.isUserConnected(id)) return
+      const connection = UserConnections.getUserConnection(id)!
+      connection.emit('new-message', message)
+    })
+
+    return message
   }
 }
 

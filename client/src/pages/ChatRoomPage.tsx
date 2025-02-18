@@ -18,6 +18,8 @@ import MessageCallOptions from '../components/MessageCallOptions'
 const ChatRoomPage: React.FC = () => {
   // Extract channelId from URL
   const channelId = useLocation().pathname.split('/')[2]
+  // Retrieve current user ID
+  const currentUserId = localStorage.getItem('uid') || ''
   // Get messages for the current channel from Redux store
   const messages = useSelector(
     (state: RootState) => state.messageState.messages,
@@ -75,7 +77,10 @@ const ChatRoomPage: React.FC = () => {
               <AttachFile />
             </IconButton>
             {/* phone/video call button */}
-            <MessageCallOptions />
+            <MessageCallOptions
+              channelId={channelId}
+              currentUserId={currentUserId}
+            />
           </Box>
           <Box flexGrow={1}>
             <MessageInput

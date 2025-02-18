@@ -115,3 +115,28 @@ export default Router()
 
     return response.send(channel.messages)
   })
+  /**
+   * Start a video conference in a channel.
+   * @route POST /api/channels/:id/video-conference
+   * @param {string} request.headers.x-application-uid - The ID of the user starting the video conference.
+   * @param {string} request.params.id - The ID of the channel.
+   * @returns {Object} The newly created message containing the video conference link.
+   * @throws {404} If the sender or channel is not found.
+   */
+  .post('/:id/video-conference', async (request, response) => {
+    const senderId = new Types.ObjectId(
+      request.headers['x-application-uid'] as string,
+    )
+    const channelId = new Types.ObjectId(request.params.id)
+
+    try {
+      const message = await ChannelController.startVideoConference(
+        channelId,
+        senderId,
+      )
+      response.send(message)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).send({ message: error.message })
+    }
+  })
