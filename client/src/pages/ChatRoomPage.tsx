@@ -1,4 +1,5 @@
-import { Grid } from '@mui/material'
+import { Grid, Box, IconButton } from '@mui/material'
+import { AttachFile, Phone } from '@mui/icons-material'
 import React, { useEffect, useState } from 'react'
 import MessageInput from '../components/MessageInput'
 import MessageList from '../components/MessageList'
@@ -66,9 +67,23 @@ const ChatRoomPage: React.FC = () => {
       </Grid>
 
       <Grid className={styles.input} item>
-        <MessageInput
-          onSubmit={(content: string) => sendMessage(content, channelId)}
-        />
+        <Box display="flex">
+          <Box display="flex">
+            {/* attach files button */}
+            <IconButton color="primary">
+              <AttachFile />
+            </IconButton>
+            {/* phone/video call button */}
+            <IconButton color="primary">
+              <Phone />
+            </IconButton>
+          </Box>
+          <Box flexGrow={1}>
+            <MessageInput
+              onSubmit={(content: string) => sendMessage(content, channelId)}
+            />
+          </Box>
+        </Box>
       </Grid>
     </Grid>
   )
