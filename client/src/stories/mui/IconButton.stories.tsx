@@ -1,6 +1,12 @@
 import { Meta, StoryObj } from '@storybook/react'
 import { IconButton, IconButtonProps } from '@mui/material'
-import { Home, Message, PermContactCalendar } from '@mui/icons-material'
+import {
+  Home,
+  Message,
+  PermContactCalendar,
+  Phone,
+  AttachFile,
+} from '@mui/icons-material'
 
 const meta = {
   title: 'Material UI/IconButton',
@@ -59,5 +65,19 @@ export const ContactsButton: Story = {
   args: {
     size: 'medium',
     children: <PermContactCalendar />,
+  },
+}
+
+export const PhoneButton: Story = {
+  args: {
+    size: 'medium',
+    children: <Phone />,
+  },
+}
+
+export const FileButton: Story = {
+  args: {
+    size: 'medium',
+    children: <AttachFile />,
   },
 }
