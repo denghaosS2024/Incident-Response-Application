@@ -1,5 +1,5 @@
 import { Grid, Box, IconButton } from '@mui/material'
-import { AttachFile, Phone } from '@mui/icons-material'
+import { AttachFile } from '@mui/icons-material'
 import React, { useEffect, useState } from 'react'
 import MessageInput from '../components/MessageInput'
 import MessageList from '../components/MessageList'
@@ -12,6 +12,7 @@ import { RootState } from '@/utils/types'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styles from '../styles/ChatRoomPage.module.css'
+import MessageCallOptions from '../components/MessageCallOptions'
 
 // ChatRoomPage component: Displays messages for a specific channel and allows sending new messages
 const ChatRoomPage: React.FC = () => {
@@ -69,14 +70,12 @@ const ChatRoomPage: React.FC = () => {
       <Grid className={styles.input} item>
         <Box display="flex">
           <Box display="flex">
-            {/* attach files button */}
+            {/* Attach file button */}
             <IconButton color="primary">
               <AttachFile />
             </IconButton>
             {/* phone/video call button */}
-            <IconButton color="primary">
-              <Phone />
-            </IconButton>
+            <MessageCallOptions />
           </Box>
           <Box flexGrow={1}>
             <MessageInput
