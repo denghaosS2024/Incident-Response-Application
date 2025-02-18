@@ -1,5 +1,6 @@
 import { FunctionComponent } from 'react'
 import { Box, Typography } from '@mui/material'
+import Linkify from 'react-linkify'
 import IMessage from '../models/Message'
 import styles from '../styles/Message.module.css'
 
@@ -21,7 +22,7 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => (
       </Typography>
     </Box>
     <Typography variant="body2" className={styles.content}>
-      {message.content}
+      <Linkify>{message.content}</Linkify>
     </Typography>
   </Box>
 )
