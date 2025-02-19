@@ -10,6 +10,8 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 
+import swaggerUi from 'swagger-ui-express'
+import { specs } from './config/swagger/swagger'
 import router from './routers'
 
 export default express()
@@ -19,6 +21,8 @@ export default express()
   .use(cors())
   // Mount the API routes
   .use('/api', router)
+  // Swagger UI route - add this before API routes
+  .use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs))
   // Serve static files from the client build directory
   .use(
     express.static(path.join(__dirname, '..', '..', 'client', 'build'), {

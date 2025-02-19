@@ -24,12 +24,16 @@
     "nodemon": "^3.0.3",
     "socket.io": "^4.7.4",
     "supertest": "^6.3.4",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.1",
-    "@types/jest": "^29.5.6"
+    "@types/jest": "^29.5.6",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.7"
   }
 }

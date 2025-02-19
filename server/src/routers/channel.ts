@@ -1,11 +1,113 @@
 // ChannelRouter handles operations related to channels, such as creating, listing, and appending messages.
 // It interacts with the Channel and User models and manages user connections.
-
 import { Router } from 'express'
 import { Types } from 'mongoose'
 
 import ChannelController from '../controllers/ChannelController'
 import Channel from '../models/Channel'
+
+/**
+ * @swagger
+ * tags:
+ *   name: Channels
+ *   description: Channel management and messaging API
+ * 
+ * components:
+ *   schemas:
+ *     Channel:
+ *       type: object
+ *       required:
+ *         - users
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The auto-generated id of the channel
+ *         name:
+ *           type: string
+ *           description: Optional name for the channel
+ *         users:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of user IDs in the channel
+ *         messages:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Message'
+ *     Message:
+ *       type: object
+ *       required:
+ *         - content
+ *         - sender
+ *         - timestamp
+ *         - channelId
+ *       properties:
+ *         content:
+ *           type: string
+ *           description: Message content
+ *         sender:
+ *           type: string
+ *           description: ID of the user sending the message
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *           description: Time when the message was sent
+ *         channelId:
+ *           type: string
+ *           format: uuid
+ *           description: ID of the channel to which the message belongs
+ * 
+ * /api/channels:
+ *   post:
+ *     summary: Create a new channel
+ *     tags: [Channels]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               users:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: The created channel
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Channel'
+ *       400:
+ *         description: Invalid request
+ * 
+ *   get:
+ *     summary: List all channels
+ *     tags: [Channels]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: user
+ *         schema:
+ *           type: string
+ *         description: Filter channels by user ID
+ *     responses:
+ *       200:
+ *         description: List of channels
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Channel'
+ */
+
 
 export default Router()
   /**
