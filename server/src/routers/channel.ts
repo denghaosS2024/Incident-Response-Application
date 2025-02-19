@@ -11,7 +11,7 @@ import Channel from '../models/Channel'
  * tags:
  *   name: Channels
  *   description: Channel management and messaging API
- * 
+ *
  * components:
  *   schemas:
  *     Channel:
@@ -56,7 +56,7 @@ import Channel from '../models/Channel'
  *           type: string
  *           format: uuid
  *           description: ID of the channel to which the message belongs
- * 
+ *
  * /api/channels:
  *   post:
  *     summary: Create a new channel
@@ -85,7 +85,7 @@ import Channel from '../models/Channel'
  *               $ref: '#/components/schemas/Channel'
  *       400:
  *         description: Invalid request
- * 
+ *
  *   get:
  *     summary: List all channels
  *     tags: [Channels]
@@ -107,7 +107,6 @@ import Channel from '../models/Channel'
  *               items:
  *                 $ref: '#/components/schemas/Channel'
  */
-
 
 export default Router()
   /**
@@ -218,12 +217,35 @@ export default Router()
     return response.send(channel.messages)
   })
   /**
-   * Start a video conference in a channel.
-   * @route POST /api/channels/:id/video-conference
-   * @param {string} request.headers.x-application-uid - The ID of the user starting the video conference.
-   * @param {string} request.params.id - The ID of the channel.
-   * @returns {Object} The newly created message containing the video conference link.
-   * @throws {404} If the sender or channel is not found.
+   * @swagger
+   * /api/channels/{id}/video-conference:
+   *   post:
+   *     summary: Start a video conference in a channel.
+   *     tags: [Channels]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: header
+   *         name: x-application-uid
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the user starting the video conference.
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the channel.
+   *     responses:
+   *       200:
+   *         description: The newly created message containing the video conference link.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Message'
+   *       404:
+   *         description: Sender or channel not found.
    */
   .post('/:id/video-conference', async (request, response) => {
     const senderId = new Types.ObjectId(
