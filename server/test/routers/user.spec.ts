@@ -9,6 +9,7 @@ describe('Router - User', () => {
 
   const username = 'some-username'
   const password = 'some-password'
+  const phoneNumber = '1234567890'
   const role = ROLES.POLICE
 
   const register = () => {
@@ -17,6 +18,7 @@ describe('Router - User', () => {
       .send({
         username,
         password,
+        phoneNumber,
         role,
       })
   }
@@ -27,6 +29,7 @@ describe('Router - User', () => {
     expect(user).toMatchObject({
       _id: /.+/,
       username,
+      phoneNumber,
       role,
     })
     expect(user).not.toHaveProperty('password')
@@ -50,6 +53,7 @@ describe('Router - User', () => {
       _id: /.+/,
       online: false,
       username,
+      phoneNumber,
       role,
     })
   })

@@ -16,13 +16,13 @@ describe('Router - Channel', () => {
     TestDatabase.connect()
 
     userA = (
-      await UserController.register('Channel-User-A', 'password-A')
+      await UserController.register('Channel-User-A', 'password-A', '1234567890')
     )._id.toHexString()
     userB = (
-      await UserController.register('Channel-User-B', 'password-B')
+      await UserController.register('Channel-User-B', 'password-B', '0987654321')
     )._id.toHexString()
     userC = (
-      await UserController.register('Channel-User-C', 'password-C')
+      await UserController.register('Channel-User-C', 'password-C', '1357924680')
     )._id.toHexString()
   })
 

@@ -20,9 +20,9 @@ describe('Channel controller', () => {
   beforeAll(async () => {
     TestDatabase.connect()
 
-    userA = await UserController.register('Channel-User-A', 'password-A')
-    userB = await UserController.register('Channel-User-B', 'password-B')
-    userC = await UserController.register('Channel-User-C', 'password-C')
+    userA = await UserController.register('Channel-User-A', 'password-A', '1234567890')
+    userB = await UserController.register('Channel-User-B', 'password-B', '0987654321')
+    userC = await UserController.register('Channel-User-C', 'password-C', '1357924680')
   })
 
   it('will not allow to create the public channel manually', async () => {

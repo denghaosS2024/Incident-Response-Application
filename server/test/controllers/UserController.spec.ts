@@ -14,11 +14,12 @@ describe('User controller', () => {
 
   const username = 'test-username-1'
   const password = 'super-secret-password'
+  const phoneNumber = '1234567890'
   const role = ROLES.DISPATCH
   let newUser: IUser
 
   it('will register a new user', async () => {
-    newUser = await UserController.register(username, password, role)
+    newUser = await UserController.register(username, password, phoneNumber, role)
     const users = await UserController.listUsers()
 
     expect(users.length).toBe(1)
@@ -30,7 +31,7 @@ describe('User controller', () => {
     expect.assertions(1)
 
     try {
-      await UserController.register(username, password)
+      await UserController.register(username, password, phoneNumber)
     } catch (e) {
       const error = e as Error
       expect(error.message).toBe(`User "${username}" already exists`)
@@ -88,9 +89,11 @@ describe('User controller', () => {
     // add another user
     const citizenName = 'new-citizen'
     const citizenPassword = 'citizen-password'
+    const citizenPhoneNumber = '0987654321'
     const newCitizen = await UserController.register(
       citizenName,
       citizenPassword,
+      citizenPhoneNumber
     )
     let users = await UserController.listUsers()
 
@@ -99,12 +102,14 @@ describe('User controller', () => {
       _id: newUser._id,
       role: newUser.role,
       username: newUser.username,
+      phoneNumber: newUser.phoneNumber,
       online: true,
     })
     expect(users).toContainEqual({
       _id: newCitizen._id,
       role: newCitizen.role,
       username: newCitizen.username,
+      phoneNumber: newCitizen.phoneNumber,
       online: false,
     })
 
@@ -118,12 +123,14 @@ describe('User controller', () => {
       _id: newUser._id,
       role: newUser.role,
       username: newUser.username,
+      phoneNumber: newUser.phoneNumber,
       online: false,
     })
     expect(users).toContainEqual({
       _id: newCitizen._id,
       role: newCitizen.role,
       username: newCitizen.username,
+      phoneNumber: newCitizen.phoneNumber,
       online: false,
     })
   })

@@ -7,17 +7,18 @@ describe('User model', () => {
   beforeEach(() => jest.clearAllMocks())
   afterEach(() => jest.restoreAllMocks())
 
-  const createTestUser = async (username: string, password: string) => {
+  const createTestUser = async (username: string, password: string, phoneNumber) => {
     const rawUser = await new User({
       username,
       password,
+      phoneNumber
     })
 
     return rawUser.save()
   }
 
   it("will encrypt user's password", async () => {
-    const rawUser = await createTestUser('User-1', 'password')
+    const rawUser = await createTestUser('User-1', 'password', '1234567890')
 
     expect(rawUser.password).toBeDefined()
     expect(rawUser.password).not.toEqual('password')
@@ -35,14 +36,14 @@ describe('User model', () => {
   })
 
   it('compares clear-text password with encrypted password', async () => {
-    const rawUser = await createTestUser('User-2', 'password')
+    const rawUser = await createTestUser('User-2', 'password', '0987654321')
 
     expect(await rawUser.comparePassword('some random string')).toBeFalsy()
     expect(await rawUser.comparePassword('password')).toBeTruthy()
   })
 
   it('handles invalid hashes in comparePassword method', async () => {
-    const rawUser = await createTestUser('User-3', 'password')
+    const rawUser = await createTestUser('User-3', 'password', '1357924680')
 
     // Replace the password with an invalid hash
     rawUser.password = 'invalid_hash'
@@ -53,7 +54,7 @@ describe('User model', () => {
   })
 
   it('handles errors in comparePassword method', async () => {
-    const rawUser = await createTestUser('User-4', 'password')
+    const rawUser = await createTestUser('User-4', 'password', '1234567890')
 
     // Mock bcrypt.compare to simulate an error
     jest.spyOn(bcrypt, 'compare').mockImplementationOnce((_, __, callback) => {
