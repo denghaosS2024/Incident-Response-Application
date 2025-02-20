@@ -196,6 +196,53 @@ class ChannelController {
 
     return message
   }
+
+  makePhoneCall = async (
+    channelId: Types.ObjectId,
+    senderId: Types.ObjectId,
+  ) => {
+    // Retrieve the sender from the database
+    const sender = await User.findById(senderId).exec()
+    if (!sender) {
+      throw new Error(`Sender(${senderId.toHexString()}) not found.`)
+    }
+
+    // Retrieve the channel from the database
+    const channel = await Channel.findById(channelId).exec()
+    if (!channel) {
+      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
+    }
+
+    const receiverId = channel.users.find(user => !user._id.equals(senderId))?._id as Types.ObjectId | undefined;
+    if (!receiverId) {
+      throw new Error(`No other user found in Channel(${channelId.toHexString()}).`);
+    }
+    
+    const receiver = await User.findById(receiverId).exec()
+    const receiverPhoneNumber = receiver?.phoneNumber;
+    const content = `Phone call started now between ${sender.username} and ${receiver?.username}.`;
+
+    // Create and save the new message
+    const message = await new Message({
+      content,
+      sender,
+      channelId: channel._id,
+    }).save()
+
+    // Append the new message to the channel
+    channel.messages!.push(message)
+    await channel.save()
+
+    // Notify other online users in the channel
+    channel.users.forEach((user) => {
+      if (user._id.equals(senderId)) return
+      const id = user._id.toHexString()
+      if (!UserConnections.isUserConnected(id)) return
+      const connection = UserConnections.getUserConnection(id)!
+      connection.emit('new-message', message)
+    })
+    return {message, phoneNumber: receiverPhoneNumber};
+  }
 }
 
 export default new ChannelController()

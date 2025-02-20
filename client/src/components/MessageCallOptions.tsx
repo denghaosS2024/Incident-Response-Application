@@ -27,9 +27,32 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   }
 
   // Option for making a phone call
-  const handleMakeCall = () => {
-    console.log('Make phone call...')
-    handleMenuClose()
+  const handleMakeCall = async() => {
+    try {
+      console.log('Make phone call...');
+      // const phoneNumber = "2066979357";
+      const response = await request(
+        `/api/channels/${channelId}/phone-call`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-application-uid': currentUserId,
+          },
+          body: JSON.stringify({}),
+        },
+      )
+      const phoneNumber = response.phoneNumber;
+      if (phoneNumber) {
+        window.location.href = `tel:${phoneNumber}`;
+      } else {
+        alert('Failed to retrieve phone number.');
+      }
+      dispatch(addMessage(response.message));
+    } catch (error) {
+      console.error('Failed to make phone call:', error)
+    }
+    handleMenuClose();
   }
 
   // Option for starting a video conference

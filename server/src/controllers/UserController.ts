@@ -19,6 +19,7 @@ class UserController {
   async register(
     username: string,
     password: string,
+    phoneNumber: string,
     role: ROLES = ROLES.CITIZEN,
   ) {
     // Check if user already exists
@@ -31,6 +32,7 @@ class UserController {
       user = await new User({
         username,
         password,
+        phoneNumber,
         role,
       }).save()
 
