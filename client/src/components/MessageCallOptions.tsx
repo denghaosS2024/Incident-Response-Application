@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect} from 'react'
 import { IconButton, Menu, MenuItem } from '@mui/material'
 import { Phone } from '@mui/icons-material'
 import { useDispatch } from 'react-redux'
@@ -15,8 +15,25 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   currentUserId,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false)
   const menuOpen = Boolean(anchorEl)
   const dispatch = useDispatch()
+
+  useEffect(() => {
+    const fetchChannelDetails = async () => {
+      try {
+        const channels = await request(`/api/channels`) 
+        const currentChannel = channels.find((channel: any) => channel._id === channelId) // Find the current channel
+        if (currentChannel) {
+          setPrivateChannel(currentChannel.users.length === 2) // Check if only two users exist in the channel
+        }
+      } catch (error) {
+        console.error('Failed to fetch channel details:', error)
+      }
+    }
+
+    fetchChannelDetails()
+  }, [channelId])
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
@@ -83,7 +100,7 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
         <Phone />
       </IconButton>
       <Menu anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose}>
-        <MenuItem onClick={handleMakeCall}>Make Phone Call</MenuItem>
+        <MenuItem onClick={handleMakeCall} disabled={!isPrivateChannel}>Make Phone Call</MenuItem>
         <MenuItem onClick={handleStartVideoConference}>
           Start Video Conference
         </MenuItem>
