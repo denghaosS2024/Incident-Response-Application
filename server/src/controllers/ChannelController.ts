@@ -197,6 +197,18 @@ class ChannelController {
     return message
   }
 
+  /**
+   * Start a phone call in a channel.
+   * - Retrieves the sender and channel from the database.
+   * - Retrieves the receiver's phone number from the database.
+   * - Creates a new message including the caller and receiver and appends it to the channel.
+   * - Notifies other online users in the channel.
+   *
+   * @param channelId - The ID of the channel to start the call in.
+   * @param senderId - The ID of the user starting the call.
+   * @returns The newly created message object containing the sender and receiver username, and receiver's phone number.
+   * @throws Error if the sender or channel is not found.
+   */
   makePhoneCall = async (
     channelId: Types.ObjectId,
     senderId: Types.ObjectId,

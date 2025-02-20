@@ -12,6 +12,7 @@ class UserController {
    * Register a new user
    * @param username - The username for the new user
    * @param password - The password for the new user
+   * @param phoneNumber - The phone number for the new user
    * @param role - The role for the new user (default: ROLES.CITIZEN)
    * @returns The newly created user object
    * @throws Error if the username already exists

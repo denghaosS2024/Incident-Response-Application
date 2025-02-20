@@ -264,7 +264,13 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
-
+  /**
+   * Make a phone call in a channel
+   * @route POST /api/channels/:id/phone-call
+   * @param {string} request.params.id - The ID of the channel
+   * @returns {string, string} The message indicating the call is being made and phone number to call
+   * @throws {404} If the channel is not found
+   */
   .post('/:id/phone-call', async (request, response) => {
     const senderId = new Types.ObjectId(
       request.headers['x-application-uid'] as string,

@@ -30,7 +30,6 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   const handleMakeCall = async() => {
     try {
       console.log('Make phone call...');
-      // const phoneNumber = "2066979357";
       const response = await request(
         `/api/channels/${channelId}/phone-call`,
         {

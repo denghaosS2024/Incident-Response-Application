@@ -13,6 +13,7 @@ export default Router()
    * @param {Object} request.body
    * @param {string} request.body.username - The username for the new user
    * @param {string} request.body.password - The password for the new user
+   * @param {string} request.body.phoneNumber - The phone number for the new user
    * @param {ROLES} [request.body.role=ROLES.CITIZEN] - The role for the new user
    * @returns {Object} The created user object (without password and __v)
    * @throws {400} If the username already exists or other validation errors occur
