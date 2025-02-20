@@ -112,5 +112,30 @@ describe('Channel controller', () => {
     expect(socketA.emit).not.toHaveBeenCalled()
   })
 
+  it('should make a phone call between two users and notify the other user', async () => {
+    // Mock socket connections for notifications
+    const socketA = mock<SocketIO.Socket>();
+    const socketB = mock<SocketIO.Socket>();
+  
+    UserConnections.addUserConnection(userA.id, socketA);
+    UserConnections.addUserConnection(userB.id, socketB);
+  
+    // Create a direct message channel between userA and userB
+    const privateChannel = await ChannelController.create({
+      userIds: [userA._id, userB._id],
+    });
+  
+    const result = await ChannelController.makePhoneCall(privateChannel._id, userA._id);
+  
+    expect(result.message.content).toBe(`Phone call started now between ${userA.username} and ${userB.username}.`);
+    expect(result.message.sender._id).toEqual(userA._id);
+    expect(result.message.channelId).toEqual(privateChannel._id);
+  
+    expect(result.phoneNumber).toBe(userB.phoneNumber);
+  
+    expect(socketB.emit).toHaveBeenCalledWith('new-message', result.message);
+    expect(socketA.emit).not.toHaveBeenCalled(); 
+  });
+  
   afterAll(TestDatabase.close)
 })
