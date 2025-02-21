@@ -7,25 +7,25 @@ import {
 } from '@mui/icons-material'
 
 export type RoleType =
-  | 'dispatcher'
-  | 'firefighter'
-  | 'police'
-  | 'nurse'
-  | 'citizen'
-  | 'administrator'
+  | 'Dispatcher'
+  | 'Firefighter'
+  | 'Police'
+  | 'Nurse'
+  | 'Citizen'
+  | 'Administrator'
 
 export interface UserBadgeProps {
   role: RoleType
 }
 
-// Only roles with badges return an icon; 'citizen' and 'administrator' return undefined
+// Only roles with badges return an icon; 'Citizen' and 'Administrator' return undefined
 const roleToIconMap: Record<RoleType, ReactElement | undefined> = {
-  dispatcher: <DispatcherIcon fontSize="small" />,
-  firefighter: <FirefighterIcon fontSize="small" />,
-  police: <PoliceIcon fontSize="small" />,
-  nurse: <NurseIcon fontSize="small" />,
-  citizen: undefined,
-  administrator: undefined,
+  Dispatcher: <DispatcherIcon fontSize="small" />,
+  Firefighter: <FirefighterIcon fontSize="small" />,
+  Police: <PoliceIcon fontSize="small" />,
+  Nurse: <NurseIcon fontSize="small" />,
+  Citizen: undefined,
+  Administrator: undefined,
 }
 
 export const UserBadge: React.FC<UserBadgeProps> = ({ role }) => {

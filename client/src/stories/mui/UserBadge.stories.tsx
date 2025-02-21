@@ -8,7 +8,7 @@ const meta = {
   argTypes: {
     role: {
       control: { type: 'select' },
-      options: ['dispatcher', 'firefighter', 'police', 'nurse'],
+      options: ['Dispatcher', 'Firefighter', 'Police', 'Nurse'],
       description: 'User role to determine the badge',
     },
   },
@@ -19,24 +19,24 @@ type Story = StoryObj<typeof meta>
 
 export const Dispatcher: Story = {
   args: {
-    role: 'dispatcher',
+    role: 'Dispatcher',
   },
 }
 
 export const Firefighter: Story = {
   args: {
-    role: 'firefighter',
+    role: 'Firefighter',
   },
 }
 
 export const Police: Story = {
   args: {
-    role: 'police',
+    role: 'Police',
   },
 }
 
 export const Nurse: Story = {
   args: {
-    role: 'nurse',
+    role: 'Nurse',
   },
 }

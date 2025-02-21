@@ -2,6 +2,7 @@ import { FunctionComponent } from 'react'
 import { Box, Typography } from '@mui/material'
 import Linkify from 'react-linkify'
 import IMessage from '../models/Message'
+import { UserBadge, RoleType } from './common/UserBadge'
 import styles from '../styles/Message.module.css'
 
 export interface IMessageProps {
@@ -14,6 +15,7 @@ export interface IMessageProps {
 const Message: FunctionComponent<IMessageProps> = ({ message }) => (
   <Box className={styles.root}>
     <Box display="flex" alignItems="center">
+      <UserBadge role={message.sender.role as RoleType} />
       <Typography variant="body1" className={styles.name}>
         {message.sender.username}
       </Typography>
