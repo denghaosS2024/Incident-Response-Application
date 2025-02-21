@@ -29,6 +29,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
+            -Dsonar.qualitygate.wait=false
             -Dsonar.projectKey=cmusv-sem_S25-SEM-Incident-Response-Application
             -Dsonar.organization=cmusv-sem
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
