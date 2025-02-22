@@ -18,10 +18,10 @@ jobs:
           fetch-depth: 0
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn
 
       - name: Run Tests and Generate Coverage Report
-        run: npm test -- --coverage --coverageReporters=cobertura --coverageDirectory=coverage
+        run: yarn test --coverage --coverageReporters=cobertura --coverageDirectory=coverage
 
   sonarqube:
     name: SonarQube
