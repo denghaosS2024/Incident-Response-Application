@@ -1,6 +1,6 @@
-import { Home, Message, PermContactCalendar } from '@mui/icons-material'
+import { Home, Message, PermContactCalendar, AccessAlarm } from '@mui/icons-material'
 import { StyledEngineProvider } from '@mui/material/styles'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from './utils/types'
 import {
@@ -12,7 +12,7 @@ import {
 } from 'react-router-dom'
 import { AppDispatch } from './app/store'
 import NavigationBar from './components/NavigationBar'
-import TabBar from './components/TabBar'
+import TabBar, { Link } from './components/TabBar'
 import ChatRoomPage from './pages/ChatRoomPage'
 import Contacts from './pages/Contacts'
 import HomePage from './pages/HomePage'
@@ -25,6 +25,7 @@ import IMessage from '@/models/Message'
 import { loadContacts } from './features/contactSlice'
 import Groups2Icon from '@mui/icons-material/Groups2'
 import GroupsPage from './pages/GroupsPage'
+import Reach911Page from './pages/Reach911Page'
 
 const App: React.FC = () => {
   return (
@@ -38,6 +39,7 @@ const App: React.FC = () => {
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/groups" element={<GroupsPage />} />
+            <Route path="/reach911" element={<Reach911Page />} />
           </Route>
           <Route element={<ProtectedRoute showBackButton />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
@@ -59,7 +61,7 @@ const ProtectedRoute = ({ showBackButton }: IProps) => {
   const alerts = useSelector((state: RootState) => state.messageState.alerts)
   const hasUnreadMessages = Object.values(alerts).some((alert) => alert)
 
-  const tabLinks = [
+  const tabLinks: Array<Link> = [
     { prefix: '/', key: 'home', icon: <Home />, to: '/' },
     {
       prefix: '/messages',
@@ -81,7 +83,15 @@ const ProtectedRoute = ({ showBackButton }: IProps) => {
       to: '/contacts',
     },
     { prefix: '/groups', key: 'groups', icon: <Groups2Icon />, to: '/groups' },
+    {
+      prefix: '/reach911',
+      key: 'reach911',
+      icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
+      selectedIcon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
+      to: '/reach911',
+    },
   ]
+
   useEffect(() => {
     const socket = SocketClient
     socket.connect()
