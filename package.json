@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "SEM IR App",
   "scripts": {
-    "lint": "echo \"lint not implemented\"",
+    "lint": "eslint 'client/**/*.{ts,tsx}' 'server/**/*.{ts,tsx}'",
     "lint:fix": "echo \"lint:fix not implemented\"",
     "install:client": "cd client && npm install && cd ..",
     "install:server": "cd server && npm install && cd ..",
@@ -20,6 +20,9 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "@typescript-eslint/parser": "^8.24.1",
+    "eslint": "^9.21.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",
     "typescript": "^5.7.3"
