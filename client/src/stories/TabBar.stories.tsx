@@ -1,6 +1,7 @@
 import { Meta, StoryObj } from '@storybook/react'
 
 import { Home, Message, PermContactCalendar } from '@mui/icons-material'
+import Groups2Icon from '@mui/icons-material/Groups2'
 import TabBar from '../components/TabBar'
 
 const meta: Meta = {
@@ -26,6 +27,7 @@ export const Default: Story = {
         icon: <PermContactCalendar />,
         to: '#',
       },
+      { prefix: '/groups', key: 'groups', icon: <Groups2Icon />, to: '#' },
     ],
   },
 }
@@ -46,6 +48,7 @@ export const UnreadMessage: Story = {
         icon: <PermContactCalendar />,
         to: '#',
       },
+      { prefix: '/groups', key: 'groups', icon: <Groups2Icon />, to: '#' },
     ],
   },
 }

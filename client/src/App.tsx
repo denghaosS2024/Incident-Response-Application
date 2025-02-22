@@ -23,6 +23,8 @@ import SocketClient from './utils/Socket'
 import { addMessage, clearAllAlerts } from './features/messageSlice'
 import IMessage from '@/models/Message'
 import { loadContacts } from './features/contactSlice'
+import Groups2Icon from '@mui/icons-material/Groups2'
+import GroupsPage from './pages/GroupsPage'
 
 const App: React.FC = () => {
   return (
@@ -35,6 +37,7 @@ const App: React.FC = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/messages" element={<Messages />} />
+            <Route path="/groups" element={<GroupsPage />} />
           </Route>
           <Route element={<ProtectedRoute showBackButton />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
@@ -77,6 +80,7 @@ const ProtectedRoute = ({ showBackButton }: IProps) => {
       icon: <PermContactCalendar />,
       to: '/contacts',
     },
+    { prefix: '/groups', key: 'groups', icon: <Groups2Icon />, to: '/groups' },
   ]
   useEffect(() => {
     const socket = SocketClient

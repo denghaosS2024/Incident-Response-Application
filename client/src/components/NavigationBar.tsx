@@ -53,7 +53,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
         ? `${name} Messages`
         : pathname === '/contacts'
           ? 'Contacts'
-          : 'Incident Response'
+          : pathname === '/groups'
+            ? 'Groups'
+            : 'Incident Response'
 
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true)
