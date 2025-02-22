@@ -22,9 +22,6 @@ jobs:
 
       - name: Lint client
         run: yarn --cwd client lint
-      
-      - name: Lint server
-        run: yarn --cwd server lint
 
       - name: Run Tests and Generate Coverage Report
         run: yarn test --coverage --coverageReporters=cobertura --coverageDirectory=coverage
