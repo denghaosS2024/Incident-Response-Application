@@ -29,3 +29,23 @@ export const Default: Story = {
     ],
   },
 }
+
+export const UnreadMessage: Story = {
+  args: {
+    links: [
+      { prefix: '/', key: 'home', icon: <Home />, to: '#' },
+      {
+        prefix: '/messages',
+        key: 'msg',
+        icon: <Message style={{ color: 'red' }} />,
+        to: '#',
+      },
+      {
+        prefix: '/contacts',
+        key: 'contacts',
+        icon: <PermContactCalendar />,
+        to: '#',
+      },
+    ],
+  },
+}

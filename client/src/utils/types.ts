@@ -20,6 +20,7 @@ interface Messages {
 export interface MessagesState {
   messages: Messages
   loading: boolean
+  alerts: { [channelId: string]: boolean }
   error: string | null
 }
 

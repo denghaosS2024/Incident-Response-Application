@@ -1,7 +1,8 @@
 import { Home, Message, PermContactCalendar } from '@mui/icons-material'
 import { StyledEngineProvider } from '@mui/material/styles'
 import React, { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState } from './utils/types'
 import {
   Navigate,
   Outlet,
@@ -19,7 +20,7 @@ import LoginPage from './pages/LoginPage'
 import Messages from './pages/Messages'
 import RegisterPage from './pages/RegisterPage'
 import SocketClient from './utils/Socket'
-import { addMessage } from './features/messageSlice'
+import { addMessage, clearAllAlerts } from './features/messageSlice'
 import IMessage from '@/models/Message'
 import { loadContacts } from './features/contactSlice'
 
@@ -51,9 +52,25 @@ interface IProps {
 const ProtectedRoute = ({ showBackButton }: IProps) => {
   const dispatch = useDispatch<AppDispatch>()
   const isLoggedIn = localStorage.getItem('token') ? true : false
+  // Check if there are any unread messages
+  const alerts = useSelector((state: RootState) => state.messageState.alerts)
+  const hasUnreadMessages = Object.values(alerts).some((alert) => alert)
+
   const tabLinks = [
     { prefix: '/', key: 'home', icon: <Home />, to: '/' },
-    { prefix: '/messages', key: 'msg', icon: <Message />, to: '/messages' },
+    {
+      prefix: '/messages',
+      key: 'msg',
+      icon: hasUnreadMessages ? (
+        <Message style={{ color: 'red' }} />
+      ) : (
+        <Message />
+      ),
+      to: '/messages',
+      onClick: () => {
+        dispatch(clearAllAlerts())
+      },
+    },
     {
       prefix: '/contacts',
       key: 'contact',

@@ -15,6 +15,7 @@ interface ISetMessagesPayload {
 const initialState: MessagesState = {
   messages: {}, // Object where keys are channel IDs and values are arrays of messages
   loading: false, // Indicates if a message operation is in progress
+  alerts: {}, // Object where keys are channel IDs and values are boolean alerts
   error: null, // Stores any error that occurred during message operations
 }
 
@@ -51,6 +52,15 @@ export const messageSlice = createSlice({
 
       channelMessages.push(parseMessage(message))
       state.messages[message.channelId] = channelMessages
+
+      // Set an alert for the channel if the message is not from the current user
+      const currentUserId = localStorage.getItem('uid')
+      if (message.sender._id !== currentUserId) {
+        state.alerts[message.channelId] = true
+      }
+    },
+    clearAllAlerts: (state) => {
+      state.alerts = {}
     },
   },
   extraReducers: (builder) => {
@@ -66,7 +76,7 @@ export const messageSlice = createSlice({
 })
 
 // Export the addMessage action creator
-export const { addMessage } = messageSlice.actions
+export const { addMessage, clearAllAlerts } = messageSlice.actions
 
 // Export the loadMessages async thunk
 export { loadMessages }

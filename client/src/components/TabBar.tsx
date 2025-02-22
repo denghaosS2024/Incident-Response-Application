@@ -8,6 +8,7 @@ export type Link = {
   key: string
   icon: JSX.Element
   to: string
+  onClick?: () => void
 }
 
 const getCurrentTab = (links: Link[], currentPath: string): number => {
@@ -47,7 +48,13 @@ const TabBar: FunctionComponent<TabBarProps> = ({ links }) => {
   return (
     <Tabs value={value} onChange={handleChange}>
       {links.map((link) => (
-        <Tab key={link.key} icon={link.icon} component={Link} to={link.to} />
+        <Tab
+          key={link.key}
+          icon={link.icon}
+          component={Link}
+          to={link.to}
+          onClick={link.onClick}
+        />
       ))}
     </Tabs>
   )
