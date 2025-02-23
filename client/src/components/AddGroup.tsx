@@ -1,5 +1,5 @@
-import { PermContactCalendar as Contact, Message } from '@mui/icons-material'
-import Groups2Icon from '@mui/icons-material/Groups2'
+import AddIcon from '@mui/icons-material/Add'
+import { Fragment, FunctionComponent, ReactElement } from 'react'
 import {
   Divider,
   Link,
@@ -8,7 +8,6 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material'
-import { Fragment, FunctionComponent, ReactElement } from 'react'
 
 interface ITab {
   text: string
@@ -18,23 +17,13 @@ interface ITab {
 
 const tabs: ITab[] = [
   {
-    text: 'Messages',
-    link: '/messages',
-    icon: <Message />,
-  },
-  {
-    text: 'Contacts',
-    link: '/contacts',
-    icon: <Contact />,
-  },
-  {
-    text: 'Groups',
+    text: '',
     link: '/groups',
-    icon: <Groups2Icon />,
-  }
+    icon: <AddIcon />,
+  },
 ]
 
-const Home: FunctionComponent = () => {
+const AddGroup: FunctionComponent = () => {
   return (
     <List>
       {tabs.map(({ text, link, icon }, index) => (
@@ -53,4 +42,4 @@ const Home: FunctionComponent = () => {
   )
 }
 
-export default Home
+export default AddGroup

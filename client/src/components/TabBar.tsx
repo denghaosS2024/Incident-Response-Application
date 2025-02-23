@@ -7,6 +7,8 @@ export type Link = {
   prefix: string
   key: string
   icon: JSX.Element
+  // use selectedIcon to use custom icons not available in materil ui
+  selectedIcon?: JSX.Element
   to: string
   onClick?: () => void
 }
@@ -34,28 +36,32 @@ export interface TabBarProps {
 
 const TabBar: FunctionComponent<TabBarProps> = ({ links }) => {
   const location = useLocation() // Hook to get the current path
-  const [value, setValue] = useState(getCurrentTab(links, location.pathname))
+  const [currentTabIndex, setCurrentTabIndex] = useState<number>(getCurrentTab(links, location.pathname))
 
   // Effect to update the current tab value based on route changes
   useEffect(() => {
-    setValue(getCurrentTab(links, location.pathname))
+    setCurrentTabIndex(getCurrentTab(links, location.pathname))
   }, [location.pathname, links])
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue)
+    setCurrentTabIndex(newValue)
   }
 
   return (
-    <Tabs value={value} onChange={handleChange}>
-      {links.map((link) => (
-        <Tab
-          key={link.key}
-          icon={link.icon}
-          component={Link}
-          to={link.to}
-          onClick={link.onClick}
-        />
-      ))}
+    <Tabs value={currentTabIndex} onChange={handleChange}>
+      {links.map((link: Link, idx: number) => {
+        const isSelected = idx === currentTabIndex;
+        return (
+          <Tab
+            key={link.key}
+            // When selected, try "selectedIcon" if exist. Otherwise, use "icon".
+            icon={(isSelected && link.selectedIcon != null ? link.selectedIcon : link.icon)}
+            component={Link}
+            to={link.to}
+            onClick={link.onClick}
+          />
+        );
+      })}
     </Tabs>
   )
 }
