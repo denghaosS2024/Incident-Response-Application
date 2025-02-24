@@ -4,6 +4,7 @@ import Linkify from 'react-linkify'
 import IMessage from '../models/Message'
 import { UserBadge, RoleType } from './common/UserBadge'
 import styles from '../styles/Message.module.css'
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 
 export interface IMessageProps {
   /**
@@ -16,6 +17,9 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   // Check if the message content looks like a video url from bucket
   const videoUrlPrefix = "https://storage.googleapis.com/sem-video-bucket/videos/"
   const isVideo = message.content.startsWith(videoUrlPrefix)
+
+  const fileUrlPrefix = "https://storage.googleapis.com/sem-video-bucket/uploads/"
+  const isFile = message.content.startsWith(fileUrlPrefix)
 
   return (
   <Box className={styles.root}>
@@ -33,7 +37,17 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
           <source src={message.content} type="video/webm" />
           Your browser does not support the video tag.
         </video>
-      ) : (
+      ) : isFile? (
+        <a href={message.content} download target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+          <Box display="inline-flex" alignItems="center" bgcolor="#F5F5F5" borderRadius={1} mt={2} mb={2} px={2}>
+            <InsertDriveFileIcon sx={{ fontSize: 40, color: "#FFA726", mr: 1 }} />
+            <Box sx={{ display: 'inline-flex', minWidth: 'fit-content', maxWidth: '100%', wordBreak: 'break-word' }}>
+              <Typography variant="body1">{message.content?.split('/').pop()?.replace(/\.[^.]+\./, '.') ?? 'Unknown'}</Typography>
+            </Box>
+          </Box>
+        </a>
+
+      ):(
       <Typography variant="body2" className={styles.content}>
         <Linkify>{message.content}</Linkify>
       </Typography>

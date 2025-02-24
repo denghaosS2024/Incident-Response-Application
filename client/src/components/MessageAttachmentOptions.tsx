@@ -5,6 +5,7 @@ import MessageVideoRecorder from './MessageVideoRecorder'
 import { useDispatch } from 'react-redux'
 import { addMessage } from '../features/messageSlice'
 import request from '../utils/request'
+import FileUploadForm from './FileUploadForm'
 
 interface MessageAttachmentOptionsProps {
   channelId: string,
@@ -18,6 +19,9 @@ const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false)
   const [videoRecorderOpen, setVideoRecorderOpen] = useState<boolean>(false)
+  const [openFileUpload, setOpenFileUpload] = useState(false);
+  const handleOpenFileUpload = () => setOpenFileUpload(true);
+  const handleCloseFileUpload = () => setOpenFileUpload(false);
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -67,10 +71,18 @@ const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
         <MenuItem onClick={openVideoRecorder}>
           Record Video
         </MenuItem>
+
+        <MenuItem onClick={handleOpenFileUpload}>
+          File Upload
+        </MenuItem>
       </Menu>
       {/* Modal for video recording */}
       <Dialog open={videoRecorderOpen} onClose={closeVideoRecorder} maxWidth="sm" fullWidth>
         <MessageVideoRecorder channelId={channelId} currentUserId={currentUserId} />
+      </Dialog>
+
+      <Dialog open={openFileUpload} onClose={handleCloseFileUpload}>
+        <FileUploadForm onClose={handleCloseFileUpload}  channelId={channelId} />
       </Dialog>
     </>
   )

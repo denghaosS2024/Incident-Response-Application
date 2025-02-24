@@ -16,6 +16,8 @@
     "reinstall": "npm run clean && npm install"
   },
   "dependencies": {
+    "@base-ui-components/react": "^1.0.0-alpha.6",
+    "@google-cloud/storage": "^7.15.2",
     "concurrently": "^5.3.0"
   },
   "devDependencies": {
