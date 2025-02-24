@@ -2,8 +2,9 @@ name: Build
 
 on:
   push:
-    branches:
+    branches: 
       - master
+      
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -26,20 +27,22 @@ jobs:
       - name: Run Tests and Generate Coverage Report
         run: yarn test --coverage --coverageReporters=cobertura --coverageDirectory=coverage
 
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+
+
   sonarqube:
-    name: SonarQube
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Download Coverage Report
+        uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
-
-      - name: Install dependencies
-        run: yarn
-
-      - name: Run Tests and Generate Coverage Report
-        run: yarn jest --coverage --coverageReporters=cobertura --coverageDirectory=coverage
+          name: coverage
+          path: coverage/
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
@@ -50,6 +53,5 @@ jobs:
             -Dsonar.qualitygate.wait=false
             -Dsonar.projectKey=cmusv-sem_S25-SEM-Incident-Response-Application
             -Dsonar.organization=cmusv-sem
+            -Dsonar.sources=.
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-      - name: Ignore SonarQube Failure
-        run: echo "Ignoring SonarQube Failure" || true
