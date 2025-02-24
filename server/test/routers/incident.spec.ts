@@ -34,16 +34,13 @@ describe('Router - Incident', () => {
     });
 
     it('should get active incident for user', async () => {
-        // Create incident first
-        const { body: createdIncident } = await create();
-
         // Get active incident
         const { body: activeIncident } = await request(app)
             .get(`/api/incidents/${username}/active`)
             .expect(200);
 
         expect(activeIncident).toMatchObject({
-            incidentId: createdIncident.incidentId,
+            incidentId: "ITest",
             caller: username,
             incidentState: 'Waiting'
         });
@@ -56,12 +53,10 @@ describe('Router - Incident', () => {
     });
 
     it('should update incident chat group', async () => {
-        // Create incident first
-        const { body: incident } = await create();
         const channelId = new Types.ObjectId();
 
         const { body: updatedIncident } = await request(app)
-            .put(`/api/incidents/${incident.incidentId}/chat-group`)
+            .put(`/api/incidents/ITest/chat-group`)
             .send({ channelId: channelId.toString() })
             .expect(200);
 
