@@ -8,6 +8,10 @@ import User from '../models/User'
 import Message from '../models/Message'
 import UserConnections from '../utils/UserConnections'
 
+import { Storage } from '@google-cloud/storage'
+import dotenv from 'dotenv'
+dotenv.config()
+
 class ChannelController {
   /**
    * Create a new channel or return an existing one if it already exists
@@ -256,7 +260,55 @@ class ChannelController {
     return {message, phoneNumber: receiverPhoneNumber};
   }
 
-  
+  /**
+   * Generate a signed URL for uploading a video to Google Cloud Storage.
+   * @param channelId - The ID of the channel to upload the video to.
+   * @returns An object containing the signed URL and the file URL.
+   * @throws Error if the channel is not found.
+   * 
+   */
+  getVideoUploadUrl = async (
+    channelId: Types.ObjectId, 
+  ) => {
+    // Retrieve the channel from the database
+    const channel = await Channel.findById(channelId).exec()
+    if (!channel) {
+      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
+    }
+    
+    // Initialize Google Cloud Storage
+    const storage = new Storage({
+      projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
+      keyFilename: process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
+    })
+
+    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
+    // Generate a unique file name for the video (using channelId and current timestamp)
+    const fileName = `videos/${channelId}/${Date.now()}.webm`
+    const bucket = storage.bucket(bucketName)
+    const file = bucket.file(fileName)
+
+    // Set the signed URL to expire in 15 minutes
+    const expires = Date.now() + 15 * 60 * 1000
+
+    try {
+      // Generate a signed URL that allows a PUT request for the video upload
+      const [uploadUrl] = await file.getSignedUrl({
+        version: 'v4',
+        action: 'write',
+        expires,
+        contentType: 'video/webm',
+      })
+      
+      // Construct the public URL for accessing the video after upload
+      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`
+      
+      return { uploadUrl, fileUrl }
+    } catch (error) {
+      console.error('Error generating signed URL:', error)
+      return { error: 'Error generating signed URL' }
+    }
+  }
 }
 
 export default new ChannelController()

@@ -288,3 +288,55 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+
+  /**
+   * @swagger
+   * /api/channels/{id}/video-upload-url:
+   *   get:
+   *     summary: Get a signed URL for uploading a video to a channel.
+   *     tags: [Channels]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: header
+   *         name: x-application-uid
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the user uploading the video.
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the channel.
+   *     responses:
+   *       200:
+   *         description: The signed URL for uploading the video.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 uploadUrl:
+   *                   type: string
+   *                   description: The signed URL for uploading the video.
+   *                 fileUrl:
+   *                   type: string
+   *                   description: The URL to access the uploaded video.
+   *       404:
+   *         description: Sender or channel not found.
+   */
+  .get('/:id/video-upload-url', async(request, response) => {
+    const channelId = new Types.ObjectId(request.params.id)
+
+    try {
+      const uploadUrl = await ChannelController.getVideoUploadUrl(
+        channelId,
+      )
+      response.send(uploadUrl)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).send({ message: error.message })
+    }
+  })
