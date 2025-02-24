@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styles from '../styles/ChatRoomPage.module.css'
 import MessageCallOptions from '../components/MessageCallOptions'
+import MessageAttachmentOptions from '../components/MessageAttachmentOptions'
 
 // ChatRoomPage component: Displays messages for a specific channel and allows sending new messages
 const ChatRoomPage: React.FC = () => {
@@ -73,9 +74,14 @@ const ChatRoomPage: React.FC = () => {
         <Box display="flex">
           <Box display="flex">
             {/* Attach file button */}
-            <IconButton color="primary">
+            {/* <IconButton color="primary"> */}
+{/*             
               <AttachFile />
-            </IconButton>
+            </IconButton> */}
+            <MessageAttachmentOptions 
+              channelId={channelId} 
+              currentUserId={currentUserId}
+            />
             {/* phone/video call button */}
             <MessageCallOptions
               channelId={channelId}
