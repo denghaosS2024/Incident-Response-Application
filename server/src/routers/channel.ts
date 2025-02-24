@@ -271,23 +271,24 @@ export default Router()
    * @returns {string, string} The message indicating the call is being made and phone number to call
    * @throws {404} If the channel is not found
    */
-  .post('/:id/phone-call', async (request, response) => {
-    const senderId = new Types.ObjectId(
-      request.headers['x-application-uid'] as string,
-    )
-    const channelId = new Types.ObjectId(request.params.id)
+  // Currently waiting for the implementation of adding phone number in the profile page
+  // .post('/:id/phone-call', async (request, response) => {
+  //   const senderId = new Types.ObjectId(
+  //     request.headers['x-application-uid'] as string,
+  //   )
+  //   const channelId = new Types.ObjectId(request.params.id)
 
-    try {
-      const result = await ChannelController.makePhoneCall(
-        channelId,
-        senderId,
-      )
-      response.send(result)
-    } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
-    }
-  })
+  //   try {
+  //     const result = await ChannelController.makePhoneCall(
+  //       channelId,
+  //       senderId,
+  //     )
+  //     response.send(result)
+  //   } catch (e) {
+  //     const error = e as Error
+  //     response.status(404).send({ message: error.message })
+  //   }
+  // })
 
   /**
    * @swagger
