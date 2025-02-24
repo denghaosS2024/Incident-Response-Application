@@ -16,7 +16,9 @@
     "reinstall": "npm run clean && npm install"
   },
   "dependencies": {
-    "concurrently": "^5.3.0"
+    "@base-ui-components/react": "^1.0.0-alpha.6",
+    "concurrently": "^5.3.0",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

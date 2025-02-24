@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styles from '../styles/ChatRoomPage.module.css'
 import MessageCallOptions from '../components/MessageCallOptions'
+import VoiceRecorder from '../components/VoiceRecorder'
 
 // ChatRoomPage component: Displays messages for a specific channel and allows sending new messages
 const ChatRoomPage: React.FC = () => {
@@ -78,6 +79,10 @@ const ChatRoomPage: React.FC = () => {
             </IconButton>
             {/* phone/video call button */}
             <MessageCallOptions
+              channelId={channelId}
+              currentUserId={currentUserId}
+            />
+            <VoiceRecorder 
               channelId={channelId}
               currentUserId={currentUserId}
             />

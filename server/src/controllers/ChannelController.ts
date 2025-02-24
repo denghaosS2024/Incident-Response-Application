@@ -255,6 +255,8 @@ class ChannelController {
     })
     return {message, phoneNumber: receiverPhoneNumber};
   }
+
+  
 }
 
 export default new ChannelController()
