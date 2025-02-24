@@ -6,6 +6,7 @@ import Step3Form, { IProps } from '../components/Step3Form';
 import IIncident from '../models/Incident';
 import { SelectChangeEvent } from '@mui/material';
 import { usePersistantState } from '../hooks/usePersistantState';
+import Reach911Step1 from '../components/Reach911Step1';
 
 
 const Reach911Page: React.FC = () => {
@@ -40,9 +41,11 @@ const Reach911Page: React.FC = () => {
     };
 
     const contents = [
+        <Reach911Step1 />,
         <Step3Form formData={formData} onChange={handleChange} />
+        // add the following steps here
     ];
-    
+
     const handleNextStep = (): void => {
         if (activeStep < contents.length - 1) {
             setActiveStep(activeStep + 1);

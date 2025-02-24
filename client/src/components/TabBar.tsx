@@ -6,9 +6,9 @@ import { Link, useLocation } from 'react-router-dom'
 export type Link = {
   prefix: string
   key: string
-  icon: JSX.Element
+  icon: React.JSX.Element
   // use selectedIcon to use custom icons not available in materil ui
-  selectedIcon?: JSX.Element
+  selectedIcon?: React.JSX.Element
   to: string
   onClick?: () => void
 }
