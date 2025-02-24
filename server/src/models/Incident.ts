@@ -1,16 +1,19 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, Types } from 'mongoose'
 
 export interface IIncident extends Document {
-    incidentId: string,
-    caller: string,
-    openingDate: Date,
-    incidentState: string,
+    incidentId: string;
+    caller: string;
+    openingDate: Date;
+    incidentState:'Waiting' | 'Triage' | 'Assigned' | 'Closed'; 
     /*
      TODO in the future: when the app is deployed we can create reserved user System
      and replace String with type of User (same with commander)
      */
-    owner: string,
-    commander: string
+    owner: string;
+    commander: string;
+
+    // Step 4
+    incidentCallGroup?: Types.ObjectId;  // Reference to Channel model
 }
 
 const IncidentSchema = new Schema(
@@ -31,7 +34,7 @@ const IncidentSchema = new Schema(
         incidentState: {
             type: String,
             required: true,
-            enum: ['Waiting'],
+            enum: ['Waiting', 'Triage', 'Assigned', 'Closed'],
             default: 'Waiting',
         },
         owner: {
@@ -43,6 +46,11 @@ const IncidentSchema = new Schema(
             type: String,
             required: true,
             default: "System"
+        },
+        incidentCallGroup: {
+            type: Schema.Types.ObjectId,
+            ref: 'Channel',
+            required: false
         },
     },
 )

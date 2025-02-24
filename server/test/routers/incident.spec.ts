@@ -1,7 +1,8 @@
-import request from 'supertest'
+import request from 'supertest';
+import { Types } from 'mongoose';
 
-import app from '../../src/app'
-import * as TestDatabase from '../utils/TestDatabase'
+import app from '../../src/app';
+import * as TestDatabase from '../utils/TestDatabase';
 
 describe('Router - Incident', () => {
     beforeAll(TestDatabase.connect)
@@ -17,7 +18,7 @@ describe('Router - Incident', () => {
     }
 
     it('can create a new incident', async () => {
-        const { body: incident } = await create().expect(200)
+        const { body: incident } = await create().expect(201) // HTTP code for Created should be 201
 
         expect(incident).toMatchObject({
             incidentId: "ITest",
@@ -26,11 +27,57 @@ describe('Router - Incident', () => {
             owner: "System",
             commander: "System"
         })
-    })
+    });
 
     it('will not allow to create a duplicate incident', async () => {
         await create().expect(400)
-    })
+    });
+
+    it('should get active incident for user', async () => {
+        // Get active incident
+        const { body: activeIncident } = await request(app)
+            .get(`/api/incidents/${username}/active`)
+            .expect(200);
+
+        expect(activeIncident).toMatchObject({
+            incidentId: "ITest",
+            caller: username,
+            incidentState: 'Waiting'
+        });
+    });
+
+    it('should return 404 if no active incident found', async () => {
+        await request(app)
+            .get('/api/incidents/non-existent-user/active')
+            .expect(404);
+    });
+
+    it('should update incident chat group', async () => {
+        const channelId = new Types.ObjectId();
+
+        const { body: updatedIncident } = await request(app)
+            .put(`/api/incidents/ITest/chat-group`)
+            .send({ channelId: channelId.toString() })
+            .expect(200);
+
+        expect(updatedIncident.incidentCallGroup).toBe(channelId.toString());
+    });
+
+    it('should return 404 for non-existent incident', async () => {
+        await request(app)
+            .put('/api/incidents/non-existent/chat-group')
+            .send({ channelId: new Types.ObjectId().toString() })
+            .expect(404);
+    });
+
+    it('should return 400 for invalid channel ID', async () => {
+        const { body: incident } = await create();
+        
+        await request(app)
+            .put(`/api/incidents/${incident.incidentId}/chat-group`)
+            .send({ channelId: 'invalid-id' })
+            .expect(400);
+    });
 
     afterAll(TestDatabase.close)
 })

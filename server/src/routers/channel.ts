@@ -340,3 +340,22 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+
+  .post('/:id/file-upload-url', async(request, response) => {
+    const channelId = new Types.ObjectId(request.params.id)
+    const fileName = request.body.fileName
+    const fileType = request.body.fileType
+    const fileExtension = request.body.fileExtension
+    try {
+      const uploadUrl = await ChannelController.getFileUploadUrl(
+        channelId,
+        fileName,
+        fileType,
+        fileExtension
+      )
+      response.send(uploadUrl)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).send({ message: error.message })
+    }
+  })

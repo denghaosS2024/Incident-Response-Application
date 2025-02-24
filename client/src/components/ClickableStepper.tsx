@@ -1,11 +1,12 @@
 import React from 'react';
 import { Stepper, Step, StepLabel } from '@mui/material';
+import { IProps } from './Step3Form';
 
 interface IClickableStepperProps {
     numberOfSteps: number;
     activeStep: number;
     setActiveStep: (step: number) => void;
-    contents: string[];
+    contents: JSX.Element[];
 }
 
 const ClickableStepper: React.FC<IClickableStepperProps> = ({ numberOfSteps, activeStep, setActiveStep, contents }) => {

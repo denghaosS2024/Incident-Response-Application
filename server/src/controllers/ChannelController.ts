@@ -309,6 +309,45 @@ class ChannelController {
       return { error: 'Error generating signed URL' }
     }
   }
+
+ getFileUploadUrl = async (
+    channelId: Types.ObjectId,
+    fileName: string,
+    fileType: string,
+    fileExtension: string
+  ) => {
+    const channel = await Channel.findById(channelId).exec()
+    if (!channel) {
+      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
+    }
+
+    const storage = new Storage({
+      projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
+      keyFilename: process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
+    })
+
+    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
+    console.log(fileName)
+    const fileRoute = `uploads/${channelId}/${fileName}.${Date.now()}.${fileExtension}`
+    const bucket = storage.bucket(bucketName)
+    const file = bucket.file(fileRoute)
+
+    const expires = Date.now() + 15 * 60 * 1000
+
+    try {
+      const [uploadUrl] = await file.getSignedUrl({
+        version: 'v4',
+        action: 'write',
+        expires,
+        contentType: fileType,
+      })
+      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`
+      return { uploadUrl, fileUrl }
+    } catch (error) {
+      console.error('Error generating signed URL:', error)
+      return { error: 'Error generating signed URL' }
+    }
+  }
 }
 
 export default new ChannelController()
