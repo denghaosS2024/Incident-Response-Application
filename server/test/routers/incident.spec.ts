@@ -17,7 +17,7 @@ describe('Router - Incident', () => {
     }
 
     it('can create a new incident', async () => {
-        const { body: incident } = await create().expect(200)
+        const { body: incident } = await create().expect(201) // HTTP code for Created should be 201
 
         expect(incident).toMatchObject({
             incidentId: "ITest",
