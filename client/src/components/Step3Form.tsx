@@ -11,34 +11,27 @@ import {
     RadioGroup,
     FormControlLabel,
     Radio,
-    FormLabel
+    FormLabel,
+    SelectChangeEvent
 } from '@mui/material'
 
-import { NumberField } from '@base-ui-components/react/number-field';
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ConfirmationDialog from './common/ConfirmationDialog'
 import { getItem, setItem } from '../utils/localStorage';
 import { usePersistantState } from '../hooks/usePersistantState';
-
-export interface IStep3FormData {
-    username: string
-    age: number
-    sex: string
-    conscious: string  
-    isPatient: boolean
-    breathing: string
-    chiefComplaint: string
-}
+import exp from 'constants';
+import IIncident from '@/models/Incident';
 
 export interface IProps {
     /**
      * Function to call when the form is submitted
      */
-    onSubmit: (data: IStep3FormData) => void
+    formData: IIncident
+    onChange: (field: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => void;
 }
 
-const Step3Form: React.FC<IProps> = (props: IProps) => {
+const Step3Form: React.FC<IProps> = ({ formData, onChange }) => {
     const [isPatient, setIsPatient] = usePersistantState("isPatient", false)
 
     const [username, setUserName] = usePersistantState("username", 'Select One')
@@ -62,6 +55,7 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
         setConsciousError('')
         setChiefComplaintError('')
     }
+
     const onSubmitHandler = () => {
         clearError()
 
@@ -93,31 +87,19 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
         }
 
         if (!hasError) {
-            props.onSubmit({
-                username,
-                age,
-                sex,
-                isPatient,
-                conscious,
-                breathing,
-                chiefComplaint
-            })
+            // props.onSubmit({
+            //     username,
+            //     age,
+            //     sex,
+            //     isPatient,
+            //     conscious,
+            //     breathing,
+            //     chiefComplaint
+            // })
+
         }
     }
 
-    // const handleDialogConfirm = () => {
-    //     setOpenDialog(false)
-    //     props.onSubmit({
-    //         username,
-    //         password,
-    //         phoneNumber,
-    //         role,
-    //     })
-    // }
-
-    // const handleDialogCancel = () => {
-    //     setOpenDialog(false)
-    // }
     return (
         <>
             <Box
@@ -128,7 +110,14 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
             >
 
                 <Box width="100%" maxWidth="500px" my={2}>
-                    <FormControlLabel control={<Checkbox checked={isPatient} onChange={(e) => setIsPatient(e.target.checked)} />} label="I am the patient" />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={formData.isPatient}
+                                onChange={(e) => onChange("isPatient", e)}
+                            />}
+                        label="I am the patient"
+                    />
                 </Box>
 
                 <Box width="100%" maxWidth="500px" my={2}>
@@ -137,12 +126,12 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
                         <Select
                             labelId="username-label"
                             label="Username"
-                            value={username}
-                            onChange={(e) => setUserName(e.target.value as string)}
+                            value={formData.isPatient ? "User1" : formData.username }
+                            onChange={(e) => onChange("username", e)}
                             fullWidth
                         >
                             <MenuItem value="Select One">Select One</MenuItem>
-                            {isPatient && <MenuItem value="User1">User1</MenuItem>}
+                            {formData.isPatient && <MenuItem value="User1">User1</MenuItem>}
                             <MenuItem value="User2">User2</MenuItem>
                         </Select>
                         <FormHelperText>{usernameError}</FormHelperText>
@@ -153,7 +142,7 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
                         variant="outlined"
                         label="Age"
                         fullWidth
-                        value={age}
+                        value={formData.age}
                         type="number"
                         error={!!ageError}
                         helperText={ageError}
@@ -163,18 +152,18 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
                                 max: 110, min: 1
                             }
                         }}
-                        onChange={(e) => setAge(e.target.value as unknown as number)}
+                        onChange={(e) => onChange("age", e)}
                     />
                 </Box>
                 <Box width="100%" maxWidth="500px" my={2}>
-                    <FormControl> 
+                    <FormControl>
                         <FormLabel id="sex-label">Sex:</FormLabel>
                         <RadioGroup
                             row
                             aria-labelledby="sex-label"
                             name="sex-radio-buttons-group"
-                            value={sex}
-                            onChange={(e) => setSex(e.target.value)}
+                            value={formData.sex}
+                            onChange={(e) => onChange("sex", e)}
                         >
                             <FormControlLabel value="female" control={<Radio />} label="Female" />
                             <FormControlLabel value="male" control={<Radio />} label="Male" />
@@ -190,8 +179,8 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
                             row
                             aria-labelledby="conscious-label"
                             name="conscious-radio-buttons-group"
-                            value={conscious}
-                            onChange={(e) => setConscious(e.target.value)}
+                            value={formData.conscious}
+                            onChange={(e) => onChange("conscious", e)}
                         >
                             <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                             <FormControlLabel value="no" control={<Radio />} label="No" />
@@ -206,8 +195,8 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
                             row
                             aria-labelledby="breathing-label"
                             name="breathing-radio-buttons-group"
-                            value={breathing}
-                            onChange={(e) => setBreathing(e.target.value)}
+                            value={formData.breathing}
+                            onChange={(e) => onChange("breathing", e)}
                         >
                             <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                             <FormControlLabel value="no" control={<Radio />} label="No" />
@@ -221,13 +210,13 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
                         label="Chief Complaint"
                         fullWidth
                         multiline
-                        value={chiefComplaint}
+                        value={formData.chiefComplaint}
                         error={!!chiefComplaintError}
                         helperText={chiefComplaintError}
-                        onChange={(e) => setChiefComplaint(e.target.value)}
+                        onChange={(e) => onChange("chiefComplaint", e)}
                     />
                 </Box>
-                <Box width="100%" maxWidth="500px" my={2}>
+                {/* <Box width="100%" maxWidth="500px" my={2}>
                     <Button
                         variant="contained"
                         color="primary"
@@ -241,16 +230,8 @@ const Step3Form: React.FC<IProps> = (props: IProps) => {
                     >
                         Next
                     </Button>
-                </Box>
+                </Box> */}
             </Box>
-
-            {/* <ConfirmationDialog
-                open={openDialog}
-                title="Confirm Registration"
-                description={`Are you sure you want to create a new ${role} account?`}
-                onConfirm={handleDialogConfirm}
-                onCancel={handleDialogCancel}
-            /> */}
         </>
     )
 }
