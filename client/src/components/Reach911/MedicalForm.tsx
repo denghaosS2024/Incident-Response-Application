@@ -15,12 +15,8 @@ import {
     SelectChangeEvent
 } from '@mui/material'
 
-import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import ConfirmationDialog from './common/ConfirmationDialog'
-import { getItem, setItem } from '../utils/localStorage';
-import { usePersistantState } from '../hooks/usePersistantState';
-import exp from 'constants';
+import React, { useState } from 'react'
+import { usePersistantState } from '../../hooks/usePersistantState';
 import IIncident from '@/models/Incident';
 
 export interface IProps {
@@ -31,7 +27,7 @@ export interface IProps {
     onChange: (field: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => void;
 }
 
-const Step3Form: React.FC<IProps> = ({ formData, onChange }) => {
+const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
     const [isPatient, setIsPatient] = usePersistantState("isPatient", false)
 
     const [username, setUserName] = usePersistantState("username", 'Select One')
@@ -48,57 +44,57 @@ const Step3Form: React.FC<IProps> = ({ formData, onChange }) => {
     const [breathingError, setBreathingError] = useState<string>('');
     const [chiefComplaintError, setChiefComplaintError] = useState<string>('');
 
-    const clearError = () => {
-        setUserNameError('')
-        setAgeError('')
-        setSexError('')
-        setConsciousError('')
-        setChiefComplaintError('')
-    }
+    // const clearError = () => {
+    //     setUserNameError('')
+    //     setAgeError('')
+    //     setSexError('')
+    //     setConsciousError('')
+    //     setChiefComplaintError('')
+    // }
 
-    const onSubmitHandler = () => {
-        clearError()
+    // const onSubmitHandler = () => {
+    //     clearError()
 
-        let hasError = false
+    //     let hasError = false
 
-        if (!username || username === "Select One") {
-            setUserNameError('Select a username')
-            hasError = true
-        }
+    //     if (!username || username === "Select One") {
+    //         setUserNameError('Select a username')
+    //         hasError = true
+    //     }
 
-        if (age <= 0 || age > 110) {
-            setAgeError('Enter a value between 1 and 110')
-            hasError = true
-        }
+    //     if (age <= 0 || age > 110) {
+    //         setAgeError('Enter a value between 1 and 110')
+    //         hasError = true
+    //     }
 
-        if (!sex) {
-            setSexError('Sex can not be empty')
-            hasError = true
-        }
+    //     if (!sex) {
+    //         setSexError('Sex can not be empty')
+    //         hasError = true
+    //     }
 
-        if (!conscious) {
-            setConsciousError('Conscious state can not be empty')
-            hasError = true
-        }
+    //     if (!conscious) {
+    //         setConsciousError('Conscious state can not be empty')
+    //         hasError = true
+    //     }
 
-        if (!breathing) {
-            setBreathingError('Breathing state can not be empty')
-            hasError = true
-        }
+    //     if (!breathing) {
+    //         setBreathingError('Breathing state can not be empty')
+    //         hasError = true
+    //     }
 
-        if (!hasError) {
-            // props.onSubmit({
-            //     username,
-            //     age,
-            //     sex,
-            //     isPatient,
-            //     conscious,
-            //     breathing,
-            //     chiefComplaint
-            // })
+    //     if (!hasError) {
+    //         // props.onSubmit({
+    //         //     username,
+    //         //     age,
+    //         //     sex,
+    //         //     isPatient,
+    //         //     conscious,
+    //         //     breathing,
+    //         //     chiefComplaint
+    //         // })
 
-        }
-    }
+    //     }
+    // }
 
     return (
         <>
@@ -126,7 +122,7 @@ const Step3Form: React.FC<IProps> = ({ formData, onChange }) => {
                         <Select
                             labelId="username-label"
                             label="Username"
-                            value={formData.isPatient ? "User1" : formData.username }
+                            value={formData.isPatient ? "User1" : formData.username}
                             onChange={(e) => onChange("username", e)}
                             fullWidth
                         >
@@ -236,4 +232,4 @@ const Step3Form: React.FC<IProps> = ({ formData, onChange }) => {
     )
 }
 
-export default Step3Form
+export default MedicalForm

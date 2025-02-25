@@ -19,11 +19,11 @@ export default Router()
    * @throws {400} If the username already exists or other validation errors occur
    */
   .post('/', async (request, response) => {
-    const { username, password, phoneNumber, role = ROLES.CITIZEN } = request.body
+    const { username, password, role = ROLES.CITIZEN } = request.body
 
     try {
       const user = (
-        await UserController.register(username, password, phoneNumber, role)
+        await UserController.register(username, password, role)
       ).toObject()
 
       // Remove sensitive information before sending the response

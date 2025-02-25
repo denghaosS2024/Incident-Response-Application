@@ -17,7 +17,7 @@ const SALT_WORK_FACTOR = 10
 export interface IUser extends Document {
   username: string
   password?: string
-  phoneNumber: string
+  // phoneNumber?: string
   role: string
 
   comparePassword: (candidatePassword: string) => Promise<boolean>
@@ -35,7 +35,7 @@ const UserSchema = new Schema<IUser>({
     },
   },
   password: { type: String, required: true, select: false },
-  phoneNumber: { type: String, required: true },
+  // phoneNumber: { type: String, required: true },
   role: { type: String, required: true, default: ROLES.CITIZEN },
   __v: { type: Number, select: false },
 })

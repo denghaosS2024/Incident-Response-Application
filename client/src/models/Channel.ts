@@ -7,7 +7,10 @@ import IUser from './User'
  */
 export default interface IChannel {
   _id: string // Unique identifier for the channel
-  name?: string // Optional name of the channel
+  name: string // Name of the channel
+  deacription?: string // Optional: Description of the channel
+  owner: IUser // User object representing the owner of the channel
+  closed: boolean // Indicates if the channel is closed or not
   users: IUser[] // Array of users participating in the channel
 }
 

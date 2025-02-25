@@ -10,14 +10,13 @@ import * as Token from '../../src/utils/Token'
 describe('Router - Login', () => {
   const username = 'some-username'
   const password = 'some-password'
-  const phoneNumber = '1234567890'
   const role = ROLES.POLICE
   let user: IUser
 
   beforeAll(async () => {
     await TestDatabase.connect()
 
-    user = await UserController.register(username, password, phoneNumber, role)
+    user = await UserController.register(username, password, role)
   })
 
   it('rejects invalid username', async () => {

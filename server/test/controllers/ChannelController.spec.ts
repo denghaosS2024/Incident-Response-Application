@@ -20,9 +20,9 @@ describe('Channel controller', () => {
   beforeAll(async () => {
     TestDatabase.connect()
 
-    userA = await UserController.register('Channel-User-A', 'password-A', '1234567890')
-    userB = await UserController.register('Channel-User-B', 'password-B', '0987654321')
-    userC = await UserController.register('Channel-User-C', 'password-C', '1357924680')
+    userA = await UserController.register('Channel-User-A', 'password-A')
+    userB = await UserController.register('Channel-User-B', 'password-B')
+    userC = await UserController.register('Channel-User-C', 'password-C')
   })
 
   it('will not allow to create the public channel manually', async () => {
@@ -112,30 +112,30 @@ describe('Channel controller', () => {
     expect(socketA.emit).not.toHaveBeenCalled()
   })
 
-  it('should make a phone call between two users and notify the other user', async () => {
-    // Mock socket connections for notifications
-    const socketA = mock<SocketIO.Socket>();
-    const socketB = mock<SocketIO.Socket>();
+  // it('should make a phone call between two users and notify the other user', async () => {
+  //   // Mock socket connections for notifications
+  //   const socketA = mock<SocketIO.Socket>();
+  //   const socketB = mock<SocketIO.Socket>();
   
-    UserConnections.addUserConnection(userA.id, socketA);
-    UserConnections.addUserConnection(userB.id, socketB);
+  //   UserConnections.addUserConnection(userA.id, socketA);
+  //   UserConnections.addUserConnection(userB.id, socketB);
   
-    // Create a direct message channel between userA and userB
-    const privateChannel = await ChannelController.create({
-      userIds: [userA._id, userB._id],
-    });
+  //   // Create a direct message channel between userA and userB
+  //   const privateChannel = await ChannelController.create({
+  //     userIds: [userA._id, userB._id],
+  //   });
   
-    const result = await ChannelController.makePhoneCall(privateChannel._id, userA._id);
+  //   const result = await ChannelController.makePhoneCall(privateChannel._id, userA._id);
   
-    expect(result.message.content).toBe(`Phone call started now between ${userA.username} and ${userB.username}.`);
-    expect(result.message.sender._id).toEqual(userA._id);
-    expect(result.message.channelId).toEqual(privateChannel._id);
+  //   expect(result.message.content).toBe(`Phone call started now between ${userA.username} and ${userB.username}.`);
+  //   expect(result.message.sender._id).toEqual(userA._id);
+  //   expect(result.message.channelId).toEqual(privateChannel._id);
   
-    expect(result.phoneNumber).toBe(userB.phoneNumber);
+  //   expect(result.phoneNumber).toBe(userB.phoneNumber);
   
-    expect(socketB.emit).toHaveBeenCalledWith('new-message', result.message);
-    expect(socketA.emit).not.toHaveBeenCalled(); 
-  });
+  //   expect(socketB.emit).toHaveBeenCalledWith('new-message', result.message);
+  //   expect(socketA.emit).not.toHaveBeenCalled(); 
+  // });
   
   afterAll(TestDatabase.close)
 })

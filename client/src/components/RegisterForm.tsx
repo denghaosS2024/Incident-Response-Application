@@ -15,7 +15,6 @@ import ConfirmationDialog from './common/ConfirmationDialog'
 export interface IFormData {
   username: string
   password: string
-  phoneNumber: string
   role: string
 }
 
@@ -31,11 +30,9 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
   const [password, setPassword] = useState<string>('')
   const [role, setRole] = useState<string>('')
   const [confirmPassword, setConfirmPassword] = useState<string>('')
-  const [phoneNumber, setPhoneNumber] = useState<string>('')
   const [usernameError, setUserNameError] = useState<string>('')
   const [passwordError, setPasswordError] = useState<string>('')
   const [confirmPasswordError, setConfirmPasswordError] = useState<string>('')
-  const [phoneNumberError, setPhoneNumberError] = useState<string>('')
   const [roleError, setRoleError] = useState<string>('')
   const [openDialog, setOpenDialog] = useState(false)
 
@@ -85,7 +82,6 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
     props.onSubmit({
       username,
       password,
-      phoneNumber,
       role,
     })
   }
@@ -134,17 +130,6 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
             error={!!confirmPasswordError}
             helperText={confirmPasswordError}
             onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-        </Box>
-        <Box width="100%" maxWidth="500px" my={2}>
-          <TextField
-            variant="outlined"
-            label="Phone Number"
-            fullWidth
-            value={phoneNumber}
-            error={!!phoneNumberError}
-            helperText={phoneNumberError}
-            onChange={(e) => setPhoneNumber(e.target.value)}
           />
         </Box>
         <Box width="100%" maxWidth="500px" my={2}>
