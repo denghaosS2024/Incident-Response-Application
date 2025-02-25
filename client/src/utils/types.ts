@@ -40,3 +40,30 @@ export interface RootState {
   messageState: MessagesState
   contactState: ContactsState
 }
+
+/**
+ * Interface representing the medical questions
+ */
+export interface MedicalQuestions {
+  isPatient: boolean // Whether or not he incident creator is the patient
+  username: string // The Username of the patient
+  age: number // The age of the patient
+  sex: string // The sex of the patient
+  conscious: string // The conscious state of the patient
+  breathing: string // The breathing state of the patient
+  chiefComplaint: string // The chief complain of the patient
+}
+
+/**
+ * Interface representing the medical questions
+ */
+export interface FireQuestions {
+  isPatient: boolean // Whether or not he incident creator is the patient
+  username: string // The Username of the patient
+  age: number // The age of the patient
+  sex: string // The sex of the patient
+  conscious: string // The conscious state of the patient
+  breathing: string // The breathing state of the patient
+  chiefComplaint: string // The chief complain of the patient
+}
+
