@@ -310,7 +310,7 @@ class ChannelController {
     }
   }
 
- getFileUploadUrl = async (
+  getFileUploadUrl = async (
     channelId: Types.ObjectId,
     fileName: string,
     fileType: string,
@@ -346,6 +346,43 @@ class ChannelController {
     } catch (error) {
       console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
+    }
+  }
+
+  getVoiceUploadUrl = async (
+    channelId: Types.ObjectId,
+    fileName: string
+  ) => {
+    const channel = await Channel.findById(channelId).exec();
+    if (!channel) {
+      throw new Error(`Channel(${channelId.toHexString()}) not found.`);
+    }
+  
+    const storage = new Storage({
+      projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
+      keyFilename: process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
+    });
+  
+    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name';
+    const fileExtension = 'webm';
+    const fileRoute = `voice_messages/${channelId}/${fileName}.${Date.now()}.${fileExtension}`;
+    const bucket = storage.bucket(bucketName);
+    const file = bucket.file(fileRoute);
+  
+    const expires = Date.now() + 15 * 60 * 1000;
+  
+    try {
+      const [uploadUrl] = await file.getSignedUrl({
+        version: 'v4',
+        action: 'write',
+        expires,
+        contentType: 'audio/webm',
+      });
+      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`;
+      return { uploadUrl, fileUrl };
+    } catch (error) {
+      console.error('Error generating signed URL:', error);
+      return { error: 'Error generating signed URL' };
     }
   }
 }

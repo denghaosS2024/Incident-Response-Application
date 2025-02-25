@@ -359,3 +359,18 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+
+  .post('/:id/voice-upload-url', async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id);
+    const fileName = request.body.fileName;
+    try {
+      const uploadUrl = await ChannelController.getVoiceUploadUrl(
+        channelId,
+        fileName
+      );
+      response.send(uploadUrl);
+    } catch (e) {
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
+    }
+  });

@@ -1,14 +1,17 @@
 import React, { useState, useRef } from "react";
 import { IconButton } from "@mui/material";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
-import request from '../utils/request'
+import request from '../utils/request';
+import { useDispatch } from 'react-redux'
+import { addMessage } from '../features/messageSlice'
+
 
 interface VoiceRecorderProps {
   channelId: string;
-  currentUserId: string;
 }
 
-const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ channelId, currentUserId }) => {
+const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ channelId }) => {
+  const dispatch = useDispatch()
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -25,6 +28,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ channelId, currentUserId 
 
     mediaRecorder.onstop = async () => {
       const blob = new Blob(chunks, { type: "audio/webm" });
+      console.log(blob);
       setAudioBlob(blob);
       await uploadAudio(blob);
     };
@@ -46,22 +50,41 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ channelId, currentUserId 
 
   const uploadAudio = async (blob: Blob) => {
     console.log("Uploading audio...");
-    const formData = new FormData();
-    formData.append("file", blob, "recording.webm");
-
     try {
-      const response = await request(`/api/channels/${channelId}/voice-message`, {
+      const { uploadUrl, fileUrl } = await request(`/api/channels/${channelId}/voice-upload-url`, {
         method: "POST",
-        headers: {
-          "x-application-uid": currentUserId,
-        },
-        body: formData,
+        body: JSON.stringify({ fileName: "recording" }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to upload audio");
+      console.log('Uploading file to:', uploadUrl);
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'audio/webm',
+        },
+        body: blob,
+      });
+  
+      if (!uploadResponse.ok) {
+        throw new Error('Upload failed');
       }
-      console.log("Audio uploaded successfully");
+
+      const message = await request(
+        `/api/channels/${channelId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: fileUrl,
+          }),
+        }
+      );
+  
+      dispatch(addMessage(message));
+      console.log('File uploaded successfully:', fileUrl);
     } catch (error) {
       console.error("Error uploading audio:", error);
     }
@@ -71,9 +94,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ channelId, currentUserId 
     <IconButton onClick={isRecording ? stopRecording : startRecording} color="primary">
       <KeyboardVoiceIcon />
     </IconButton>
-
-    // Test purpose playback
-    // <audio ref={audioRef} controls style={{ display: 'none' }} />
   );
 };
 

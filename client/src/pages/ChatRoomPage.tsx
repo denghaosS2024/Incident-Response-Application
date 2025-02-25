@@ -90,7 +90,6 @@ const ChatRoomPage: React.FC = () => {
             />
             <VoiceRecorder 
               channelId={channelId}
-              currentUserId={currentUserId}
             />
           </Box>
           <Box flexGrow={1}>
