@@ -21,11 +21,15 @@ export const Default: Story = {
       {
         _id: 'id-1',
         name: 'Public',
+        owner: { _id: 'id-1', username: 'UserA', role: 'Admin' },
+        closed: false,
         users: [],
       },
       {
         _id: 'id-2',
         name: 'UserB',
+        owner: { _id: 'id-2', username: 'UserB', role: 'Admin' },
+        closed: false,
         users: [],
       },
     ],
