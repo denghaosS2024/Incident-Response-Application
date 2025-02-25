@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: 
+    branches:
       - master
-      
+
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -17,13 +17,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Print Current Directory
         run: pwd
-  
+
       - name: Debug Root Directory
         run: ls -la /
-  
+
       - name: Debug Workspace Directory
         run: ls -la ${{ github.workspace }}
 
@@ -55,7 +55,7 @@ jobs:
         with:
           name: coverage
           path: coverage/
-      
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -76,3 +76,15 @@ jobs:
             -Dsonar.projectBaseDir=${{ github.workspace }}
             -Dsonar.sources=server
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+
+  deploy:
+    needs: sonarqube
+    name: Deploy Client & Server
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' # Only deploy on master branch
+    steps:
+      - name: Deploy Server
+        run: curl "https://api.render.com/deploy/srv-curdjvjqf0us73fijapg?key=JcOMQ1ytI9c"
+      - name: Deploy Client
+        run: curl "https://api.render.com/deploy/srv-cuuarthopnds739vidb0?key=g7rBrnrhQIk"
