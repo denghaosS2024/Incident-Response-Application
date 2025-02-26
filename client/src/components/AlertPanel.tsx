@@ -74,10 +74,15 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ role }) => {
   }
 
   return (
-    <Box sx={{backgroundColor: "white", borderRadius: 2 }}>
-      <Grid container rowSpacing={1} columnSpacing={1}>
+    <Box sx={{backgroundColor: "white", borderRadius: 2, width: "min(100%, 600px)"}}>
+      <Grid container rowSpacing={1} columnSpacing={1} sx={{
+          maxWidth: "600px", 
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)", 
+          gridTemplateRows: "repeat(3, 1fr)", 
+        }}>
         {alerts.map((alert) => (
-          <Grid item xs={4} key={alert.label}>
+          <Grid item key={alert.label} sx={{ display: "flex" }}>
             <AlertButton label={alert.label} bgColor={alert.bgColor} textColor={alert.textColor} />
           </Grid>
         ))}

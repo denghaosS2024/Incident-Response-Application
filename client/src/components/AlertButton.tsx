@@ -11,10 +11,14 @@ const AlertButton: React.FC<AlertButtonProps> = ({ label, bgColor, textColor = "
     <Button
       variant="contained"
       sx={{
-        width: 120,
-        height: 120,
+        width: "100%", // Ensures buttons take up full width of container
+        minWidth: "80px", // Prevents buttons from becoming too small
+        minHeight: "80px",
+        aspectRatio: "1 / 1", // Ensures buttons remain square
         backgroundColor: bgColor,
         color: textColor,
+        justifyContent: "center",
+        alignItems: "center",
         "&:hover": { backgroundColor: bgColor }, // Keep hover color the same
       }}
     >
