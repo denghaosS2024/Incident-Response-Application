@@ -11,6 +11,8 @@ describe('Router - User', () => {
   const password = 'some-password'
   const role = ROLES.POLICE
 
+  let userId: string
+
   const register = () => {
     return request(app)
       .post('/api/users')
@@ -29,6 +31,7 @@ describe('Router - User', () => {
       username,
       role,
     })
+    userId = user._id
     expect(user).not.toHaveProperty('password')
     expect(user).not.toHaveProperty('__v')
   })
