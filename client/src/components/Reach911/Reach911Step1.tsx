@@ -20,10 +20,10 @@ const Reach911Step1 = () => {
                     </Box>
                 </div>
             </div>
-            <p className={styles.flexCenter}>
+            <div className={styles.flexCenter}>
                 <p>PLACEHOLDER FOR MAP</p>
                 Refine position by pressing the incident icon
-            </p>
+            </div>
         </div>
     );
 };

@@ -5,11 +5,23 @@ import { store } from './app/store'
 
 import './styles/index.css'
 
-const domNode = document.getElementById('root') as HTMLElement
-const root = createRoot(domNode)
+// LaunchDarkly for feature management
+import { asyncWithLDProvider } from 'launchdarkly-react-client-sdk';
 
-root.render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
-)
+(async () => {
+  const LDProvider = await asyncWithLDProvider({
+    clientSideID: process.env.REACT_APP_LAUNCHDARKLY_SDK_KEY as string,
+  });
+
+  const domNode = document.getElementById('root') as HTMLElement
+  const root = createRoot(domNode)
+
+  root.render(
+    <LDProvider>
+      <Provider store={store}>
+        <App />
+      </Provider>,
+    </LDProvider>
+
+  )
+})();
