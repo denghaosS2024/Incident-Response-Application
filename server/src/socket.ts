@@ -40,6 +40,10 @@ class Socket {
         }
       })
 
+      socket.on('send-mayday', (data) => {
+        socket.broadcast.emit('send-mayday', data);
+      });
+
       // Handle user disconnection
       socket.on('disconnect', () => {
         const uid = UserConnections.getConnectedUsers().find(

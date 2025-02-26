@@ -39,7 +39,21 @@ class SocketClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on(eventName: string, listener: (...args: any[]) => void) {
     if (this.socket) {
+      // console.log('Listening:', eventName);
       this.socket.on(eventName, listener)
+    }
+  }
+
+  off(eventName: string) {
+    if (this.socket) {
+      this.socket.off(eventName);
+    }
+  }
+
+  emit(eventName: string, data: any) {
+    if (this.socket) {
+      // console.log('Emitting:', eventName, data);
+      this.socket.emit(eventName, data);
     }
   }
 
