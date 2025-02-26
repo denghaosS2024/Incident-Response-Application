@@ -6,6 +6,7 @@ import {
   PermContactCalendar,
   Phone,
   AttachFile,
+  Warning,
 } from '@mui/icons-material'
 
 const meta = {
@@ -79,5 +80,12 @@ export const FileButton: Story = {
   args: {
     size: 'medium',
     children: <AttachFile />,
+  },
+}
+
+export const WarningButton: Story = {
+  args: {
+    size: 'medium',
+    children: <Warning />,
   },
 }

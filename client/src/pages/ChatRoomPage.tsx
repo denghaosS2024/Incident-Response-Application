@@ -1,5 +1,5 @@
 import { Grid, Box, IconButton } from '@mui/material'
-import { AttachFile } from '@mui/icons-material'
+import { AttachFile, Message } from '@mui/icons-material'
 import React, { useEffect, useState } from 'react'
 import MessageInput from '../components/MessageInput'
 import MessageList from '../components/MessageList'
@@ -15,6 +15,7 @@ import styles from '../styles/ChatRoomPage.module.css'
 import MessageCallOptions from '../components/MessageCallOptions'
 import MessageAttachmentOptions from '../components/MessageAttachmentOptions'
 import VoiceRecorder from '../components/VoiceRecorder'
+import MessageAlertOptions from '../components/MessageAlertOptions'
 
 // ChatRoomPage component: Displays messages for a specific channel and allows sending new messages
 const ChatRoomPage: React.FC = () => {
@@ -22,6 +23,8 @@ const ChatRoomPage: React.FC = () => {
   const channelId = useLocation().pathname.split('/')[2]
   // Retrieve current user ID
   const currentUserId = localStorage.getItem('uid') || ''
+  // Retrieve current user role
+  const currentUserRole = localStorage.getItem('role') || ''
   // Get messages for the current channel from Redux store
   const messages = useSelector(
     (state: RootState) => state.messageState.messages,
@@ -90,6 +93,11 @@ const ChatRoomPage: React.FC = () => {
             />
             <VoiceRecorder 
               channelId={channelId}
+            />
+            <MessageAlertOptions
+              channelId={channelId}
+              currentUserId={currentUserId}
+              currentUserRole={currentUserRole}
             />
           </Box>
           <Box flexGrow={1}>

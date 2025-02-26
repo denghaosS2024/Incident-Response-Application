@@ -76,6 +76,12 @@ import Channel from '../models/Channel'
  *                 type: array
  *                 items:
  *                   type: string
+ *               description:
+ *                type: string
+ *               owner:
+ *                type: string
+ *               closed:
+ *                type: boolean
  *     responses:
  *       200:
  *         description: The created channel
@@ -113,20 +119,30 @@ export default Router()
    * Create a new channel
    * @route POST /api/channels
    * @param {Object} request.body
-   * @param {string} [request.body.name] - Optional name for the channel
+   * @param {string} [request.body.name] - Name for the channel
    * @param {string[]} request.body.users - Array of user IDs to be added to the channel
+   * @param {string} [request.body.description] - Optional description for the channel
+   * @param {string} [request.body.owner] - Optional owner ID of the channel
+   * @param {boolean} [request.body.closed] - Flag indicating if the channel is closed
    * @returns {Object} The created or existing channel object
    * @throws {400} If trying to create a channel with the public channel name
    */
   .post('/', async (request, response) => {
-    const { name, users } = request.body as {
-      name?: string
+    const { name, users, description, owner, closed } = request.body as {
+      name: string
       users: string[]
+      description?: string
+      owner?: string
+      closed?: boolean
     }
     try {
+      console.log(request.body)
       const channel = await ChannelController.create({
         name,
         userIds: users.map((userId) => new Types.ObjectId(userId)),
+        description: description,
+        ownerId: owner ? new Types.ObjectId(owner) : undefined,
+        closed: closed,
       })
 
       response.send(channel)
@@ -271,24 +287,6 @@ export default Router()
    * @returns {string, string} The message indicating the call is being made and phone number to call
    * @throws {404} If the channel is not found
    */
-  // Currently waiting for the implementation of adding phone number in the profile page
-  // .post('/:id/phone-call', async (request, response) => {
-  //   const senderId = new Types.ObjectId(
-  //     request.headers['x-application-uid'] as string,
-  //   )
-  //   const channelId = new Types.ObjectId(request.params.id)
-
-  //   try {
-  //     const result = await ChannelController.makePhoneCall(
-  //       channelId,
-  //       senderId,
-  //     )
-  //     response.send(result)
-  //   } catch (e) {
-  //     const error = e as Error
-  //     response.status(404).send({ message: error.message })
-  //   }
-  // })
 
   /**
    * @swagger
@@ -328,13 +326,11 @@ export default Router()
    *       404:
    *         description: Sender or channel not found.
    */
-  .get('/:id/video-upload-url', async(request, response) => {
+  .get('/:id/video-upload-url', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
 
     try {
-      const uploadUrl = await ChannelController.getVideoUploadUrl(
-        channelId,
-      )
+      const uploadUrl = await ChannelController.getVideoUploadUrl(channelId)
       response.send(uploadUrl)
     } catch (e) {
       const error = e as Error
@@ -342,7 +338,7 @@ export default Router()
     }
   })
 
-  .post('/:id/file-upload-url', async(request, response) => {
+  .post('/:id/file-upload-url', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const fileName = request.body.fileName
     const fileType = request.body.fileType
@@ -352,7 +348,7 @@ export default Router()
         channelId,
         fileName,
         fileType,
-        fileExtension
+        fileExtension,
       )
       response.send(uploadUrl)
     } catch (e) {
@@ -362,16 +358,16 @@ export default Router()
   })
 
   .post('/:id/voice-upload-url', async (request, response) => {
-    const channelId = new Types.ObjectId(request.params.id);
-    const fileName = request.body.fileName;
+    const channelId = new Types.ObjectId(request.params.id)
+    const fileName = request.body.fileName
     try {
       const uploadUrl = await ChannelController.getVoiceUploadUrl(
         channelId,
-        fileName
-      );
-      response.send(uploadUrl);
+        fileName,
+      )
+      response.send(uploadUrl)
     } catch (e) {
-      const error = e as Error;
-      response.status(404).send({ message: error.message });
+      const error = e as Error
+      response.status(404).send({ message: error.message })
     }
-  });
+  })
