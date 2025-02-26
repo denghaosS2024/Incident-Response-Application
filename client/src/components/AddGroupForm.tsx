@@ -1,20 +1,20 @@
 import { Fragment, FunctionComponent, ReactElement, useState } from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import {
+  Box,
+  Button,
   Divider,
+  FormControlLabel,
   Link,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  TextField,
-  Button,
-  Box,
-  FormControlLabel,
   Switch,
+  TextField,
   Typography,
 } from '@mui/material'
-import IChannel from '../models/Channel'
+import { group } from 'console'
 
 interface ITab {
   text: string
@@ -31,28 +31,59 @@ const tabs: ITab[] = [
   },
 ]
 
-export interface IChannelProps {
-  channel: IChannel
+interface IFormData {
+  name: string
+  description: string
+  users: string[]
+  owner: string
+  closed: boolean
 }
 
-const AddGroup: FunctionComponent<IChannelProps> = ({
-  channel,
-}: IChannelProps) => {
+export interface IAddGroupFormProps {
+  createChannel: (data: IFormData) => void
+}
+
+const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
+  channelProps: IAddGroupFormProps,
+) => {
   const [showForm, setShowForm] = useState(false)
-  const [isClosed, setIsClosed] = useState(false)
-  const [groupName, setGroupName] = useState('')
+  const [closed, setIsClosed] = useState<boolean>(false)
+  const [name, setGroupName] = useState('')
   const [description, setDescription] = useState('')
   const [users, setUsers] = useState<string[]>([])
-  const [error, setError] = useState<string>('')
-  const currentUid = localStorage.getItem('uid')
+  const [nameError, setNameError] = useState<string>('')
+  const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
   const currentUserRole = localStorage.getItem('role')
-  console.log(currentUsername)
-  console.log(currentUid)
-  console.log(currentUserRole)
 
   const handleSubmit = () => {
-    // todo
+    let hasError = false
+
+    setNameError('')
+
+    //todo: check group naming rule
+    if (!name) {
+      setNameError('Group name is required')
+      hasError = true
+    }
+
+    if (!hasError) {
+      channelProps.createChannel({
+        name,
+        description,
+        users,
+        owner,
+        closed,
+      })
+    }
+  }
+
+  const resetForm = () => {
+    setNameError('')
+    setGroupName('')
+    setDescription('')
+    setUsers([])
+    setIsClosed(false)
   }
 
   const handleToggleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,11 +91,11 @@ const AddGroup: FunctionComponent<IChannelProps> = ({
   }
 
   const handleCancelClick = () => {
+    resetForm()
     setShowForm(false)
   }
 
   const handleDeleteClick = () => {
-    // todo
     setShowForm(true)
   }
 
@@ -99,12 +130,17 @@ const AddGroup: FunctionComponent<IChannelProps> = ({
             variant="outlined"
             fullWidth
             margin="normal"
+            error={!!nameError}
+            helperText={nameError}
+            required
+            onChange={(e) => setGroupName(e.target.value)}
           />
           <TextField
             label="Description"
             variant="outlined"
             fullWidth
             margin="normal"
+            onChange={(e) => setDescription(e.target.value)}
           />
           <Box
             display="flex"
@@ -118,7 +154,7 @@ const AddGroup: FunctionComponent<IChannelProps> = ({
             <FormControlLabel
               control={
                 <Switch
-                  checked={isClosed}
+                  checked={closed}
                   onChange={handleToggleChange}
                   name="closed"
                   color="primary"
@@ -163,4 +199,4 @@ const AddGroup: FunctionComponent<IChannelProps> = ({
   )
 }
 
-export default AddGroup
+export default AddGroupForm

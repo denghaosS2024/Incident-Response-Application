@@ -286,7 +286,6 @@ class ChannelController {
     })
 
     const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
-    console.log(fileName)
     const fileRoute = `uploads/${channelId}/${fileName}.${Date.now()}.${fileExtension}`
     const bucket = storage.bucket(bucketName)
     const file = bucket.file(fileRoute)
