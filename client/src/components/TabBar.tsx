@@ -48,7 +48,11 @@ const TabBar: FunctionComponent<TabBarProps> = ({ links }) => {
   }
 
   return (
-    <Tabs value={currentTabIndex} onChange={handleChange}>
+    <Tabs value={currentTabIndex} onChange={handleChange}
+      variant="scrollable" 
+      scrollButtons="auto" 
+      allowScrollButtonsMobile 
+    >
       {links.map((link: Link, idx: number) => {
         const isSelected = idx === currentTabIndex;
         return (
