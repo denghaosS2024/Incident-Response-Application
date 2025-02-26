@@ -94,11 +94,13 @@ const ChatRoomPage: React.FC = () => {
             <VoiceRecorder 
               channelId={channelId}
             />
-            <MessageAlertOptions
-              channelId={channelId}
-              currentUserId={currentUserId}
-              currentUserRole={currentUserRole}
-            />
+            {["Fire", "Police"].includes(currentUserRole) && (
+              <MessageAlertOptions
+                channelId={channelId}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
+              />
+            )}
           </Box>
           <Box flexGrow={1}>
             <MessageInput
