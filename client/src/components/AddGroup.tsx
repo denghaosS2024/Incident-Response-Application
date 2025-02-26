@@ -42,9 +42,14 @@ const AddGroup: FunctionComponent<IChannelProps> = ({
   const [isClosed, setIsClosed] = useState(false)
   const [groupName, setGroupName] = useState('')
   const [description, setDescription] = useState('')
-  const [owner, setOwner] = useState('')
   const [users, setUsers] = useState<string[]>([])
   const [error, setError] = useState<string>('')
+  const currentUid = localStorage.getItem('uid')
+  const currentUsername = localStorage.getItem('username')
+  const currentUserRole = localStorage.getItem('role')
+  console.log(currentUsername)
+  console.log(currentUid)
+  console.log(currentUserRole)
 
   const handleSubmit = () => {
     // todo
@@ -108,7 +113,7 @@ const AddGroup: FunctionComponent<IChannelProps> = ({
             mt={2}
           >
             <Typography variant="body1" sx={{ mr: 2 }}>
-              Owner: {channel.owner.username}
+              Owner: {currentUsername}
             </Typography>
             <FormControlLabel
               control={

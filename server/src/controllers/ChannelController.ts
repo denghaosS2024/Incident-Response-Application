@@ -16,16 +16,24 @@ class ChannelController {
   /**
    * Create a new channel or return an existing one if it already exists
    * @param channel - An object containing channel details
-   * @param channel.name - Optional name for the channel
+   * @param channel.name - Name for the channel
    * @param channel.userIds - Array of user IDs to be added to the channel
+   * @param channel.description - Optional description for the channel
+   * @param channel.ownerId - The ID of the user creating the channel
+   * @param channel.closed - Optional flag to indicate if the channel is closed
    * @returns The created or existing channel object
    * @throws Error if trying to create a channel with the public channel name
    */
-  create = async (channel: { name?: string; userIds: Types.ObjectId[] }) => {
+  create = async (channel: {
+    name: string
+    userIds: Types.ObjectId[]
+    description?: string
+    ownerId?: Types.ObjectId
+    closed?: boolean
+  }) => {
     if (channel.name === PUBLIC_CHANNEL_NAME) {
       throw new Error('Channel name cannot be the public channel name')
     }
-
     // Remove duplicates and ensure order of user IDs
     const userIds = Array.from(new Set(channel.userIds)).sort((a, b) =>
       a.toHexString().localeCompare(b.toHexString()),
@@ -33,6 +41,10 @@ class ChannelController {
     const users = await Promise.all(
       userIds.map(async (id) => (await User.findById(id).exec())!),
     )
+    let owner
+    if (channel.ownerId) {
+      owner = await User.findById(channel.ownerId).exec()
+    }
 
     // Check if the channel already exists
     const exists = await Channel.findOne({
@@ -40,6 +52,9 @@ class ChannelController {
       name: {
         $ne: PUBLIC_CHANNEL_NAME,
       },
+      description: channel.description || '',
+      owner: owner,
+      closed: channel.closed || false,
     }).exec()
 
     if (exists) {
@@ -49,6 +64,9 @@ class ChannelController {
       return new Channel({
         name: channel.name,
         users,
+        description: channel.description,
+        owner: owner,
+        closed: channel.closed,
       }).save()
     }
   }
@@ -202,85 +220,24 @@ class ChannelController {
   }
 
   /**
-   * Start a phone call in a channel.
-   * - Retrieves the sender and channel from the database.
-   * - Retrieves the receiver's phone number from the database.
-   * - Creates a new message including the caller and receiver and appends it to the channel.
-   * - Notifies other online users in the channel.
-   *
-   * @param channelId - The ID of the channel to start the call in.
-   * @param senderId - The ID of the user starting the call.
-   * @returns The newly created message object containing the sender and receiver username, and receiver's phone number.
-   * @throws Error if the sender or channel is not found.
-   */
-  // Currently waiting for the implementation of adding phone number in the profile page
-  // makePhoneCall = async (
-  //   channelId: Types.ObjectId,
-  //   senderId: Types.ObjectId,
-  // ) => {
-  //   // Retrieve the sender from the database
-  //   const sender = await User.findById(senderId).exec()
-  //   if (!sender) {
-  //     throw new Error(`Sender(${senderId.toHexString()}) not found.`)
-  //   }
-
-  //   // Retrieve the channel from the database
-  //   const channel = await Channel.findById(channelId).exec()
-  //   if (!channel) {
-  //     throw new Error(`Channel(${channelId.toHexString()}) not found.`)
-  //   }
-
-  //   const receiverId = channel.users.find(user => !user._id.equals(senderId))?._id as Types.ObjectId | undefined;
-  //   if (!receiverId) {
-  //     throw new Error(`No other user found in Channel(${channelId.toHexString()}).`);
-  //   }
-    
-  //   const receiver = await User.findById(receiverId).exec()
-  //   const receiverPhoneNumber = receiver?.phoneNumber;
-  //   const content = `Phone call started now between ${sender.username} and ${receiver?.username}.`;
-
-  //   // Create and save the new message
-  //   const message = await new Message({
-  //     content,
-  //     sender,
-  //     channelId: channel._id,
-  //   }).save()
-
-  //   // Append the new message to the channel
-  //   channel.messages!.push(message)
-  //   await channel.save()
-
-  //   // Notify other online users in the channel
-  //   channel.users.forEach((user) => {
-  //     if (user._id.equals(senderId)) return
-  //     const id = user._id.toHexString()
-  //     if (!UserConnections.isUserConnected(id)) return
-  //     const connection = UserConnections.getUserConnection(id)!
-  //     connection.emit('new-message', message)
-  //   })
-  //   return {message, phoneNumber: receiverPhoneNumber};
-  // }
-
-  /**
    * Generate a signed URL for uploading a video to Google Cloud Storage.
    * @param channelId - The ID of the channel to upload the video to.
    * @returns An object containing the signed URL and the file URL.
    * @throws Error if the channel is not found.
-   * 
+   *
    */
-  getVideoUploadUrl = async (
-    channelId: Types.ObjectId, 
-  ) => {
+  getVideoUploadUrl = async (channelId: Types.ObjectId) => {
     // Retrieve the channel from the database
     const channel = await Channel.findById(channelId).exec()
     if (!channel) {
       throw new Error(`Channel(${channelId.toHexString()}) not found.`)
     }
-    
+
     // Initialize Google Cloud Storage
     const storage = new Storage({
       projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
-      keyFilename: process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
+      keyFilename:
+        process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
     })
 
     const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
@@ -300,10 +257,10 @@ class ChannelController {
         expires,
         contentType: 'video/webm',
       })
-      
+
       // Construct the public URL for accessing the video after upload
       const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`
-      
+
       return { uploadUrl, fileUrl }
     } catch (error) {
       console.error('Error generating signed URL:', error)
@@ -315,7 +272,7 @@ class ChannelController {
     channelId: Types.ObjectId,
     fileName: string,
     fileType: string,
-    fileExtension: string
+    fileExtension: string,
   ) => {
     const channel = await Channel.findById(channelId).exec()
     if (!channel) {
@@ -324,7 +281,8 @@ class ChannelController {
 
     const storage = new Storage({
       projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
-      keyFilename: process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
+      keyFilename:
+        process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
     })
 
     const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
@@ -350,40 +308,38 @@ class ChannelController {
     }
   }
 
-  getVoiceUploadUrl = async (
-    channelId: Types.ObjectId,
-    fileName: string
-  ) => {
-    const channel = await Channel.findById(channelId).exec();
+  getVoiceUploadUrl = async (channelId: Types.ObjectId, fileName: string) => {
+    const channel = await Channel.findById(channelId).exec()
     if (!channel) {
-      throw new Error(`Channel(${channelId.toHexString()}) not found.`);
+      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
     }
-  
+
     const storage = new Storage({
       projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
-      keyFilename: process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
-    });
-  
-    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name';
-    const fileExtension = 'webm';
-    const fileRoute = `voice_messages/${channelId}/${fileName}.${Date.now()}.${fileExtension}`;
-    const bucket = storage.bucket(bucketName);
-    const file = bucket.file(fileRoute);
-  
-    const expires = Date.now() + 15 * 60 * 1000;
-  
+      keyFilename:
+        process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
+    })
+
+    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
+    const fileExtension = 'webm'
+    const fileRoute = `voice_messages/${channelId}/${fileName}.${Date.now()}.${fileExtension}`
+    const bucket = storage.bucket(bucketName)
+    const file = bucket.file(fileRoute)
+
+    const expires = Date.now() + 15 * 60 * 1000
+
     try {
       const [uploadUrl] = await file.getSignedUrl({
         version: 'v4',
         action: 'write',
         expires,
         contentType: 'audio/webm',
-      });
-      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`;
-      return { uploadUrl, fileUrl };
+      })
+      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`
+      return { uploadUrl, fileUrl }
     } catch (error) {
-      console.error('Error generating signed URL:', error);
-      return { error: 'Error generating signed URL' };
+      console.error('Error generating signed URL:', error)
+      return { error: 'Error generating signed URL' }
     }
   }
 }

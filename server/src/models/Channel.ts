@@ -17,7 +17,10 @@ export const PUBLIC_CHANNEL_NAME = 'Public'
  * Interface for the Channel document
  */
 export interface IChannel extends Document {
-  name?: string
+  name: string
+  description?: string
+  owner?: IUser
+  closed: boolean
   users: IUser[]
   messages?: IMessage[]
 }
@@ -33,7 +36,16 @@ export interface IChannleModel extends Model<IChannel> {
  * Channel Schema
  */
 const ChannelSchema = new Schema({
-  name: { type: String },
+  name: { type: String, required: true, unique: true },
+  description: { type: String },
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    autopopulate: {
+      select: '-password -__v',
+    },
+  },
+  closed: { type: Boolean, default: false },
   users: [
     {
       type: Schema.Types.ObjectId,
