@@ -4,13 +4,13 @@ import { Meta, Typeset } from '@storybook/blocks';
 
 export const typography = {
   type: {
-    primary: '"Segoe UI", "Helvetica Neue", sans-serif'
+    primary: '"Roboto", sans-serif'
   },
   weight: {
+    thin: '300',
     regular: '400',
-    bold: '700',
-    extrabold: '800',
-    black: '900',
+    bold: '500',
+    extrabold: '700',
   },
   size: {
     s1: 12,
@@ -29,9 +29,9 @@ export const SampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing el
 
 # Typography
 
-**Font:** Segoe UI
+**Font:** Roboto
 
-**Weights:** 400(regular), 700(bold), 800(extrabold), 900(black)
+# Font Sizing 
 
 <Typeset
   fontSizes={[
@@ -45,7 +45,49 @@ export const SampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing el
     Number(typography.size.l2),
     Number(typography.size.l3),
   ]}
-  fontWeight={typography.weight.black}
+  fontWeight={typography.weight.regular}
+  sampleText={SampleText}
+  fontFamily={typography.type.primary}
+/>
+
+# Font Weights 
+
+Thin: 300
+<Typeset
+  fontSizes={[
+    Number(typography.size.m1),
+  ]}
+  fontWeight={typography.weight.thin}
+  sampleText={SampleText}
+  fontFamily={typography.type.primary}
+/>
+
+Regular: 400
+<Typeset
+  fontSizes={[
+    Number(typography.size.m1),
+  ]}
+  fontWeight={typography.weight.regular}
+  sampleText={SampleText}
+  fontFamily={typography.type.primary}
+/>
+
+Bold: 500
+<Typeset
+  fontSizes={[
+    Number(typography.size.m1),
+  ]}
+  fontWeight={typography.weight.bold}
+  sampleText={SampleText}
+  fontFamily={typography.type.primary}
+/>
+
+Extra Bold: 700
+<Typeset
+  fontSizes={[
+    Number(typography.size.m1),
+  ]}
+  fontWeight={typography.weight.extrabold}
   sampleText={SampleText}
   fontFamily={typography.type.primary}
 />
