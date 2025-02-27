@@ -1,6 +1,6 @@
-import { Home, Message, PermContactCalendar, AccessAlarm } from '@mui/icons-material'
+import { Home, Message, PermContactCalendar } from '@mui/icons-material'
 import { StyledEngineProvider } from '@mui/material/styles'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from './utils/types'
 import {
@@ -34,14 +34,14 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute showBackButton />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/groups" element={<GroupsPage />} />
             <Route path="/reach911" element={<Reach911Page />} />
           </Route>
-          <Route element={<ProtectedRoute showBackButton />}>
+          <Route element={<ProtectedRoute showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
           </Route>
         </Routes>
@@ -52,9 +52,11 @@ const App: React.FC = () => {
 
 interface IProps {
   showBackButton?: boolean
+  // Set this to true to hide the menu in subpages such as the chat room view.
+  isSubPage?: boolean
 }
 
-const ProtectedRoute = ({ showBackButton }: IProps) => {
+const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   const dispatch = useDispatch<AppDispatch>()
   const isLoggedIn = localStorage.getItem('token') ? true : false
   // Check if there are any unread messages
@@ -109,7 +111,7 @@ const ProtectedRoute = ({ showBackButton }: IProps) => {
   return isLoggedIn ? (
     <>
       <NavigationBar showMenu={true} showBackButton={showBackButton} />
-      {!showBackButton && <TabBar links={tabLinks} />}
+      {!isSubPage && <TabBar links={tabLinks} />}
       <Outlet />
     </>
   ) : (
