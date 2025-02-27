@@ -15,6 +15,7 @@ import {
   Typography,
 } from '@mui/material'
 import { group } from 'console'
+import { set } from 'lodash'
 
 interface ITab {
   text: string
@@ -61,11 +62,12 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
 
     setNameError('')
 
-    //todo: check group naming rule
-    if (!name) {
+    if (!name.trim()) {
       setNameError('Group name is required')
       hasError = true
     }
+
+    setUsers([owner])
 
     if (!hasError) {
       channelProps.createChannel({
@@ -75,6 +77,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
         owner,
         closed,
       })
+      // resetForm()
     }
   }
 
@@ -133,12 +136,14 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
             error={!!nameError}
             helperText={nameError}
             required
+            value={name}
             onChange={(e) => setGroupName(e.target.value)}
           />
           <TextField
             label="Description"
             variant="outlined"
             fullWidth
+            value={description}
             margin="normal"
             onChange={(e) => setDescription(e.target.value)}
           />

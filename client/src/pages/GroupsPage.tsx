@@ -4,9 +4,10 @@ import request, { IRequestError } from '../utils/request'
 import IChannel from '../models/Channel'
 import { IAddGroupFormProps } from '../components/AddGroupForm'
 import AlertSnackbar from '../components/common/AlertSnackbar'
+import { set } from "lodash"
 
 const Groups: React.FC = () => {
-  const [errorMessage, setErrorMessage] = useState<string | ''>('')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | ''>('')
 
@@ -18,6 +19,7 @@ const Groups: React.FC = () => {
     closed,
   }) => {
     try {
+      setErrorMessage('')
       // todo: add token to the header (or is it already added?)
       await request('/api/channels', {
         method: 'POST',

@@ -61,7 +61,7 @@ class ChannelController {
       return exists
     } else {
       // Create a new channel if it doesn't exist
-      return new Channel({
+      return await new Channel({
         name: channel.name,
         users,
         description: channel.description,
