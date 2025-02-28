@@ -57,7 +57,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
             ? 'Groups'
             : pathname === '/reach911'
               ? '911 Call'
+                : pathname === '/map'
+                  ? 'Map'
               : 'Incident Response'
+                
 
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true)
