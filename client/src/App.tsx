@@ -151,7 +151,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   return isLoggedIn ? (
     <>
       <NavigationBar showMenu={true} showBackButton={showBackButton} />
-      {!showBackButton && <TabBar links={orderedTabs} />}
+      <TabBar links={orderedTabs}></TabBar>
       <Outlet />
     </>
   ) : (
