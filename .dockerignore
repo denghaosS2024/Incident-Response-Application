@@ -1,0 +1,15 @@
+node_modules
+client/node_modules
+server/node_modules
+.git
+.gitignore
+.env
+client/.env
+server/.env
+npm-debug.log
+docker-compose.yml
+Dockerfile.client
+Dockerfile.server
+.dockerignore
+*.md
+.nvmrc

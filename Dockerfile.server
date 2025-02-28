@@ -1,0 +1,16 @@
+FROM node:18.17.0
+
+WORKDIR /app/server
+
+COPY server/package*.json ./
+
+RUN npm install
+
+COPY server/ ./
+
+# Set environment to development
+ENV NODE_ENV=development
+
+EXPOSE 3001
+
+CMD ["npm", "run", "dev"]
