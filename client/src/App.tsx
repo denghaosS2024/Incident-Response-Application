@@ -1,4 +1,4 @@
-import { Home, Message, PermContactCalendar } from '@mui/icons-material'
+import { Home, Message, PermContactCalendar, LocationOn } from '@mui/icons-material'
 import { StyledEngineProvider } from '@mui/material/styles'
 import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
@@ -26,6 +26,7 @@ import { loadContacts } from './features/contactSlice'
 import Groups2Icon from '@mui/icons-material/Groups2'
 import GroupsPage from './pages/GroupsPage'
 import Reach911Page from './pages/Reach911Page'
+import MapPage from './pages/MapPage'
 
 const App: React.FC = () => {
   return (
@@ -40,6 +41,7 @@ const App: React.FC = () => {
             <Route path="/messages" element={<Messages />} />
             <Route path="/groups" element={<GroupsPage />} />
             <Route path="/reach911" element={<Reach911Page />} />
+            <Route path="/map" element={<MapPage />} />
           </Route>
           <Route element={<ProtectedRoute showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
@@ -91,6 +93,12 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
       selectedIcon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
       to: '/reach911',
+    },
+    {
+      prefix: '/map',
+      key: 'map',
+      icon: <LocationOn />,
+      to: '/map',
     },
   ]
 

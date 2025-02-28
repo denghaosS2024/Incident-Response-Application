@@ -1,4 +1,4 @@
-import { PermContactCalendar as Contact, Message } from '@mui/icons-material'
+import { PermContactCalendar as Contact, LocationOn, Message } from '@mui/icons-material'
 import Groups2Icon from '@mui/icons-material/Groups2'
 import {
   Divider,
@@ -31,7 +31,12 @@ const tabs: ITab[] = [
     text: 'Groups',
     link: '/groups',
     icon: <Groups2Icon />,
-  }
+  },
+  {
+    text: 'Map',
+    link: '/map',
+    icon: <LocationOn />,
+  },
 ]
 
 const Home: FunctionComponent = () => {
