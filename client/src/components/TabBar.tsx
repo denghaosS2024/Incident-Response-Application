@@ -13,6 +13,7 @@ export type Link = {
   onClick?: () => void
 }
 
+
 const getCurrentTab = (links: Link[], currentPath: string): number => {
   // First, check for an exact match with the root path '/'
   if (currentPath === '/') {
@@ -23,7 +24,6 @@ const getCurrentTab = (links: Link[], currentPath: string): number => {
   const currentTab = links.findIndex(
     (link) => currentPath.includes(link.prefix) && link.prefix !== '/',
   )
-
   return currentTab === -1 ? 0 : currentTab
 }
 
@@ -40,7 +40,9 @@ const TabBar: FunctionComponent<TabBarProps> = ({ links }) => {
 
   // Effect to update the current tab value based on route changes
   useEffect(() => {
+   
     setCurrentTabIndex(getCurrentTab(links, location.pathname))
+    console.log(currentTabIndex,links, location.pathname)
   }, [location.pathname, links])
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {

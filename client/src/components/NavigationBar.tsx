@@ -42,26 +42,32 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const { id } = useParams()
   const [URLSearchParams] = useSearchParams()
   const name = URLSearchParams.get('name')
+  const role=localStorage.getItem('role')||'Citizen'
 
   const onBackHandler = onBack || (() => navigate(-1))
 
   const pathname = location.pathname
-  const title =
-    pathname === '/messages'
-      ? 'Messages'
-      : pathname === '/messages/' + id
-        ? `${name} Messages`
-        : pathname === '/contacts'
-          ? 'Contacts'
-          : pathname === '/groups'
-            ? 'Groups'
-            : pathname === '/reach911'
-              ? '911 Call'
-                : pathname === '/map'
-                  ? 'Map'
-              : 'Incident Response'
-                
-
+  const pageTitles: Record<string, string> = {
+    '/messages': 'Messages',
+    '/contacts': 'Contacts',
+    '/groups': 'Groups',
+    '/reach911': '911 Call',
+    '/incidents': 'Incidents'
+  }
+  const roleTitles: Record<string, string> = {
+    Citizen: 'IR Citizen',
+    Dispatch: 'IR Dispatch',
+    Police: 'IR Police',
+    Fire: 'IR Fire',
+    Nurse: 'IR Nurse'
+  }
+  let title = pageTitles[pathname] || 'Incident Response';
+  if (pathname.startsWith('/messages/') && name) {
+    title = `${name} Messages`;
+  }
+  if (pathname === '/') {
+    title = roleTitles[role] || 'IR Citizen';
+  }
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true)
     setMenuAnchor(anchor)
@@ -92,7 +98,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
           </IconButton>
         )}
         <Typography style={{ flex: 1 }} variant="h6" color="inherit">
-          {title}
+        {title}
         </Typography>
         {showMenu && (
           <IconButton
@@ -106,7 +112,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
         )}
         {
           <Menu open={openMenu} anchorEl={menuAnchor} onClose={closeMenu}>
-            <MenuItem onClick={quit}>Quit</MenuItem>
+            <MenuItem onClick={quit}>Logout</MenuItem>
           </Menu>
         }
       </Toolbar>

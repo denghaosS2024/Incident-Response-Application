@@ -26,6 +26,7 @@ import { loadContacts } from './features/contactSlice'
 import Groups2Icon from '@mui/icons-material/Groups2'
 import GroupsPage from './pages/GroupsPage'
 import Reach911Page from './pages/Reach911Page'
+import { LocalPolice as PoliceIcon,LocalFireDepartment as FirefighterIcon,LocalHospital as NurseIcon,Report,LocalPhone } from '@mui/icons-material';
 import MapPage from './pages/MapPage'
 
 const App: React.FC = () => {
@@ -61,6 +62,7 @@ interface IProps {
 const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   const dispatch = useDispatch<AppDispatch>()
   const isLoggedIn = localStorage.getItem('token') ? true : false
+  const role = localStorage.getItem('role')||'Citizen';
   // Check if there are any unread messages
   const alerts = useSelector((state: RootState) => state.messageState.alerts)
   const hasUnreadMessages = Object.values(alerts).some((alert) => alert)
@@ -90,8 +92,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     {
       prefix: '/reach911',
       key: 'reach911',
-      icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
-      selectedIcon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
+      icon: <LocalPhone/>,
       to: '/reach911',
     },
     {
@@ -100,8 +101,39 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       icon: <LocationOn />,
       to: '/map',
     },
+    {
+      prefix: '/police',
+      key: 'ploice',
+      icon: <PoliceIcon  />,
+      to: '/police',
+    },
+    {
+      prefix: '/firefighter',
+      key: 'firefighter',
+      icon: <FirefighterIcon  />,
+      to: '/firefighter',
+    },
+    {
+      prefix: '/nurse',
+      key: 'nurse',
+      icon: <NurseIcon  />,
+      to: '/nurse',
+    },
+    
   ]
-
+  const roleTabs: Record<string, Link> = {
+    Dispatch: { prefix: '/', key: '911', icon:  <LocalPhone/>, to: '/' },
+    Police: { prefix: '/', key: 'police', icon: <PoliceIcon />, to: '/' },
+    Fire: { prefix: '/', key: 'fire', icon: <FirefighterIcon />, to: '/' },
+    Nurse: { prefix: '/', key: 'nurse', icon:<NurseIcon />, to: '/' },
+  };
+  const homeTab = roleTabs[role] || { prefix: '/', key: 'home', icon: <Home />, to: '/' };
+  const orderedTabs = [
+    homeTab, 
+    ...tabLinks.filter((link) => link.key !== 'home'), 
+  ];
+  
+  
   useEffect(() => {
     const socket = SocketClient
     socket.connect()
@@ -119,7 +151,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   return isLoggedIn ? (
     <>
       <NavigationBar showMenu={true} showBackButton={showBackButton} />
-      {!isSubPage && <TabBar links={tabLinks} />}
+      {!showBackButton && <TabBar links={orderedTabs} />}
       <Outlet />
     </>
   ) : (

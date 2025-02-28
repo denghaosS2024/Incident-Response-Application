@@ -26,8 +26,16 @@ const AlertSnackbar: React.FC<AlertSnackbarProps> = ({
       autoHideDuration={autoHideDuration}
       onClose={onClose}
       anchorOrigin={{ vertical, horizontal }} // Use the position props
+      sx={{
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 9999,
+        width: 'auto'
+      }}
     >
-      <Alert onClose={onClose} severity={severity} sx={{ width: '100%' }}>
+      <Alert onClose={onClose} severity={severity} sx={{ width: '100%' }} >
         {message}
       </Alert>
     </Snackbar>

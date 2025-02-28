@@ -89,6 +89,10 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
   const handleDialogCancel = () => {
     setOpenDialog(false)
   }
+  const handleRoleSelection = (selectedRole: string) => {
+    setRole(selectedRole)
+    setRoleError('')
+  }
   return (
     <>
       <Box
@@ -133,24 +137,26 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
           />
         </Box>
         <Box width="100%" maxWidth="500px" my={2}>
-          <FormControl fullWidth error={!!roleError}>
-            <InputLabel id="role-label">Role</InputLabel>
-            <Select
-              labelId="role-label"
-              label="Role"
-              value={role}
-              onChange={(e) => setRole(e.target.value as string)}
-              fullWidth
-            >
-              <MenuItem value="Citizen">Citizen</MenuItem>
-              <MenuItem value="Dispatch">Dispatch</MenuItem>
-              <MenuItem value="Police">Police</MenuItem>
-              <MenuItem value="Fire">Fire</MenuItem>
-              <MenuItem value="Nurse">Nurse</MenuItem>
-              <MenuItem value="Administrator">Administrator</MenuItem>
-            </Select>
-            <FormHelperText>{roleError}</FormHelperText>
-          </FormControl>
+          <Box display="flex " flexWrap="wrap" justifyContent="space-between" >
+            {['Citizen', 'Dispatch', 'Police', 'Fire', 'Nurse', 'Admin'].map((r) => (
+              <Button
+                key={r}
+                variant={role === r ? 'contained' : 'outlined'}
+                color="primary"
+                onClick={() => handleRoleSelection(r)}
+                sx={{ 
+                  flex: '1 1 30%',  
+                  marginBottom: '8px',
+                  marginLeft:'10px',
+                  marginRight:'10px',
+                  height:'70px'
+                }}
+              >
+                {r}
+              </Button>
+            ))}
+          </Box>
+          <FormHelperText error>{roleError}</FormHelperText>
         </Box>
         <Box width="100%" maxWidth="500px" my={2}>
           <Button
