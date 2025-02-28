@@ -1,16 +1,12 @@
-import React from 'react'
-import Map from '../components/Map/Mapbox'
+import React from 'react';
+import MapLayer from '../components/Map/MapLayer';
 
-
-// HomePage component: Simple wrapper for the Home component
 const MapPage: React.FC = () => {
   return (
-    <div >
-        <Map />
-    </div >
+    <div>
+      <MapLayer />
+    </div>
+  );
+};
 
-)
-}
-
-
-export default MapPage
+export default MapPage;
