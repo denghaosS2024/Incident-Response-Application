@@ -6,7 +6,7 @@
  */
 
 import path from 'path'
-import express from 'express'
+import express, { type Request, Response, NextFunction } from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 
@@ -15,6 +15,11 @@ import { specs } from './config/swagger/swagger'
 import router from './routers'
 
 export default express()
+  // Add request logging middleware
+  .use((req: Request, _res: Response, next: NextFunction) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+  })
   // Parse JSON request bodies
   .use(bodyParser.json())
   // Enable CORS for all routes

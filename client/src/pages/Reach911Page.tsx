@@ -3,7 +3,12 @@ import React, { useState, } from 'react'
 import styles from '../styles/Reach911Page.module.css'
 import Button from '@mui/material/Button';
 import Step3Form from '../components/Reach911/Reach911Step3Form';
+import IIncident from '../models/Incident';
+import { SelectChangeEvent } from '@mui/material';
+import { usePersistantState } from '../hooks/usePersistantState';
+
 import Reach911Step1 from '../components/Reach911/Reach911Step1';
+import Reach911Step4 from '../components/Reach911/Reach911Step4';
 
 
 const Reach911Page: React.FC = () => {
@@ -11,7 +16,8 @@ const Reach911Page: React.FC = () => {
 
     const contents = [
         <Reach911Step1 />,
-        <Step3Form />
+        <Step3Form />,
+        <Reach911Step4 />,
         // add the following steps here
     ];
 

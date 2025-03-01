@@ -9,13 +9,14 @@ import IUser from "./User"
 
 
 export default interface IIncident {
-  _id: string // Unique identifier for the message
-  caller: string // User object representing the sender of the message
-  timestamp: string // Timestamp of when the message was sent
+  _id: string // Unique identifier for the incident
+  caller: string // User object representing the sender of the incident
+  timestamp: string // Timestamp of when the incident was create
   state: string // Identifier of the state of the incident
   owner: string // The owner of the incident
   commander: string // The commander of the incident
-  address: string // The address of the user
+  address: string // The address of the user who created the incident
   type: string // The type of the incident
   questions: MedicalQuestions | FireQuestions | PoliceQuestions | EmergencyQuestions | null
+  incidentCallGroup?: string; // ID of the associated chat channel
 }

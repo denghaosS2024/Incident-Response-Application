@@ -14,7 +14,8 @@ const initialState: IncidentsState = {
         commander: '',
         address: '',
         type: '',
-        questions: {} as EmergencyQuestions
+        questions: {} as EmergencyQuestions,
+        incidentCallGroup: '',
     },
     loading: false, // Indicates if a incident operation is in progress
     error: null, // Stores any error that occurred during incident operations
