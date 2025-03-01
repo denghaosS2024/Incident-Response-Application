@@ -1,45 +1,21 @@
-import {
-    Button,
-    Box,
-    MenuItem,
-    Select,
-    TextField,
-    FormControl,
-    FormHelperText,
-    InputLabel,
-    Checkbox,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
-    FormLabel,
-    SelectChangeEvent
-} from '@mui/material'
-
-import React, { useState } from 'react'
-import { usePersistantState } from '../../hooks/usePersistantState';
-import IIncident from '@/models/Incident';
+import React from 'react'
 import MedicalForm from './MedicalForm';
-import FireForm from './FireForm';
+import { RootState } from '../../utils/types';
+import { useSelector } from 'react-redux';
 
-export interface IProps {
-    /**
-     * Function to call when the form is submitted
-     */
-    formData: IIncident
-    onChange: (field: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => void;
-}
+const Step3Form: React.FC = () => {
 
-const Step3Form: React.FC<IProps> = ({ formData, onChange }) => {
+    const type: string = useSelector((state: RootState) => state.incidentState.incident.type)
 
-    const type: string = formData.type
     const renderForm = () => {
+        // TODO add the other forms
         switch(type){
             case "Medical":
-                return <MedicalForm formData={formData} onChange={onChange}></MedicalForm>
+                return <MedicalForm></MedicalForm>
             case "Fire":
-                return <FireForm formData={formData} onChange={onChange}></FireForm>
+                return <MedicalForm></MedicalForm>
             default:
-                return <MedicalForm formData={formData} onChange={onChange}></MedicalForm>
+                return <MedicalForm></MedicalForm>
         }
     }
 

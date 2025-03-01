@@ -1,5 +1,4 @@
 import {
-    Button,
     Box,
     MenuItem,
     Select,
@@ -12,30 +11,31 @@ import {
     FormControlLabel,
     Radio,
     FormLabel,
-    SelectChangeEvent
+    SelectChangeEvent,
+    Typography
 } from '@mui/material'
 
-import React, { useState } from 'react'
-import { usePersistantState } from '../../hooks/usePersistantState';
-import IIncident from '@/models/Incident';
+import React, { useEffect, useState } from 'react'
+import IIncident from '../../models/Incident';
+import { RootState,  MedicalQuestions } from '../../utils/types';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateIncident } from '../../features/incidentSlice';
+import { loadContacts } from '../../features/contactSlice';
+import { AppDispatch } from '../../app/store';
+import IUser from '@/models/User';
+import Loading from '../common/Loading';
 
-export interface IProps {
-    /**
-     * Function to call when the form is submitted
-     */
-    formData: IIncident
-    onChange: (field: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => void;
-}
-
-const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
-    const [isPatient, setIsPatient] = usePersistantState("isPatient", false)
-
-    const [username, setUserName] = usePersistantState("username", 'Select One')
-    const [age, setAge] = usePersistantState("age", 1)
-    const [sex, setSex] = usePersistantState("sex", '')
-    const [conscious, setConscious] = usePersistantState("conscious", '')
-    const [breathing, setBreathing] = usePersistantState("breathing", '')
-    const [chiefComplaint, setChiefComplaint] = usePersistantState("chiefComplaint", '')
+const MedicalForm: React.FC = () => {
+   
+    const dispatch = useDispatch<AppDispatch>();
+    const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident)
+    const isPatient = (incident.questions as MedicalQuestions)?.isPatient
+    const sex = (incident.questions as MedicalQuestions)?.sex
+    const age = (incident.questions as MedicalQuestions)?.age
+    const conscious = (incident.questions as MedicalQuestions)?.conscious
+    const breathing = (incident.questions as MedicalQuestions)?.breathing
+    const chiefComplaint = (incident.questions as MedicalQuestions)?.chiefComplaint
+    const username = (incident.questions as MedicalQuestions)?.username
 
     const [usernameError, setUserNameError] = useState<string>('');
     const [ageError, setAgeError] = useState<string>('');
@@ -43,6 +43,32 @@ const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
     const [consciousError, setConsciousError] = useState<string>('');
     const [breathingError, setBreathingError] = useState<string>('');
     const [chiefComplaintError, setChiefComplaintError] = useState<string>('');
+
+
+    useEffect(() => {
+        dispatch(loadContacts())
+    }, [dispatch])
+
+    const { contacts, loading } = useSelector(
+        (state: RootState) => state.contactState,
+    )
+    // Retrieving the name of the current user
+    const userId = localStorage.getItem('uid')
+    const currentUser = contacts.filter((user: IUser) => user._id === userId)[0]
+
+    const onChange = (field: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
+        const { type, value, checked } = e.target as HTMLInputElement
+
+        dispatch(updateIncident({
+            ...incident, // Keep other fields of incident unchanged
+            questions: {
+                ...incident.questions, // Keep other question fields unchanged
+                [field]: type === "checkbox" ? checked : value // Update only the target field
+            }
+        }));
+
+
+    };
 
     // const clearError = () => {
     //     setUserNameError('')
@@ -95,7 +121,7 @@ const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
 
     //     }
     // }
-
+    if (loading) return <Loading />
     return (
         <>
             <Box
@@ -109,26 +135,32 @@ const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
                     <FormControlLabel
                         control={
                             <Checkbox
-                                checked={formData.isPatient}
+                                checked={isPatient}
                                 onChange={(e) => onChange("isPatient", e)}
                             />}
                         label="I am the patient"
                     />
                 </Box>
-
+                <Box sx={{ display: "flex", width: "100%", alignItems: "start", color: "rgba(0, 0, 0, 0.6)" }}> {/**TODO: Add colors to style guide */}
+                    <Typography >Username:</Typography>
+                </Box>
+                
                 <Box width="100%" maxWidth="500px" my={2}>
+
                     <FormControl fullWidth error={!!usernameError}>
-                        <InputLabel id="username-label">Username</InputLabel>
+                        <InputLabel id="username-label">Select One</InputLabel>
                         <Select
                             labelId="username-label"
                             label="Username"
-                            value={formData.isPatient ? "User1" : formData.username}
+                            value={isPatient ? currentUser?.username || "" : username || ""}
                             onChange={(e) => onChange("username", e)}
                             fullWidth
                         >
-                            <MenuItem value="Select One">Select One</MenuItem>
-                            {formData.isPatient && <MenuItem value="User1">User1</MenuItem>}
-                            <MenuItem value="User2">User2</MenuItem>
+                            <MenuItem key="Select One" value="Select One">Select One</MenuItem>
+                            {contacts.map((user: IUser) =>
+                                <MenuItem key={user._id} value={user.username}>{user.username}</MenuItem>
+                            )}
+                            
                         </Select>
                         <FormHelperText>{usernameError}</FormHelperText>
                     </FormControl>
@@ -138,7 +170,7 @@ const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
                         variant="outlined"
                         label="Age"
                         fullWidth
-                        value={formData.age}
+                        value={age}
                         type="number"
                         error={!!ageError}
                         helperText={ageError}
@@ -158,7 +190,7 @@ const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
                             row
                             aria-labelledby="sex-label"
                             name="sex-radio-buttons-group"
-                            value={formData.sex}
+                            value={sex}
                             onChange={(e) => onChange("sex", e)}
                         >
                             <FormControlLabel value="female" control={<Radio />} label="Female" />
@@ -175,7 +207,7 @@ const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
                             row
                             aria-labelledby="conscious-label"
                             name="conscious-radio-buttons-group"
-                            value={formData.conscious}
+                            value={conscious}
                             onChange={(e) => onChange("conscious", e)}
                         >
                             <FormControlLabel value="yes" control={<Radio />} label="Yes" />
@@ -191,7 +223,7 @@ const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
                             row
                             aria-labelledby="breathing-label"
                             name="breathing-radio-buttons-group"
-                            value={formData.breathing}
+                            value={breathing}
                             onChange={(e) => onChange("breathing", e)}
                         >
                             <FormControlLabel value="yes" control={<Radio />} label="Yes" />
@@ -206,7 +238,7 @@ const MedicalForm: React.FC<IProps> = ({ formData, onChange }) => {
                         label="Chief Complaint"
                         fullWidth
                         multiline
-                        value={formData.chiefComplaint}
+                        value={chiefComplaint}
                         error={!!chiefComplaintError}
                         helperText={chiefComplaintError}
                         onChange={(e) => onChange("chiefComplaint", e)}

@@ -2,48 +2,16 @@ import ClickableStepper from '../components/ClickableStepper'
 import React, { useState, } from 'react'
 import styles from '../styles/Reach911Page.module.css'
 import Button from '@mui/material/Button';
-import Step3Form, { IProps } from '../components/Reach911/Reach911Step3Form';
-import IIncident from '../models/Incident';
-import { SelectChangeEvent } from '@mui/material';
-import { usePersistantState } from '../hooks/usePersistantState';
+import Step3Form from '../components/Reach911/Reach911Step3Form';
 import Reach911Step1 from '../components/Reach911/Reach911Step1';
 
 
 const Reach911Page: React.FC = () => {
     const [activeStep, setActiveStep] = useState<number>(0);
 
-    const [formData, setFormData] = usePersistantState<IIncident>("formData", {
-        _id: '', // Unique identifier for the message
-        caller: '', // User object representing the sender of the message
-        timestamp: '', // Timestamp of when the message was sent
-        state: '', // Identifier of the state of the incident
-        owner: '', // The owner of the incident
-        commander: '', // The commander of the incident
-        address: '', // The address of the user
-        type: '', // The type of the incident
-        isPatient: false, // Whether or not he incident creator is the patient
-        username: '', // The Username of the patient
-        age: 0, // The age of the patient
-        sex: '', // The sex of the patient
-        conscious: '', // The conscious state of the patient
-        breathing: '', // The breathing state of the patient
-        chiefComplaint: '', // The chief complain of the patient
-        questions: null
-    });
-
-
-    const handleChange = (field: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
-        const { type, value, checked } = e.target as HTMLInputElement
-
-        setFormData((prevData) => ({
-            ...prevData,
-            [field]: type === "checkbox" ? checked : value
-        }));
-    };
-
     const contents = [
         <Reach911Step1 />,
-        <Step3Form formData={formData} onChange={handleChange} />
+        <Step3Form />
         // add the following steps here
     ];
 

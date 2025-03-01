@@ -1,6 +1,5 @@
 import React from 'react';
 import { Stepper, Step, StepLabel } from '@mui/material';
-import { IProps } from './Reach911/Reach911Step3Form';
 
 interface IClickableStepperProps {
     numberOfSteps: number;

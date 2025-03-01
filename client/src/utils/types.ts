@@ -4,6 +4,7 @@
  * This file defines TypeScript interfaces used throughout the client application.
  */
 
+import IIncident from '@/models/Incident'
 import IMessage from '@/models/Message'
 import IUser from '@/models/User'
 
@@ -39,6 +40,13 @@ export interface ContactsState {
 export interface RootState {
   messageState: MessagesState
   contactState: ContactsState
+  incidentState: IncidentsState
+}
+
+export interface IncidentsState {
+  incident: IIncident,
+  loading: false, // Indicates if a incident operation is in progress
+  error: null, // Stores any error that occurred during incident operations
 }
 
 /**
@@ -58,12 +66,22 @@ export interface MedicalQuestions {
  * Interface representing the medical questions
  */
 export interface FireQuestions {
-  isPatient: boolean // Whether or not he incident creator is the patient
-  username: string // The Username of the patient
-  age: number // The age of the patient
-  sex: string // The sex of the patient
-  conscious: string // The conscious state of the patient
-  breathing: string // The breathing state of the patient
-  chiefComplaint: string // The chief complain of the patient
+  fireType: string // Is it a wildfire or structure fire
+  hasSmoke: boolean // Whether or not they smell smoke
+  hasFlames: boolean // Whether or not they see flames
+  hasHazards: boolean // Whether or not there are hazardous materials present
+  numPeople: number // The number of people present within the fire perimeter
+  otherDetails: string // Other details related to the fire
 }
 
+/**
+ * Interface representing the medical questions
+ */
+export interface PoliceQuestions {
+  isSafe: boolean // Is the person safe
+  hasWeapons: boolean // Whether or not weapons are involved
+  suspectDescription: string // Details about the suspect
+  crimeDetails: string // Details about the crime
+}
+
+export interface EmergencyQuestions extends MedicalQuestions, FireQuestions, PoliceQuestions { }

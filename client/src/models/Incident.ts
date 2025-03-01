@@ -1,4 +1,4 @@
-import { FireQuestions, MedicalQuestions } from "@/utils/types"
+import { EmergencyQuestions, FireQuestions, MedicalQuestions, PoliceQuestions } from "@/utils/types"
 import IUser from "./User"
 
 /**
@@ -17,12 +17,5 @@ export default interface IIncident {
   commander: string // The commander of the incident
   address: string // The address of the user
   type: string // The type of the incident
-  isPatient: boolean // Whether or not he incident creator is the patient
-  username: string // The Username of the patient
-  age: number // The age of the patient
-  sex: string // The sex of the patient
-  conscious: string // The conscious state of the patient
-  breathing: string // The breathing state of the patient
-  chiefComplaint: string // The chief complain of the patient
-  questions?: MedicalQuestions | FireQuestions | null
+  questions: MedicalQuestions | FireQuestions | PoliceQuestions | EmergencyQuestions | null
 }

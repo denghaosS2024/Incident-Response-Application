@@ -6,7 +6,7 @@ import request from '../utils/request'
 // Initial state for the contact slice
 const initialState: ContactsState = {
   contacts: [], // Array of user objects
-  loading: false, // Indicates if a contact operation is in progress
+  loading: true, // Indicates if a contact operation is in progress
   error: null, // Stores any error that occurred during contact operations
 }
 
@@ -28,13 +28,17 @@ export const contactSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     // Handle the fulfilled state of loadContacts
-    builder.addCase(
-      loadContacts.fulfilled,
-      (state, action: PayloadAction<IContactsPayload>) => {
-        const { users } = action.payload
-        state.contacts = users
-      },
-    )
+    builder
+      .addCase(
+        loadContacts.fulfilled,
+        (state, action: PayloadAction<IContactsPayload>) => {
+          const { users } = action.payload
+          state.contacts = users
+          state.loading = false
+        })
+      .addCase(loadContacts.pending, (state) => {
+        state.loading = true
+      })
   },
 })
 
