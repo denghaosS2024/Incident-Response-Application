@@ -17,7 +17,7 @@ import {
 
 import React, { useEffect, useState } from 'react'
 import IIncident from '../../models/Incident';
-import { RootState,  MedicalQuestions } from '../../utils/types';
+import { RootState, MedicalQuestions } from '../../utils/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateIncident } from '../../features/incidentSlice';
 import { loadContacts } from '../../features/contactSlice';
@@ -26,7 +26,7 @@ import IUser from '@/models/User';
 import Loading from '../common/Loading';
 
 const MedicalForm: React.FC = () => {
-   
+
     const dispatch = useDispatch<AppDispatch>();
     const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident)
     const isPatient = (incident.questions as MedicalQuestions)?.isPatient
@@ -62,9 +62,9 @@ const MedicalForm: React.FC = () => {
         dispatch(updateIncident({
             ...incident, // Keep other fields of incident unchanged
             questions: {
-                ...incident.questions, // Keep other question fields unchanged
+                ...(incident.questions ?? {}), // Keep other question fields unchanged
                 [field]: type === "checkbox" ? checked : value // Update only the target field
-            }
+            } as MedicalQuestions
         }));
 
 
@@ -144,7 +144,7 @@ const MedicalForm: React.FC = () => {
                 <Box sx={{ display: "flex", width: "100%", alignItems: "start", color: "rgba(0, 0, 0, 0.6)" }}> {/**TODO: Add colors to style guide */}
                     <Typography >Username:</Typography>
                 </Box>
-                
+
                 <Box width="100%" maxWidth="500px" my={2}>
 
                     <FormControl fullWidth error={!!usernameError}>
@@ -160,7 +160,7 @@ const MedicalForm: React.FC = () => {
                             {contacts.map((user: IUser) =>
                                 <MenuItem key={user._id} value={user.username}>{user.username}</MenuItem>
                             )}
-                            
+
                         </Select>
                         <FormHelperText>{usernameError}</FormHelperText>
                     </FormControl>

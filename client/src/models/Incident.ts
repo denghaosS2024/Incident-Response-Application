@@ -17,5 +17,5 @@ export default interface IIncident {
   commander: string // The commander of the incident
   address: string // The address of the user
   type: string // The type of the incident
-  questions: MedicalQuestions | FireQuestions | PoliceQuestions | EmergencyQuestions | {}
+  questions: MedicalQuestions | FireQuestions | PoliceQuestions | EmergencyQuestions | null
 }
