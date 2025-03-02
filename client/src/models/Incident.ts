@@ -18,7 +18,7 @@ export enum IncidentPriority {
 export enum IncidentType {  
   Fire = 'F',
   Medical = 'M',
-  Polic = 'P',
+  Police = 'P',
   Unset = "U"
 }
 
