@@ -4,27 +4,35 @@
         "openDate": "10-12-24 7:25",
         "type": "F",
         "priority": "E",
-        "state": "Waiting"
+        "state": "Waiting",
+        "owner": "John Doe",
+        "commander": "paul"
     },
     {
         "id": "IZoe",
         "openDate": "10-12-24 7:25",
         "type": "F",
         "priority": "E",
-        "state": "Triage"
+        "state": "Triage",
+        "owner": "John Doe",
+        "commander": "notme"
     },
     {
         "id": "IZoe",
         "openDate": "10-12-24 7:25",
         "type": "F",
         "priority": "E",
-        "state": "Assigned"
+        "state": "Assigned",
+        "owner": "John Doe",
+        "commander": "notme"
     },
     {
         "id": "IZoe",
         "openDate": "10-12-24 7:25",
         "type": "F",
         "priority": "E",
-        "state": "Closed"
+        "state": "Closed",
+        "owner": "John Doe",
+        "commander": "notme"
     }
 ]
