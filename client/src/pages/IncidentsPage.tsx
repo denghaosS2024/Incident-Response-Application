@@ -24,6 +24,7 @@ function IncidentsPage() {
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedType, setSelectedType] = useState('All');
   const [userId, setUserId] = useState(localStorage.getItem('username') || '');
+  const [filteredData, setFilteredData] = useState<IncidentData[]>([]);
 
   // Retrieve role from localStorage when the component mounts
   useEffect(() => {
@@ -67,6 +68,22 @@ function IncidentsPage() {
     fetchData();
   }, [role]);
 
+  const IncidentTypeMap: Record<string, IncidentType> = {
+    Fire: IncidentType.Fire,
+    Medical: IncidentType.Medical,
+    Police: IncidentType.Police,
+    Unset: IncidentType.Unset,
+  };
+  
+  useEffect(() => {
+    // Filter data based on selected type
+    if (selectedType === 'All') {
+      setFilteredData(data);
+    } else {
+      const mappedType = IncidentTypeMap[selectedType];
+      setFilteredData(data.filter(incident => incident.type === mappedType));
+    }
+  }, [selectedType, data]);
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -74,16 +91,16 @@ function IncidentsPage() {
 
   if (role === 'Fire' || role === 'Police') {
     incidentGroups = {
-      "My Incident": data.filter((incident : IncidentData) => incident.commander === userId),
-      "Other Open Incidents": data.filter((incident : IncidentData) => incident.commander !== userId && incident.state !== "Closed"),
-      "Closed Incidents": data.filter((incident : IncidentData) => incident.state === "Closed"),
+      "My Incident": filteredData.filter((incident : IncidentData) => incident.commander === userId),
+      "Other Open Incidents": filteredData.filter((incident : IncidentData) => incident.commander !== userId && incident.state !== "Closed"),
+      "Closed Incidents": filteredData.filter((incident : IncidentData) => incident.state === "Closed"),
     };
   } else {
     incidentGroups = {
-      "Waiting": data.filter(incident => incident.state === "Waiting"),
-      "Triage": data.filter(incident => incident.state === "Triage"),
-      "Assigned": data.filter(incident => incident.state === "Assigned"),
-      "Closed": data.filter(incident => incident.state === "Closed"),
+      "Waiting": filteredData.filter(incident => incident.state === "Waiting"),
+      "Triage": filteredData.filter(incident => incident.state === "Triage"),
+      "Assigned": filteredData.filter(incident => incident.state === "Assigned"),
+      "Closed": filteredData.filter(incident => incident.state === "Closed"),
     };
   }
 
