@@ -119,43 +119,46 @@ function IncidentsPage() {
         />
       ))}
 
-      <IconButton
-        sx={{ position: 'fixed', bottom: 16, left: 18, width: 56, height: 56 }}
-        onClick={(event) => setFilterAnchorEl(event.currentTarget)}
-      >
-        <Settings />
-        <Typography variant="caption" sx={{ marginLeft: 1, fontSize: "medium" }}>Type</Typography>
-      </IconButton>
+      {role === 'Fire' || role === 'Police' ? (
+        <>
+          <IconButton
+            sx={{ position: 'fixed', bottom: 16, left: 18, width: 56, height: 56 }}
+            onClick={(event) => setFilterAnchorEl(event.currentTarget)}
+          >
+            <Settings />
+            <Typography variant="caption" sx={{ marginLeft: 1, fontSize: "medium" }}>Type</Typography>
+          </IconButton>
 
-      {/* Filter Menu */}
-      <Menu
-        anchorEl={filterAnchorEl}
-        open={Boolean(filterAnchorEl)}
-        onClose={() => setFilterAnchorEl(null)}
-      >
-        <MenuItem>
-          <FormControl fullWidth>
-            <Select
-              value={selectedType}
-              onChange={(event) => {
-                setSelectedType(event.target.value);
-                setFilterAnchorEl(null);
-              }}
-            >
-              <MenuItem value="All">All</MenuItem>
-              <MenuItem value="Fire">Fire</MenuItem>
-              <MenuItem value="Medical">Medical</MenuItem>
-              <MenuItem value="Police">Police</MenuItem>
-            </Select>
-          </FormControl>
-        </MenuItem>
-      </Menu>
-
-      <IconButton
-        sx={{ position: 'fixed', bottom: 16, right: 16, width: 56, height: 56 }}
-      >
-        <Add fontSize="large" />
-      </IconButton>
+          {/* Filter Menu */}
+          <Menu
+            anchorEl={filterAnchorEl}
+            open={Boolean(filterAnchorEl)}
+            onClose={() => setFilterAnchorEl(null)}
+          >
+            <MenuItem>
+              <FormControl fullWidth>
+                <Select
+                  value={selectedType}
+                  onChange={(event) => {
+                    setSelectedType(event.target.value);
+                    setFilterAnchorEl(null);
+                  }}
+                >
+                  <MenuItem value="All">All</MenuItem>
+                  <MenuItem value="Fire">Fire</MenuItem>
+                  <MenuItem value="Medical">Medical</MenuItem>
+                  <MenuItem value="Police">Police</MenuItem>
+                </Select>
+              </FormControl>
+            </MenuItem>
+          </Menu>
+          <IconButton
+          sx={{ position: 'fixed', bottom: 16, right: 16, width: 56, height: 56 }}
+        >
+          <Add fontSize="large" />
+        </IconButton>
+        </>
+      ) : null}
     </Box>
   );
 }
