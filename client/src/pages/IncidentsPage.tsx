@@ -13,7 +13,46 @@ interface IncidentData {
     owner: string;
     commander: string;
   }
-  
+
+// ✅ Temporary Hardcoded JSON Data
+const TEMP_INCIDENTS: IncidentData[] = [
+  {
+    id: "IZoe",
+    openDate: "10-12-24 7:25",
+    type: "F",
+    priority: "E",
+    state: "Waiting",
+    owner: "John Doe",
+    commander: "paul",
+  },
+  {
+    id: "IZoe1",
+    openDate: "10-12-24 7:25",
+    type: "F",
+    priority: "E",
+    state: "Triage",
+    owner: "John Doe",
+    commander: "notme",
+  },
+  {
+    id: "IZoe2",
+    openDate: "10-12-24 7:25",
+    type: "F",
+    priority: "E",
+    state: "Assigned",
+    owner: "John Doe",
+    commander: "notme",
+  },
+  {
+    id: "IZoe3",
+    openDate: "10-12-24 7:25",
+    type: "F",
+    priority: "E",
+    state: "Closed",
+    owner: "John Doe",
+    commander: "notme",
+  }
+];
 const INCIDENT_STATES = ['Waiting', 'Triage', 'Assigned', 'Closed'];
 
 function IncidentsPage() {
@@ -54,10 +93,10 @@ function IncidentsPage() {
         // }
         // const jsonData = await response.json();
         // read data from dummy.json 
-        const module = await import('./dummy.json');
-        const jsonData = module.default;
-        console.log(jsonData);
-        setData(jsonData);
+        // const module = await import('./dummy.json');
+        // const jsonData = module.default;
+        // console.log(jsonData);
+        setData(TEMP_INCIDENTS);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -74,7 +113,7 @@ function IncidentsPage() {
     Police: IncidentType.Police,
     Unset: IncidentType.Unset,
   };
-  
+
   useEffect(() => {
     // Filter data based on selected type
     if (selectedType === 'All') {
