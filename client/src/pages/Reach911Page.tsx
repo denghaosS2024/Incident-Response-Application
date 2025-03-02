@@ -3,10 +3,6 @@ import React, { useState, } from 'react'
 import styles from '../styles/Reach911Page.module.css'
 import Button from '@mui/material/Button';
 import Step3Form from '../components/Reach911/Reach911Step3Form';
-import IIncident from '../models/Incident';
-import { SelectChangeEvent } from '@mui/material';
-import { usePersistantState } from '../hooks/usePersistantState';
-
 import Reach911Step1 from '../components/Reach911/Reach911Step1';
 import Reach911Step4 from '../components/Reach911/Reach911Step4';
 

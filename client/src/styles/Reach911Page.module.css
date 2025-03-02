@@ -26,8 +26,15 @@
     font-weight: bold;
 }
 
-.flexCenter {
+.flexCenterColumn {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+}
+
+.flexCenter {
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
