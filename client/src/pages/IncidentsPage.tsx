@@ -1,7 +1,7 @@
 import GenericListContainer from '../components/GenericListContainer';
-import { Box, IconButton, Typography } from '@mui/material';
+import { Box, FormControl, IconButton, InputLabel, Menu, MenuItem, Select, Typography } from '@mui/material';
 import React, { useState, useEffect } from 'react';
-import { NavigateNext as Arrow } from '@mui/icons-material';
+import { Add, NavigateNext as Arrow, Settings } from '@mui/icons-material';
 
 interface IncidentData {
     id: string;
@@ -14,10 +14,12 @@ interface IncidentData {
 const INCIDENT_STATES = ['Waiting', 'Triage', 'Assigned', 'Closed'];
 
 function IncidentsPage() {
-  const [role, setRole] = useState('guest'); // default to 'guest' if not set
+  const [role, setRole] = useState(localStorage.getItem('role'));
   const [data, setData] = useState<IncidentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedType, setSelectedType] = useState('All');
 
   // Retrieve role from localStorage when the component mounts
   useEffect(() => {
@@ -114,8 +116,7 @@ function IncidentsPage() {
                       {incident.priority}
                     </Typography>
                   </Box>
-                  {/* Arrow icon at the end */}
-                  <IconButton edge="end" size="large" onClick={() => console.log('chat with', incident.id)}>
+                  <IconButton edge="end" size="large">
                     <Arrow />
                   </IconButton>
                 </Box>
@@ -124,6 +125,44 @@ function IncidentsPage() {
           />
         );
       })}
+
+      <IconButton
+        sx={{ position: 'fixed', bottom: 16, left: 18, width: 56, height: 56 }}
+        onClick={(event) => setFilterAnchorEl(event.currentTarget)}
+      >
+        <Settings />
+        <Typography variant="caption" sx={{ marginLeft: 1, fontSize: "medium" }}>Type</Typography>
+      </IconButton>
+
+      {/* Filter Menu */}
+      <Menu
+        anchorEl={filterAnchorEl}
+        open={Boolean(filterAnchorEl)}
+        onClose={() => setFilterAnchorEl(null)}
+      >
+        <MenuItem>
+          <FormControl fullWidth>
+            <Select
+              value={selectedType}
+              onChange={(event) => {
+                setSelectedType(event.target.value);
+                setFilterAnchorEl(null);
+              }}
+            >
+              <MenuItem value="All">All</MenuItem>
+              <MenuItem value="Fire">Fire</MenuItem>
+              <MenuItem value="Medical">Medical</MenuItem>
+              <MenuItem value="Police">Police</MenuItem>
+            </Select>
+          </FormControl>
+        </MenuItem>
+      </Menu>
+
+      <IconButton
+        sx={{ position: 'fixed', bottom: 16, right: 16, width: 56, height: 56 }}
+      >
+        <Add fontSize="large" />
+      </IconButton>
     </Box>
   );
 }

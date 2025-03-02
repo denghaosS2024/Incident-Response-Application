@@ -13,10 +13,10 @@ const initialState: IncidentsState = {
         owner: '',
         commander: '',
         address: '',
-        type: IncidentType.U,
+        type: IncidentType.Unset,
         questions: {} as EmergencyQuestions,
         incidentCallGroup: '',
-        priority: IncidentPriority.U
+        priority: IncidentPriority.Unset
     },
     loading: false, // Indicates if a incident operation is in progress
     error: null, // Stores any error that occurred during incident operations

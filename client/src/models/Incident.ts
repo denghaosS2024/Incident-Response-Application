@@ -8,18 +8,18 @@ import IUser from "./User"
  */
 
 export enum IncidentPriority {
-  E = 'Immediate',
-  One = 'Urgent',
-  Two = 'Could Wait',
-  Three = 'Dismiss',
-  U = 'Unset'
+  Immediate = 'E',
+  Urgent = 'One',
+  CouldWait = 'Two',
+  Dismiss = 'Three',
+  Unset = 'U'
 }
 
 export enum IncidentType {  
-  F = 'Fire',
-  M = 'Medical',
-  P = 'Police',
-  U = "Unset"
+  Fire = 'F',
+  Medical = 'M',
+  Polic = 'P',
+  Unset = "U"
 }
 
 export default interface IIncident {
