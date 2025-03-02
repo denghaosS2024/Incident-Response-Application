@@ -59,16 +59,16 @@ const Reach911Step1 = () => {
                 overflow: "hidden",
                 mt: 2,
                 mx: "auto",
+                mb: 2,
             }}
             >
                 <div className={styles.flexCenter}>
                     <MapLayer />
-                    <div>
-                        Refine position by pressing the incident icon
-                    </div>
                 </div>
             </Box>
-
+            <div className={styles.flexCenter}>
+                Refine position by pressing the incident icon
+            </div>
         </div>
     );
 };
