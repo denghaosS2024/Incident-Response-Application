@@ -1,4 +1,4 @@
-import IIncident from '../models/Incident'
+import IIncident, { IncidentPriority, IncidentType } from '../models/Incident'
 import { EmergencyQuestions, IncidentsState } from '../utils/types'
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
@@ -13,9 +13,10 @@ const initialState: IncidentsState = {
         owner: '',
         commander: '',
         address: '',
-        type: '',
+        type: IncidentType.U,
         questions: {} as EmergencyQuestions,
         incidentCallGroup: '',
+        priority: IncidentPriority.U
     },
     loading: false, // Indicates if a incident operation is in progress
     error: null, // Stores any error that occurred during incident operations

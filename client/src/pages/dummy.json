@@ -1,0 +1,30 @@
+[
+    {
+        "id": "IZoe",
+        "openDate": "10-12-24 7:25",
+        "type": "F",
+        "priority": "E",
+        "state": "Waiting"
+    },
+    {
+        "id": "IZoe",
+        "openDate": "10-12-24 7:25",
+        "type": "F",
+        "priority": "E",
+        "state": "Triage"
+    },
+    {
+        "id": "IZoe",
+        "openDate": "10-12-24 7:25",
+        "type": "F",
+        "priority": "E",
+        "state": "Assigned"
+    },
+    {
+        "id": "IZoe",
+        "openDate": "10-12-24 7:25",
+        "type": "F",
+        "priority": "E",
+        "state": "Closed"
+    }
+]

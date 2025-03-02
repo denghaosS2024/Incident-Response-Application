@@ -7,6 +7,20 @@ import IUser from "./User"
  * Defines the structure of an incident object in the application.
  */
 
+export enum IncidentPriority {
+  E = 'Immediate',
+  One = 'Urgent',
+  Two = 'Could Wait',
+  Three = 'Dismiss',
+  U = 'Unset'
+}
+
+export enum IncidentType {  
+  F = 'Fire',
+  M = 'Medical',
+  P = 'Police',
+  U = "Unset"
+}
 
 export default interface IIncident {
   _id: string // Unique identifier for the incident
@@ -16,7 +30,8 @@ export default interface IIncident {
   owner: string // The owner of the incident
   commander: string // The commander of the incident
   address: string // The address of the user who created the incident
-  type: string // The type of the incident
+  type: IncidentType // The type of the incident
   questions: MedicalQuestions | FireQuestions | PoliceQuestions | EmergencyQuestions | null
   incidentCallGroup?: string; // ID of the associated chat channel
+  priority: IncidentPriority // The priority of the incident
 }

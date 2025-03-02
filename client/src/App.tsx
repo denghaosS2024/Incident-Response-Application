@@ -1,4 +1,4 @@
-import { Home, Message, PermContactCalendar, LocationOn } from '@mui/icons-material'
+import { Home, Message, PermContactCalendar, AccessAlarm, LocationOn, FmdBadRounded } from '@mui/icons-material'
 import { StyledEngineProvider } from '@mui/material/styles'
 import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
@@ -28,6 +28,7 @@ import GroupsPage from './pages/GroupsPage'
 import Reach911Page from './pages/Reach911Page'
 import { LocalPolice as PoliceIcon,LocalFireDepartment as FirefighterIcon,LocalHospital as NurseIcon,Report,LocalPhone } from '@mui/icons-material';
 import MapPage from './pages/MapPage'
+import IncidentsPage from './pages/IncidentsPage'
 
 const App: React.FC = () => {
   return (
@@ -43,6 +44,7 @@ const App: React.FC = () => {
             <Route path="/groups" element={<GroupsPage />} />
             <Route path="/reach911" element={<Reach911Page />} />
             <Route path="/map" element={<MapPage />} />
+            <Route path="/incidents" element={<IncidentsPage />} />
           </Route>
           <Route element={<ProtectedRoute showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
@@ -119,7 +121,6 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       icon: <NurseIcon  />,
       to: '/nurse',
     },
-    
   ]
   const roleTabs: Record<string, Link> = {
     Dispatch: { prefix: '/', key: '911', icon:  <LocalPhone/>, to: '/' },
@@ -132,7 +133,17 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     homeTab, 
     ...tabLinks.filter((link) => link.key !== 'home'), 
   ];
-  
+
+  // TODO: Does Admmin see everything? If so, we need to include admin here
+  const firstResponderRoleList = ['Dispatch', 'Police', 'Fire']
+  if (firstResponderRoleList.includes(role)) {
+    orderedTabs.push({
+      prefix: '/incidents',
+      key: 'incidents',
+      icon: <Report />,
+      to: '/incidents',
+    })
+  }
   
   useEffect(() => {
     const socket = SocketClient
