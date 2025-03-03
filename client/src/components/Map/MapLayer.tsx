@@ -68,9 +68,9 @@ const MapLayer: React.FC = () => {
   const youMenuStyle = isFullPage
     ? {
         left: '20px',
-        bottom: '20px',
+        bottom: '100px',
         top: 'auto',
-        marginBottom: '50px' // Add space above the button
+        marginBottom: '50px'
       }
     : {
         left: '20px',
@@ -146,7 +146,7 @@ const MapLayer: React.FC = () => {
         onClick={toggleVisibility}
         sx={{
           position: 'absolute',
-          bottom: '20px',
+          bottom: '60px',
           left: '20px',
           zIndex: 100,
           bgcolor: 'white',
