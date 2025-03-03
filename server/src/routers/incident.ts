@@ -89,10 +89,10 @@ export default Router()
         *                   example: Invalid input or server error.
         */
     .post('/', async (request, response) => {
-        const { incident } = request.body
+        const { username } = request.body
        
         try {
-            const result = await IncidentController.create(incident.questions.username)
+            const result = await IncidentController.create(username)
             response.status(201).send(result)
         } catch (e) {
             const error = e as Error
