@@ -19,6 +19,7 @@ const MapLayer: React.FC = () => {
   const [navbarHeight, setNavbarHeight] = useState(56); // Default AppBar height
   const [tabbarHeight, setTabbarHeight] = useState(48); // Default Tabs height
   const [isFullPage, setIsFullPage] = useState(false);
+  const [is911Page, setIs911Page] = useState(false);
 
   useEffect(() => {
     // Get the actual heights of navbar and tabbar
@@ -36,6 +37,7 @@ const MapLayer: React.FC = () => {
     // Check if we're in the full page map view or embedded in another component
     const path = window.location.pathname;
     setIsFullPage(path === '/map');
+    setIs911Page(path.includes('911'));
   }, []);
 
   const handleListItemClick = (index: number) => {
@@ -51,30 +53,48 @@ const MapLayer: React.FC = () => {
     ? `calc(100vh - ${navbarHeight}px - ${tabbarHeight}px)`
     : '100%';
 
-  // Menu positions differ based on view
-  const groupMenuStyle = isFullPage 
+  // Menu position
+  const menuStyle = isFullPage 
     ? {
         left: '20px',
-        bottom: '80px',
+        bottom: '120px', // Position above the toggle button (60px + spacing)
         top: 'auto',
         transform: 'none'
       }
-    : {
-        left: '20px',
-        top: '45%',
-        transform: 'translateY(-50%)'
-      };
+    : is911Page
+      ? {
+          left: '20px',
+          bottom: '120px',
+          top: 'auto',
+          transform: 'none'
+        }
+      : {
+          left: '20px',
+          top: '45%',
+          transform: 'translateY(-50%)'
+        };
 
-  const youMenuStyle = isFullPage
+  // Toggle button position
+  const toggleButtonStyle = isFullPage || is911Page
     ? {
+        position: 'absolute',
+        bottom: '60px',
         left: '20px',
-        bottom: '100px',
-        top: 'auto',
-        marginBottom: '50px'
+        zIndex: 1000, // Increased z-index to ensure visibility
+        bgcolor: 'white',
+        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.2)',
+        width: '40px',
+        height: '40px'
       }
     : {
+        position: 'absolute',
+        bottom: '60px',
         left: '20px',
-        top: 'calc(45% + 100px)'
+        zIndex: 1000,
+        bgcolor: 'white',
+        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.2)',
+        width: '40px',
+        height: '40px'
       };
 
   return (
@@ -89,7 +109,7 @@ const MapLayer: React.FC = () => {
     }}>
       <Box 
         className={`${styles.levitatingList} ${!isVisible ? styles.hidden : ''}`}
-        style={groupMenuStyle}
+        style={menuStyle}
       >
         <List component="nav" aria-label="map layer selection">
           <ListItemButton
@@ -121,14 +141,7 @@ const MapLayer: React.FC = () => {
             </ListItemIcon>
             <ListItemText primary="Contacts" />
           </ListItemButton>
-        </List>
-      </Box>
 
-      <Box 
-        className={`${styles.youBox} ${!isVisible ? styles.hidden : ''}`}
-        style={youMenuStyle}
-      >
-        <List component="nav" aria-label="you-section">
           <ListItemButton
             selected={selectedIndex === 3}
             onClick={() => handleListItemClick(3)}
@@ -144,16 +157,7 @@ const MapLayer: React.FC = () => {
       <IconButton 
         className={styles.toggleButton} 
         onClick={toggleVisibility}
-        sx={{
-          position: 'absolute',
-          bottom: '60px',
-          left: '20px',
-          zIndex: 100,
-          bgcolor: 'white',
-          boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.2)',
-          width: '40px',
-          height: '40px'
-        }}
+        sx={toggleButtonStyle}
       >
         {isVisible ? <RemoveIcon /> : <AddIcon />}
       </IconButton>
