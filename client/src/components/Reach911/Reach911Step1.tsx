@@ -59,6 +59,7 @@ const Reach911Step1 = () => {
                 maxWidth: "900px",
                 height: { xs: "400px", sm: "500px", md: "500px" },
                 display: "flex",
+                flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
                 overflow: "hidden",
@@ -70,6 +71,25 @@ const Reach911Step1 = () => {
                 borderRadius: "8px",
             }}
             >
+                {/* Map instructions */}
+                <Box sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 10,
+                    backgroundColor: "rgba(255, 255, 255, 0.8)",
+                    p: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1
+                }}>
+                    <LocationOnIcon color="error" />
+                    <Typography variant="body2" align="center">
+                        Drag the red marker to refine your location
+                    </Typography>
+                </Box>
                 <div className={styles.flexCenter} style={{ 
                     height: '100%', 
                     width: '100%', 

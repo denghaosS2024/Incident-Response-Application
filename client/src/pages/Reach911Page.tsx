@@ -4,6 +4,7 @@ import styles from '../styles/Reach911Page.module.css'
 import Button from '@mui/material/Button';
 import Step3Form from '../components/Reach911/Reach911Step3Form';
 import Reach911Step1 from '../components/Reach911/Reach911Step1';
+import Reach911Step2 from '../components/Reach911/Reach911Step2';
 import Reach911Step4 from '../components/Reach911/Reach911Step4';
 import { useDispatch, useSelector } from 'react-redux';
 import { MedicalQuestions, RootState } from '../utils/types';
@@ -19,6 +20,7 @@ const Reach911Page: React.FC = () => {
 
     const contents = [
         <Reach911Step1 />,
+        <Reach911Step2 />,
         <Step3Form />,
         <Reach911Step4 />,
         // add the following steps here
