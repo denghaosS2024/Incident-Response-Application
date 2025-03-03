@@ -5,7 +5,7 @@ import {
     Paper,
 } from '@mui/material'
 import styles from '../../styles/Reach911Page.module.css'
-import MapLayer from '../Map/MapLayerNew';
+import MapLayer from '../Map/MapLayer';
 
 import React from 'react'
 import IIncident from '../../models/Incident';

@@ -1,5 +1,5 @@
 import React from 'react';
-import MapLayer from '../components/Map/MapLayerNew';
+import MapLayer from '../components/Map/MapLayer';
 
 const MapPage: React.FC = () => {
   return (
