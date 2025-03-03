@@ -2,6 +2,8 @@ import React from 'react'
 import MedicalForm from './MedicalForm';
 import { RootState } from '../../utils/types';
 import { useSelector } from 'react-redux';
+import FireForm from './FireForm';
+import PoliceForm from './PoliceForm';
 
 const Step3Form: React.FC = () => {
 
@@ -13,9 +15,17 @@ const Step3Form: React.FC = () => {
             case "Medical":
                 return <MedicalForm></MedicalForm>
             case "Fire":
-                return <MedicalForm></MedicalForm>
+                return <FireForm></FireForm>
+            case "Police":
+                return <PoliceForm></PoliceForm>
             default:
-                return <MedicalForm></MedicalForm>
+                return (
+                    <>
+                        <MedicalForm></MedicalForm>
+                        <FireForm></FireForm>
+                        <PoliceForm></PoliceForm>
+                    </>
+                )
         }
     }
 
