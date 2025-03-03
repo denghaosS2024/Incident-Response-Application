@@ -84,14 +84,21 @@ const Home: FunctionComponent = () => {
                 padding: '10px 10px',
                 border: '1.5px solid #ddd',
                 borderRadius: '8px',
-                backgroundColor: '#fff',
+                backgroundColor: text === '911' ? '#ff0000' : '#fff',
                 marginBottom: '8px',
                 width:'90%',
                 marginTop:'5px',
-                '&:hover': { backgroundColor: '#f0f0f0' },
+                '&:hover': { backgroundColor: text === '911' ? '#e60000' : '#f0f0f0' },
               }}
             >
-              <ListItemText sx={{ flex: 1, textAlign: 'center' }} primary={text} />
+              <ListItemText 
+                sx={{ 
+                  flex: 1, 
+                  textAlign: 'center',
+                  color: text === '911' ? '#fff' : 'inherit'
+                }} 
+                primary={text} 
+              />
               {icon && <Box sx={{ ml: 'auto', pr: 1 }}>{icon}</Box>}
             </Box>
           </Link>
