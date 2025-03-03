@@ -80,10 +80,20 @@ class UserController {
   async listUsers() {
     const users = await User.find().exec()
 
-    return users.map((user) => ({
+    const formattedUsers = users.map((user) => ({
       ...(user.toJSON() as Pick<IUser, '_id' | 'username' | 'role'>),
       online: UserConnections.isUserConnected(user.id),
     }))
+
+    const onlineUsers = formattedUsers
+      .filter(user => user.online)
+      .sort((a, b) => a.username.localeCompare(b.username))
+
+    const offlineUsers = formattedUsers
+      .filter(user => !user.online)
+      .sort((a, b) => a.username.localeCompare(b.username))
+
+    return onlineUsers.concat(offlineUsers)
   }
 }
 
