@@ -8,6 +8,7 @@
     "@fontsource/material-icons": "^5.1.1",
     "@fontsource/roboto": "^5.1.1",
     "@mapbox/mapbox-gl-geocoder": "^5.0.3",
+    "@mapbox/search-js-react": "^1.0.0",
     "@mui/icons-material": "^5.14.14",
     "@mui/lab": "^5.0.0-alpha.149",
     "@mui/material": "^5.14.14",

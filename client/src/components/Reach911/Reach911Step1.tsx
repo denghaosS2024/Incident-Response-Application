@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../app/store';
 import { updateIncident } from '../../features/incidentSlice';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { AddressAutofill } from '@mapbox/search-js-react';
 
 const Reach911Step1 = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -43,14 +44,19 @@ const Reach911Step1 = () => {
                         width: { xs: "90%", sm: "90%", md: "90%", lg: "90%" },
                         maxWidth: "900px"
                     }}>
-                        <TextField
-                            fullWidth
-                            id="outlined-basic"
-                            label="Address"
-                            variant="outlined"
-                            value={address}
-                            onChange={(e) => onChange(e)}
-                        />
+                        <form>
+                            <AddressAutofill accessToken="pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA">
+                                <TextField
+                                    fullWidth
+                                    id="outlined-basic"
+                                    label="Address"
+                                    variant="outlined"
+                                    value={address}
+                                    autoComplete="street-address"
+                                    onChange={(e) => onChange(e)}
+                                />
+                            </AddressAutofill>
+                        </form>
                     </Box>
                 </div>
             </div>
@@ -89,16 +95,16 @@ const Reach911Step1 = () => {
                         Drag the red marker to refine your location
                     </Typography>
                 </Box>
-                <div className={styles.flexCenter} style={{ 
-                    height: '100%', 
-                    width: '100%', 
+                <div className={styles.flexCenter} style={{
+                    height: '100%',
+                    width: '100%',
                     position: 'relative',
                     minHeight: '400px' // Ensure minimum height for the map
                 }}>
                     <MapLayer />
                 </div>
             </Box>
-        </div>
+        </div >
     );
 };
 
