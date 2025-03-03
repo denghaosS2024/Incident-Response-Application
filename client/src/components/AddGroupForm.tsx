@@ -16,6 +16,7 @@ import {
 } from '@mui/material'
 import { group } from 'console'
 import { set } from 'lodash'
+import ConfirmationDialog from '../components/common/ConfirmationDialog'
 
 interface ITab {
   text: string
@@ -42,6 +43,7 @@ interface IFormData {
 
 export interface IAddGroupFormProps {
   createChannel: (data: IFormData) => void
+  deleteChannel: (channelName: string) => void
 }
 
 const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
@@ -56,6 +58,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
   const currentUserRole = localStorage.getItem('role')
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
 
   const handleSubmit = () => {
     let hasError = false
@@ -99,7 +102,20 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   }
 
   const handleDeleteClick = () => {
-    setShowForm(true)
+    let hasError = false
+
+    setNameError('')
+    if (!name.trim()) {
+      setNameError('Group name is required')
+      hasError = true
+    } else {
+      setOpenConfirmDialog(true)
+    }
+  }
+
+  const handleDeleteChannel = () => {
+    setOpenConfirmDialog(false)
+    channelProps.deleteChannel(name)
   }
 
   const handleAddGroupClick = (
@@ -197,6 +213,13 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
             >
               Delete
             </Button>
+            <ConfirmationDialog
+              open={openConfirmDialog}
+              title="Delete Group"
+              description="Are you sure you want to delete this group?"
+              onConfirm={handleDeleteChannel}
+              onCancel={() => setOpenConfirmDialog(false)}
+            />
           </Box>
         </Box>
       )}

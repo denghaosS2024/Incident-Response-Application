@@ -14,6 +14,28 @@ dotenv.config()
 
 class ChannelController {
   /**
+   * Delete a channel by Name (Name had unique constraint)
+   * @param name - The name of the channel to delete
+   * @returns The deleted channel object
+   * @throws Error if trying to delete the public channel or if the channel is not found
+   */
+  delete = async (name: string) => {
+    if (name === PUBLIC_CHANNEL_NAME) {
+      throw new Error('Cannot delete the public channel')
+    }
+
+    const exists = await Channel.findOne({
+      name,
+    }).exec()
+
+    if (!exists) {
+      throw new Error(`Channel(${name}) not found.`)
+    }
+
+    return await Channel.findOneAndDelete({ name }).exec()
+  }
+
+  /**
    * Create a new channel or return an existing one if it already exists
    * @param channel - An object containing channel details
    * @param channel.name - Name for the channel

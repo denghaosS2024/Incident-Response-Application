@@ -4,7 +4,7 @@ import request, { IRequestError } from '../utils/request'
 import IChannel from '../models/Channel'
 import { IAddGroupFormProps } from '../components/AddGroupForm'
 import AlertSnackbar from '../components/common/AlertSnackbar'
-import { set } from "lodash"
+import { set } from 'lodash'
 
 const Groups: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -38,9 +38,32 @@ const Groups: React.FC = () => {
     }
   }
 
+  const deleteGroup: IAddGroupFormProps['deleteChannel'] = async (
+    name: string,
+  ) => {
+    setErrorMessage('')
+    try {
+      await request('/api/channels', {
+        method: 'DELETE',
+        body: JSON.stringify({ name }),
+      })
+      setSuccessMessage('Group deleted successfully!')
+      setOpenSnackbar(true)
+    } catch (e) {
+      const error = e as IRequestError
+      if (error.status >= 400 && error.status < 500) {
+        setErrorMessage(`Error: ${error.message}`)
+      } else {
+        console.log('error', error)
+        setErrorMessage('Server error occurred. Please try again later.')
+      }
+      setOpenSnackbar(true)
+    }
+  }
+
   return (
     <>
-      <AddGroupForm createChannel={newGroup} />
+      <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} />
       <AlertSnackbar
         open={openSnackbar}
         onClose={() => setOpenSnackbar(false)}

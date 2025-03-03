@@ -112,9 +112,55 @@ import Channel from '../models/Channel'
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Channel'
+ *
+ *   delete:
+ *     summary: Delete a channel
+ *     tags: [Channels]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *
+ *     responses:
+ *       200:
+ *         description: Channel deleted
+ *
+ *       400:
+ *         description: Invalid request
+ *
  */
 
 export default Router()
+  /**
+   * Delete a channel
+   * @route DELETE /api/channels
+   * @param {Object} request.body
+   * @param {string} request.body.name - Name of the channel to delete
+   * @returns {string} Success message
+   * @throws {400} If the channel name is not provided
+   */
+  .delete('/', async (request, response) => {
+    const { name } = request.body as { name: string }
+    if (!name) {
+      return response.status(400).send({ message: 'Channel name is required' })
+    }
+
+    try {
+      await ChannelController.delete(name)
+      return response.send({message: `Channel(${name}) deleted`})
+    } catch (e) {
+      const error = e as Error
+      return response.status(400).send({ message: error.message })
+    }
+  })
+
   /**
    * Create a new channel
    * @route POST /api/channels

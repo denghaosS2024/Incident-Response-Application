@@ -147,5 +147,35 @@ describe('Channel controller', () => {
     expect(owner._id).toBe(userB._id.toString())
   })
 
+  it('can delete a channel by name', async () => {
+    // given
+    const newChannel = await ChannelController.create({
+      name: 'Test Channel 4',
+      userIds: [userA._id, userB._id],
+      closed: false,
+      ownerId: userA._id,
+    })
+    expect(await ChannelController.get(newChannel._id)).toBeDefined()
+
+    // when
+    await ChannelController.delete(newChannel.name)
+
+    // then
+    expect(await ChannelController.get(newChannel._id)).toBeNull()
+  })
+
+  it('should not be able to delete the public channel', async () => {
+    // given
+    const publicChannel = await Channel.getPublicChannel()
+
+    // when-then
+    try {
+      await ChannelController.delete(publicChannel.name)
+    } catch (e) {
+      const error = e as Error
+      expect(error.message).toBe('Cannot delete the public channel')
+    }
+  })
+
   afterAll(TestDatabase.close)
 })
