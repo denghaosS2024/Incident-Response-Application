@@ -26,7 +26,7 @@ import { loadContacts } from './features/contactSlice'
 import Groups2Icon from '@mui/icons-material/Groups2'
 import GroupsPage from './pages/GroupsPage'
 import Reach911Page from './pages/Reach911Page'
-import { LocalPolice as PoliceIcon,LocalFireDepartment as FirefighterIcon,LocalHospital as NurseIcon,Report,LocalPhone } from '@mui/icons-material';
+import { LocalPolice as PoliceIcon,LocalFireDepartment as FirefighterIcon,LocalHospital as NurseIcon,Report } from '@mui/icons-material';
 import MapPage from './pages/MapPage'
 import IncidentsPage from './pages/IncidentsPage'
 
@@ -94,7 +94,8 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     {
       prefix: '/reach911',
       key: 'reach911',
-      icon: <LocalPhone/>,
+      icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
+      selectedIcon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
       to: '/reach911',
     },
     {
@@ -123,7 +124,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     },
   ]
   const roleTabs: Record<string, Link> = {
-    Dispatch: { prefix: '/', key: '911', icon:  <LocalPhone/>, to: '/' },
+    Dispatch: { prefix: '/', key: '911', icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, to: '/' },
     Police: { prefix: '/', key: 'police', icon: <PoliceIcon />, to: '/' },
     Fire: { prefix: '/', key: 'fire', icon: <FirefighterIcon />, to: '/' },
     Nurse: { prefix: '/', key: 'nurse', icon:<NurseIcon />, to: '/' },

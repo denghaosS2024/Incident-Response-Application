@@ -26,7 +26,7 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Contacts', link: '/contacts', icon: <Contact /> },
     { text: 'Groups', link: '/groups', icon: <Groups2Icon /> },
     { text: 'Maps', link: '/maps', icon: <LocationIcon /> },
-    { text: '911', link: '/reach911', icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, }
+    { text: '911', link: '/reach911' }
   ],
   Dispatch: [
     { text: 'Messages', link: '/messages', icon: <Message /> },
