@@ -1,18 +1,36 @@
 import mongoose, { Schema, Document, Types } from 'mongoose'
+import { MedicalQuestions, FireQuestions, PoliceQuestions, EmergencyQuestions } from "../utils/types"
+
+export enum IncidentType {
+    Fire = 'F',
+    Medical = 'M',
+    Police = 'P',
+    Unset = "U"
+}
+
+export enum IncidentPriority {
+    Immediate = 'E',
+    Urgent = 'One',
+    CouldWait = 'Two',
+    Dismiss = 'Three',
+    Unset = 'U'
+}
 
 export interface IIncident extends Document {
     incidentId: string;
     caller: string;
     openingDate: Date;
-    incidentState:'Waiting' | 'Triage' | 'Assigned' | 'Closed'; 
+    incidentState: 'Waiting' | 'Triage' | 'Assigned' | 'Closed';
     /*
      TODO in the future: when the app is deployed we can create reserved user System
      and replace String with type of User (same with commander)
      */
     owner: string;
     commander: string;
-
-    // Step 4
+    address: string;
+    type: IncidentType;
+    questions: MedicalQuestions | FireQuestions | PoliceQuestions | EmergencyQuestions | null;
+    priority: IncidentPriority; // The priority of the incident
     incidentCallGroup?: Types.ObjectId;  // Reference to Channel model
 }
 
@@ -47,13 +65,34 @@ const IncidentSchema = new Schema(
             required: true,
             default: "System"
         },
+        address: {
+            type: String,
+            required: false,
+        },
+        type: {
+            type: String,
+            required: false,
+            enum: Object.values(IncidentType)
+        },
+        priority: {
+            type: String,
+            required: false,
+            enum: Object.values(IncidentPriority)
+
+        },
+        questions: {
+            type: Schema.Types.Mixed, // Allows for different types of object but no strict type validation. This could be changed
+            required: false
+        },
         incidentCallGroup: {
             type: Schema.Types.ObjectId,
             ref: 'Channel',
-            required: false
+            required: false,
+            default: new mongoose.Types.ObjectId()
         },
     },
 )
+
 
 /**
  * Auto-generate `incidentId` if not provided

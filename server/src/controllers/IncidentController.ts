@@ -1,4 +1,4 @@
-import Incident, { type IIncident }from "../models/Incident"
+import Incident, { IncidentPriority, type IIncident } from "../models/Incident"
 import { Types } from 'mongoose';
 
 class IncidentController {
@@ -30,6 +30,41 @@ class IncidentController {
         }
         return incident
     }
+
+    /**
+     * Create a new incident with existing information
+     * @param incident 
+     * @returns The newly created incident object
+     * @throws {Error} if the incident already exists --> in the future check if the incident exists and is not closed
+     */
+    async createIncident(
+        incident: IIncident,
+    ) {
+
+        // Check if the incident already exists
+        let incidentId = `I${incident.caller}`
+        let existingIncident = await Incident.findOne({ incidentId }).exec()
+
+        if (existingIncident) {
+            throw new Error(`Incident "${incidentId}" already exists`)
+        } else {
+            // Create and save new incident object
+            incident = await new Incident({
+                incidentId:`I${incident.caller}`,
+                caller: incident.caller,
+                openingDate: new Date(),
+                incidentState: incident.incidentState ? incident.incidentState : "Waiting",
+                owner: incident.owner ? incident.owner : "System",
+                address: incident.address ? incident.address : "" ,
+                type: incident.type ? incident.type : "",
+                questions: incident.questions ? incident.questions : {},
+                priority: IncidentPriority.Immediate
+            }).save()
+        }
+        return incident
+    }
+
+    
 
     /**
      * Update incident chat group
