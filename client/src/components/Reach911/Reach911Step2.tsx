@@ -2,13 +2,9 @@ import React from 'react';
 import { 
     Box, 
     Typography, 
-    Paper,
-    Grid,
     Card,
-    CardContent,
     CardActionArea
 } from '@mui/material';
-import styles from '../../styles/Reach911Page.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../app/store';
 import { updateIncident } from '../../features/incidentSlice';
@@ -35,157 +31,150 @@ const Reach911Step2: React.FC = () => {
     const isSelected = (type: IncidentType) => incident.type === type;
 
     return (
-        <div className={styles.wrapperStep1}>
-            <div className={styles.flexCenterColumn}>
-                <Typography variant="h6" align="center" gutterBottom>
-                    Select Emergency Type
-                </Typography>
-                <Typography variant="subtitle1" className={styles.bold} align="center" gutterBottom>
+        <Box sx={{ 
+            height: '100%',
+            maxHeight: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            px: 2,
+            pb: 1,
+            boxSizing: 'border-box'
+        }}>
+            <Box sx={{ pt: 1 }}>
+                <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'bold', mb: 0.5, fontSize: '0.95rem' }}>
                     What type of emergency are you experiencing?
                 </Typography>
-                
-                <Box sx={{ 
-                    width: '100%', 
-                    maxWidth: '900px', 
-                    mt: 4,
-                    px: 2
-                }}>
-                    <Grid container spacing={3} justifyContent="center">
-                        {/* Fire Emergency Card */}
-                        <Grid item xs={12} sm={4}>
-                            <Card 
-                                elevation={isSelected(IncidentType.Fire) ? 8 : 2}
+            </Box>
+            
+            <Box sx={{ 
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+                width: '100%',
+                flex: 1,
+                overflow: 'hidden',
+                my: 0.5
+            }}>
+                {/* Fire Emergency Card */}
+                <Card 
+                    elevation={isSelected(IncidentType.Fire) ? 4 : 1}
+                    sx={{ 
+                        border: isSelected(IncidentType.Fire) ? '2px solid #f44336' : '1px solid #e0e0e0',
+                        transition: 'all 0.3s ease',
+                        maxHeight: '28%'
+                    }}
+                >
+                    <CardActionArea 
+                        onClick={() => handleTypeSelection(IncidentType.Fire)}
+                        sx={{ display: 'flex', justifyContent: 'center', py: 1 }}
+                    >
+                        <Box sx={{ 
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            width: '100%'
+                        }}>
+                            <LocalFireDepartmentIcon 
                                 sx={{ 
-                                    height: '100%',
-                                    border: isSelected(IncidentType.Fire) ? '2px solid #f44336' : 'none',
-                                    transition: 'all 0.3s ease'
-                                }}
-                            >
-                                <CardActionArea 
-                                    onClick={() => handleTypeSelection(IncidentType.Fire)}
-                                    sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                                >
-                                    <Box sx={{ 
-                                        p: 3, 
-                                        display: 'flex', 
-                                        flexDirection: 'column', 
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        height: '100%'
-                                    }}>
-                                        <LocalFireDepartmentIcon 
-                                            sx={{ 
-                                                fontSize: 80, 
-                                                color: '#f44336',
-                                                mb: 2
-                                            }} 
-                                        />
-                                        <Typography variant="h5" component="div" align="center">
-                                            Fire
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-                                            Report a fire emergency
-                                        </Typography>
-                                    </Box>
-                                </CardActionArea>
-                            </Card>
-                        </Grid>
+                                    fontSize: 36, 
+                                    color: '#f44336',
+                                    mb: 0.25
+                                }} 
+                            />
+                            <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'medium', fontSize: '0.95rem', lineHeight: 1.2 }}>
+                                Fire
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" align="center" sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
+                                Report a fire emergency
+                            </Typography>
+                        </Box>
+                    </CardActionArea>
+                </Card>
 
-                        {/* Medical Emergency Card */}
-                        <Grid item xs={12} sm={4}>
-                            <Card 
-                                elevation={isSelected(IncidentType.Medical) ? 8 : 2}
+                {/* Medical Emergency Card */}
+                <Card 
+                    elevation={isSelected(IncidentType.Medical) ? 4 : 1}
+                    sx={{ 
+                        border: isSelected(IncidentType.Medical) ? '2px solid #2196f3' : '1px solid #e0e0e0',
+                        transition: 'all 0.3s ease',
+                        maxHeight: '28%'
+                    }}
+                >
+                    <CardActionArea 
+                        onClick={() => handleTypeSelection(IncidentType.Medical)}
+                        sx={{ display: 'flex', justifyContent: 'center', py: 1 }}
+                    >
+                        <Box sx={{ 
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            width: '100%'
+                        }}>
+                            <LocalHospitalIcon 
                                 sx={{ 
-                                    height: '100%',
-                                    border: isSelected(IncidentType.Medical) ? '2px solid #2196f3' : 'none',
-                                    transition: 'all 0.3s ease'
-                                }}
-                            >
-                                <CardActionArea 
-                                    onClick={() => handleTypeSelection(IncidentType.Medical)}
-                                    sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                                >
-                                    <Box sx={{ 
-                                        p: 3, 
-                                        display: 'flex', 
-                                        flexDirection: 'column', 
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        height: '100%'
-                                    }}>
-                                        <LocalHospitalIcon 
-                                            sx={{ 
-                                                fontSize: 80, 
-                                                color: '#2196f3',
-                                                mb: 2
-                                            }} 
-                                        />
-                                        <Typography variant="h5" component="div" align="center">
-                                            Medical
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-                                            Report a medical emergency
-                                        </Typography>
-                                    </Box>
-                                </CardActionArea>
-                            </Card>
-                        </Grid>
+                                    fontSize: 36, 
+                                    color: '#2196f3',
+                                    mb: 0.25
+                                }} 
+                            />
+                            <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'medium', fontSize: '0.95rem', lineHeight: 1.2 }}>
+                                Medical
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" align="center" sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
+                                Report a medical emergency
+                            </Typography>
+                        </Box>
+                    </CardActionArea>
+                </Card>
 
-                        {/* Police Emergency Card */}
-                        <Grid item xs={12} sm={4}>
-                            <Card 
-                                elevation={isSelected(IncidentType.Police) ? 8 : 2}
+                {/* Police Emergency Card */}
+                <Card 
+                    elevation={isSelected(IncidentType.Police) ? 4 : 1}
+                    sx={{ 
+                        border: isSelected(IncidentType.Police) ? '2px solid #4caf50' : '1px solid #e0e0e0',
+                        transition: 'all 0.3s ease',
+                        maxHeight: '28%'
+                    }}
+                >
+                    <CardActionArea 
+                        onClick={() => handleTypeSelection(IncidentType.Police)}
+                        sx={{ display: 'flex', justifyContent: 'center', py: 1 }}
+                    >
+                        <Box sx={{ 
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            width: '100%'
+                        }}>
+                            <LocalPoliceIcon 
                                 sx={{ 
-                                    height: '100%',
-                                    border: isSelected(IncidentType.Police) ? '2px solid #4caf50' : 'none',
-                                    transition: 'all 0.3s ease'
-                                }}
-                            >
-                                <CardActionArea 
-                                    onClick={() => handleTypeSelection(IncidentType.Police)}
-                                    sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                                >
-                                    <Box sx={{ 
-                                        p: 3, 
-                                        display: 'flex', 
-                                        flexDirection: 'column', 
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        height: '100%'
-                                    }}>
-                                        <LocalPoliceIcon 
-                                            sx={{ 
-                                                fontSize: 80, 
-                                                color: '#4caf50',
-                                                mb: 2
-                                            }} 
-                                        />
-                                        <Typography variant="h5" component="div" align="center">
-                                            Police
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-                                            Report a police emergency
-                                        </Typography>
-                                    </Box>
-                                </CardActionArea>
-                            </Card>
-                        </Grid>
-                    </Grid>
-                </Box>
-                
-                <Box sx={{ mt: 4, width: '100%', maxWidth: '900px', px: 2 }}>
-                    <Typography variant="body1" align="center">
-                        {incident.type !== IncidentType.Unset 
-                            ? `You've selected: ${incident.type === IncidentType.Fire 
-                                ? 'Fire' 
-                                : incident.type === IncidentType.Medical 
-                                    ? 'Medical' 
-                                    : 'Police'} emergency` 
-                            : 'Please select an emergency type'}
-                    </Typography>
-                </Box>
-            </div>
-        </div>
+                                    fontSize: 36, 
+                                    color: '#4caf50', 
+                                    mb: 0.25
+                                }} 
+                            />
+                            <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'medium', fontSize: '0.95rem', lineHeight: 1.2 }}>
+                                Police
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" align="center" sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
+                                Report a police emergency
+                            </Typography>
+                        </Box>
+                    </CardActionArea>
+                </Card>
+            </Box>
+            
+            {incident.type !== IncidentType.Unset && (
+                <Typography variant="body2" align="center" sx={{ fontSize: '0.8rem', lineHeight: 1.2 }}>
+                    You've selected: {incident.type === IncidentType.Fire 
+                        ? 'Fire' 
+                        : incident.type === IncidentType.Medical 
+                            ? 'Medical' 
+                            : 'Police'} emergency
+                </Typography>
+            )}
+        </Box>
     );
 };
 
