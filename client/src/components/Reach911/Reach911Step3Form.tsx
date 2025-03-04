@@ -10,7 +10,6 @@ const Step3Form: React.FC = () => {
     const type: string = useSelector((state: RootState) => state.incidentState.incident.type)
 
     const renderForm = () => {
-        // TODO add the other forms
         switch(type){
             case "Medical":
                 return <MedicalForm></MedicalForm>

@@ -42,7 +42,7 @@ const Reach911Page: React.FC = () => {
     const submitIncident = async () => {
         try {
             setError(null);
-            
+
             const username = localStorage.getItem('username');
             const token = localStorage.getItem('token');
             const uid = localStorage.getItem('uid');
@@ -53,13 +53,13 @@ const Reach911Page: React.FC = () => {
                 return;
             }
 
-            // The backend expects a simple username field
+            // The backend expects an incident field
             const requestBody = {
-                username: username // This is what the backend expects
+                incident: incident
             };
 
             // Construct the URL and options
-            const url = `${process.env.REACT_APP_BACKEND_URL}/api/incidents`;
+            const url = `${process.env.REACT_APP_BACKEND_URL}/api/incidents/new`;
             const options = {
                 method: 'POST',
                 headers: {
@@ -72,11 +72,11 @@ const Reach911Page: React.FC = () => {
 
             // Use fetch directly
             const response = await fetch(url, options);
-            
+
             // Parse the response body
             const responseText = await response.text();
             let responseData;
-            
+
             try {
                 responseData = JSON.parse(responseText);
             } catch (e) {
@@ -85,26 +85,11 @@ const Reach911Page: React.FC = () => {
             }
 
             if (!response.ok) {
-                throw { 
-                    status: response.status, 
+                throw {
+                    status: response.status,
                     message: responseData.message || 'Failed to submit incident'
                 };
             }
-            
-            // Store any additional incident data we want to track on the front-end
-            const updatedIncident = {
-                ...incident,
-                ...responseData, // Include backend data (id, etc.)
-                caller: username, // Keep username for display
-                openingDate: responseData.openingDate || new Date().toUTCString(),
-                incidentState: responseData.incidentState || "Waiting",
-                address: incident.address || "", // Keep address from our form
-                type: incident.type || IncidentType.Unset, // Keep type from our form
-                questions: incident.questions || {} // Keep questions from our form
-            };
-
-            // Update the redux store with the response
-            dispatch(updateIncident(updatedIncident));
 
             // Move to next step
             setActiveStep(prev => prev + 1);
@@ -151,6 +136,7 @@ const Reach911Page: React.FC = () => {
                 </Button>
             </div>
         </div >
+
     )
 }
 

@@ -55,7 +55,6 @@ export default Router()
         * /api/incidents:
         *   post:
         *     summary: Create a new incident.
-        *     description: Creates an incident based on the provided username.
         *     tags: [Incidents]
         *     security:
         *       - bearerAuth: []
@@ -99,6 +98,21 @@ export default Router()
             response.status(400).send({ message: error.message })
         }
     })
+
+    // TODO: Sawgger documentation
+    .post('/new', async (request, response) => {
+        const { incident } = request.body
+
+        try {
+            const result = await IncidentController.createIncident(incident)
+            response.status(201).send(result)
+        } catch (e) {
+            const error = e as Error
+            response.status(400).send({ message: error.message })
+        }
+    })
+
+
     /**
      * @swagger
      * /api/incidents/{username}/active:

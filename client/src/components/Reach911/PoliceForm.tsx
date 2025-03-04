@@ -7,12 +7,11 @@ import {
     Radio,
     FormLabel,
     SelectChangeEvent,
-    Typography
 } from '@mui/material'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import IIncident from '../../models/Incident';
-import { RootState, FireQuestions, PoliceQuestions } from '../../utils/types';
+import { RootState, PoliceQuestions } from '../../utils/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateIncident } from '../../features/incidentSlice';
 import { loadContacts } from '../../features/contactSlice';
