@@ -124,7 +124,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     },
   ]
   const roleTabs: Record<string, Link> = {
-    Dispatch: { prefix: '/', key: '911', icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, to: '/' },
+    Dispatch: { prefix: '/', key: '911', icon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, to: '/' },
     Police: { prefix: '/', key: 'police', icon: <PoliceIcon />, to: '/' },
     Fire: { prefix: '/', key: 'fire', icon: <FirefighterIcon />, to: '/' },
     Nurse: { prefix: '/', key: 'nurse', icon:<NurseIcon />, to: '/' },
