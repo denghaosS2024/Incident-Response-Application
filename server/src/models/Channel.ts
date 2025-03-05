@@ -77,7 +77,7 @@ ChannelSchema.plugin(AutoPopulate)
  */
 ChannelSchema.statics.getPublicChannel = async () => {
   const channel = await Channel.findOne({ name: PUBLIC_CHANNEL_NAME }).exec()
-
+  
   if (channel) {
     return channel
   } else {
