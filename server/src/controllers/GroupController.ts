@@ -18,6 +18,10 @@ class GroupController{
     getGroupById = async (groupId: string) => {
         return Group.getGroupById(groupId)
     }
+
+    createGroup = async (group: any) => {
+        return Group.createGroup(group)
+    }
 }
 
 export default new GroupController();

@@ -22,8 +22,10 @@ export interface IGroup extends IChannel {
 
 export interface IGroupModel extends Model<IGroup> {
     getAllGroups: () => Promise<IGroup[]>
+    getOwnedGroups: (userId: string) => Promise<IGroup[]>
     getGroupsByUser: (userId: string) => Promise<IGroup[]>
     getGroupById: (groupId: string) => Promise<IGroup | null>
+    createGroup: (group: IGroup) => Promise<IGroup>
   }
 
   /**
@@ -88,12 +90,31 @@ GroupSchema.statics.getGroupsByUser = async function (userId: string) {
 }
 
 /*
+ * Static method to get owned groups
+ * Returns an array of groups such that the owner of the group is the given user.
+ * @param {string} userId - The ID of the user
+ * @returns {Promise} A promise that resolves to an array of groups
+ */
+GroupSchema.statics.getOwnedGroups = async function (userId: string) {
+  return this.find({ owner: userId })
+}
+
+/*
  * Static method to get a group by ID
  * @param {string} groupId - The ID of the group
  * @returns {Promise} A promise that resolves to the group object
  */
 GroupSchema.statics.getGroupById = async function (groupId: string) {
   return this.findById(groupId)
+}
+
+/*
+ * Static method to create a group
+ * @param {Object} group - The group object
+ * @returns {Promise} A promise that resolves to the created group
+ */
+GroupSchema.statics.createGroup = async function (group: IGroup) {
+  return this.create(group)
 }
 
 const Group = mongoose.model<IGroup, IGroupModel>(
