@@ -15,9 +15,6 @@ export default interface IChannel {
   users: IUser[] // Array of users participating in the channel
 }
 
-export interface IGroup extends IChannel {
-  groupBenifit?: string[] // No use for now, just preventing compilation errors
-}
 
 /**
  * Resolves the channel name

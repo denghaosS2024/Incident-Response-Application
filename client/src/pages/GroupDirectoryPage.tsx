@@ -1,14 +1,32 @@
-
-import IChannel from '../models/Channel'
-import { useState } from 'react'
-import GroupListBlock from '../components/GroupDir/GroupListBlock'
-import { Box } from '@mui/material'
+import IChannel from '../models/Channel';
+import { useState, useEffect } from 'react';
+import GroupListBlock from '../components/GroupDir/GroupListBlock';
+import { Box } from '@mui/material';
+import request from '../utils/request';
 
 const GroupDirectoryPage: React.FC = () => {
-    const [myManagingchannels, setMyManagingChannels] = useState<IChannel[]>([])
-    const [myParticipatingChannels, setMyParticipatingChannels] = useState<IChannel[]>([])
-    
-    
+    const [myManagingChannels, setMyManagingChannels] = useState<IChannel[]>([]);
+    const [myParticipatingChannels, setMyParticipatingChannels] = useState<IChannel[]>([]);
+    const owner = localStorage.getItem('uid') || '';
+        useEffect(() => {
+        const fetchGroups = async () => {
+            try {
+                const myGroups = await request(`/api/channels/groups/${owner}`, {
+                    method: 'GET',
+                }).catch((error) => {
+                    console.error("Error fetching groups:", error);
+                    return []
+                });
+                setMyParticipatingChannels(myGroups);
+                const ownedGroups = myGroups.filter((group: IChannel) => group.owner._id === owner);
+                setMyManagingChannels(ownedGroups);
+            } catch (error) {
+                console.error("Error fetching groups:", error);
+            }
+        };
+        fetchGroups();
+    }, []);
+
     return (
         <Box sx={{   
                 border: '1px solid #ddd', 
@@ -21,13 +39,15 @@ const GroupDirectoryPage: React.FC = () => {
             <GroupListBlock
                 headerName="Group I am managing"
                 id="managing"
+                groups={myManagingChannels}
             />
             <GroupListBlock
                 headerName="Group I am participating in"
                 id="participating"
+                groups={myParticipatingChannels}
             />
         </Box>
-    )
+    );
 }
 
 export default GroupDirectoryPage;

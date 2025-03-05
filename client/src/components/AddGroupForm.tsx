@@ -53,12 +53,15 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const [closed, setIsClosed] = useState<boolean>(false)
   const [name, setGroupName] = useState('')
   const [description, setDescription] = useState('')
-  const [users, setUsers] = useState<string[]>([])
   const [nameError, setNameError] = useState<string>('')
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
   const currentUserRole = localStorage.getItem('role')
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
+  const [users, setUsers] = useState<string[]>([owner])
+
+  
+  console.log('owner:', owner)
 
   const handleSubmit = () => {
     let hasError = false
@@ -69,7 +72,6 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
       setNameError('Group name is required')
       hasError = true
     }
-
     setUsers([owner])
 
     if (!hasError) {
@@ -83,7 +85,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
       // resetForm()
     }
   }
-
+  
   const resetForm = () => {
     setNameError('')
     setGroupName('')

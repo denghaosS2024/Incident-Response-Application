@@ -5,7 +5,7 @@
  * This model is similar to a Slack channel.
  */
 
-import mongoose, { Schema, Document, Model } from 'mongoose'
+import mongoose, { Schema, Document, Model, Types } from 'mongoose'
 import AutoPopulate from 'mongoose-autopopulate'
 
 import { IUser } from './User'
@@ -31,9 +31,9 @@ export interface IChannel extends Document {
  */
 export interface IChannleModel extends Model<IChannel> {
   getPublicChannel: () => Promise<IChannel>
-  getGroupById: (id: string) => Promise<IChannel>
-  getGroupByUser: (userId: string) => Promise<IChannel>
-  getGroupOwnedByUser: (userId: string) => Promise<IChannel>
+  getGroupById: (id: Types.ObjectId) => Promise<IChannel>
+  getGroupByUser: (userId: Types.ObjectId) => Promise<IChannel[]>
+  getGroupOwnedByUser: (userId: Types.ObjectId) => Promise<IChannel[]>
 }
 
 /**
@@ -89,7 +89,7 @@ ChannelSchema.statics.getPublicChannel = async () => {
  * Static method to get a group by its ID
  * Ignore the public channel when getting a group
  */
-ChannelSchema.statics.getGroupById = async (id: string) => {
+ChannelSchema.statics.getGroupById = async (id: Types.ObjectId) => {
   return Channel.findOne({ _id: id, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
 }
 
@@ -97,18 +97,17 @@ ChannelSchema.statics.getGroupById = async (id: string) => {
  * Static method to get a group owned by a user
  * Ignore the public channel when getting a group
  */
-ChannelSchema.statics.getGroupOwnedByUser = async (userId: string) => {
-  return Channel.findOne({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+ChannelSchema.statics.getGroupOwnedByUser = async (userId: Types.ObjectId) => {
+  return Channel.find({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
 }
 
 /**
  * Static method to get a group by a user
  * Ignore the public channel when getting a group
  */
-ChannelSchema.statics.getGroupByUser = async (userId: string) => {
-  return Channel.findOne({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+ChannelSchema.statics.getGroupByUser = async (userId: Types.ObjectId) => {
+  return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
 }
-
 
 
 const Channel = mongoose.model<IChannel, IChannleModel>(

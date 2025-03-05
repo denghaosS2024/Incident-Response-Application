@@ -25,7 +25,6 @@ const Groups: React.FC = () => {
   }) => {
     try {
       setErrorMessage('')
-      // todo: add token to the header (or is it already added?)
       await request('/api/channels', {
         method: 'POST',
         body: JSON.stringify({ name, description, users, owner, closed }),
@@ -66,12 +65,13 @@ const Groups: React.FC = () => {
     }
   }
 
+
   return (
     <Container>
       <div className={style.centeredForm}>
         <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} />
       </div>
-      <GroupDirectoryPage/>
+      <GroupDirectoryPage />
       <AlertSnackbar
         open={openSnackbar}
         onClose={() => setOpenSnackbar(false)}

@@ -363,6 +363,16 @@ class ChannelController {
       return { error: 'Error generating signed URL' }
     }
   }
+
+  getUserGroups = async (userId: Types.ObjectId) => {
+    try {
+      const groups = await Channel.getGroupByUser(userId)
+      return groups
+    } catch (error) {
+      console.error('Error getting groups:', error)
+      throw error
+    }
+  }
 }
 
 export default new ChannelController()

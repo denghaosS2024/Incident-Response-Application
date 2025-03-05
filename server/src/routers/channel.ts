@@ -182,6 +182,8 @@ export default Router()
       closed?: boolean
     }
     try {
+      console.log('users:', users)
+      console.log('name:', name)
       const channel = await ChannelController.create({
         name,
         userIds: users.map((userId) => new Types.ObjectId(userId)),
@@ -206,8 +208,46 @@ export default Router()
     const channels = await ChannelController.list(
       user ? new Types.ObjectId(user) : undefined,
     )
-
     response.send(channels)
+  })
+  /**
+   * @swagger
+   * /api/channels/groups/{userId}:
+   *   get:
+   *     summary: Get groups by user ID
+   *     description: Get all the groups that the user is a part of and user is a part of
+   *     tags: [Channel]
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           description: User ID
+   *     responses:
+   *       200:
+   *         description: Groups retrieved successfully
+   *       404:
+   *         description: User not found
+   */
+
+  /**
+   * Get groups by user ID
+   * @route GET /api/channels/groups/{userId}
+   * @param {string} request.params.userId - The ID of the user
+   * @returns {Array} An array of group objects that the user is a part of and user is a part of
+   * @throws {404} If the user is not found
+   */
+
+  .get('/groups/:userId', async (request, response) => {
+    const userId = new Types.ObjectId(request.params.userId)
+    try {
+      const groups = await ChannelController.getUserGroups(userId)
+      response.status(200).json(groups)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).send({ message: error.message })
+    }
   })
   /**
    * Redirect public channel messages to the appropriate endpoint
@@ -273,7 +313,6 @@ export default Router()
         .status(404)
         .send({ message: `Channel(${channelId}) not found.` })
     }
-
     return response.send(channel.messages)
   })
   /**
@@ -401,7 +440,6 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
-
   .post('/:id/voice-upload-url', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const fileName = request.body.fileName
