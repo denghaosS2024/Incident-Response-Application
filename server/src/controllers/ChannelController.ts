@@ -99,6 +99,34 @@ class ChannelController {
   }
 
   /**
+     * Creates a 911 emergency channel with specific configurations
+     * @param username - The username of the caller
+     * @param userId - MongoDB ObjectId of the user
+     * @returns The created 911 channel
+     */
+  create911Channel = async (username: string, userId: Types.ObjectId) => {
+    const channel911Name = `I${username}_911`;
+    
+    // Use existing create method with 911-specific configurations
+    const channel = await this.create({
+        name: channel911Name,
+        userIds: [userId],
+        description: `911 Emergency Channel for ${username}`,
+        ownerId: userId,
+        closed: false
+    });
+
+     // Add system welcome message
+     await this.appendMessage({
+      content: "Hello! A dispatcher will be with you shortly. Please provide any additional information here.",
+      senderId: userId, // Using the caller's ID for now, could be replaced with a system user ID
+      channelId: channel._id
+  });
+
+    return channel;
+}
+
+  /**
    * List channels, optionally filtered by user
    * @param hasUser - Optional user ID to filter channels
    * @returns An array of channel objects, excluding their messages

@@ -58,7 +58,8 @@ const Reach911Page: React.FC = () => {
                 incident: incident
             };
 
-            // Construct the URL and options
+            // Construct the URL and options 
+            console.log('requestBody:', requestBody);
             const url = `${process.env.REACT_APP_BACKEND_URL}/api/incidents/new`;
             const options = {
                 method: 'POST',

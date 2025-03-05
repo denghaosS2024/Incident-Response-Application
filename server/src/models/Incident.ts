@@ -88,7 +88,7 @@ const IncidentSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'Channel',
             required: false,
-            default: new mongoose.Types.ObjectId()
+            default: null,
         },
     },
 )

@@ -161,6 +161,61 @@ export default Router()
     }
   })
 
+/**
+ * @swagger
+ * /api/channels/911:
+ *   post:
+ *     summary: Create a new 911 emergency channel
+ *     description: Creates a specialized channel for 911 emergency communication with automatic system message
+ *     tags: [Channels]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - userId
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Username of the caller
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: MongoDB ObjectId of the caller
+ *     responses:
+ *       200:
+ *         description: 911 emergency channel created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Channel'
+ *       400:
+ *         description: Bad request - missing required fields or invalid data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+  .post('/911', async (request, response) => {
+    const { username, userId } = request.body;
+    try {
+      const channel = await ChannelController.create911Channel(
+        username,
+        new Types.ObjectId(userId)
+      );
+      response.status(201).send(channel);
+    } catch (e) {
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
+    }
+  })
+
   /**
    * Create a new channel
    * @route POST /api/channels
@@ -188,7 +243,9 @@ export default Router()
         description: description,
         ownerId: owner ? new Types.ObjectId(owner) : undefined,
         closed: closed,
-      })
+      }) 
+
+      // TO-DO: HTTP code should be 201 for created in Restful
       response.send(channel)
     } catch (e) {
       const error = e as Error

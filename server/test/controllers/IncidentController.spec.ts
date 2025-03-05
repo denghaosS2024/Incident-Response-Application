@@ -73,7 +73,7 @@ describe('Incident Controller', () => {
         const channelId = new Types.ObjectId();
 
         const result = await IncidentController.updateChatGroup(
-            incident.incidentId,
+            incident._id,
             channelId
         );
 
@@ -83,7 +83,7 @@ describe('Incident Controller', () => {
 
     it('should return null if incident not found', async () => {
         const result = await IncidentController.updateChatGroup(
-            'non-existent-id',
+            new Types.ObjectId(),
             new Types.ObjectId()
         );
         expect(result).toBeNull();

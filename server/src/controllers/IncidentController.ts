@@ -58,7 +58,8 @@ class IncidentController {
                 address: incident.address ? incident.address : "" ,
                 type: incident.type ? incident.type : "",
                 questions: incident.questions ? incident.questions : {},
-                priority: IncidentPriority.Immediate
+                priority: IncidentPriority.Immediate,
+                incidentCallGroup: incident.incidentCallGroup ? incident.incidentCallGroup : null,
             }).save()
         }
         return incident
@@ -68,16 +69,18 @@ class IncidentController {
 
     /**
      * Update incident chat group
-     * @param incidentId - The ID of the incident to update
+     * @param id - The _id of the incident to update
      * @param channelId - The MongoDB ObjectId of the chat channel
      * @returns The updated incident if found, null otherwise
      */
     async updateChatGroup(
-        incidentId: string, 
+        id: Types.ObjectId, 
         channelId: Types.ObjectId
     ) : Promise<IIncident | null> {
+        // Convert string id to MongoDB ObjectId
+        const _id = id;
         return Incident.findOneAndUpdate(
-            { incidentId },
+            { _id },
             { incidentCallGroup: channelId },
             { new: true }
         ).exec();
@@ -95,7 +98,6 @@ class IncidentController {
             caller: username,
             incidentState: { $ne: 'Closed' }
         })
-        .populate('incidentCallGroup')
         .exec();
     }
 

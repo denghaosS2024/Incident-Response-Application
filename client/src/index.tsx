@@ -20,7 +20,7 @@ import { asyncWithLDProvider } from 'launchdarkly-react-client-sdk';
     <LDProvider>
       <Provider store={store}>
         <App />
-      </Provider>,
+      </Provider>
     </LDProvider>
 
   )
