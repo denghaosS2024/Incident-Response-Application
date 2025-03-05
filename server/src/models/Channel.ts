@@ -27,9 +27,13 @@ export interface IChannel extends Document {
 
 /**
  * Interface for the Channel model
+ * Note: Private channels are called "Groups"
  */
 export interface IChannleModel extends Model<IChannel> {
   getPublicChannel: () => Promise<IChannel>
+  getGroupById: (id: string) => Promise<IChannel>
+  getGroupByUser: (userId: string) => Promise<IChannel>
+  getGroupOwnedByUser: (userId: string) => Promise<IChannel>
 }
 
 /**
@@ -80,6 +84,32 @@ ChannelSchema.statics.getPublicChannel = async () => {
     return new Channel({ name: PUBLIC_CHANNEL_NAME }).save()
   }
 }
+
+/**
+ * Static method to get a group by its ID
+ * Ignore the public channel when getting a group
+ */
+ChannelSchema.statics.getGroupById = async (id: string) => {
+  return Channel.findOne({ _id: id, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+}
+
+/**
+ * Static method to get a group owned by a user
+ * Ignore the public channel when getting a group
+ */
+ChannelSchema.statics.getGroupOwnedByUser = async (userId: string) => {
+  return Channel.findOne({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+}
+
+/**
+ * Static method to get a group by a user
+ * Ignore the public channel when getting a group
+ */
+ChannelSchema.statics.getGroupByUser = async (userId: string) => {
+  return Channel.findOne({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+}
+
+
 
 const Channel = mongoose.model<IChannel, IChannleModel>(
   'Channel',

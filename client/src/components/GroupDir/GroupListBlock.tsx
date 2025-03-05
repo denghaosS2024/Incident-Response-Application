@@ -13,46 +13,46 @@ interface GroupListBlockProps{
 
 const testGroup : IGroup[] = [
     {
-        _id: '123',
+        _id: '67c7b9fd385f83301b5bcb9d',
         name: 'Group 1',
         description: 'Group 1 description',
         owner: {
-            _id: '123',
+            _id: '67c7863a0f3c79419dd1f430',
             username: 'Group 1 owner',
             role: 'Admin',
         },
         closed: false,
         users: [
             {
-                _id: '1234',
+                _id: '67c6d834cf816d70c24f4da9',
                 username: 'Group 1 user 1',
                 role: 'Admin',
             },
             {
-                _id: '12345',
+                _id: '67c7863a0f3c79419dd1f430',
                 username: 'Group 1 user 2',
                 role: 'Member',
             },
         ],
     },
     {
-        _id: "456",
+        _id: "67c7863a0f3c79419dd1f430",
         name: 'Group 2',
         description: 'Group 2 description',
         owner: {
-            _id: '123',
+            _id: '67c6d834cf816d70c24f4da9',
             username: 'Group 2 owner',
             role: 'Admin',
         },
         closed: false,
         users: [
             {
-                _id: '1234',
+                _id: '67c6d834cf816d70c24f4da9',
                 username: 'Group 2 user 1',
                 role: 'Admin',
             },
             {
-                _id: '12345',
+                _id: '67c7863a0f3c79419dd1f430',
                 username: 'Group 2 user 2',
                 role: 'Member',
             },

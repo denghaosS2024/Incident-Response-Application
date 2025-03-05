@@ -189,7 +189,6 @@ export default Router()
         ownerId: owner ? new Types.ObjectId(owner) : undefined,
         closed: closed,
       })
-
       response.send(channel)
     } catch (e) {
       const error = e as Error
@@ -278,6 +277,7 @@ export default Router()
     return response.send(channel.messages)
   })
   /**
+   * Start a video conference in a channel
    * @swagger
    * /api/channels/{id}/video-conference:
    *   post:
