@@ -1,5 +1,6 @@
 import { NavigateNext as Arrow } from '@mui/icons-material'
 import {
+  colors,
   Divider,
   IconButton,
   Link,
@@ -7,6 +8,7 @@ import {
   ListItem,
   ListItemSecondaryAction,
   ListItemText,
+  SxProps,
 } from '@mui/material'
 import { Fragment, FunctionComponent } from 'react'
 import IChannel from '../models/Channel'
@@ -16,11 +18,26 @@ export interface IChannelProps {
   channel: IChannel
 }
 
+const ChannelStyle: SxProps = {
+  backgroundColor: '#ADD8E6', // Material UI blue
+  width: '95%',
+  boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
+  p: 2,
+  borderRadius: 1,
+  mx: 'auto', 
+  display: 'flex',
+  justifyContent:'space-between',
+  alignItems:'center',
+  paddingRight: '48px',
+  marginBottom:"1rem"
+}
+
+
 export const Channel: FunctionComponent<IChannelProps> = ({
   channel: { _id, name },
 }) => (
   <Link color="inherit" href={`/messages/${_id}?name=${name}`}>
-    <ListItem>
+    <ListItem sx={ChannelStyle}>
       <ListItemText>{name}</ListItemText>
       <ListItemSecondaryAction>
         <IconButton edge="end" size="large">

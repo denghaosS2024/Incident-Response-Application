@@ -5,7 +5,11 @@ import IChannel from '../models/Channel'
 import { IAddGroupFormProps } from '../components/AddGroupForm'
 import AlertSnackbar from '../components/common/AlertSnackbar'
 import { set } from 'lodash'
+import style from '../styles/GroupPage.module.css'
+
+//Pages 
 import GroupDirectoryPage from '../pages/GroupDirectoryPage'
+import { Container } from '@mui/material'
 
 const Groups: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -63,16 +67,18 @@ const Groups: React.FC = () => {
   }
 
   return (
-    <>
-      <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} />
-      <GroupDirectoryPage />
+    <Container>
+      <div className={style.centeredForm}>
+        <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} />
+      </div>
+      <GroupDirectoryPage/>
       <AlertSnackbar
         open={openSnackbar}
         onClose={() => setOpenSnackbar(false)}
         message={errorMessage || successMessage}
         severity={errorMessage ? 'error' : 'success'}
       />
-    </>
+    </Container>
   )
 }
 

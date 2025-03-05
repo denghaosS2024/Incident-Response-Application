@@ -9,7 +9,7 @@ docker compose up --build
 
 # Access the applications:
 # - Frontend: http://localhost:3000
-# - Backend API: http://localhost:3001
+# - Backend API: http://localhosgitt:3001
 # - MongoDB: mongodb://localhost:27018
 ```
 

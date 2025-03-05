@@ -91,7 +91,7 @@ const Mapbox: React.FC = () => {
                   }
                 });
 
-                mapRef.current.on('error', (e) => {
+                mapRef.current.on('error', (e: any) => {
                   console.error('Mapbox error:', e);
                   setMapError('Failed to load map');
                 });
@@ -151,7 +151,7 @@ const Mapbox: React.FC = () => {
                   setIsMapLoaded(true);
                 });
 
-                mapRef.current.on('error', (e) => {
+                mapRef.current.on('error', (e: any) => {
                   console.error('Mapbox error:', e);
                   setMapError('Failed to load map');
                 });
@@ -196,7 +196,7 @@ const Mapbox: React.FC = () => {
               setIsMapLoaded(true);
             });
 
-            mapRef.current.on('error', (e) => {
+            mapRef.current.on('error', (e: any) => {
               console.error('Mapbox error:', e);
               setMapError('Failed to load map');
             });

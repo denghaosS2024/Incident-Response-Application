@@ -126,7 +126,11 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   }
 
   return (
-    <Box>
+    <Box sx={{ border: '1px solid #e0e0e0', 
+              borderRadius: '4px' , 
+              width: "95%",
+              mx: "auto" 
+              }}>
       <List>
         {tabs.map(({ text, link, icon }, index) => (
           <Fragment key={link}>
@@ -143,7 +147,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
       </List>
 
       {showForm && (
-        <Box component="form" sx={{ mt: 2, mx: 2 }}>
+        <Box component="form" sx={{ mt: 2, mx: 2, mb: 2 }}>
           <TextField
             label="Group Name"
             variant="outlined"
