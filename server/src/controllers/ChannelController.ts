@@ -53,6 +53,7 @@ class ChannelController {
     ownerId?: Types.ObjectId
     closed?: boolean
   }) => {
+    console.log("New channel:", channel.name)
     if (channel.name === PUBLIC_CHANNEL_NAME) {
       throw new Error('Channel name cannot be the public channel name')
     }
@@ -71,25 +72,29 @@ class ChannelController {
     // Check if the channel already exists
     const exists = await Channel.findOne({
       users,
-      name: {
-        $ne: PUBLIC_CHANNEL_NAME,
-      },
+      name:channel.name,
       description: channel.description || '',
       owner: owner,
       closed: channel.closed || false,
     }).exec()
 
     if (exists) {
+      console.log('Channel already exists',
+        exists
+      )
       return exists
     } else {
       // Create a new channel if it doesn't exist
-      return await new Channel({
+      console.log('Creating new channel...')
+      const newChannel = await new Channel({
         name: channel.name,
         users,
         description: channel.description,
         owner: owner,
         closed: channel.closed,
       }).save()
+      UserConnections.broadcast('updateGroups', {})
+      return newChannel
     }
   }
 

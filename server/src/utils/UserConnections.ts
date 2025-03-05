@@ -46,6 +46,19 @@ class UserConnections {
    * @returns An array of user IDs for all currently connected users
    */
   getConnectedUsers = () => Array.from(connections.keys())
+
+  /**
+   * Broadcast an event to all connected users
+   * @param eventName - The name of the event
+   * @param data - The data to send with the event
+   */
+  broadcast(eventName: string, data: any) {
+    connections.forEach((socket, _uid) => {
+      if (socket) {
+        socket.emit(eventName, data); // Emit the event with data to each socket
+      }
+    });
+  }
 }
 
 // Export a singleton instance of UserConnections

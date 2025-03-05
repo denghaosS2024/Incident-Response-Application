@@ -182,8 +182,6 @@ export default Router()
       closed?: boolean
     }
     try {
-      console.log('users:', users)
-      console.log('name:', name)
       const channel = await ChannelController.create({
         name,
         userIds: users.map((userId) => new Types.ObjectId(userId)),

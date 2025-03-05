@@ -82,15 +82,14 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
         owner,
         closed,
       })
-      // resetForm()
+      resetForm()
     }
   }
-  
+
   const resetForm = () => {
     setNameError('')
     setGroupName('')
     setDescription('')
-    setUsers([])
     setIsClosed(false)
   }
 
