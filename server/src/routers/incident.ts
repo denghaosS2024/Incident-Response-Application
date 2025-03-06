@@ -88,20 +88,21 @@ export default Router()
         *                   example: Invalid input or server error.
         */
     .post('/', async (request, response) => {
-        const { username } = request.body
+        const { username } = request.body;
        
         try {
-            const result = await IncidentController.create(username)
-            response.status(201).send(result)
+            const result = await IncidentController.create(username);
+            response.status(201).send(result);
         } catch (e) {
-            const error = e as Error
-            response.status(400).send({ message: error.message })
+            const error = e as Error;
+            response.status(400).send({ message: error.message });
         }
     })
 
     // TODO: Sawgger documentation
     .post('/new', async (request, response) => {
         const { incident } = request.body
+        console.log('Incident:', incident);
 
         try {
             const result = await IncidentController.createIncident(incident)
@@ -181,11 +182,11 @@ export default Router()
      *       404:
      *         description: Incident not found
      */
-    .put('/:incidentId/chat-group', async (request, response) => {
+    .put('/:id/chat-group', async (request, response) => {
         try {
             const result = await IncidentController.updateChatGroup(
-                request.params.incidentId,
-                new Types.ObjectId(request.body.channelId)
+                new Types.ObjectId(request.params.id),
+                new Types.ObjectId(request.body.channelId),
             )
             if (!result) {
                 response.status(404).json({ message: 'Incident not found' })

@@ -1,0 +1,27 @@
+.root {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.list {
+  flex: 1;
+  overflow: scroll;
+}
+
+.input {
+  position: relative;
+  width: 100%;
+}
+
+.input::before {
+  content: '';
+  position: absolute;
+  background-color: #ddd;
+  z-index: 1;
+  display: block;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: 1px;
+}
