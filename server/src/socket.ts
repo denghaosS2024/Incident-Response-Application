@@ -47,6 +47,10 @@ class Socket {
         socket.broadcast.emit('send-mayday', data);
       });
 
+      socket.on('acknowledge-alert', (data) => { 
+        socket.broadcast.emit('acknowledge-alert', data);
+      });
+
       // Handle user disconnection
       socket.on('disconnect', () => {
         const uid = UserConnections.getConnectedUsers().find(
