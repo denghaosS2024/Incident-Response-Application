@@ -6,8 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from '../models/Channel'
 import User from '../models/User'
 import Message from '../models/Message'
-import UserConnections from '../utils/UserConnections'
-
+import UserConnections from '../utils/UserConnections';
+import { ROLES } from '../utils/Roles';
 import { Storage } from '@google-cloud/storage'
 import dotenv from 'dotenv'
 dotenv.config()
@@ -121,8 +121,21 @@ class ChannelController {
       content: "Hello! A dispatcher will be with you shortly. Please provide any additional information here.",
       senderId: userId, // Using the caller's ID for now, could be replaced with a system user ID
       channelId: channel._id
-  });
+    });
 
+    const notifyDispatchers = async (channelId: string, callerName: string) => {
+      UserConnections.broadcaseToRole(
+        ROLES.DISPATCH, 
+        'new-emergency-channel', 
+        {
+          channelId,
+          callerName,
+          message: `New 911 channel from ${callerName}`
+        }
+      );
+    };
+
+    await notifyDispatchers(channel._id.toString(), username);
     return channel;
 }
 
