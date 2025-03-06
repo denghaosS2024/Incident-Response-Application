@@ -8,7 +8,7 @@ import { set } from 'lodash'
 import style from '../styles/GroupPage.module.css'
 
 //Pages 
-import GroupDirectoryPage from '../pages/GroupDirectoryPage'
+import GroupDirectory from '../components/GroupDir/GroupDirectory'
 import { Container } from '@mui/material'
 
 const Groups: React.FC = () => {
@@ -71,7 +71,7 @@ const Groups: React.FC = () => {
       <div className={style.centeredForm}>
         <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} />
       </div>
-      <GroupDirectoryPage />
+      <GroupDirectory />
       <AlertSnackbar
         open={openSnackbar}
         onClose={() => setOpenSnackbar(false)}

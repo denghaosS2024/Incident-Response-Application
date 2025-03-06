@@ -25,7 +25,7 @@ const GroupListBlock: React.FC<GroupListBlockProps> = ({ headerName, id, groups 
                 {
                     groups.map(group => (
                         <div key={group._id}>
-                            <Channel channel={group} />
+                            <Channel channel={group} isSettingButton={true} />
                         </div>
                     ))
                 }
