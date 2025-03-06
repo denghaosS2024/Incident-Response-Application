@@ -52,8 +52,8 @@ class UserConnections {
    * @param eventName - The name of the event
    * @param data - The data to send with the event
    */
-  broadcast(eventName: string, data: any) {
-    connections.forEach((socket, _uid) => {
+  broadcast(eventName: string, data: object|string = {}) {
+    connections.forEach((socket) => {
       if (socket) {
         socket.emit(eventName, data); // Emit the event with data to each socket
       }
