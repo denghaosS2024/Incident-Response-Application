@@ -206,7 +206,7 @@ export default Router()
     const channels = await ChannelController.list(
       user ? new Types.ObjectId(user) : undefined,
     )
-    response.send(channels)
+    return response.send(channels)
   })
   /**
    * @swagger

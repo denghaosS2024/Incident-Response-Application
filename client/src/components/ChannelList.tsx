@@ -19,8 +19,8 @@ export interface IChannelProps {
 }
 
 const ChannelStyle: SxProps = {
-  backgroundColor: '#ADD8E6', // Material UI blue
-  width: '95%',
+  backgroundColor: '#ADD8E6',
+  width: '100%',
   boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
   p: 2,
   borderRadius: 1,
