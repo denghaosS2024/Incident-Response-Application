@@ -5,6 +5,10 @@ import ChannelList from '../components/ChannelList'
 const meta = {
   title: 'Messages/ChannelList',
   component: ChannelList,
+  parameters: {
+    channels: [],
+    loading: false,
+  },
   tags: ['autodocs'],
 } satisfies Meta<typeof ChannelList>
 

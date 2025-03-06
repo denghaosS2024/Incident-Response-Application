@@ -29,7 +29,7 @@ const channel: IChannel =
         role: 'citizen'
     }],
   }
-;
+  ;
 
 export const Default: Story = {
   args: {
