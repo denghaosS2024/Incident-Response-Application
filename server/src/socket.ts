@@ -9,10 +9,12 @@ import SocketIO from 'socket.io'
 
 import * as Token from './utils/Token'
 import UserConnections from './utils/UserConnections'
+import { ROLES } from './utils/Roles';
 
 interface ILoginMessage {
-  token: string
-  uid: string
+  token: string;
+  uid: string;
+  role: ROLES;
 }
 
 class Socket {
@@ -28,16 +30,17 @@ class Socket {
         if (
           message.uid &&
           message.token &&
+          message.role &&
           Token.validate(message.uid, message.token)
         ) {
           // Save the socket instance for the user
-          UserConnections.addUserConnection(message.uid, socket)
+          UserConnections.addUserConnection(message.uid, socket, message.role)
           // Notify other users that this user's status has changed
           socket.broadcast.emit('user-status-changed', { uid: message.uid })
         } else {
           console.error(`Invalid login message from ${message.uid}`)
           socket.disconnect()
-        }
+        }socket.broadcast.emit('user-status-changed', { uid: message.uid })
       })
 
       socket.on('send-mayday', (data) => {
