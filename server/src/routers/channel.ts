@@ -344,6 +344,24 @@ export default Router()
     }
   })
   /**
+   * Get channel information by ID
+   * @route GET /api/channels/{id}
+   * @param {string} request.params.id - The ID of the channel
+   * @returns {Object} The channel object
+   * @throws {404} If the channel is not found
+   */
+  .get('/:id', async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id)
+
+    try {
+      const channel = await ChannelController.getChannel(channelId)
+      response.json(channel)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).json({ message: error.message })
+    }
+  })
+  /**
    * Redirect public channel messages to the appropriate endpoint
    * @route GET /api/channels/public/messages
    * @returns {302} Redirect to the public channel's messages endpoint

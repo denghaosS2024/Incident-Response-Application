@@ -406,6 +406,16 @@ class ChannelController {
       throw error
     }
   }
+
+  getChannel = async (channelId: Types.ObjectId) => {
+    try {
+      const channel = await Channel.getGroupById(channelId)
+      return channel
+    } catch (error) {
+      console.error('Error getting channel:', error)
+      throw error
+    }
+  }
 }
 
 export default new ChannelController()
