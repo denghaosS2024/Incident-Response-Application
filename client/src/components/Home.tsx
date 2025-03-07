@@ -26,7 +26,7 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Contacts', link: '/contacts', icon: <Contact /> },
     { text: 'Groups', link: '/groups', icon: <Groups2Icon /> },
     { text: 'Maps', link: '/maps', icon: <LocationIcon /> },
-    { text: '911', link: '/reach911', icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, }
+    { text: '911', link: '/reach911' }
   ],
   Dispatch: [
     { text: 'Messages', link: '/messages', icon: <Message /> },
@@ -84,14 +84,21 @@ const Home: FunctionComponent = () => {
                 padding: '10px 10px',
                 border: '1.5px solid #ddd',
                 borderRadius: '8px',
-                backgroundColor: '#fff',
+                backgroundColor: text === '911' ? '#ff0000' : '#fff',
                 marginBottom: '8px',
                 width:'90%',
                 marginTop:'5px',
-                '&:hover': { backgroundColor: '#f0f0f0' },
+                '&:hover': { backgroundColor: text === '911' ? '#e60000' : '#f0f0f0' },
               }}
             >
-              <ListItemText sx={{ flex: 1, textAlign: 'center' }} primary={text} />
+              <ListItemText 
+                sx={{ 
+                  flex: 1, 
+                  textAlign: 'center',
+                  color: text === '911' ? '#fff' : 'inherit'
+                }} 
+                primary={text} 
+              />
               {icon && <Box sx={{ ml: 'auto', pr: 1 }}>{icon}</Box>}
             </Box>
           </Link>

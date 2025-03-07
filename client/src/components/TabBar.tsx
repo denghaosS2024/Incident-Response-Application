@@ -40,9 +40,8 @@ const TabBar: FunctionComponent<TabBarProps> = ({ links }) => {
 
   // Effect to update the current tab value based on route changes
   useEffect(() => {
-   
+
     setCurrentTabIndex(getCurrentTab(links, location.pathname))
-    console.log(currentTabIndex,links, location.pathname)
   }, [location.pathname, links])
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -51,9 +50,9 @@ const TabBar: FunctionComponent<TabBarProps> = ({ links }) => {
 
   return (
     <Tabs value={currentTabIndex} onChange={handleChange}
-      variant="scrollable" 
-      scrollButtons="auto" 
-      allowScrollButtonsMobile 
+      variant="scrollable"
+      scrollButtons="auto"
+      allowScrollButtonsMobile
     >
       {links.map((link: Link, idx: number) => {
         const isSelected = idx === currentTabIndex;

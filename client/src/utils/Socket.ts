@@ -1,5 +1,5 @@
 import { Socket, io } from 'socket.io-client'
-
+import { ROLES, isValidRole } from './Roles'
 /**
  * SocketClient Class
  *
@@ -14,8 +14,16 @@ class SocketClient {
   connect = () => {
     const uid = localStorage.getItem('uid')
     const token = localStorage.getItem('token')
+    const roleFromStorage = localStorage.getItem('role')
 
-    if (this.socket || !uid || !token) {
+    if (!roleFromStorage || !isValidRole(roleFromStorage)) {
+      console.error('Invalid role:', roleFromStorage)
+      return
+    }
+  
+    const role = roleFromStorage as ROLES
+    
+    if (this.socket || !uid || !token || !Object.values(ROLES).includes(role)) {
       return
     }
 
@@ -26,6 +34,7 @@ class SocketClient {
     this.socket.emit('login', {
       token,
       uid,
+      role,
     })
   }
 

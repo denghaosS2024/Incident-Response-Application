@@ -67,9 +67,9 @@ export interface MedicalQuestions {
  */
 export interface FireQuestions {
   fireType: string // Is it a wildfire or structure fire
-  hasSmoke: boolean // Whether or not they smell smoke
-  hasFlames: boolean // Whether or not they see flames
-  hasHazards: boolean // Whether or not there are hazardous materials present
+  hasSmoke: string // Whether or not they smell smoke
+  hasFlames: string // Whether or not they see flames
+  hasHazards: string // Whether or not there are hazardous materials present
   numPeople: number // The number of people present within the fire perimeter
   otherDetails: string // Other details related to the fire
 }
@@ -78,8 +78,8 @@ export interface FireQuestions {
  * Interface representing the medical questions
  */
 export interface PoliceQuestions {
-  isSafe: boolean // Is the person safe
-  hasWeapons: boolean // Whether or not weapons are involved
+  isSafe: string // Is the person safe
+  hasWeapons: string // Whether or not weapons are involved
   suspectDescription: string // Details about the suspect
   crimeDetails: string // Details about the crime
 }

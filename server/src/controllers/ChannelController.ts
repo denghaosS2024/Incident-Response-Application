@@ -6,13 +6,35 @@ import { v4 as uuidv4 } from 'uuid'
 import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from '../models/Channel'
 import User from '../models/User'
 import Message from '../models/Message'
-import UserConnections from '../utils/UserConnections'
-
+import UserConnections from '../utils/UserConnections';
+import { ROLES } from '../utils/Roles';
 import { Storage } from '@google-cloud/storage'
 import dotenv from 'dotenv'
 dotenv.config()
 
 class ChannelController {
+  /**
+   * Delete a channel by Name (Name had unique constraint)
+   * @param name - The name of the channel to delete
+   * @returns The deleted channel object
+   * @throws Error if trying to delete the public channel or if the channel is not found
+   */
+  delete = async (name: string) => {
+    if (name === PUBLIC_CHANNEL_NAME) {
+      throw new Error('Cannot delete the public channel')
+    }
+
+    const exists = await Channel.findOne({
+      name,
+    }).exec()
+
+    if (!exists) {
+      throw new Error(`Channel(${name}) not found.`)
+    }
+
+    return await Channel.findOneAndDelete({ name }).exec()
+  }
+
   /**
    * Create a new channel or return an existing one if it already exists
    * @param channel - An object containing channel details
@@ -31,6 +53,7 @@ class ChannelController {
     ownerId?: Types.ObjectId
     closed?: boolean
   }) => {
+    console.log("New channel:", channel.name)
     if (channel.name === PUBLIC_CHANNEL_NAME) {
       throw new Error('Channel name cannot be the public channel name')
     }
@@ -49,27 +72,72 @@ class ChannelController {
     // Check if the channel already exists
     const exists = await Channel.findOne({
       users,
-      name: {
-        $ne: PUBLIC_CHANNEL_NAME,
-      },
+      name:channel.name,
       description: channel.description || '',
       owner: owner,
       closed: channel.closed || false,
     }).exec()
 
     if (exists) {
+      console.log('Channel already exists',
+        exists
+      )
       return exists
     } else {
       // Create a new channel if it doesn't exist
-      return await new Channel({
+      console.log('Creating new channel...')
+      const newChannel = await new Channel({
         name: channel.name,
         users,
         description: channel.description,
         owner: owner,
         closed: channel.closed,
       }).save()
+      UserConnections.broadcast('updateGroups', {})
+      return newChannel
     }
   }
+
+  /**
+     * Creates a 911 emergency channel with specific configurations
+     * @param username - The username of the caller
+     * @param userId - MongoDB ObjectId of the user
+     * @returns The created 911 channel
+     */
+  create911Channel = async (username: string, userId: Types.ObjectId) => {
+    const channel911Name = `I${username}_911`;
+    
+    // Use existing create method with 911-specific configurations
+    const channel = await this.create({
+        name: channel911Name,
+        userIds: [userId],
+        description: `911 Emergency Channel for ${username}`,
+        ownerId: userId,
+        closed: false
+    });
+
+     // Add system welcome message
+     await this.appendMessage({
+      content: "Hello! A dispatcher will be with you shortly. Please provide any additional information here.",
+      senderId: userId, // Using the caller's ID for now, could be replaced with a system user ID
+      channelId: channel._id
+    });
+
+    const notifyDispatchers = async (channelId: string, callerName: string) => {
+      UserConnections.broadcaseToRole(
+        ROLES.DISPATCH, 
+        'new-emergency-channel', 
+        {
+          channelId,
+          callerName,
+          message: `New 911 channel from ${callerName}`
+        }
+      );
+    };
+
+    await notifyDispatchers(channel._id.toString(), username);
+    return channel;
+}
 
   /**
    * List channels, optionally filtered by user
@@ -339,6 +407,26 @@ class ChannelController {
     } catch (error) {
       console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
+    }
+  }
+
+  getUserGroups = async (userId: Types.ObjectId) => {
+    try {
+      const groups = await Channel.getGroupByUser(userId)
+      return groups
+    } catch (error) {
+      console.error('Error getting groups:', error)
+      throw error
+    }
+  }
+
+  getChannel = async (channelId: Types.ObjectId) => {
+    try {
+      const channel = await Channel.getGroupById(channelId)
+      return channel
+    } catch (error) {
+      console.error('Error getting channel:', error)
+      throw error
     }
   }
 }

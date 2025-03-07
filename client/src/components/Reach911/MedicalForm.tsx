@@ -22,28 +22,25 @@ import { useDispatch, useSelector } from 'react-redux';
 import { updateIncident } from '../../features/incidentSlice';
 import { loadContacts } from '../../features/contactSlice';
 import { AppDispatch } from '../../app/store';
-import IUser from '@/models/User';
+import IUser from '../../models/User';
 import Loading from '../common/Loading';
 
 const MedicalForm: React.FC = () => {
 
     const dispatch = useDispatch<AppDispatch>();
     const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident)
-    const isPatient = (incident.questions as MedicalQuestions)?.isPatient
-    const sex = (incident.questions as MedicalQuestions)?.sex
-    const age = (incident.questions as MedicalQuestions)?.age
-    const conscious = (incident.questions as MedicalQuestions)?.conscious
-    const breathing = (incident.questions as MedicalQuestions)?.breathing
-    const chiefComplaint = (incident.questions as MedicalQuestions)?.chiefComplaint
-    const username = (incident.questions as MedicalQuestions)?.username
+    const medicalQuestions = (incident.questions as MedicalQuestions) ?? {};
+
+    const isPatient = medicalQuestions.isPatient ?? false;
+    const sex = medicalQuestions.sex ?? "";
+    const age = medicalQuestions.age ?? 0;
+    const conscious = medicalQuestions.conscious ?? "";
+    const breathing = medicalQuestions.breathing ?? "";
+    const chiefComplaint = medicalQuestions.chiefComplaint ?? "";
+    const username = medicalQuestions.username ?? "";
 
     const [usernameError, setUserNameError] = useState<string>('');
     const [ageError, setAgeError] = useState<string>('');
-    const [sexError, setSexError] = useState<string>('');
-    const [consciousError, setConsciousError] = useState<string>('');
-    const [breathingError, setBreathingError] = useState<string>('');
-    const [chiefComplaintError, setChiefComplaintError] = useState<string>('');
-
 
     useEffect(() => {
         dispatch(loadContacts())
@@ -57,70 +54,38 @@ const MedicalForm: React.FC = () => {
     const currentUser = contacts.filter((user: IUser) => user._id === userId)[0]
 
     const onChange = (field: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
-        const { type, value, checked } = e.target as HTMLInputElement
+        const { type, value, checked } = e.target as HTMLInputElement;
+        const newValue : string | boolean = type === "checkbox" ? checked : value;
 
         dispatch(updateIncident({
-            ...incident, // Keep other fields of incident unchanged
+            ...incident,
             questions: {
-                ...(incident.questions ?? {}), // Keep other question fields unchanged
-                [field]: type === "checkbox" ? checked : value // Update only the target field
+                ...(incident.questions ?? {}),
+                [field]: newValue
             } as MedicalQuestions
         }));
 
-
+        // Validate only the changed field
+        validateField(field, newValue);
     };
 
-    // const clearError = () => {
-    //     setUserNameError('')
-    //     setAgeError('')
-    //     setSexError('')
-    //     setConsciousError('')
-    //     setChiefComplaintError('')
-    // }
+    const validateField = (field: string, value: string | boolean) => {
+        if (field === "username") {
+            setUserNameError(!value || value === "Select One" ? "Select a username" : "");
+        }
 
-    // const onSubmitHandler = () => {
-    //     clearError()
+        if (field === "age") {
+            const parsedAge = Number(value); // Convert to number
 
-    //     let hasError = false
+            if (parsedAge && (parsedAge <= 0 || parsedAge > 110)) {
+                setAgeError("Enter a value between 1 and 110");
+            } else {
+                setAgeError("");
+            }
+        }
+    };
 
-    //     if (!username || username === "Select One") {
-    //         setUserNameError('Select a username')
-    //         hasError = true
-    //     }
 
-    //     if (age <= 0 || age > 110) {
-    //         setAgeError('Enter a value between 1 and 110')
-    //         hasError = true
-    //     }
-
-    //     if (!sex) {
-    //         setSexError('Sex can not be empty')
-    //         hasError = true
-    //     }
-
-    //     if (!conscious) {
-    //         setConsciousError('Conscious state can not be empty')
-    //         hasError = true
-    //     }
-
-    //     if (!breathing) {
-    //         setBreathingError('Breathing state can not be empty')
-    //         hasError = true
-    //     }
-
-    //     if (!hasError) {
-    //         // props.onSubmit({
-    //         //     username,
-    //         //     age,
-    //         //     sex,
-    //         //     isPatient,
-    //         //     conscious,
-    //         //     breathing,
-    //         //     chiefComplaint
-    //         // })
-
-    //     }
-    // }
     if (loading) return <Loading />
     return (
         <>
@@ -156,7 +121,6 @@ const MedicalForm: React.FC = () => {
                             onChange={(e) => onChange("username", e)}
                             fullWidth
                         >
-                            <MenuItem key="Select One" value="Select One">Select One</MenuItem>
                             {contacts.map((user: IUser) =>
                                 <MenuItem key={user._id} value={user.username}>{user.username}</MenuItem>
                             )}
@@ -197,7 +161,6 @@ const MedicalForm: React.FC = () => {
                             <FormControlLabel value="male" control={<Radio />} label="Male" />
                             <FormControlLabel value="other" control={<Radio />} label="Other" />
                         </RadioGroup>
-                        <FormHelperText>{sexError}</FormHelperText>
                     </FormControl>
                 </Box>
                 <Box width="100%" maxWidth="500px" my={2}>
@@ -213,7 +176,6 @@ const MedicalForm: React.FC = () => {
                             <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                             <FormControlLabel value="no" control={<Radio />} label="No" />
                         </RadioGroup>
-                        <FormHelperText>{consciousError}</FormHelperText>
                     </FormControl>
                 </Box>
                 <Box width="100%" maxWidth="500px" my={2}>
@@ -229,7 +191,6 @@ const MedicalForm: React.FC = () => {
                             <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                             <FormControlLabel value="no" control={<Radio />} label="No" />
                         </RadioGroup>
-                        <FormHelperText>{breathingError}</FormHelperText>
                     </FormControl>
                 </Box>
                 <Box width="100%" maxWidth="500px" my={2}>
@@ -239,26 +200,9 @@ const MedicalForm: React.FC = () => {
                         fullWidth
                         multiline
                         value={chiefComplaint}
-                        error={!!chiefComplaintError}
-                        helperText={chiefComplaintError}
                         onChange={(e) => onChange("chiefComplaint", e)}
                     />
                 </Box>
-                {/* <Box width="100%" maxWidth="500px" my={2}>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        type="submit"
-                        onClick={(e) => {
-                            e.preventDefault()
-
-                            onSubmitHandler()
-                        }}
-                        fullWidth
-                    >
-                        Next
-                    </Button>
-                </Box> */}
             </Box>
         </>
     )

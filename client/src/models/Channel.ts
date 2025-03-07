@@ -4,15 +4,17 @@ import IUser from './User'
  * Channel Interface
  *
  * Defines the structure of a channel object in the application.
+ * Groups，act as private Channels
  */
 export default interface IChannel {
   _id: string // Unique identifier for the channel
   name: string // Name of the channel
-  deacription?: string // Optional: Description of the channel
+  description?: string // Optional: Description of the channel
   owner: IUser // User object representing the owner of the channel
   closed: boolean // Indicates if the channel is closed or not
   users: IUser[] // Array of users participating in the channel
 }
+
 
 /**
  * Resolves the channel name

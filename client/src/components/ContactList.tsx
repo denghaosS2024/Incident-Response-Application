@@ -1,4 +1,12 @@
-import { NavigateNext as Arrow } from '@mui/icons-material'
+import {
+  NavigateNext as Arrow,
+  Visibility,
+  VisibilityOff,
+  ReportProblem,
+  LocalTaxi,
+  LocalFireDepartment,
+  HealthAndSafety
+} from '@mui/icons-material'
 import {
   Divider,
   IconButton,
@@ -7,6 +15,7 @@ import {
   ListItemSecondaryAction,
   ListItemText,
   Typography,
+  Box,
 } from '@mui/material'
 import cx from 'classnames'
 import { Fragment, FunctionComponent } from 'react'
@@ -23,32 +32,66 @@ export interface IContactProps {
 }
 
 export const Contact: FunctionComponent<IContactProps> = ({
-  user: { _id, username, online },
+  user: { _id, username, online, role },
   onClick,
-}) => (
-  <ListItem button onClick={() => onClick && onClick(_id)}>
-    <ListItemText style={{ flex: 1 }}>{username}</ListItemText>
-    <Typography
-      className={cx({
-        [styles.online]: online,
-      })}
-      variant="caption"
+}) => {
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'Dispatch':
+        return <ReportProblem sx={{ color: 'red', marginRight: '8px' }} />
+      case 'Police':
+        return <LocalTaxi sx={{ color: 'red', marginRight: '8px' }} />
+      case 'Fire':
+        return <LocalFireDepartment sx={{ color: 'red', marginRight: '8px' }} />
+      case 'Nurse':
+        return <HealthAndSafety sx={{ color: 'red', marginRight: '8px' }} />
+      default:
+        return null
+    }
+  }
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px 15px',
+        border: '1.5px solid #ddd',
+        borderRadius: '8px',
+        backgroundColor: '#fff',
+        marginBottom: '8px',
+        width: '90%',
+        mx: 'auto',
+        cursor: 'pointer',
+        '&:hover': { backgroundColor: '#f0f0f0' },
+      }}
+      onClick={() => onClick && onClick(_id)}
     >
-      {online ? 'online' : 'offline'}
-    </Typography>
-    {onClick && (
-      <ListItemSecondaryAction>
+      {getRoleIcon(role)}
+      <ListItemText sx={{ flex: 1 }}>{username}</ListItemText>
+      <Box>
+        {online ? (
+          <Visibility color="success" />
+        ) : (
+          <VisibilityOff color="disabled" />
+        )}
+      </Box>
+      {onClick && (
         <IconButton
           edge="end"
           size="large"
-          onClick={() => onClick && onClick(_id)}
+          onClick={(e) => {
+            e.stopPropagation()
+            onClick(_id)
+          }}
         >
           <Arrow />
         </IconButton>
-      </ListItemSecondaryAction>
-    )}
-  </ListItem>
-)
+      )}
+    </Box>
+  )
+}
 
 export interface IContactListProps {
   /**\
@@ -77,12 +120,11 @@ export const ContactList: FunctionComponent<IContactListProps> = ({
   }
 
   return (
-    <List>
+    <List sx={{ width: '100%', maxWidth: 320, mx: 'auto', padding: 0 }}>
       {users &&
-        users.map((user, index) => (
+        users.map((user) => (
           <Fragment key={user._id}>
             <Contact user={user} onClick={onClick} />
-            {index !== users.length - 1 && <Divider />}
           </Fragment>
         ))}
     </List>

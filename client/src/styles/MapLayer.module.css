@@ -1,14 +1,19 @@
 .mapLayerContainer {
     display: flex;
     position: relative;
-    height: 100vh;
+    height: 100%;
     width: 100%;
+    min-height: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
   
   .levitatingList,
   .youBox {
     position: absolute;
-    left: 20px;
     background: white;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
@@ -18,13 +23,10 @@
   }
   
   .levitatingList {
-    top: 45%;
-    transform: translateY(-50%);
     width: 180px;
   }
   
   .youBox {
-    top: calc(45% + 100px);
     width: 180px;
     height: 48px;
     display: flex;
@@ -32,7 +34,7 @@
   }
   
   .hidden {
-    transform: translateX(-100px);
+    transform: translateX(-100px) !important;
     opacity: 0;
     pointer-events: none;
   }
@@ -40,15 +42,29 @@
   .mapContainer {
     flex-grow: 1;
     height: 100%;
+    width: 100%;
+    min-height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
   
   .toggleButton {
-    position: absolute;
-    bottom: 80px; 
-    left: 20px;
-    z-index: 11;
-    background: white;
-    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
-    border-radius: 50%;
+    position: absolute !important;
+    bottom: 60px !important;
+    left: 20px !important;
+    z-index: 100 !important;
+    background-color: white !important;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
   }
   

@@ -9,7 +9,7 @@ docker compose up --build
 
 # Access the applications:
 # - Frontend: http://localhost:3000
-# - Backend API: http://localhost:3001
+# - Backend API: http://localhosgitt:3001
 # - MongoDB: mongodb://localhost:27018
 ```
 
@@ -124,10 +124,10 @@ docker compose logs -f server
    ```bash
    # Stop and remove everything
    docker compose down
-   
+
    # Remove node_modules volumes (if needed)
    rm -rf client/node_modules server/node_modules
-   
+
    # Full rebuild
    docker compose up --build
    ```
@@ -198,8 +198,17 @@ docker compose logs -f server
 cd client
 npm run storybook
 ```
-
 Storybook will be running on `http://localhost:6006`
+
+6. **Run Tests**:
+  - All test suits
+    ```
+    npm run test
+    ```
+  - Individual test suit, eg `channel.spec.ts`
+    ```
+    npx jest server/test/routers/channel.spec.ts
+    ```
 
 ## Notes:
 

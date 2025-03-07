@@ -5,7 +5,7 @@
  * This model is similar to a Slack channel.
  */
 
-import mongoose, { Schema, Document, Model } from 'mongoose'
+import mongoose, { Schema, Document, Model, Types } from 'mongoose'
 import AutoPopulate from 'mongoose-autopopulate'
 
 import { IUser } from './User'
@@ -27,9 +27,13 @@ export interface IChannel extends Document {
 
 /**
  * Interface for the Channel model
+ * Note: Private channels are called "Groups"
  */
 export interface IChannleModel extends Model<IChannel> {
   getPublicChannel: () => Promise<IChannel>
+  getGroupById: (id: Types.ObjectId) => Promise<IChannel>
+  getGroupByUser: (userId: Types.ObjectId) => Promise<IChannel[]>
+  getGroupOwnedByUser: (userId: Types.ObjectId) => Promise<IChannel[]>
 }
 
 /**
@@ -80,6 +84,47 @@ ChannelSchema.statics.getPublicChannel = async () => {
     return new Channel({ name: PUBLIC_CHANNEL_NAME }).save()
   }
 }
+
+/**
+ * Static method to get a group by its ID
+ * Ignore the public channel when getting a group
+ */
+ChannelSchema.statics.getGroupById = async (id: Types.ObjectId) => {
+  return Channel.findOne({ _id: id, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+}
+
+/**
+ * Static method to get a group owned by a user
+ * Ignore the public channel when getting a group
+ * Default to get all groups
+ * @param userId - The ID of the user
+ * @param checkClosed - Optional. If true, returns groups based on the "closed"  field. Otherwise, returns all groups.
+ * @param closed - Optional. Default to false (open groups). If true, returns closed groups. Otherwise, returns open groups.
+ */
+ChannelSchema.statics.getGroupOwnedByUser = async (userId: Types.ObjectId, checkClosed: boolean = false, closed: boolean = false) => {
+  if (checkClosed) {
+    return Channel.find({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME }, closed: closed }).exec()
+  } else {
+    return Channel.find({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+  }
+}
+
+/**
+ * Static method to get a group by a user
+ * Ignore the public channel when getting a group
+ * Default to get all groups
+ * @param userId - The ID of the user
+ * @param checkClosed - Optional. If true, returns groups based on the "closed"  field. Otherwise, returns all groups.
+ * @param closed - Optional. Default to false (open groups). If true, returns closed groups. Otherwise, returns open groups.
+ */
+ChannelSchema.statics.getGroupByUser = async (userId: Types.ObjectId, checkClosed: boolean = false, closed: boolean = false) => {
+  if (checkClosed) {
+    return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME }, closed: closed }).exec()
+  } else {
+    return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+  }
+}
+
 
 const Channel = mongoose.model<IChannel, IChannleModel>(
   'Channel',

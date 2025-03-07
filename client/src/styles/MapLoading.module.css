@@ -1,48 +1,57 @@
 .wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .wrapper .loader {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 20px;
-  }
-  .loader .loading {
-    background: #a3c5ff;
-    width: 30px;
-    height: 30px;
-    border-radius: 50px;
-    margin: 0 10px;
-    animation: load 0.7s ease infinite;
-  }
-  .loader .loading.one {
-    animation-delay: 0.3s;
-  }
-  .loader .loading.two {
-    animation-delay: 0.4s;
-  }
-  .loader .loading.three {
-    animation-delay: 0.5s;
-  }
-  @keyframes load {
-    0% {
-      width: 30px;
-      height: 30px;
-    }
-    50% {
-      width: 20px;
-      height: 20px;
-    }
-  }
-
-  /* MapLoading.module.css */
-.overlay {
-  width: 100vw;
-  position: fixed;
-  top: 50%;
-  align-items: center;
-  z-index: 9999;
   display: flex;
   justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  min-height: 400px;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: 0 5px;
+  border-radius: 50%;
+  background-color: #4285f4;
+  animation: loading 1.5s infinite ease-in-out;
+}
+
+.one {
+  animation-delay: 0s;
+}
+
+.two {
+  animation-delay: 0.5s;
+}
+
+.three {
+  animation-delay: 1s;
+}
+
+@keyframes loading {
+  0%, 100% {
+    transform: scale(0.5);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

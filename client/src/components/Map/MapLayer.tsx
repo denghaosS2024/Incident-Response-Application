@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -15,7 +15,30 @@ import styles from '../../styles/MapLayer.module.css';
 
 const MapLayer: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [isVisible, setIsVisible] = useState(true); 
+  const [isVisible, setIsVisible] = useState(false);
+  const [navbarHeight, setNavbarHeight] = useState(56); // Default AppBar height
+  const [tabbarHeight, setTabbarHeight] = useState(48); // Default Tabs height
+  const [isFullPage, setIsFullPage] = useState(false);
+  const [is911Page, setIs911Page] = useState(false);
+
+  useEffect(() => {
+    // Get the actual heights of navbar and tabbar
+    const navbar = document.querySelector('header');
+    const tabbar = document.querySelector('[role="tablist"]');
+    
+    if (navbar) {
+      setNavbarHeight(navbar.clientHeight);
+    }
+    
+    if (tabbar) {
+      setTabbarHeight(tabbar.clientHeight);
+    }
+
+    // Check if we're in the full page map view or embedded in another component
+    const path = window.location.pathname;
+    setIsFullPage(path === '/map');
+    setIs911Page(path.includes('911'));
+  }, []);
 
   const handleListItemClick = (index: number) => {
     setSelectedIndex(index);
@@ -25,10 +48,69 @@ const MapLayer: React.FC = () => {
     setIsVisible((prev) => !prev);
   };
 
-  return (
-    <div className={styles.mapLayerContainer}>
+  // Determine container height based on whether we're in full page or embedded
+  const containerHeight = isFullPage 
+    ? `calc(100vh - ${navbarHeight}px - ${tabbarHeight}px)`
+    : '100%';
 
-      <Box className={`${styles.levitatingList} ${!isVisible ? styles.hidden : ''}`}>
+  // Menu position
+  const menuStyle = isFullPage 
+    ? {
+        left: '20px',
+        bottom: '120px', // Position above the toggle button (60px + spacing)
+        top: 'auto',
+        transform: 'none'
+      }
+    : is911Page
+      ? {
+          left: '20px',
+          bottom: '120px',
+          top: 'auto',
+          transform: 'none'
+        }
+      : {
+          left: '20px',
+          top: '45%',
+          transform: 'translateY(-50%)'
+        };
+
+  // Toggle button position
+  const toggleButtonStyle = isFullPage || is911Page
+    ? {
+        position: 'absolute',
+        bottom: '60px',
+        left: '20px',
+        zIndex: 1000, // Increased z-index to ensure visibility
+        bgcolor: 'white',
+        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.2)',
+        width: '40px',
+        height: '40px'
+      }
+    : {
+        position: 'absolute',
+        bottom: '60px',
+        left: '20px',
+        zIndex: 1000,
+        bgcolor: 'white',
+        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.2)',
+        width: '40px',
+        height: '40px'
+      };
+
+  return (
+    <div className={styles.mapLayerContainer} style={{ 
+      height: containerHeight, 
+      width: '100%', 
+      maxWidth: '100%',
+      overflow: 'hidden',
+      position: 'relative',
+      margin: 0,
+      padding: 0
+    }}>
+      <Box 
+        className={`${styles.levitatingList} ${!isVisible ? styles.hidden : ''}`}
+        style={menuStyle}
+      >
         <List component="nav" aria-label="map layer selection">
           <ListItemButton
             selected={selectedIndex === 0}
@@ -59,11 +141,7 @@ const MapLayer: React.FC = () => {
             </ListItemIcon>
             <ListItemText primary="Contacts" />
           </ListItemButton>
-        </List>
-      </Box>
 
-      <Box className={`${styles.youBox} ${!isVisible ? styles.hidden : ''}`}>
-        <List component="nav" aria-label="you-section">
           <ListItemButton
             selected={selectedIndex === 3}
             onClick={() => handleListItemClick(3)}
@@ -76,15 +154,29 @@ const MapLayer: React.FC = () => {
         </List>
       </Box>
 
-      <IconButton className={styles.toggleButton} onClick={toggleVisibility}>
+      <IconButton 
+        className={styles.toggleButton} 
+        onClick={toggleVisibility}
+        sx={toggleButtonStyle}
+      >
         {isVisible ? <RemoveIcon /> : <AddIcon />}
       </IconButton>
 
-      <div className={styles.mapContainer}>
+      <div className={styles.mapContainer} style={{ 
+        height: '100%', 
+        width: '100%', 
+        maxWidth: '100%',
+        overflow: 'hidden',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0
+      }}>
         <Map />
       </div>
     </div>
   );
 };
 
-export default MapLayer;
+export default MapLayer; 

@@ -134,34 +134,24 @@ describe('Router - Channel', () => {
     expect(messages[0]._id).toBe(messageId)
   })
 
-  // it('should initiate a phone call between two users and return the phone number', async () => {
-  //   // Ensure we have an existing channel between userA and userB
-  //   const {
-  //     body: { _id: testChannelId },
-  //   } = await request(app)
-  //     .post('/api/channels')
-  //     .send({
-  //       users: [userA, userB],
-  //     })
-  //     .expect(200)
+  it('can delete a channel', async () => {
+    const channelName = 'channel01'
+    await request(app)
+      .post('/api/channels')
+      .send({
+        name: channelName,
+        users: [userA, userB],
+        owner: userA,
+      })
+      .expect(200)
 
-  //   // Make the phone call request
-  //   const { body: result } = await request(app)
-  //     .post(`/api/channels/${testChannelId}/phone-call`)
-  //     .set('x-application-uid', userA) // Sender is userA
-  //     .expect(200)
+    const { body } = await request(app)
+      .delete(`/api/channels`)
+      .send({ name: channelName })
+      .expect(200)
 
-  //   // Validate the response contains the expected phone call message
-  //   expect(result.message.content).toBe(
-  //     `Phone call started now between Channel-User-A and Channel-User-B.`
-  //   )
-  //   expect(result.message.sender.username).toBe('Channel-User-A')
-  //   expect(result.message.sender.role).toBe('Citizen')
-  //   expect(result.message.channelId).toBe(testChannelId)
-
-  //   // Validate the phone number returned is of userB (the receiver)
-  //   expect(result.phoneNumber).toBe('0987654321')
-  // })
+    expect(body.message).toBe(`Channel(${channelName}) deleted`)
+  })
 
   afterAll(TestDatabase.close)
 })

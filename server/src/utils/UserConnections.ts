@@ -6,12 +6,15 @@
  * connections, and manage the list of connected users.
  */
 
+// Import the ROLES enum from the Roles utility
+import { ROLES } from './Roles'
 import SocketIO from 'socket.io'
 
 // Map to store user connections, with user ID as key and socket as value
 const connections = new Map<string, SocketIO.Socket>()
 
 class UserConnections {
+
   /**
    * Check if a user is currently connected
    * @param uid - The user ID to check
@@ -24,8 +27,11 @@ class UserConnections {
    * @param uid - The user ID
    * @param connection - The socket connection for the user
    */
-  addUserConnection = (uid: string, connection: SocketIO.Socket) =>
-    connections.set(uid, connection)
+  addUserConnection = (uid: string, connection: SocketIO.Socket, role: ROLES) =>{
+    connections.set(uid, connection);
+    // Join role-based room
+    connection.join(`role:${role}`);
+  }
 
   /**
    * Get the socket connection for a user
@@ -35,17 +41,53 @@ class UserConnections {
   getUserConnection = (uid: string) => connections.get(uid)
 
   /**
-   * Remove a user connection
+   * Remove a user connection and leave all rooms
    * @param uid - The user ID
    * @returns True if the connection was removed, false if it didn't exist
    */
-  removeUserConnection = (uid: string) => connections.delete(uid)
+  removeUserConnection = (uid: string) => {
+    const socket = connections.get(uid)
+    if (socket) {
+      // Leave all rooms
+      Object.values(ROLES).forEach(role => {
+        socket.leave(`role:${role}`)
+      })
+    }
+
+    return connections.delete(uid);
+  }
 
   /**
    * Get an array of all connected user IDs
    * @returns An array of user IDs for all currently connected users
    */
   getConnectedUsers = () => Array.from(connections.keys())
+
+  /**
+   * Broadcast an event to all connected users
+   * @param eventName - The name of the event
+   * @param data - The data to send with the event
+   */
+  broadcast(eventName: string, data: object|string = {}) {
+    connections.forEach((socket) => {
+      if (socket) {
+        socket.emit(eventName, data); // Emit the event with data to each socket
+      }
+    });
+  }
+
+  /**
+   * Broadcast an event to all connected users with a specific role
+   * @param role - The role to filter by
+   * @param eventName - The name of the event
+   * @param data - The data to send with the event
+   */
+  broadcaseToRole = (role: ROLES, eventName: string, data: object|string = {}) => {
+    const socket = connections.values().next().value;
+    if (socket) {
+      socket.to(`role:${role}`).emit(eventName, data);
+    }
+  }
 }
 
 // Export a singleton instance of UserConnections

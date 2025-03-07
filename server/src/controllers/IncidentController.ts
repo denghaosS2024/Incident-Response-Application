@@ -1,4 +1,4 @@
-import Incident, { type IIncident }from "../models/Incident"
+import Incident, { IncidentPriority, type IIncident } from "../models/Incident"
 import { Types } from 'mongoose';
 
 class IncidentController {
@@ -32,17 +32,55 @@ class IncidentController {
     }
 
     /**
+     * Create a new incident with existing information
+     * @param incident 
+     * @returns The newly created incident object
+     * @throws {Error} if the incident already exists --> in the future check if the incident exists and is not closed
+     */
+    async createIncident(
+        incident: IIncident,
+    ) {
+
+        // Check if the incident already exists
+        let incidentId = `I${incident.caller}`
+        let existingIncident = await Incident.findOne({ incidentId }).exec()
+
+        if (existingIncident) {
+            throw new Error(`Incident "${incidentId}" already exists`)
+        } else {
+            // Create and save new incident object
+            incident = await new Incident({
+                incidentId:`I${incident.caller}`,
+                caller: incident.caller,
+                openingDate: new Date(),
+                incidentState: incident.incidentState ? incident.incidentState : "Waiting",
+                owner: incident.owner ? incident.owner : "System",
+                address: incident.address ? incident.address : "" ,
+                type: incident.type ? incident.type : "",
+                questions: incident.questions ? incident.questions : {},
+                priority: IncidentPriority.Immediate,
+                incidentCallGroup: incident.incidentCallGroup ? incident.incidentCallGroup : null,
+            }).save()
+        }
+        return incident
+    }
+
+    
+
+    /**
      * Update incident chat group
-     * @param incidentId - The ID of the incident to update
+     * @param id - The _id of the incident to update
      * @param channelId - The MongoDB ObjectId of the chat channel
      * @returns The updated incident if found, null otherwise
      */
     async updateChatGroup(
-        incidentId: string, 
+        id: Types.ObjectId, 
         channelId: Types.ObjectId
     ) : Promise<IIncident | null> {
+        // Convert string id to MongoDB ObjectId
+        const _id = id;
         return Incident.findOneAndUpdate(
-            { incidentId },
+            { _id },
             { incidentCallGroup: channelId },
             { new: true }
         ).exec();
@@ -60,7 +98,6 @@ class IncidentController {
             caller: username,
             incidentState: { $ne: 'Closed' }
         })
-        .populate('incidentCallGroup')
         .exec();
     }
 

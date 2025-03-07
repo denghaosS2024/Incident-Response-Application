@@ -1,34 +1,41 @@
-import { Home, Message, PermContactCalendar, AccessAlarm, LocationOn, FmdBadRounded } from '@mui/icons-material'
-import { StyledEngineProvider } from '@mui/material/styles'
-import React, { useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from './utils/types'
-import {
-  Navigate,
-  Outlet,
-  Route,
-  BrowserRouter as Router,
-  Routes,
-} from 'react-router-dom'
-import { AppDispatch } from './app/store'
-import NavigationBar from './components/NavigationBar'
-import TabBar, { Link } from './components/TabBar'
-import ChatRoomPage from './pages/ChatRoomPage'
-import Contacts from './pages/Contacts'
-import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
-import Messages from './pages/Messages'
-import RegisterPage from './pages/RegisterPage'
-import SocketClient from './utils/Socket'
-import { addMessage, clearAllAlerts } from './features/messageSlice'
-import IMessage from '@/models/Message'
-import { loadContacts } from './features/contactSlice'
-import Groups2Icon from '@mui/icons-material/Groups2'
-import GroupsPage from './pages/GroupsPage'
-import Reach911Page from './pages/Reach911Page'
-import { LocalPolice as PoliceIcon,LocalFireDepartment as FirefighterIcon,LocalHospital as NurseIcon,Report,LocalPhone } from '@mui/icons-material';
-import MapPage from './pages/MapPage'
-import IncidentsPage from './pages/IncidentsPage'
+// Material-UI Components
+import { StyledEngineProvider } from '@mui/material/styles';
+import { Home, Message, PermContactCalendar, AccessAlarm, LocationOn, FmdBadRounded } from '@mui/icons-material';
+import Groups2Icon from '@mui/icons-material/Groups2';
+import { LocalPolice as PoliceIcon, LocalFireDepartment as FirefighterIcon, LocalHospital as NurseIcon, Report } from '@mui/icons-material';
+
+// React and Redux
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from './utils/types';
+import { AppDispatch } from './app/store';
+
+// React Router
+import { Navigate, Outlet, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+
+// Components
+import NavigationBar from './components/NavigationBar';
+import TabBar, { Link } from './components/TabBar';
+
+// Pages
+import ChatRoomPage from './pages/ChatRoomPage';
+import Contacts from './pages/Contacts';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import Messages from './pages/Messages';
+import RegisterPage from './pages/RegisterPage';
+import GroupsPage from './pages/GroupsPage';
+import Reach911Page from './pages/Reach911Page';
+import MapPage from './pages/MapPage';
+import IncidentsPage from './pages/IncidentsPage';
+import GroupInformationPage from './pages/GroupInformationPage';
+
+// Utilities and Features
+import SocketClient from './utils/Socket';
+import { addMessage, clearAllAlerts } from './features/messageSlice';
+import IMessage from '@/models/Message';
+import { loadContacts } from './features/contactSlice';
+
 
 const App: React.FC = () => {
   return (
@@ -48,6 +55,7 @@ const App: React.FC = () => {
           </Route>
           <Route element={<ProtectedRoute showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
+            <Route path="/groups/:id" element={<GroupInformationPage />} />
           </Route>
         </Routes>
       </Router>
@@ -94,7 +102,8 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     {
       prefix: '/reach911',
       key: 'reach911',
-      icon: <LocalPhone/>,
+      icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
+      selectedIcon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
       to: '/reach911',
     },
     {
@@ -123,7 +132,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     },
   ]
   const roleTabs: Record<string, Link> = {
-    Dispatch: { prefix: '/', key: '911', icon:  <LocalPhone/>, to: '/' },
+    Dispatch: { prefix: '/', key: '911', icon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, to: '/' },
     Police: { prefix: '/', key: 'police', icon: <PoliceIcon />, to: '/' },
     Fire: { prefix: '/', key: 'fire', icon: <FirefighterIcon />, to: '/' },
     Nurse: { prefix: '/', key: 'nurse', icon:<NurseIcon />, to: '/' },

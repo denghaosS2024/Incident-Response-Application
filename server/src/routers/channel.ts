@@ -112,9 +112,110 @@ import Channel from '../models/Channel'
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Channel'
+ *
+ *   delete:
+ *     summary: Delete a channel
+ *     tags: [Channels]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *
+ *     responses:
+ *       200:
+ *         description: Channel deleted
+ *
+ *       400:
+ *         description: Invalid request
+ *
  */
 
 export default Router()
+  /**
+   * Delete a channel
+   * @route DELETE /api/channels
+   * @param {Object} request.body
+   * @param {string} request.body.name - Name of the channel to delete
+   * @returns {string} Success message
+   * @throws {400} If the channel name is not provided
+   */
+  .delete('/', async (request, response) => {
+    const { name } = request.body as { name: string }
+    if (!name) {
+      return response.status(400).send({ message: 'Channel name is required' })
+    }
+
+    try {
+      await ChannelController.delete(name)
+      return response.send({message: `Channel(${name}) deleted`})
+    } catch (e) {
+      const error = e as Error
+      return response.status(400).send({ message: error.message })
+    }
+  })
+
+/**
+ * @swagger
+ * /api/channels/911:
+ *   post:
+ *     summary: Create a new 911 emergency channel
+ *     description: Creates a specialized channel for 911 emergency communication with automatic system message
+ *     tags: [Channels]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - userId
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Username of the caller
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: MongoDB ObjectId of the caller
+ *     responses:
+ *       200:
+ *         description: 911 emergency channel created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Channel'
+ *       400:
+ *         description: Bad request - missing required fields or invalid data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+  .post('/911', async (request, response) => {
+    const { username, userId } = request.body;
+    try {
+      const channel = await ChannelController.create911Channel(
+        username,
+        new Types.ObjectId(userId)
+      );
+      response.status(201).send(channel);
+    } catch (e) {
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
+    }
+  })
+
   /**
    * Create a new channel
    * @route POST /api/channels
@@ -142,8 +243,9 @@ export default Router()
         description: description,
         ownerId: owner ? new Types.ObjectId(owner) : undefined,
         closed: closed,
-      })
+      }) 
 
+      // TO-DO: HTTP code should be 201 for created in Restful
       response.send(channel)
     } catch (e) {
       const error = e as Error
@@ -161,8 +263,46 @@ export default Router()
     const channels = await ChannelController.list(
       user ? new Types.ObjectId(user) : undefined,
     )
+    return response.send(channels)
+  })
+  /**
+   * @swagger
+   * /api/channels/groups/{userId}:
+   *   get:
+   *     summary: Get groups by user ID
+   *     description: Get all the groups that the user is a part of and user is a part of
+   *     tags: [Channel]
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           description: User ID
+   *     responses:
+   *       200:
+   *         description: Groups retrieved successfully
+   *       404:
+   *         description: User not found
+   */
 
-    response.send(channels)
+  /**
+   * Get groups by user ID
+   * @route GET /api/channels/groups/{userId}
+   * @param {string} request.params.userId - The ID of the user
+   * @returns {Array} An array of group objects that the user is a part of and user is a part of
+   * @throws {404} If the user is not found
+   */
+
+  .get('/groups/:userId', async (request, response) => {
+    const userId = new Types.ObjectId(request.params.userId)
+    try {
+      const groups = await ChannelController.getUserGroups(userId)
+      response.status(200).json(groups)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).send({ message: error.message })
+    }
   })
   /**
    * Redirect public channel messages to the appropriate endpoint
@@ -204,6 +344,24 @@ export default Router()
     }
   })
   /**
+   * Get channel information by ID
+   * @route GET /api/channels/{id}
+   * @param {string} request.params.id - The ID of the channel
+   * @returns {Object} The channel object
+   * @throws {404} If the channel is not found
+   */
+  .get('/:id', async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id)
+
+    try {
+      const channel = await ChannelController.getChannel(channelId)
+      response.json(channel)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).json({ message: error.message })
+    }
+  })
+  /**
    * Redirect public channel messages to the appropriate endpoint
    * @route GET /api/channels/public/messages
    * @returns {302} Redirect to the public channel's messages endpoint
@@ -228,10 +386,10 @@ export default Router()
         .status(404)
         .send({ message: `Channel(${channelId}) not found.` })
     }
-
     return response.send(channel.messages)
   })
   /**
+   * Start a video conference in a channel
    * @swagger
    * /api/channels/{id}/video-conference:
    *   post:
@@ -355,7 +513,6 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
-
   .post('/:id/voice-upload-url', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const fileName = request.body.fileName
