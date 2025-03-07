@@ -106,7 +106,7 @@ class IncidentController {
      * @returns All incidents
      */
     async getAllIncidents(): Promise<IIncident[]> {
-        return [];
+        return Incident.find().exec()
     }
 
 }
