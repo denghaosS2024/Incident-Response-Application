@@ -58,11 +58,13 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const [closed, setIsClosed] = useState<boolean>(false)
   const [name, setGroupName] = useState('')
   const [description, setDescription] = useState('')
-  const [users, setUsers] = useState<string[]>([]); // Initialize with selectedUsers
   const [nameError, setNameError] = useState<string>('')
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
   const currentUserRole = localStorage.getItem('role')
+
+  
+  console.log('owner:', owner)
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [users, setUsers] = useState<string[]>([owner])
 
@@ -70,8 +72,9 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   console.log('owner:', owner)
 
   useEffect(() => {
-    setUsers((prev) => [owner, ...prev]); // Ensure owner is always included
-  }, []);
+    setUsers((prev) => (prev.includes(owner) ? prev : [owner, ...prev])); 
+  }, [owner]); // Runs only when the owner changes
+  
   
   const handleSubmit = () => {
     let hasError = false
@@ -88,7 +91,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
       channelProps.createChannel({
         name,
         description,
-        users: [...users, owner], // Ensure owner is included
+        users: users.includes(owner) ? users : [...users, owner], // Ensure owner is in the list
         owner,
         closed,
       })

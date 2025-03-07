@@ -4,17 +4,13 @@ import request, { IRequestError } from '../utils/request'
 import IChannel from '../models/Channel'
 import { IAddGroupFormProps } from '../components/AddGroupForm'
 import AlertSnackbar from '../components/common/AlertSnackbar'
-<<<<<<< HEAD
-import { set } from "lodash"
-import IUser from '@/models/User'
-=======
 import { set } from 'lodash'
 import style from '../styles/GroupPage.module.css'
 
 //Pages 
 import GroupDirectory from '../components/GroupDir/GroupDirectory'
 import { Container } from '@mui/material'
->>>>>>> 8b2b29e069e8d103e560eb7aee1eb9e0df192147
+import IUser from '@/models/User'
 
 const Groups: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -73,21 +69,14 @@ const Groups: React.FC = () => {
 
 
   return (
-<<<<<<< HEAD
-    <>
-<AddGroupForm
-  createChannel={newGroup}
-  selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
-  setSelectedUsers={setSelectedUsers}
-/>
-
-=======
     <Container>
       <div className={style.centeredForm}>
-        <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} />
+        <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} 
+  selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
+  setSelectedUsers={setSelectedUsers}/>
+      <GroupDirectory />
       </div>
       <GroupDirectory />
->>>>>>> 8b2b29e069e8d103e560eb7aee1eb9e0df192147
       <AlertSnackbar
         open={openSnackbar}
         onClose={() => setOpenSnackbar(false)}
