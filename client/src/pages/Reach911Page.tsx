@@ -29,7 +29,7 @@ const Reach911Page: React.FC = () => {
                 caller: username // Store username in the caller field
             }));
         }
-    }, []);
+    }, [dispatch]);
 
     const contents = [
         <Reach911Step1 />,

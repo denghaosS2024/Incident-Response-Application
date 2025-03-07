@@ -53,28 +53,37 @@ describe('Router - Incident', () => {
     });
 
     it('should update incident chat group', async () => {
+        // First get the incident to get its _id
+        const { body: incident } = await request(app)
+            .get(`/api/incidents/${username}/active`)
+            .expect(200);
+    
         const channelId = new Types.ObjectId();
-
+    
         const { body: updatedIncident } = await request(app)
-            .put(`/api/incidents/ITest/chat-group`)
+            .put(`/api/incidents/${incident._id}/chat-group`)
             .send({ channelId: channelId.toString() })
             .expect(200);
-
+    
         expect(updatedIncident.incidentCallGroup).toBe(channelId.toString());
     });
-
+    
     it('should return 404 for non-existent incident', async () => {
+        const nonExistentId = new Types.ObjectId();
         await request(app)
-            .put('/api/incidents/non-existent/chat-group')
+            .put(`/api/incidents/${nonExistentId}/chat-group`)
             .send({ channelId: new Types.ObjectId().toString() })
             .expect(404);
     });
-
+    
     it('should return 400 for invalid channel ID', async () => {
-        const { body: incident } = await create();
+        // First get the incident to get its _id
+        const { body: incident } = await request(app)
+            .get(`/api/incidents/${username}/active`)
+            .expect(200);
         
         await request(app)
-            .put(`/api/incidents/${incident.incidentId}/chat-group`)
+            .put(`/api/incidents/${incident._id}/chat-group`)
             .send({ channelId: 'invalid-id' })
             .expect(400);
     });

@@ -88,6 +88,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const quit = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('uid')
+    localStorage.removeItem('incidentState')
     navigate('/login')
   }
 

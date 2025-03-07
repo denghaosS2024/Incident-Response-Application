@@ -4,18 +4,19 @@ import { RootState } from '../../utils/types';
 import { useSelector } from 'react-redux';
 import FireForm from './FireForm';
 import PoliceForm from './PoliceForm';
+import { IncidentType } from '../../models/Incident';
 
 const Step3Form: React.FC = () => {
 
-    const type: string = useSelector((state: RootState) => state.incidentState.incident.type)
+    const type = useSelector((state: RootState) => state.incidentState.incident.type)
 
     const renderForm = () => {
         switch(type){
-            case "Medical":
+            case IncidentType.Medical:
                 return <MedicalForm></MedicalForm>
-            case "Fire":
+            case IncidentType.Fire:
                 return <FireForm></FireForm>
-            case "Police":
+            case IncidentType.Police:
                 return <PoliceForm></PoliceForm>
             default:
                 return (

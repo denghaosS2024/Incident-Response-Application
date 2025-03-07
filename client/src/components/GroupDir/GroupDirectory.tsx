@@ -1,19 +1,18 @@
-import IChannel from '../models/Channel';
+import IChannel from '../../models/Channel';
 import { useState, useEffect } from 'react';
-import GroupListBlock from '../components/GroupDir/GroupListBlock';
+import GroupListBlock from './GroupListBlock';
 import { Box } from '@mui/material';
-import request from '../utils/request';
-import SocketClient from '../utils/Socket';
+import request from '../../utils/request';
+import SocketClient from '../../utils/Socket';
 
 
 
 
-const GroupDirectoryPage: React.FC = () => {
+const GroupDirectory: React.FC = () => {
     const [myManagingChannels, setMyManagingChannels] = useState<IChannel[]>([]);
     const [myParticipatingChannels, setMyParticipatingChannels] = useState<IChannel[]>([]);
+    const [myclosedChannels, setMyclosedChannels] = useState<IChannel[]>([]);
     const owner = localStorage.getItem('uid') || '';
-
-
     const fetchGroups = async () => {
         try {
             const myGroups = await request(`/api/channels/groups/${owner}`, {
@@ -22,15 +21,16 @@ const GroupDirectoryPage: React.FC = () => {
                 console.error("Error fetching groups:", error);
                 return []
             });
-            setMyParticipatingChannels(myGroups);
-            const ownedGroups = myGroups.filter((group: IChannel) => group.owner._id === owner);
+            const activeGroups = myGroups.filter((group: IChannel) => !group.closed);
+            setMyParticipatingChannels(activeGroups);
+            const ownedGroups = myGroups.filter((group: IChannel) => group.owner._id === owner && !group.closed);
             setMyManagingChannels(ownedGroups);
+            const closedGroups = myGroups.filter((group: IChannel) => group.closed);
+            setMyclosedChannels(closedGroups);
         } catch (error) {
             console.error("Error fetching groups:", error);
         }
     };
-    
-    
     useEffect(() => {
         fetchGroups();
         const socket = SocketClient
@@ -61,8 +61,13 @@ const GroupDirectoryPage: React.FC = () => {
                 id="participating"
                 groups={myParticipatingChannels}
             />
+            <GroupListBlock
+                headerName="Closed Groups"
+                id="closed"
+                groups={myclosedChannels}
+            />
         </Box>
     );
 }
 
-export default GroupDirectoryPage;
+export default GroupDirectory;

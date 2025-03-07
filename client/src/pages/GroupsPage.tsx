@@ -8,13 +8,15 @@ import { set } from 'lodash'
 import style from '../styles/GroupPage.module.css'
 
 //Pages 
-import GroupDirectoryPage from '../pages/GroupDirectoryPage'
+import GroupDirectory from '../components/GroupDir/GroupDirectory'
 import { Container } from '@mui/material'
+import IUser from '@/models/User'
 
 const Groups: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | ''>('')
+  const [selectedUsers, setSelectedUsers] = useState<IUser[]>([]);
 
   const newGroup: IAddGroupFormProps['createChannel'] = async ({
     name,
@@ -69,9 +71,12 @@ const Groups: React.FC = () => {
   return (
     <Container>
       <div className={style.centeredForm}>
-        <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} />
+        <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} 
+  selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
+  setSelectedUsers={setSelectedUsers}/>
+      <GroupDirectory />
       </div>
-      <GroupDirectoryPage />
+      <GroupDirectory />
       <AlertSnackbar
         open={openSnackbar}
         onClose={() => setOpenSnackbar(false)}

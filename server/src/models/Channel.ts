@@ -77,7 +77,7 @@ ChannelSchema.plugin(AutoPopulate)
  */
 ChannelSchema.statics.getPublicChannel = async () => {
   const channel = await Channel.findOne({ name: PUBLIC_CHANNEL_NAME }).exec()
-  
+
   if (channel) {
     return channel
   } else {
@@ -96,17 +96,33 @@ ChannelSchema.statics.getGroupById = async (id: Types.ObjectId) => {
 /**
  * Static method to get a group owned by a user
  * Ignore the public channel when getting a group
+ * Default to get all groups
+ * @param userId - The ID of the user
+ * @param checkClosed - Optional. If true, returns groups based on the "closed"  field. Otherwise, returns all groups.
+ * @param closed - Optional. Default to false (open groups). If true, returns closed groups. Otherwise, returns open groups.
  */
-ChannelSchema.statics.getGroupOwnedByUser = async (userId: Types.ObjectId) => {
-  return Channel.find({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+ChannelSchema.statics.getGroupOwnedByUser = async (userId: Types.ObjectId, checkClosed: boolean = false, closed: boolean = false) => {
+  if (checkClosed) {
+    return Channel.find({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME }, closed: closed }).exec()
+  } else {
+    return Channel.find({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+  }
 }
 
 /**
  * Static method to get a group by a user
  * Ignore the public channel when getting a group
+ * Default to get all groups
+ * @param userId - The ID of the user
+ * @param checkClosed - Optional. If true, returns groups based on the "closed"  field. Otherwise, returns all groups.
+ * @param closed - Optional. Default to false (open groups). If true, returns closed groups. Otherwise, returns open groups.
  */
-ChannelSchema.statics.getGroupByUser = async (userId: Types.ObjectId) => {
-  return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+ChannelSchema.statics.getGroupByUser = async (userId: Types.ObjectId, checkClosed: boolean = false, closed: boolean = false) => {
+  if (checkClosed) {
+    return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME }, closed: closed }).exec()
+  } else {
+    return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+  }
 }
 
 

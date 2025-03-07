@@ -9,43 +9,61 @@ import {
   ListItemSecondaryAction,
   ListItemText,
   SxProps,
+  Box
 } from '@mui/material'
 import { Fragment, FunctionComponent } from 'react'
 import IChannel from '../models/Channel'
 import Loading from './common/Loading'
+import EditIcon from '@mui/icons-material/Edit'
 
 export interface IChannelProps {
-  channel: IChannel
+  channel: IChannel,
+  isSettingButton?: boolean
 }
 
 const ChannelStyle: SxProps = {
-  backgroundColor: '#ADD8E6', // Material UI blue
-  width: '95%',
+  backgroundColor: '#ADD8E6',
   boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
   p: 2,
   borderRadius: 1,
-  mx: 'auto', 
   display: 'flex',
-  justifyContent:'space-between',
-  alignItems:'center',
-  paddingRight: '48px',
-  marginBottom:"1rem"
-}
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '95%' 
+};
 
 
+// Channel component renders a single channel with an optional setting button
+// @param channel - The channel object to render
+// @param isSettingButton - Optional flag to show the setting button
 export const Channel: FunctionComponent<IChannelProps> = ({
   channel: { _id, name },
+  isSettingButton = false
 }) => (
-  <Link color="inherit" href={`/messages/${_id}?name=${name}`}>
-    <ListItem sx={ChannelStyle}>
+
+<Box sx={{ display: 'flex', alignItems: 'center', width: '100%', marginBottom: "1rem" }}>
+  {isSettingButton && (
+    <Link color="inherit" 
+          href={`/groups/${_id}?name=${name}`} 
+          sx={{ marginRight: 1 }}>
+      <IconButton edge="start" size="large"> 
+        <EditIcon />
+      </IconButton>
+    </Link>
+  )}
+  <Link 
+    color="inherit" 
+    href={`/messages/${_id}?name=${name}`}
+    sx={{ flexGrow: 1 }}
+  >
+    <Box sx={ChannelStyle}>
       <ListItemText>{name}</ListItemText>
-      <ListItemSecondaryAction>
-        <IconButton edge="end" size="large">
-          <Arrow />
-        </IconButton>
-      </ListItemSecondaryAction>
-    </ListItem>
+      <IconButton edge="end" size="large">
+        <Arrow />
+      </IconButton>
+    </Box>
   </Link>
+</Box>
 )
 
 export interface IChannelListProps {

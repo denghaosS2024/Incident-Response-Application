@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import MapLoading from './MapLoading'
+import MapLoading from './MapLoading';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../app/store';
@@ -11,242 +11,186 @@ import IIncident from '../../models/Incident';
 import { Alert, Box, Typography } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 
-const Mapbox: React.FC = () => {
+interface MapboxProps {
+    showMarker?: boolean;
+}
+
+const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
+  // Refs for the map container, map instance, and marker
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+
+  // State to track map loading and errors
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
   const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident);
 
+  // State for current location
   const [currentLat, setCurrentLat] = useState<number>(40);
   const [currentLng, setCurrentLng] = useState<number>(-74.5);
 
-  // Function to update address based on coordinates
-  const updateAddressFromCoordinates = async (lng: number, lat: number) => {
+  // Function to initialize the map using the given longitude and latitude.
+  // This function is called once regardless of geolocation success or failure.
+  const initializeMap = (lng: number, lat: number, initialZoom: number) => {
+    if (!mapContainerRef.current) return;
     try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
-      );
-      const data = await response.json();
-      
-      if (data.features && data.features.length > 0) {
-        const address = data.features[0].place_name;
-        dispatch(updateIncident({
-          ...incident,
-          address: address
-        }));
-      }
+      // Create a new map instance
+      mapRef.current = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/domoncassiu/cm7og9k1l005z01rdd6l78pdf', 
+        center: [lng, lat],
+        zoom: initialZoom,
+      });
+      // When the map loads, add a draggable marker and update the address
+      mapRef.current.on('load', () => {
+        // Add a draggable marker at the current location
+        mapRef.current!.setProjection({ name: 'globe' });
+
+        // If showMarker is true, add a draggable marker
+        if (showMarker) {
+            markerRef.current = new mapboxgl.Marker({
+              draggable: true,
+              color: '#FF0000',
+            })
+              .setLngLat([lng, lat])
+              .addTo(mapRef.current!);
+            markerRef.current.on('dragend', () => {
+              const lngLat = markerRef.current!.getLngLat();
+              updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
+            });
+            // Update address initially
+            updateAddressFromCoordinates(lng, lat);
+        }
+        setIsMapLoaded(true);
+
+        // Trigger geolocation if the map was initialized with default coordinates
+        if (initialZoom == 1) {
+            geolocateControl.trigger();
+        }
+      });
+      // Handle map errors
+      mapRef.current.on('error', (e: any) => {
+        console.error('Mapbox error:', e);
+        setMapError('Failed to load map');
+      });
+      // Add geolocate control to allow tracking the user’s location
+      const geolocateControl = new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+      });
+      mapRef.current.addControl(geolocateControl);
+      // Update marker position when geolocation is triggered
+      geolocateControl.on('geolocate', (e: any) => {
+        const { longitude, latitude } = e.coords;
+        if (markerRef.current && showMarker) {
+          markerRef.current.setLngLat([longitude, latitude]);
+          updateAddressFromCoordinates(longitude, latitude);
+        }
+      });
     } catch (error) {
-      console.error('Error fetching address:', error);
+      console.error('Error initializing map:', error);
+      setMapError('Failed to initialize map');
     }
   };
 
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA';
 
-    try {
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setCurrentLat(latitude);
-            setCurrentLng(longitude);
-            
-            // Initialize map and set the center to the user's current location
-            if (mapContainerRef.current) {
-              try {
-                mapRef.current = new mapboxgl.Map({
-                  container: mapContainerRef.current,
-                  style: 'mapbox://styles/mapbox/streets-v11', // Use a standard style that's more likely to work
-                  center: [longitude, latitude],
-                  zoom: 14,
-                });
-
-                mapRef.current.on('load', () => {
-                  try {
-                    // Add a draggable marker at the user's location
-                    markerRef.current = new mapboxgl.Marker({
-                      draggable: true,
-                      color: '#FF0000'
-                    })
-                      .setLngLat([longitude, latitude])
-                      .addTo(mapRef.current!);
-
-                    // Update address when marker is dragged
-                    markerRef.current.on('dragend', () => {
-                      const lngLat = markerRef.current!.getLngLat();
-                      updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
-                    });
-
-                    // Initial address update based on current location
-                    updateAddressFromCoordinates(longitude, latitude);
-                    
-                    setIsMapLoaded(true);
-                  } catch (error) {
-                    console.error('Error setting up marker:', error);
-                    setMapError('Failed to set up location marker');
-                  }
-                });
-
-                mapRef.current.on('error', (e: any) => {
-                  console.error('Mapbox error:', e);
-                  setMapError('Failed to load map');
-                });
-
-                const geolocateControl = new mapboxgl.GeolocateControl({
-                  positionOptions: { enableHighAccuracy: true },
-                  trackUserLocation: true,
-                });
-                
-                mapRef.current.addControl(geolocateControl);
-                
-                // Update marker position when geolocate is triggered
-                geolocateControl.on('geolocate', (e: any) => {
-                  const { longitude, latitude } = e.coords;
-                  if (markerRef.current) {
-                    markerRef.current.setLngLat([longitude, latitude]);
-                    updateAddressFromCoordinates(longitude, latitude);
-                  }
-                });
-              } catch (error) {
-                console.error('Error initializing map:', error);
-                setMapError('Failed to initialize map');
-              }
-            }
-          },
-          (error) => {
-            console.error('Geolocation error:', error);
-            setMapError('Could not access your location. Please enter your address manually.');
-            // Fallback if geolocation fails
-            if (mapContainerRef.current) {
-              try {
-                mapRef.current = new mapboxgl.Map({
-                  container: mapContainerRef.current,
-                  style: 'mapbox://styles/mapbox/streets-v11',
-                  center: [-74.5, 40],
-                  zoom: 12,
-                });
-                
-                mapRef.current.on('load', () => {
-                  // Add a draggable marker
-                  markerRef.current = new mapboxgl.Marker({
-                    draggable: true,
-                    color: '#FF0000'
-                  })
-                    .setLngLat([-74.5, 40])
-                    .addTo(mapRef.current!);
-
-                  // Update address when marker is dragged
-                  markerRef.current.on('dragend', () => {
-                    const lngLat = markerRef.current!.getLngLat();
-                    updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
-                  });
-                  
-                  // Initial address update
-                  updateAddressFromCoordinates(-74.5, 40);
-                  
-                  setIsMapLoaded(true);
-                });
-
-                mapRef.current.on('error', (e: any) => {
-                  console.error('Mapbox error:', e);
-                  setMapError('Failed to load map');
-                });
-              } catch (error) {
-                console.error('Error initializing map:', error);
-                setMapError('Failed to initialize map');
-              }
-            }
-          }
-        );
-      } else {
-        console.log('Geolocation is not supported by this browser.');
-        setMapError('Geolocation is not supported by your browser. Please enter your address manually.');
-        // Fallback if geolocation is not supported
-        if (mapContainerRef.current) {
-          try {
-            mapRef.current = new mapboxgl.Map({
-              container: mapContainerRef.current,
-              style: 'mapbox://styles/mapbox/streets-v11',
-              center: [-74.5, 40],
-              zoom: 12,
-            });
-            
-            mapRef.current.on('load', () => {
-              // Add a draggable marker
-              markerRef.current = new mapboxgl.Marker({
-                draggable: true,
-                color: '#FF0000'
-              })
-                .setLngLat([-74.5, 40])
-                .addTo(mapRef.current!);
-
-              // Update address when marker is dragged
-              markerRef.current.on('dragend', () => {
-                const lngLat = markerRef.current!.getLngLat();
-                updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
-              });
-              
-              // Initial address update
-              updateAddressFromCoordinates(-74.5, 40);
-              
-              setIsMapLoaded(true);
-            });
-
-            mapRef.current.on('error', (e: any) => {
-              console.error('Mapbox error:', e);
-              setMapError('Failed to load map');
-            });
-          } catch (error) {
-            console.error('Error initializing map:', error);
-            setMapError('Failed to initialize map');
-          }
+    // If geolocation is available, get the user's current position
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setCurrentLat(latitude);
+          setCurrentLng(longitude);
+          // Initialize the map with the user's coordinates
+          initializeMap(longitude, latitude, 1);
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          setMapError('Could not access your location. Please enter your address manually.');
+          // Use default coordinates if geolocation fails
+          initializeMap(-74.5, 40, 14);
         }
-      }
-    } catch (error) {
-      console.error('Error in map initialization:', error);
-      setMapError('Failed to initialize map');
+      );
+    } else {
+      console.log('Geolocation is not supported by this browser.');
+      setMapError('Geolocation is not supported by your browser. Please enter your address manually.');
+      // Initialize with default coordinates if geolocation is not supported
+      initializeMap(-74.5, 40, 14);
     }
     
+    // Cleanup: remove the map instance on unmount
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
       }
     };
-  }, []);
+  }, [showMarker]);
 
-  // Update marker position if address changes from outside
-  useEffect(() => {
-    if (mapRef.current && markerRef.current && incident.address && incident.address !== '') {
-      // Check if marker is currently being dragged
-      // The property is _isDragging (a property), not isDragging()
-      if (markerRef.current && !(markerRef.current as any)._isDragging) {
-        // Geocode the address to get coordinates
-        fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(incident.address)}.json?access_token=${mapboxgl.accessToken}`
-        )
-          .then(response => response.json())
-          .then(data => {
+
+// -------------------------------- reach 911 features start --------------------------------
+
+    // Function to update the address using Mapbox's Geocoding API based on longitude and latitude
+    const updateAddressFromCoordinates = async (lng: number, lat: number) => {
+        try {
+            const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
+            );
+            const data = await response.json();
             if (data.features && data.features.length > 0) {
-              const [lng, lat] = data.features[0].center;
-              markerRef.current!.setLngLat([lng, lat]);
-              mapRef.current!.flyTo({
-                center: [lng, lat],
-                zoom: 14
-              });
+            const address = data.features[0].place_name;
+            dispatch(updateIncident({
+                ...incident,
+                address: address,
+            }));
             }
-          })
-          .catch(error => {
-            console.error('Error geocoding address:', error);
-          });
-      }
-    }
-  }, [incident.address]);
+        } catch (error) {
+            console.error('Error fetching address:', error);
+        }
+        };
 
-  // Fallback UI when map fails to load
+    // When incident.address changes (from external updates), update the marker position
+    useEffect(() => {
+        if (mapRef.current && markerRef.current && incident.address && incident.address !== '') {
+        if (!(markerRef.current as any)._isDragging) {
+            fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(incident.address)}.json?access_token=${mapboxgl.accessToken}`
+            )
+            .then(response => response.json())
+            .then(data => {
+                if (data.features && data.features.length > 0) {
+                const [lng, lat] = data.features[0].center;
+                markerRef.current!.setLngLat([lng, lat]);
+                mapRef.current!.flyTo({
+                    center: [lng, lat],
+                    zoom: 14,
+                });
+                }
+            })
+            .catch(error => {
+                console.error('Error geocoding address:', error);
+            });
+        }
+        }
+    }, [incident.address]);
+
+// -------------------------------- reach 911 features end --------------------------------
+
+
+
+
+
+
+// -------------------------------- wildfire features start --------------------------------
+
+// -------------------------------- wildfire features end --------------------------------
+
+    
+  // If there is a map error, display a fallback UI
   if (mapError) {
     return (
       <Box 

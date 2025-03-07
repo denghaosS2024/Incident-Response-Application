@@ -83,7 +83,7 @@ describe('User controller', () => {
   it('will list users with their online/offline status', async () => {
     // connect the previous user
     const socket = mock<SocketIO.Socket>()
-    UserConnections.addUserConnection(newUser.id, socket)
+    UserConnections.addUserConnection(newUser.id, socket, ROLES.CITIZEN)
 
     // add another user
     const citizenName = 'new-citizen'

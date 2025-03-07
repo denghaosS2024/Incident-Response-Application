@@ -1,35 +1,42 @@
-import { Home, Message, PermContactCalendar, AccessAlarm, LocationOn, FmdBadRounded } from '@mui/icons-material'
-import { StyledEngineProvider } from '@mui/material/styles'
-import React, { useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from './utils/types'
-import {
-  Navigate,
-  Outlet,
-  Route,
-  BrowserRouter as Router,
-  Routes,
-} from 'react-router-dom'
-import { AppDispatch } from './app/store'
-import NavigationBar from './components/NavigationBar'
-import TabBar, { Link } from './components/TabBar'
-import ChatRoomPage from './pages/ChatRoomPage'
-import Contacts from './pages/Contacts'
-import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
-import Messages from './pages/Messages'
+// Material-UI Components
+import { StyledEngineProvider } from '@mui/material/styles';
+import { Home, Message, PermContactCalendar, AccessAlarm, LocationOn, FmdBadRounded } from '@mui/icons-material';
+import Groups2Icon from '@mui/icons-material/Groups2';
+import { LocalPolice as PoliceIcon, LocalFireDepartment as FirefighterIcon, LocalHospital as NurseIcon, Report } from '@mui/icons-material';
+
+// React and Redux
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from './utils/types';
+import { AppDispatch } from './app/store';
+
+// React Router
+import { Navigate, Outlet, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+
+// Components
+import NavigationBar from './components/NavigationBar';
+import TabBar, { Link } from './components/TabBar';
+
+// Pages
+import ChatRoomPage from './pages/ChatRoomPage';
+import Contacts from './pages/Contacts';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import Messages from './pages/Messages';
 import Organization from './pages/Organization'
-import RegisterPage from './pages/RegisterPage'
-import SocketClient from './utils/Socket'
-import { addMessage, clearAllAlerts } from './features/messageSlice'
-import IMessage from '@/models/Message'
-import { loadContacts } from './features/contactSlice'
-import Groups2Icon from '@mui/icons-material/Groups2'
-import GroupsPage from './pages/GroupsPage'
-import Reach911Page from './pages/Reach911Page'
-import { LocalPolice as PoliceIcon,LocalFireDepartment as FirefighterIcon,LocalHospital as NurseIcon,Report } from '@mui/icons-material';
-import MapPage from './pages/MapPage'
-import IncidentsPage from './pages/IncidentsPage'
+import RegisterPage from './pages/RegisterPage';
+import GroupsPage from './pages/GroupsPage';
+import Reach911Page from './pages/Reach911Page';
+import MapPage from './pages/MapPage';
+import IncidentsPage from './pages/IncidentsPage';
+import GroupInformationPage from './pages/GroupInformationPage';
+
+// Utilities and Features
+import SocketClient from './utils/Socket';
+import { addMessage, clearAllAlerts } from './features/messageSlice';
+import IMessage from '@/models/Message';
+import { loadContacts } from './features/contactSlice';
+
 
 const App: React.FC = () => {
   return (
@@ -50,6 +57,7 @@ const App: React.FC = () => {
           </Route>
           <Route element={<ProtectedRoute showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
+            <Route path="/groups/:id" element={<GroupInformationPage />} />
           </Route>
         </Routes>
       </Router>

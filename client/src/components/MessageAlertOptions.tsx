@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react'
+import React, { useState, useEffect, useRef} from 'react'
 import { IconButton, Popover, Box, Modal, Typography, keyframes } from '@mui/material'
 import { Warning } from '@mui/icons-material'
 import { useDispatch } from 'react-redux'
@@ -22,7 +22,13 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
     const [maydayOpen, setMaydayOpen] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     // TODO: Implement the logic to check if the current user is the incident commander or first responder
-    const isIncidentCommander = false;
+    // const isIncidentCommander = false
+
+    // hardcode for test purpose
+    let isIncidentCommander = false
+    if (currentUserId === "67bf9eeb085916ac1cd7afff") {
+      isIncidentCommander = true;
+    }
     // const isFirstResponder = true;
     
     const [openAlertPanel, setOpenAlertPanel] = useState<boolean>(false)
@@ -59,6 +65,22 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
       console.log('Mayday sent');
     };
 
+    // const handleDoubleClick = () => {
+    //   console.log('Double clicked');
+    //   setMaydayOpen(false);
+    // };
+
+    const lastTap = useRef<number | null>(null);
+
+    const handleDoubleTapDismiss = () => {
+        const now = Date.now();
+        if (lastTap.current && now - lastTap.current < 300) {
+            setMaydayOpen(false);
+            socket.emit('acknowledge-alert', { senderId: currentUserId, type: 'mayday' });
+        }
+        lastTap.current = now;
+    };
+
     const flash = keyframes`
         0% { background-color: red; }
         50% { background-color: black; }
@@ -93,7 +115,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
           )}
         </Popover>
 
-        {(currentUserRole === "Fire" || currentUserRole === "Police") && (
+        {(!isIncidentCommander && (currentUserRole === "Fire" || currentUserRole === "Police")) && (
           <IconButton color="primary" onClick={handleMayday}>
             <Warning />
           </IconButton>
@@ -101,6 +123,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
         <Modal open={maydayOpen}>
           <Box
+              onClick={handleDoubleTapDismiss}
               sx={{
                 position: 'fixed',
                 top: 0,
@@ -111,6 +134,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                pointerEvents: 'auto',
             }}
           >
             <Typography variant="h2" sx={{ color: 'white', fontWeight: 'bold' }}>
