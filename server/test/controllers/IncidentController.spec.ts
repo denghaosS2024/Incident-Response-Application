@@ -6,7 +6,10 @@ import { Types } from 'mongoose';
 describe('Incident Controller', () => {
     beforeAll(TestDatabase.connect);
     beforeEach(() => jest.clearAllMocks());
-    afterEach(() => jest.restoreAllMocks());
+    afterEach(async() => {
+        jest.restoreAllMocks();
+        await Incident.deleteMany({});
+    });
     afterAll(TestDatabase.close);
 
     const createTestIncident = async (username: string) => {
@@ -87,5 +90,13 @@ describe('Incident Controller', () => {
             new Types.ObjectId()
         );
         expect(result).toBeNull();
+    });
+
+    it('should return empty list when query using find All and no incidents are in database', async () => {
+        const incidents = await IncidentController.getAllIncidents();
+        
+        // expect incidents to be an empty array
+        expect(incidents).toBeDefined();
+        expect(incidents.length).toBe(0);
     });
 })
