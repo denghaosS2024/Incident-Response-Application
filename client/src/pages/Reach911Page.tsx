@@ -55,7 +55,9 @@ const Reach911Page: React.FC = () => {
 
             // The backend expects an incident field
             const requestBody = {
-                incident: incident
+                ...incident,
+                caller: username,
+                owner: username,
             };
 
             // Construct the URL and options 

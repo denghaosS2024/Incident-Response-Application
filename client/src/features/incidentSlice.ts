@@ -6,6 +6,8 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 // Function to load state from local storage
 const loadPersistatedState = (): IncidentsState | null => {
     try {
+        const username = localStorage.getItem('username');
+        const uid = localStorage.getItem('uid');
         const incidentState = localStorage.getItem("incidentState");
         return incidentState ? JSON.parse(incidentState) : null;
     } catch (err) {
