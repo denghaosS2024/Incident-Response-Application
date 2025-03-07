@@ -68,8 +68,8 @@ export const loadMockContacts = createAsyncThunk('contacts/loadMockContacts', as
       "test",
       role:
       "Citizen" },
-    { _id: '67bf91be1784fb33f8064c86', username: 'UserB', role: 'Police', online: false },
-    { _id: '67bf91be1784fb33f8064c87', username: 'UserC', role: 'Firefighter', online: true },
+    { _id: '67ca7468da683a25ed90e2fd', username: 'grouptest', role: 'Citizen', online: false },
+    { _id: '67ca7492da683a25ed90e306', username: 'participant_test', role: 'Citizen', online: true },
   ];
   
   return { users } as IContactsPayload;
