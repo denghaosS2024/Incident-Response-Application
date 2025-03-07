@@ -18,6 +18,7 @@ import Contacts from './pages/Contacts'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import Messages from './pages/Messages'
+import Organization from './pages/Organization'
 import RegisterPage from './pages/RegisterPage'
 import SocketClient from './utils/Socket'
 import { addMessage, clearAllAlerts } from './features/messageSlice'
@@ -45,6 +46,7 @@ const App: React.FC = () => {
             <Route path="/reach911" element={<Reach911Page />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/incidents" element={<IncidentsPage />} />
+            <Route path="/organization" element={<Organization />} />
           </Route>
           <Route element={<ProtectedRoute showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />

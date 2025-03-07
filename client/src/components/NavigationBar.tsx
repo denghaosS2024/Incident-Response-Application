@@ -42,32 +42,40 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const { id } = useParams()
   const [URLSearchParams] = useSearchParams()
   const name = URLSearchParams.get('name')
-  const role=localStorage.getItem('role')||'Citizen'
+  const role = localStorage.getItem('role') || 'Citizen'
 
   const onBackHandler = onBack || (() => navigate(-1))
 
   const pathname = location.pathname
+
+  // Add "/organization" here to display "Organization"
   const pageTitles: Record<string, string> = {
     '/messages': 'Messages',
     '/contacts': 'Contacts',
     '/groups': 'Groups',
     '/reach911': '911 Call',
-    '/incidents': 'Incidents'
+    '/incidents': 'Incidents',
+    '/organization': 'Organization',
   }
+
   const roleTitles: Record<string, string> = {
     Citizen: 'IR Citizen',
     Dispatch: 'IR Dispatch',
     Police: 'IR Police',
     Fire: 'IR Fire',
-    Nurse: 'IR Nurse'
+    Nurse: 'IR Nurse',
   }
-  let title = pageTitles[pathname] || 'Incident Response';
+
+  let title = pageTitles[pathname] || 'Incident Response'
+
   if (pathname.startsWith('/messages/') && name) {
-    title = `${name} Messages`;
+    title = `${name} Messages`
   }
+
   if (pathname === '/') {
-    title = roleTitles[role] || 'IR Citizen';
+    title = roleTitles[role] || 'IR Citizen'
   }
+
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true)
     setMenuAnchor(anchor)
@@ -80,7 +88,6 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const quit = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('uid')
-
     navigate('/login')
   }
 
@@ -98,7 +105,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
           </IconButton>
         )}
         <Typography style={{ flex: 1 }} variant="h6" color="inherit">
-        {title}
+          {title}
         </Typography>
         {showMenu && (
           <IconButton
@@ -110,11 +117,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
             <More />
           </IconButton>
         )}
-        {
-          <Menu open={openMenu} anchorEl={menuAnchor} onClose={closeMenu}>
-            <MenuItem onClick={quit}>Logout</MenuItem>
-          </Menu>
-        }
+        <Menu open={openMenu} anchorEl={menuAnchor} onClose={closeMenu}>
+          <MenuItem onClick={quit}>Logout</MenuItem>
+        </Menu>
       </Toolbar>
     </AppBar>
   )
