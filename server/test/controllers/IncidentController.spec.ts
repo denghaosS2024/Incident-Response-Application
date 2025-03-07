@@ -99,4 +99,16 @@ describe('Incident Controller', () => {
         expect(incidents).toBeDefined();
         expect(incidents.length).toBe(0);
     });
+
+    it('should find all incidents when there are incidents in the database', async () => {
+        // insert data into in-memory database
+        await createTestIncident('test-user-findall');
+
+        const incidents = await IncidentController.getAllIncidents();
+
+        expect(incidents).toBeDefined();
+        expect(incidents.length).toBeGreaterThan(0);
+        expect(incidents[0].incidentId).toBeDefined();
+    });
+
 })
