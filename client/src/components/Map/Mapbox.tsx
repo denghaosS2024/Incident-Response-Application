@@ -31,6 +31,160 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
   // State for current location
   const [currentLat, setCurrentLat] = useState<number>(40);
   const [currentLng, setCurrentLng] = useState<number>(-74.5);
+  const [currentPathname, setCurrentPathname] = useState<string>(window.location.pathname);
+
+  const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
+
+  // Function to reset map to appropriate state for current page
+  const resetMapForCurrentPage = () => {
+    if (!mapRef.current) return;
+    
+    const pathname = window.location.pathname;
+    const is911Page = pathname.includes('911');
+    
+    try {
+      // Clear any existing marker
+      if (markerRef.current) {
+        markerRef.current.remove();
+        markerRef.current = null;
+      }
+      
+      // Update projection based on page
+      if (is911Page) {
+        mapRef.current.setProjection({ name: 'mercator' });
+        // For 911 page, create a new marker
+        if (showMarker) {
+          markerRef.current = new mapboxgl.Marker({
+            draggable: true,
+            color: '#FF0000',
+          })
+            .setLngLat([currentLng, currentLat])
+            .addTo(mapRef.current);
+          
+          markerRef.current.on('dragend', () => {
+            if (!markerRef.current) return;
+            const lngLat = markerRef.current.getLngLat();
+            updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
+          });
+          
+          // Update address with current marker position
+          updateAddressFromCoordinates(currentLng, currentLat);
+        }
+      } else {
+        mapRef.current.setProjection({ name: 'globe' });
+      }
+      
+      // Handle geolocation control for each page type
+      if (geolocateControlRef.current) {
+        if (is911Page) {
+          // For 911 page, completely disable geolocation
+          disableGeolocation();
+        } else {
+          // For map page, enable geolocation after a delay to ensure map is ready
+          setTimeout(() => {
+            if (mapRef.current && geolocateControlRef.current) {
+              try {
+                geolocateControlRef.current.trigger();
+              } catch (e) {
+                console.log('Error triggering geolocation:', e);
+              }
+            }
+          }, 800);
+        }
+      }
+    } catch (error) {
+      console.error('Error in resetMapForCurrentPage:', error);
+    }
+  };
+
+  // Helper function to completely disable geolocation
+  const disableGeolocation = () => {
+    if (!mapRef.current || !geolocateControlRef.current) return;
+    
+    try {
+      // First try to clear any active tracking
+      if (typeof geolocateControlRef.current._clearWatch === 'function') {
+        geolocateControlRef.current._clearWatch();
+      }
+      
+      // Sometimes we need to remove the entire control and re-add it
+      mapRef.current.removeControl(geolocateControlRef.current);
+      
+      // Create a new instance that's disabled
+      const disabledGeolocate = new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: false },
+        trackUserLocation: false,
+        showUserLocation: false,
+      });
+      
+      // Store the new reference
+      geolocateControlRef.current = disabledGeolocate;
+      
+      // Add the disabled control
+      mapRef.current.addControl(disabledGeolocate);
+      
+      // Manually remove any remaining geolocation UI elements
+      const mapContainer = mapRef.current.getContainer();
+      const geolocateElements = mapContainer.querySelectorAll('.mapboxgl-user-location-dot, .mapboxgl-user-location');
+      geolocateElements.forEach(el => {
+        if (el && el.parentNode) {
+          el.parentNode.removeChild(el);
+        }
+      });
+    } catch (e) {
+      console.log('Error disabling geolocation:', e);
+    }
+  };
+
+  // Helper function to geocode an address
+  const geocodeAddress = (address: string) => {
+    if (!mapRef.current || !address) return;
+    
+    try {
+      fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`
+      )
+      .then(response => response.json())
+      .then(data => {
+        if (!mapRef.current || !data.features || data.features.length === 0) return;
+        
+        const [lng, lat] = data.features[0].center;
+        
+        if (markerRef.current) {
+          markerRef.current.setLngLat([lng, lat]);
+        }
+        
+        // Set view without animation to avoid double zoom effect
+        mapRef.current.setCenter([lng, lat]);
+        mapRef.current.setZoom(14);
+      })
+      .catch(error => {
+        console.error('Error geocoding address:', error);
+      });
+    } catch (error) {
+      console.error('Error in geocodeAddress:', error);
+    }
+  };
+
+  // Listen for page changes
+  useEffect(() => {
+    const handleRouteChange = () => {
+      if (currentPathname !== window.location.pathname) {
+        setCurrentPathname(window.location.pathname);
+        resetMapForCurrentPage();
+      }
+    };
+
+    // Set up listener for path changes
+    window.addEventListener('popstate', handleRouteChange);
+    
+    // Check on initial mount
+    resetMapForCurrentPage();
+    
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, [currentPathname, showMarker]);
 
   // Function to initialize the map using the given longitude and latitude.
   // This function is called once regardless of geolocation success or failure.
@@ -44,52 +198,111 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
         center: [lng, lat],
         zoom: initialZoom,
       });
+      
       // When the map loads, add a draggable marker and update the address
       mapRef.current.on('load', () => {
-        // Add a draggable marker at the current location
-        mapRef.current!.setProjection({ name: 'globe' });
+        if (!mapRef.current) return;
+        
+        // Determine if this is the 911 page
+        const is911Page = window.location.pathname.includes('911');
+        
+        // Set appropriate projection
+        if (is911Page && showMarker) {
+          mapRef.current.setProjection({ name: 'mercator' });
+        } else if (!is911Page) {
+          mapRef.current.setProjection({ name: 'globe' });
+        }
 
         // If showMarker is true, add a draggable marker
         if (showMarker) {
-            markerRef.current = new mapboxgl.Marker({
-              draggable: true,
-              color: '#FF0000',
-            })
-              .setLngLat([lng, lat])
-              .addTo(mapRef.current!);
-            markerRef.current.on('dragend', () => {
-              const lngLat = markerRef.current!.getLngLat();
-              updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
-            });
-            // Update address initially
-            updateAddressFromCoordinates(lng, lat);
+          if (markerRef.current) {
+            markerRef.current.remove();
+          }
+          
+          markerRef.current = new mapboxgl.Marker({
+            draggable: true,
+            color: '#FF0000',
+          })
+            .setLngLat([lng, lat])
+            .addTo(mapRef.current);
+            
+          markerRef.current.on('dragend', () => {
+            if (!markerRef.current) return;
+            const lngLat = markerRef.current.getLngLat();
+            updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
+          });
+          
+          // Update address initially
+          updateAddressFromCoordinates(lng, lat);
         }
+        
         setIsMapLoaded(true);
 
-        // Trigger geolocation if the map was initialized with default coordinates
-        if (initialZoom == 1) {
-            geolocateControl.trigger();
+        // Add specific functionality for each page type
+        if (is911Page && showMarker) {
+          // For 911 page, avoid geolocation
+          if (incident.address && incident.address !== '') {
+            // If we have an address, center on it without animation
+            geocodeAddress(incident.address);
+          }
+        } else if (!is911Page) {
+          // For map page, trigger geolocation after a delay
+          setTimeout(() => {
+            if (mapRef.current && geolocateControlRef.current) {
+              try {
+                geolocateControlRef.current.trigger();
+              } catch (e) {
+                console.log('Error triggering geolocation:', e);
+              }
+            }
+          }, 800);
         }
       });
+      
       // Handle map errors
       mapRef.current.on('error', (e: any) => {
         console.error('Mapbox error:', e);
         setMapError('Failed to load map');
       });
-      // Add geolocate control to allow tracking the user’s location
+      
+      // Add geolocation control with appropriate settings
       const geolocateControl = new mapboxgl.GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: true,
+        trackUserLocation: !showMarker, // Only track continuously on map page
+        showUserLocation: !showMarker, // Only show location on map page
       });
+      
+      // Store reference and add to map
+      geolocateControlRef.current = geolocateControl;
       mapRef.current.addControl(geolocateControl);
+      
       // Update marker position when geolocation is triggered
       geolocateControl.on('geolocate', (e: any) => {
+        if (!mapRef.current) return;
+        
         const { longitude, latitude } = e.coords;
-        if (markerRef.current && showMarker) {
+        
+        if (showMarker && markerRef.current) {
           markerRef.current.setLngLat([longitude, latitude]);
           updateAddressFromCoordinates(longitude, latitude);
+        } else if (!showMarker) {
+          // For /map page, ensure the map zooms in properly
+          try {
+            mapRef.current.flyTo({
+              center: [longitude, latitude],
+              zoom: 10,
+              duration: 2000
+            });
+          } catch (error) {
+            console.error('Error in flyTo:', error);
+          }
         }
       });
+      
+      // If this is the 911 page, immediately disable geolocation
+      if (showMarker && window.location.pathname.includes('911')) {
+        setTimeout(disableGeolocation, 100);
+      }
     } catch (error) {
       console.error('Error initializing map:', error);
       setMapError('Failed to initialize map');
@@ -125,8 +338,27 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
     
     // Cleanup: remove the map instance on unmount
     return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
+      try {
+        // First disable geolocation if this is the 911 page
+        if (showMarker && window.location.pathname.includes('911')) {
+          disableGeolocation();
+        }
+        
+        // Clear any markers
+        if (markerRef.current) {
+          markerRef.current.remove();
+          markerRef.current = null;
+        }
+        
+        // Reset geolocate control and map
+        if (mapRef.current) {
+          // Remove the map
+          mapRef.current.remove();
+          mapRef.current = null;
+          geolocateControlRef.current = null;
+        }
+      } catch (error) {
+        console.error('Error in cleanup:', error);
       }
     };
   }, [showMarker]);
@@ -155,41 +387,23 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
 
     // When incident.address changes (from external updates), update the marker position
     useEffect(() => {
-        if (mapRef.current && markerRef.current && incident.address && incident.address !== '') {
-        if (!(markerRef.current as any)._isDragging) {
-            fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(incident.address)}.json?access_token=${mapboxgl.accessToken}`
-            )
-            .then(response => response.json())
-            .then(data => {
-                if (data.features && data.features.length > 0) {
-                const [lng, lat] = data.features[0].center;
-                markerRef.current!.setLngLat([lng, lat]);
-                mapRef.current!.flyTo({
-                    center: [lng, lat],
-                    zoom: 14,
-                });
-                }
-            })
-            .catch(error => {
-                console.error('Error geocoding address:', error);
-            });
+        if (!mapRef.current || !incident.address || incident.address === '') return;
+        
+        try {
+          // Only update if this is the 911 page
+          if (showMarker && window.location.pathname.includes('911')) {
+            // Don't update if the marker is currently being dragged
+            if (markerRef.current && !(markerRef.current as any)._isDragging) {
+              geocodeAddress(incident.address);
+            }
+          }
+        } catch (error) {
+          console.error('Error in address change effect:', error);
         }
-        }
-    }, [incident.address]);
+    }, [incident.address, isMapLoaded, showMarker]);
 
 // -------------------------------- reach 911 features end --------------------------------
 
-
-
-
-
-
-// -------------------------------- wildfire features start --------------------------------
-
-// -------------------------------- wildfire features end --------------------------------
-
-    
   // If there is a map error, display a fallback UI
   if (mapError) {
     return (
