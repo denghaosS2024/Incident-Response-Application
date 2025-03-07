@@ -10,6 +10,7 @@ import Channel, {
 import { IUser } from '../../src/models/User'
 import UserConnections from '../../src/utils/UserConnections'
 import * as TestDatabase from '../utils/TestDatabase'
+import { ROLES } from '../../src/utils/Roles'
 
 describe('Channel controller', () => {
   let userA: IUser
@@ -94,8 +95,8 @@ describe('Channel controller', () => {
     const socketA = mock<SocketIO.Socket>()
     const socketB = mock<SocketIO.Socket>()
 
-    UserConnections.addUserConnection(userA.id, socketA)
-    UserConnections.addUserConnection(userB.id, socketB)
+    UserConnections.addUserConnection(userA.id, socketA, ROLES.CITIZEN)
+    UserConnections.addUserConnection(userB.id, socketB, ROLES.CITIZEN)
 
     // userA post a message to the public channel
     const publicChannel = await Channel.getPublicChannel()
