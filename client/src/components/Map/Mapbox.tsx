@@ -11,7 +11,11 @@ import IIncident from '../../models/Incident';
 import { Alert, Box, Typography } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 
-const Mapbox: React.FC = () => {
+interface MapboxProps {
+    showMarker?: boolean;
+}
+
+const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
   // Refs for the map container, map instance, and marker
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -45,20 +49,24 @@ const Mapbox: React.FC = () => {
         // Add a draggable marker at the current location
         mapRef.current!.setProjection({ name: 'globe' });
 
-        markerRef.current = new mapboxgl.Marker({
-          draggable: true,
-          color: '#FF0000',
-        })
-          .setLngLat([lng, lat])
-          .addTo(mapRef.current!);
-        // When the marker dragging ends, update the address based on the new coordinates
-        markerRef.current.on('dragend', () => {
-          const lngLat = markerRef.current!.getLngLat();
-          updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
-        });
-        // Initial update of the address based on current location
-        updateAddressFromCoordinates(lng, lat);
+        // If showMarker is true, add a draggable marker
+        if (showMarker) {
+            markerRef.current = new mapboxgl.Marker({
+              draggable: true,
+              color: '#FF0000',
+            })
+              .setLngLat([lng, lat])
+              .addTo(mapRef.current!);
+            markerRef.current.on('dragend', () => {
+              const lngLat = markerRef.current!.getLngLat();
+              updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
+            });
+            // Update address initially
+            updateAddressFromCoordinates(lng, lat);
+        }
         setIsMapLoaded(true);
+
+        // Trigger geolocation if the map was initialized with default coordinates
         if (initialZoom == 1) {
             geolocateControl.trigger();
         }
@@ -77,7 +85,7 @@ const Mapbox: React.FC = () => {
       // Update marker position when geolocation is triggered
       geolocateControl.on('geolocate', (e: any) => {
         const { longitude, latitude } = e.coords;
-        if (markerRef.current) {
+        if (markerRef.current && showMarker) {
           markerRef.current.setLngLat([longitude, latitude]);
           updateAddressFromCoordinates(longitude, latitude);
         }
@@ -121,7 +129,7 @@ const Mapbox: React.FC = () => {
         mapRef.current.remove();
       }
     };
-  }, []);
+  }, [showMarker]);
 
 
 // -------------------------------- reach 911 features start --------------------------------
@@ -173,6 +181,13 @@ const Mapbox: React.FC = () => {
 // -------------------------------- reach 911 features end --------------------------------
 
 
+
+
+
+
+// -------------------------------- wildfire features start --------------------------------
+
+// -------------------------------- wildfire features end --------------------------------
 
     
   // If there is a map error, display a fallback UI
