@@ -10,6 +10,7 @@ import UserConnections from '../utils/UserConnections';
 import { ROLES } from '../utils/Roles';
 import { Storage } from '@google-cloud/storage'
 import dotenv from 'dotenv'
+import UserController from './UserController'
 dotenv.config()
 
 class ChannelController {
@@ -106,11 +107,17 @@ class ChannelController {
      */
   create911Channel = async (username: string, userId: Types.ObjectId) => {
     const channel911Name = `I${username}_911`;
+
+    // Find system user
+    const systemUser = await UserController.findUserByUsername('System');
+    if (!systemUser) {
+        throw new Error('System user not found. Please ensure System user is created with Administrator role.');
+    }
     
     // Use existing create method with 911-specific configurations
     const channel = await this.create({
         name: channel911Name,
-        userIds: [userId],
+        userIds: [userId, systemUser._id],
         description: `911 Emergency Channel for ${username}`,
         ownerId: userId,
         closed: false
@@ -119,7 +126,7 @@ class ChannelController {
      // Add system welcome message
      await this.appendMessage({
       content: "Hello! A dispatcher will be with you shortly. Please provide any additional information here.",
-      senderId: userId, // Using the caller's ID for now, could be replaced with a system user ID
+      senderId: systemUser._id,
       channelId: channel._id
     });
 
