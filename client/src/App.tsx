@@ -3,9 +3,9 @@ import { StyledEngineProvider } from '@mui/material/styles';
 import { Home, Message, PermContactCalendar, AccessAlarm, LocationOn, FmdBadRounded } from '@mui/icons-material';
 import Groups2Icon from '@mui/icons-material/Groups2';
 import { LocalPolice as PoliceIcon, LocalFireDepartment as FirefighterIcon, LocalHospital as NurseIcon, Report } from '@mui/icons-material';
-
+import { Box, Modal, Typography, keyframes } from '@mui/material'
 // React and Redux
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from './utils/types';
 import { AppDispatch } from './app/store';
@@ -23,6 +23,7 @@ import Contacts from './pages/Contacts';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import Messages from './pages/Messages';
+import Organization from './pages/Organization'
 import RegisterPage from './pages/RegisterPage';
 import GroupsPage from './pages/GroupsPage';
 import Reach911Page from './pages/Reach911Page';
@@ -52,6 +53,7 @@ const App: React.FC = () => {
             <Route path="/reach911" element={<Reach911Page />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/incidents" element={<IncidentsPage />} />
+            <Route path="/organization" element={<Organization />} />
           </Route>
           <Route element={<ProtectedRoute showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
@@ -76,6 +78,10 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   // Check if there are any unread messages
   const alerts = useSelector((state: RootState) => state.messageState.alerts)
   const hasUnreadMessages = Object.values(alerts).some((alert) => alert)
+  const [alertOpen, setAlertOpen] = useState<boolean>(false)
+  const [alertMessage, setAlertMessage] = useState('')
+  const [bgColor, setBgColor] = useState('black')
+  const [textColor, setTextColor] = useState('white')
 
   const tabLinks: Array<Link> = [
     { prefix: '/', key: 'home', icon: <Home />, to: '/' },
@@ -153,12 +159,55 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       to: '/incidents',
     })
   }
+
+  const lastTap = useRef<number | null>(null)
+
+  const handleDoubleTapDismiss = () => {
+    const now = Date.now()
+    if (lastTap.current && now - lastTap.current < 300) {
+      setAlertOpen(false)
+      SocketClient.emit('acknowledge-alert', {
+        senderId: localStorage.getItem('id'),
+        type: 'mayday',
+      })
+    }
+    lastTap.current = now
+  }
+
+  const useFlashAnimation = (bgColor: string) => {
+    return useMemo(
+      () => keyframes`
+        0% { background-color: ${bgColor};}
+        50% { background-color: black ;}
+        100% { background-color: ${bgColor};}
+      `,
+      [bgColor],
+    )
+  }
+
+  const flash = useFlashAnimation(bgColor)
   
   useEffect(() => {
     const socket = SocketClient
     socket.connect()
     socket.on('new-message', (message: IMessage) => {
       dispatch(addMessage(message))
+    })
+    socket.on('new-fire-alert', (message: IMessage) => {
+      dispatch(addMessage(message))
+      const [msg, bg, text] = message.content.split('-')
+      setAlertMessage(msg)
+      setBgColor(bg)
+      setTextColor(text)
+      setAlertOpen(true)
+    })
+    socket.on('new-police-alert', (message: IMessage) => {
+      dispatch(addMessage(message))
+      const [msg, bg, text] = message.content.split('-')
+      setAlertMessage(msg)
+      setBgColor(bg)
+      setTextColor(text)
+      setAlertOpen(true)
     })
     socket.on('user-status-changed', () => {
       dispatch(loadContacts())
@@ -172,7 +221,33 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     <>
       <NavigationBar showMenu={true} showBackButton={showBackButton} />
       <TabBar links={orderedTabs}></TabBar>
-      <Outlet />
+      {!alertOpen && <Outlet />}
+
+      <Modal open={alertOpen}>
+        <Box
+          onClick={handleDoubleTapDismiss}
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100%',
+            animation: `${flash} 1s infinite`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'auto',
+            flexDirection: 'column',
+          }}
+        >
+          <Typography
+            variant="h2"
+            sx={{ color: textColor, fontWeight: 'bold', mb: 2 }}
+          >
+            {alertMessage}
+          </Typography>
+        </Box>
+      </Modal>
     </>
   ) : (
     <Navigate to="/login" />

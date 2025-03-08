@@ -12,9 +12,15 @@ import user from './user'
 import login from './login'
 import channel from './channel'
 import incident from './incident'
+import carRouter from './car';
+import truckRouter from './truck';
+import cityRouter from './city';
 
 export default Router()
   .use('/users', user)
   .use('/login', login)
   .use('/channels', channel)
   .use('/incidents', incident)
+  .use('/cars', carRouter)
+  .use('/trucks', truckRouter)
+  .use('/cities', cityRouter);

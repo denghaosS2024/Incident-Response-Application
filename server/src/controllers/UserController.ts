@@ -95,6 +95,26 @@ class UserController {
 
     return onlineUsers.concat(offlineUsers)
   }
+
+  /**
+   * Find a user by their username and role
+   * @param username - The username to search for
+   * @param role - Optional role to filter by
+   * @returns The user if found, null otherwise
+   */
+  // TO-DO: Write Unit Test
+  async findUserByUsername(username: string) {
+    const query = { username };
+    
+    const user = await User.findOne(query).exec();
+    if (!user) {
+        return null;
+    }
+
+    return {
+        ...(user.toJSON() as Pick<IUser, '_id' | 'username' | 'role'>),
+    };
+}
 }
 
 export default new UserController()

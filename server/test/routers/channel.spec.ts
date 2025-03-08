@@ -114,7 +114,7 @@ describe('Router - Channel', () => {
     const { body: message } = await request(app)
       .post(`/api/channels/${channelId}/messages`)
       .set('x-application-uid', userA)
-      .send({ content })
+      .send({ content: content, isAlert: false })
       .expect(200)
 
     messageId = message._id

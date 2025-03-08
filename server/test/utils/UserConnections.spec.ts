@@ -3,6 +3,7 @@ import { mock } from 'jest-mock-extended'
 
 import UserConnections from '../../src/utils/UserConnections'
 import * as TestDatabase from './TestDatabase'
+import { ROLES } from '../../src/utils/Roles'
 
 describe('UserConnections', () => {
   beforeAll(TestDatabase.connect)
@@ -11,7 +12,7 @@ describe('UserConnections', () => {
   const socket = mock<SocketIO.Socket>()
 
   it('can return user online correctly', () => {
-    UserConnections.addUserConnection(uid, socket)
+    UserConnections.addUserConnection(uid, socket, ROLES.CITIZEN)
 
     const connected = UserConnections.isUserConnected(uid)
     const notConnected = UserConnections.isUserConnected('nonexist')
@@ -21,7 +22,7 @@ describe('UserConnections', () => {
   })
 
   it('can list ids of all connected users', () => {
-    UserConnections.addUserConnection(uid, socket)
+    UserConnections.addUserConnection(uid, socket, ROLES.CITIZEN)
 
     const uids = UserConnections.getConnectedUsers()
 

@@ -6,6 +6,7 @@ import {
 } from '@mui/material'
 import styles from '../../styles/Reach911Page.module.css'
 import MapLayer from '../Map/MapLayer';
+import Map from '../Map/Mapbox';
 
 import React from 'react'
 import IIncident from '../../models/Incident';
@@ -101,7 +102,19 @@ const Reach911Step1 = () => {
                     position: 'relative',
                     minHeight: '400px' // Ensure minimum height for the map
                 }}>
-                    <MapLayer />
+                    <div
+                    style={{
+                        height: '100%',
+                        width: '100%',
+                        maxWidth: '100%',
+                        overflow: 'hidden',
+                        position: 'relative',
+                        margin: 0,
+                        padding: 0,
+                    }}
+                    >
+                        <Map showMarker={true} disableGeolocation={true}/>
+                    </div>
                 </div>
             </Box>
         </div >

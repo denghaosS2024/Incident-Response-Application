@@ -5,6 +5,7 @@ import * as TestDatabase from '../utils/TestDatabase'
 import ROLES from '../../src/utils/Roles'
 
 describe('Router - User', () => {
+  // "System" user is created in the database upon app run so by default there always is one user present in the database.
   beforeAll(TestDatabase.connect)
 
   const username = 'some-username'
@@ -42,7 +43,7 @@ describe('Router - User', () => {
       .get('/api/users')
       .expect(200)
 
-    expect(body.length).toBe(1)
+    expect(body.length).toBe(2)
 
     const user = body[0]
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { Types } from 'mongoose';
 
 import IncidentController from '../controllers/IncidentController';
+import type { IIncident } from '../models/Incident';
 /**
  * @swagger
  * components:
@@ -101,7 +102,7 @@ export default Router()
 
     // TODO: Sawgger documentation
     .post('/new', async (request, response) => {
-        const { incident } = request.body
+        const incident = request.body as IIncident ;
         console.log('Incident:', incident);
 
         try {

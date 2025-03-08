@@ -10,8 +10,10 @@ import Channel, {
 import { IUser } from '../../src/models/User'
 import UserConnections from '../../src/utils/UserConnections'
 import * as TestDatabase from '../utils/TestDatabase'
+import { ROLES } from '../../src/utils/Roles'
 
 describe('Channel controller', () => {
+  // "System" user is created in the database upon app run so by default there always is one user present in the database.
   let userA: IUser
   let userB: IUser
   let userC: IUser
@@ -94,8 +96,8 @@ describe('Channel controller', () => {
     const socketA = mock<SocketIO.Socket>()
     const socketB = mock<SocketIO.Socket>()
 
-    UserConnections.addUserConnection(userA.id, socketA)
-    UserConnections.addUserConnection(userB.id, socketB)
+    UserConnections.addUserConnection(userA.id, socketA, ROLES.CITIZEN)
+    UserConnections.addUserConnection(userB.id, socketB, ROLES.CITIZEN)
 
     // userA post a message to the public channel
     const publicChannel = await Channel.getPublicChannel()
@@ -104,6 +106,7 @@ describe('Channel controller', () => {
       content,
       senderId: userA._id,
       channelId: publicChannel._id,
+      isAlert: false
     })
 
     expect(message.content).toBe(content)

@@ -1,5 +1,7 @@
 import Incident, { IncidentPriority, type IIncident } from "../models/Incident"
 import { Types } from 'mongoose';
+import UserConnections from "../utils/UserConnections";
+import { ROLES } from "../utils/Roles";
 
 class IncidentController {
     /**
@@ -46,7 +48,11 @@ class IncidentController {
         let existingIncident = await Incident.findOne({ incidentId }).exec()
 
         if (existingIncident) {
-            throw new Error(`Incident "${incidentId}" already exists`)
+
+            // TO-DO: Don't throw an error, update the existing incident or return existing incident or return a flag so that the route can use HTTP status code to tell frontend
+            // The Error will always result an 400 http code to frontend
+            return existingIncident;
+            // throw new Error(`Incident "${incidentId}" already exists`)
         } else {
             // Create and save new incident object
             incident = await new Incident({
@@ -61,8 +67,23 @@ class IncidentController {
                 priority: IncidentPriority.Immediate,
                 incidentCallGroup: incident.incidentCallGroup ? incident.incidentCallGroup : null,
             }).save()
+
+            const notifyDispatchers = async (username: string, incidentId: string) => {
+                  UserConnections.broadcaseToRole(
+                    ROLES.DISPATCH, 
+                    'new-incident-created', 
+                    {
+                      username,
+                      incidentId,
+                      message: `New incident ${incidentId} created by ${username}`
+                    }
+                  );
+                };
+            
+            await notifyDispatchers(incident.incidentId, incident.caller);
+            return incident
         }
-        return incident
+        
     }
 
     
