@@ -111,117 +111,90 @@ const MapLayer: React.FC = () => {
   };
 
   return (
-    <div
-      className={styles.mapLayerContainer}
-      style={{
-        height: containerHeight,
-        width: '100%',
-        maxWidth: '100%',
-        overflow: 'hidden',
-        position: 'relative',
-        margin: 0,
-        padding: 0,
-      }}
-    >
-      <Box
-        className={`${styles.levitatingList} ${!isVisible ? styles.hidden : ''}`}
-        style={menuStyle}
-      >
-        <List component="nav" aria-label="map layer selection">
-          {/* Group */}
-          <ListItemButton
-            onClick={(e) => handleListItemClick(e, 0)}
-          >
-            <ListItemIcon>
-              <GroupIcon />
-            </ListItemIcon>
-            <ListItemText primary="Group" sx={{ color: 'black' }} />
-          </ListItemButton>
+      <div>
+        <Box
+          className={`${styles.levitatingList} ${!isVisible ? styles.hidden : ''}`}
+          style={menuStyle}
+        >
+          <List component="nav" aria-label="map layer selection">
+            {/* Group */}
+            <ListItemButton
+              onClick={(e) => handleListItemClick(e, 0)}
+            >
+              <ListItemIcon>
+                <GroupIcon />
+              </ListItemIcon>
+              <ListItemText primary="Group" sx={{ color: 'black' }} />
+            </ListItemButton>
 
-          {/* Util */}
-          <ListItemButton
-            onClick={(e) => handleListItemClick(e, 1)}
-          >
-            <ListItemIcon>
-              <BuildIcon />
-            </ListItemIcon>
-            <ListItemText primary="Util" sx={{ color: 'black' }} />
-          </ListItemButton>
+            {/* Util */}
+            <ListItemButton
+              onClick={(e) => handleListItemClick(e, 1)}
+            >
+              <ListItemIcon>
+                <BuildIcon />
+              </ListItemIcon>
+              <ListItemText primary="Util" sx={{ color: 'black' }} />
+            </ListItemButton>
 
-          {/* Contacts */}
-          <ListItemButton
-            onClick={(e) => handleListItemClick(e, 2)}
-          >
-            <ListItemIcon>
-              <ContactsIcon />
-            </ListItemIcon>
-            <ListItemText primary="Contacts" sx={{ color: 'black' }} />
-          </ListItemButton>
+            {/* Contacts */}
+            <ListItemButton
+              onClick={(e) => handleListItemClick(e, 2)}
+            >
+              <ListItemIcon>
+                <ContactsIcon />
+              </ListItemIcon>
+              <ListItemText primary="Contacts" sx={{ color: 'black' }} />
+            </ListItemButton>
 
-          {/* Inline contacts dropdown */}
-          {selectedIndex === 2 && (
-            <Box>
-              <List>
-                {loading ? (
-                  <ListItem>
-                    <ListItemText primary="Loading..." />
-                  </ListItem>
-                ) : users.length === 0 ? (
-                  <ListItem>
-                    <ListItemText primary="No contacts" />
-                  </ListItem>
-                ) : (
-                  users.map((user: IUser) => (
-                    <ListItemButton
-                      key={user._id}
-                      onClick={() => handleContactClick(user._id)}
-                    >
-                      <ListItemIcon>{getRoleIcon(user.role)}</ListItemIcon>
-                      <ListItemText primary={user.username} />
-                    </ListItemButton>
-                  ))
-                )}
-              </List>
-            </Box>
-          )}
+            {/* Inline contacts dropdown */}
+            {selectedIndex === 2 && (
+              <Box>
+                <List>
+                  {loading ? (
+                    <ListItem>
+                      <ListItemText primary="Loading..." />
+                    </ListItem>
+                  ) : users.length === 0 ? (
+                    <ListItem>
+                      <ListItemText primary="No contacts" />
+                    </ListItem>
+                  ) : (
+                    users.map((user: IUser) => (
+                      <ListItemButton
+                        key={user._id}
+                        onClick={() => handleContactClick(user._id)}
+                      >
+                        <ListItemIcon>{getRoleIcon(user.role)}</ListItemIcon>
+                        <ListItemText primary={user.username} />
+                      </ListItemButton>
+                    ))
+                  )}
+                </List>
+              </Box>
+            )}
 
-          {/* You */}
-          <ListItemButton
-            onClick={(e) => handleListItemClick(e, 3)}
-          >
-            <ListItemIcon>
-              <PersonIcon />
-            </ListItemIcon>
-            <ListItemText primary="You" sx={{ color: 'black' }} />
-          </ListItemButton>
-        </List>
-      </Box>
+            {/* You */}
+            <ListItemButton
+              onClick={(e) => handleListItemClick(e, 3)}
+            >
+              <ListItemIcon>
+                <PersonIcon />
+              </ListItemIcon>
+              <ListItemText primary="You" sx={{ color: 'black' }} />
+            </ListItemButton>
+          </List>
+        </Box>
 
-      <IconButton
-        className={styles.toggleButton}
-        onClick={toggleVisibility}
-        sx={toggleButtonStyle}
-      >
-        {isVisible ? <RemoveIcon /> : <AddIcon />}
-      </IconButton>
+        <IconButton
+          className={styles.toggleButton}
+          onClick={toggleVisibility}
+          sx={toggleButtonStyle}
+        >
+          {isVisible ? <RemoveIcon /> : <AddIcon />}
+        </IconButton>
 
-      <div
-        className={styles.mapContainer}
-        style={{
-          height: '100%',
-          width: '100%',
-          maxWidth: '100%',
-          overflow: 'hidden',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}
-      >
-        <Map showMarker={false} disableGeolocation={false}/>
       </div>
-    </div>
   );
 };
 
