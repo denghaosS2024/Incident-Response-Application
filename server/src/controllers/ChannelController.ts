@@ -126,7 +126,8 @@ class ChannelController {
      await this.appendMessage({
       content: "Hello! A dispatcher will be with you shortly. Please provide any additional information here.",
       senderId: systemUser._id,
-      channelId: channel._id
+      channelId: channel._id,
+      isAlert:false,
     });
 
     return channel;
@@ -174,10 +175,12 @@ class ChannelController {
     content,
     senderId,
     channelId,
+    isAlert,
   }: {
     content: string
     senderId: Types.ObjectId
     channelId: Types.ObjectId
+    isAlert: Boolean
   }) => {
     const sender = await User.findById(senderId).exec()
     if (!sender) {
@@ -194,6 +197,7 @@ class ChannelController {
       content,
       sender,
       channelId: channel._id,
+      isAlert,
     }).save()
 
     // Add the message to the channel
@@ -205,12 +209,17 @@ class ChannelController {
       if (user._id.equals(senderId)) return
 
       const id = user._id.toHexString()
+      console.log(id)
       if (!UserConnections.isUserConnected(id)) return
 
       const connection = UserConnections.getUserConnection(id)!
-      connection.emit('new-message', message)
-    })
 
+      if(isAlert && user.role == "Fire"){
+        connection.emit('new-fire-alert', message)
+      }else{
+        connection.emit('new-message', message)
+      }
+    })
     return message
   }
 

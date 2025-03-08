@@ -17,6 +17,7 @@ export interface IMessage extends Document {
   sender: IUser
   timestamp: string
   channelId: Types.ObjectId
+  isAlert: Boolean
 }
 
 /**
@@ -39,6 +40,9 @@ const MessageSchema = new Schema(
       ref: 'Channel',
       autopopulate: false,
     },
+    isAlert: {
+      type:Boolean, require:true,
+    }
   },
   {
     timestamps: {

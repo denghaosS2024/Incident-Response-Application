@@ -106,6 +106,7 @@ describe('Channel controller', () => {
       content,
       senderId: userA._id,
       channelId: publicChannel._id,
+      isAlert: false
     })
 
     expect(message.content).toBe(content)

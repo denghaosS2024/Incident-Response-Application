@@ -79,6 +79,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ channelId }) => {
           },
           body: JSON.stringify({
             content: fileUrl,
+            isAlert: false,
           }),
         }
       );
