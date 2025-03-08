@@ -99,7 +99,7 @@ const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClic
                                 <PermanentCard>Groups</PermanentCard>
                                             {/* Insert Group Cards here */}
                                 {groups.map((group) => (
-                                <GroupCard key={group._id} onClick={() => onGroupClick ? onGroupClick(group._id) : undefined}  >{group.name}</GroupCard>
+                                <GroupCard key={group._id} onClick={() => onGroupClick ? onGroupClick?.(group._id) : undefined}  >{group.name}</GroupCard>
                                 ))}
                                 <PermanentCard>Contacts</PermanentCard>
                             </>

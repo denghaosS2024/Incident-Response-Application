@@ -87,21 +87,23 @@ export default function Board({ setUsers,
     const handleGroupClick = (groupId: string) => {
         const group = groups.find(group => group._id === groupId); // Find the selected group
         if (group) {
-            setGroupName(group.name); // This will update the group name field in the form
-            setDescription(group.description || ''); // Set the group description if available, or empty string if none
-
-            const groupUsers = group.users.map((userId: IUser) => {
-                // Fetch the user by ID from the contacts list
-                return contacts.find(contact => contact._id === userId._id); 
-            }).filter(Boolean); // Filter out undefined if the user is not found
+            setGroupName(group.name); // Update group name
+            setDescription(group.description || ''); // Update group description
+    
+            const groupUsers = group.users
+                .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
+                .filter(Boolean) as IUser[]; // Filter out undefined values
             
-            // Remove users from "Drag and Drop Participants" column (todo) and add them to "This Group" column (done)
-            const updatedTodo = todo.filter(user => !groupUsers.some((groupUser: IUser) => groupUser._id === user._id));
-            setTodo(updatedTodo);
-            // Update the 'This Group' column with the users from the selected group
+            // Reset: Move all users from 'done' back to 'todo'
+            setTodo(prevTodo => [...prevTodo, ...done]);  
+            setDone([]);  
+    
+            // Move the selected group's users to the 'done' column
+            setTodo(prevTodo => prevTodo.filter(user => !groupUsers.some(groupUser => groupUser._id === user._id)));
             setDone(groupUsers);
         }
     };
+    
     
     
 
