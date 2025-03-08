@@ -25,8 +25,14 @@ const GroupDirectory: React.FC = () => {
             setMyParticipatingChannels(activeGroups);
             const ownedGroups = myGroups.filter((group: IChannel) => group.owner._id === owner && !group.closed);
             setMyManagingChannels(ownedGroups);
-            const closedGroups = myGroups.filter((group: IChannel) => group.closed);
-            setMyclosedChannels(closedGroups);
+
+            const allClosedGroups = await request(`/api/channels/groups/closed`, {
+                method: 'GET',
+            }).catch((error) => {
+                console.error("Error fetching closed groups:", error);
+                return [];
+            });
+            setMyclosedChannels(allClosedGroups);
         } catch (error) {
             console.error("Error fetching groups:", error);
         }
@@ -39,17 +45,17 @@ const GroupDirectory: React.FC = () => {
         return () => {
             socket.off("updataGroups")
         }
-    
+
     }, []);
 
     return (
-        <Box sx={{   
-                border: '1px solid #ddd', 
-                borderRadius: '8px', 
-                padding: '1rem',
-                mx: 'auto',
-                backgroundColor:"#fef9e7",
-            }}>
+        <Box sx={{
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            padding: '1rem',
+            mx: 'auto',
+            backgroundColor: "#fef9e7",
+        }}>
             <h1>Group Directory</h1>
             <GroupListBlock
                 headerName="Group I am managing"

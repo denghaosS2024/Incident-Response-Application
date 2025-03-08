@@ -71,10 +71,9 @@ const Groups: React.FC = () => {
   return (
     <Container>
       <div className={style.centeredForm}>
-        <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup} 
-  selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
-  setSelectedUsers={setSelectedUsers}/>
-      <GroupDirectory />
+        <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup}
+          selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
+          setSelectedUsers={setSelectedUsers} />
       </div>
       <GroupDirectory />
       <AlertSnackbar
