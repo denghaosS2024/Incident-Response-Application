@@ -51,7 +51,8 @@ class IncidentController {
 
             // TO-DO: Don't throw an error, update the existing incident or return existing incident or return a flag so that the route can use HTTP status code to tell frontend
             // The Error will always result an 400 http code to frontend
-            throw new Error(`Incident "${incidentId}" already exists`)
+            return existingIncident;
+            // throw new Error(`Incident "${incidentId}" already exists`)
         } else {
             // Create and save new incident object
             incident = await new Incident({

@@ -5,7 +5,7 @@
  */
 
 import bcrypt from 'bcrypt'
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { Document, Schema, Model } from 'mongoose'
 
 import ROLES from '../utils/Roles'
 
@@ -76,4 +76,33 @@ UserSchema.methods.comparePassword = function (candidatePassword) {
   })
 }
 
-export default mongoose.model<IUser>('User', UserSchema)
+/**
+ * Method to ensure a System Administator exits in the database.
+ */
+UserSchema.statics.ensureSystemUser = async function () {
+  const username: string = "System"
+  const password: string = "1234"
+  const role = ROLES.ADMINISTRATOR
+
+  try {
+    const existingUser = await this.findOne({ username: username })
+
+    if (!existingUser) {
+      console.log('System user does not exist. Creating now.')
+
+      const hashedPassword = await bcrypt.hash(password, SALT_WORK_FACTOR)
+      await this.create({
+        username: username,
+        password: hashedPassword,
+        role: role
+      })
+      console.log('System user created successfully.')
+    } else {
+      console.log('System user already exists.')
+    }
+  } catch (error) {
+    console.error('Error creating system user:', error)
+  }
+}
+
+export default mongoose.model<IUser, Model<IUser> & { ensureSystemUser: () => Promise<void> }>('User', UserSchema)
