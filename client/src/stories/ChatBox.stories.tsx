@@ -54,14 +54,16 @@ const mockMessages: IMessage[] = [
     content: 'Hello, this is a test message',
     sender: mockUsers.user1,
     timestamp: new Date('2024-03-07T10:00:00').toString(),
-    channelId: 'channel1'
+    channelId: 'channel1',
+    isAlert: false,
   },
   {
     _id: '2',
     content: 'This is a response',
     sender: mockUsers.user2,
     timestamp: new Date('2024-03-07T10:01:00').toString(),
-    channelId: 'channel1'
+    channelId: 'channel1',
+    isAlert: false,
   }
 ];
 

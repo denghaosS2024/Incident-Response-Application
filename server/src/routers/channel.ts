@@ -317,7 +317,7 @@ export default Router()
    * Append a new message to a channel
    * @route POST /api/channels/:id/messages
    * @param {string} request.params.id - The ID of the channel
-   * @param {string} request.headers['x-application-uid'] - The ID of the user sending the message
+   * @param {string} request.headers ['x-application-uid'] - The ID of the user sending the message
    * @param {Object} request.body
    * @param {string} request.body.content - The content of the message
    * @returns {Object} The newly created message object
@@ -327,7 +327,7 @@ export default Router()
     const senderId = new Types.ObjectId(
       request.headers['x-application-uid'] as string,
     )
-    const { content } = request.body
+    const { content,isAlert } = request.body
     const channelId = new Types.ObjectId(request.params.id)
 
     try {
@@ -335,8 +335,8 @@ export default Router()
         content,
         senderId,
         channelId,
+        isAlert,
       })
-
       response.send(message)
     } catch (e) {
       const error = e as Error

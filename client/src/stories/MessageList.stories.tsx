@@ -14,6 +14,7 @@ const message1: IMessage = {
   },
   channelId: '66ac3b73d3cdaf58f9a5a252',
   timestamp: '2024-08-02T01:52:19.426Z',
+  isAlert: false,
 }
 
 const message2: IMessage = {
@@ -27,6 +28,7 @@ const message2: IMessage = {
   },
   channelId: '66ac3b73d3cdaf58f9a5a252',
   timestamp: '2024-08-29T17:26:45.636Z',
+  isAlert: false,
 }
 
 const message3: IMessage = {
@@ -40,6 +42,7 @@ const message3: IMessage = {
   },
   channelId: '66ac3b73d3cdaf58f9a5a252',
   timestamp: '2024-08-24T17:26:45.636Z',
+  isAlert: false,
 }
 
 const parseMessage: (rawMessage: IMessage) => IMessage = ({

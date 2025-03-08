@@ -11,4 +11,5 @@ export default interface IMessage {
   timestamp: string // Timestamp of when the message was sent
   channelId: string // Identifier of the channel the message belongs to
   content: string // The actual text content of the message
+  isAlert: boolean //whether is alert
 }

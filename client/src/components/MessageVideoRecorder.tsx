@@ -85,6 +85,7 @@ const MessageVideoRecorder: React.FC<MessageVideoRecorderProps> = ({
               },
               body: JSON.stringify({
                 content: fileUrl,  // Save the video URL in the message
+                isAlert: false,
                 // type: 'video'      // Optionally mark this message as a video type
               }),
             }
