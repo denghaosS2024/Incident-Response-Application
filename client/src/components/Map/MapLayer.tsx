@@ -125,10 +125,7 @@ const MapLayer: React.FC = () => {
     >
       <Box
         className={`${styles.levitatingList} ${!isVisible ? styles.hidden : ''}`}
-        style={{
-          ...menuStyle,
-          display: is911Page ? 'none' : 'block'
-        }}
+        style={menuStyle}
       >
         <List component="nav" aria-label="map layer selection">
           {/* Group */}
@@ -203,10 +200,7 @@ const MapLayer: React.FC = () => {
       <IconButton
         className={styles.toggleButton}
         onClick={toggleVisibility}
-        sx={{
-          ...toggleButtonStyle,
-          display: is911Page ? 'none' : 'flex'
-        }}
+        sx={toggleButtonStyle}
       >
         {isVisible ? <RemoveIcon /> : <AddIcon />}
       </IconButton>
