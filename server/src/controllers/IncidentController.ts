@@ -56,13 +56,14 @@ class IncidentController {
         } else {
             // Create and save new incident object
             incident = await new Incident({
-                incidentId:`I${incident.caller}`,
+                incidentId: incident.incidentId? incident.incidentId : `I${incident.caller}`,
                 caller: incident.caller,
                 openingDate: new Date(),
                 incidentState: incident.incidentState ? incident.incidentState : "Waiting",
                 owner: incident.owner ? incident.owner : "System",
+                commander: incident.commander ? incident.commander : "System",
                 address: incident.address ? incident.address : "" ,
-                type: incident.type ? incident.type : "",
+                type: incident.type ? incident.type : "U",
                 questions: incident.questions ? incident.questions : {},
                 priority: IncidentPriority.Immediate,
                 incidentCallGroup: incident.incidentCallGroup ? incident.incidentCallGroup : null,
@@ -85,8 +86,6 @@ class IncidentController {
         }
         
     }
-
-    
 
     /**
      * Update incident chat group
@@ -153,6 +152,14 @@ class IncidentController {
      */
     async getAllIncidents(): Promise<IIncident[]> {
         return Incident.find().exec()
+    }
+
+    /**
+     * Get all incidents created by a particular user. Although citizens can create only 1 incident, responders can create more than one
+     * @returns All incidents created by a particular user
+     */
+    async getIncidentsByCaller(caller: string): Promise<IIncident[]> {
+        return await Incident.find({ caller }).exec();
     }
 
 }

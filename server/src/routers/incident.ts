@@ -180,7 +180,7 @@ export default Router()
             const error = e as Error
             response.status(500).json({ message: error.message })
         }
-    })
+    })    
 
     /**
      * @swagger
@@ -249,17 +249,28 @@ export default Router()
      *       500:
      *         description: Internal server error (e.g. database error)
      */
-    .get('/', async (_, response) => {
+    .get('/', async (request, response) => {
         try {
-            const result = await IncidentController.getAllIncidents()
-            // if result is empty, return 404
-            if (result.length === 0) {
-                response.status(404).json({ message: 'No incidents in the system' })
-                return
+            const { caller } = request.query;
+    
+            let result;
+            if (caller) {
+                //Fetch only incidents for the specific user
+                result = await IncidentController.getIncidentsByCaller(caller as string);
+            } else {
+                //Fetch all incidents
+                result = await IncidentController.getAllIncidents();
             }
-            response.json(result)
+    
+            if (!result || result.length === 0) {
+                response.status(404).json({ message: 'No incidents found' });
+                return;
+            }
+    
+            response.json(result);
         } catch (e) {
-            const error = e as Error
-            response.status(500).json({ message: error.message })
+            const error = e as Error;
+            response.status(500).json({ message: error.message });
         }
-    })
+    });
+    
