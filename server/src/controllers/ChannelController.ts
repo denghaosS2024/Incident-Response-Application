@@ -180,7 +180,7 @@ class ChannelController {
     content: string
     senderId: Types.ObjectId
     channelId: Types.ObjectId
-    isAlert: Boolean
+    isAlert: boolean
   }) => {
     const sender = await User.findById(senderId).exec()
     if (!sender) {

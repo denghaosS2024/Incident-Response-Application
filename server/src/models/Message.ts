@@ -17,7 +17,7 @@ export interface IMessage extends Document {
   sender: IUser
   timestamp: string
   channelId: Types.ObjectId
-  isAlert: Boolean
+  isAlert: boolean
 }
 
 /**
