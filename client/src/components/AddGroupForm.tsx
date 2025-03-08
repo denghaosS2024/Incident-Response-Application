@@ -48,6 +48,7 @@ export interface IAddGroupFormProps {
   selectedUsers: string[]; // Accept users from "This Group"
   setSelectedUsers: (users: IUser[]) => void; // Add the setSelectedUsers function here
   deleteChannel: (channelName: string) => void
+  resetBoard: () => void; // Define resetBoard function prop
 }
 
 
@@ -96,6 +97,8 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
         closed,
       })
       resetForm()
+      channelProps.resetBoard();
+
     }
   }
 
@@ -203,7 +206,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               label="Closed"
             />
           </Box>
-          <Board setUsers={setUsers} setGroupName={setGroupName} setDescription={setDescription} />
+          <Board setUsers={setUsers} setGroupName={setGroupName} setDescription={setDescription} resetBoard={channelProps.resetBoard}/>
           <Box display="flex" justifyContent="center" mt={2}>
             <Button
               variant="contained"

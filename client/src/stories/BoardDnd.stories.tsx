@@ -7,7 +7,7 @@ import { store } from "../app/store";
 export default {
   title: "Groups/BoardDnd",
   component: Board,
-  tags: ['autodocs'], // Enable autodocs
+  tags: ['autodocs'],
   decorators: [(Story) => <Provider store={store}><Story /></Provider>],
   parameters: {
     docs: {
@@ -23,11 +23,19 @@ const Template: Story = (args) => {
   const [groupName, setGroupName] = useState("");
   const [description, setDescription] = useState("");
 
+  // Define the mock resetBoardState function
+  const resetBoardState = () => {
+    setUsers([]);  // Reset users
+    setGroupName("");  // Reset group name
+    setDescription("");  // Reset description
+  };
+
   return (
     <Board
       setUsers={setUsers}
       setGroupName={setGroupName}
       setDescription={setDescription}
+      resetBoard={resetBoardState}  // Pass the mock function here
       {...args}
     />
   );
