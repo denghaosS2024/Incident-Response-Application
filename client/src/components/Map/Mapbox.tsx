@@ -10,6 +10,7 @@ import { RootState } from '../../utils/types';
 import IIncident from '../../models/Incident';
 import { Alert, Box, Typography } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import MapDrop from './MapDrop';
 
 interface MapboxProps {
     showMarker?: boolean;
@@ -33,7 +34,10 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
   const [currentLat, setCurrentLat] = useState<number>(40);
   const [currentLng, setCurrentLng] = useState<number>(-74.5);
 
-  // -------------------------------- helper function start --------------------------------
+  // State for the location of the pin
+  const [pinLocation, setPinLocation] = useState<{ lng: number; lat: number; address?: string } | null>(null);
+
+// -------------------------------- helper function start --------------------------------
 
   // Function to initialize the map using the given longitude and latitude.
   // This function is called once regardless of geolocation success or failure.
@@ -105,7 +109,12 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
     }
   };
 
-  // -------------------------------- helper function end --------------------------------
+// -------------------------------- helper function end --------------------------------
+
+
+
+
+// -------------------------------- map init start --------------------------------
 
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA';
@@ -141,6 +150,86 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
       }
     };
   }, [showMarker, disableGeolocation]);
+
+
+// -------------------------------- map init end --------------------------------
+
+
+
+
+
+// -------------------------------- map drop items features start --------------------------------
+    const getAddressFromCoordinates = async (lng: number, lat: number): Promise<string | undefined> => {
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
+        );
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+          return data.features[0].place_name; // Return the first result
+        }
+      } catch (error) {
+        console.error("Error fetching address:", error);
+      }
+      return undefined; // Return undefined instead of null
+    };
+
+
+    const handleAddPin = async () => {
+      if (!mapRef.current) return;
+    
+      const initialLngLat = mapRef.current.getCenter();
+      const initialAddress = await getAddressFromCoordinates(initialLngLat.lng, initialLngLat.lat);
+    
+      // Create popup content
+      const popupContent = document.createElement("div");
+      popupContent.innerHTML = `
+        <p id="popup-address">${initialAddress || "Fetching address..."}</p>
+        <button id="confirm-pin" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
+      `;
+    
+      const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
+    
+      const marker = new mapboxgl.Marker({ draggable: true })
+        .setLngLat(initialLngLat)
+        .setPopup(popup)
+        .addTo(mapRef.current);
+    
+      marker.togglePopup();
+      markerRef.current = marker;
+    
+      // Update location and address when marker is dragged
+      marker.on("dragend", async () => {
+        const newLngLat = marker.getLngLat();
+        const newAddress = await getAddressFromCoordinates(newLngLat.lng, newLngLat.lat);
+        document.getElementById("popup-address")!.innerText = newAddress || "Fetching address...";
+      });
+    
+      // Handle confirmation
+      const handleConfirm = () => {
+        marker.setDraggable(false); // Disable dragging
+    
+        // Remove confirm button and add delete button
+        popupContent.innerHTML = `
+          <p id="popup-address">${document.getElementById("popup-address")!.innerText}</p>
+          <button id="delete-pin" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+        `;
+    
+        document.getElementById("delete-pin")?.addEventListener("click", () => {
+          marker.remove(); // Remove marker from the map
+          popup.remove(); // Remove popup
+        });
+      };
+    
+      // Add event listener for confirm button
+      document.getElementById("confirm-pin")?.addEventListener("click", handleConfirm);
+    };
+    
+    
+// -------------------------------- map drop items features end --------------------------------
+
+
 
 
 // -------------------------------- reach 911 features start --------------------------------
@@ -251,6 +340,12 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
           maxWidth: '100%',
           boxSizing: 'border-box'
         }} 
+      />
+      <MapDrop
+        onDropPin={handleAddPin}
+        onDropRoadblock={handleAddPin}
+        onDropFireHydrant={handleAddPin}
+        onDropAirQuality={handleAddPin}
       />
       {!isMapLoaded && <MapLoading />}
     </div>
