@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Card from "./Card";
 import "../styles/scroll.css";
@@ -62,17 +62,17 @@ const GroupCard = styled.div`
   cursor: pointer;
 `;
 
-const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClick  }) => {
+const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClick }) => {
     const [groups, setGroups] = useState<{ _id: string; name: string }[]>([]);
     useEffect(() => {
         // Fetch groups from API
         fetch("/api/channels")
-          .then((res) => res.json())
-          .then((data) => {
-            setGroups(data);
-          })
-          .catch((error) => console.error("Error fetching groups:", error));
-      }, []);
+            .then((res) => res.json())
+            .then((data) => {
+                setGroups(data);
+            })
+            .catch((error) => console.error("Error fetching groups:", error));
+    }, []);
 
     return (
         <Container className="column">
@@ -97,15 +97,15 @@ const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClic
                         {id === "1" && (
                             <>
                                 <PermanentCard>Groups</PermanentCard>
-                                            {/* Insert Group Cards here */}
+                                {/* Insert Group Cards here */}
                                 {groups.map((group) => (
-                                <GroupCard key={group._id} onClick={() => onGroupClick ? onGroupClick?.(group._id) : undefined}  >{group.name}</GroupCard>
+                                    <GroupCard key={group._id} onClick={() => onGroupClick ? onGroupClick?.(group._id) : undefined}  >{group.name}</GroupCard>
                                 ))}
                                 <PermanentCard>Contacts</PermanentCard>
                             </>
                         )}
 
-                        {/* Render the draggable tasks */}
+                        {/* Contacts badge */}
                         {tasks.map((task, index) => (
                             <Card key={task._id} index={index} task={task} />
                         ))}
