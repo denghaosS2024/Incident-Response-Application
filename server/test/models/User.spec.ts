@@ -3,6 +3,7 @@ import * as TestDatabase from '../utils/TestDatabase'
 import User from '../../src/models/User'
 
 describe('User model', () => {
+  // "System" user is created in the database upon app run so by default there always is one user present in the database.
   beforeAll(TestDatabase.connect)
   beforeEach(() => jest.clearAllMocks())
   afterEach(() => jest.restoreAllMocks())
@@ -27,7 +28,7 @@ describe('User model', () => {
   it('will hide passwords and versions in queries', async () => {
     const users = await User.find().exec()
 
-    expect(users.length).toBe(1)
+    expect(users.length).toBe(2)
 
     const user = users[0]
 
