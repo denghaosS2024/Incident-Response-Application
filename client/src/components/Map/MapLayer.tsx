@@ -219,7 +219,7 @@ const MapLayer: React.FC = () => {
           bottom: 0,
         }}
       >
-        <Map />
+        <Map showMarker={false} disableGeolocation={false}/>
       </div>
     </div>
   );

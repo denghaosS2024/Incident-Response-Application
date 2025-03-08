@@ -13,9 +13,10 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 interface MapboxProps {
     showMarker?: boolean;
+    disableGeolocation?: boolean; // New prop to disable geolocation
 }
 
-const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
+const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation = false }) => {
   // Refs for the map container, map instance, and marker
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -32,12 +33,17 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
   const [currentLat, setCurrentLat] = useState<number>(40);
   const [currentLng, setCurrentLng] = useState<number>(-74.5);
 
+  // -------------------------------- helper function start --------------------------------
+
   // Function to initialize the map using the given longitude and latitude.
   // This function is called once regardless of geolocation success or failure.
   const initializeMap = (lng: number, lat: number, initialZoom: number) => {
     if (!mapContainerRef.current) return;
     try {
       // Create a new map instance
+      if (disableGeolocation) {
+        initialZoom = 14;
+      }
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: 'mapbox://styles/domoncassiu/cm7og9k1l005z01rdd6l78pdf', 
@@ -67,8 +73,8 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
         setIsMapLoaded(true);
 
         // Trigger geolocation if the map was initialized with default coordinates
-        if (initialZoom == 1) {
-            geolocateControl.trigger();
+        if (initialZoom == 1 && !disableGeolocation) {
+            geolocateControl!.trigger();
         }
       });
       // Handle map errors
@@ -76,25 +82,30 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
         console.error('Mapbox error:', e);
         setMapError('Failed to load map');
       });
-      // Add geolocate control to allow tracking the user’s location
-      const geolocateControl = new mapboxgl.GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: true,
-      });
-      mapRef.current.addControl(geolocateControl);
-      // Update marker position when geolocation is triggered
-      geolocateControl.on('geolocate', (e: any) => {
-        const { longitude, latitude } = e.coords;
-        if (markerRef.current && showMarker) {
-          markerRef.current.setLngLat([longitude, latitude]);
-          updateAddressFromCoordinates(longitude, latitude);
-        }
-      });
+      // Add geolocate control to allow tracking the user’s location (only if not disabled)
+      let geolocateControl: mapboxgl.GeolocateControl | null = null;
+      if (!disableGeolocation) {
+        geolocateControl = new mapboxgl.GeolocateControl({
+          positionOptions: { enableHighAccuracy: true },
+          trackUserLocation: true,
+        });
+        mapRef.current.addControl(geolocateControl);
+        // Update marker position when geolocation is triggered
+        geolocateControl.on('geolocate', (e: any) => {
+          const { longitude, latitude } = e.coords;
+          if (markerRef.current && showMarker) {
+            markerRef.current.setLngLat([longitude, latitude]);
+            updateAddressFromCoordinates(longitude, latitude);
+          }
+        });
+      }
     } catch (error) {
       console.error('Error initializing map:', error);
       setMapError('Failed to initialize map');
     }
   };
+
+  // -------------------------------- helper function end --------------------------------
 
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA';
@@ -129,7 +140,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
         mapRef.current.remove();
       }
     };
-  }, [showMarker]);
+  }, [showMarker, disableGeolocation]);
 
 
 // -------------------------------- reach 911 features start --------------------------------
@@ -151,7 +162,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
         } catch (error) {
             console.error('Error fetching address:', error);
         }
-        };
+    };
 
     // When incident.address changes (from external updates), update the marker position
     useEffect(() => {
@@ -179,8 +190,6 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true }) => {
     }, [incident.address]);
 
 // -------------------------------- reach 911 features end --------------------------------
-
-
 
 
 
