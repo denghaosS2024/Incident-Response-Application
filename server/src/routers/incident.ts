@@ -114,6 +114,37 @@ export default Router()
         }
     })
 
+    /**
+     * @swagger
+     * /api/incidents/update:
+     *   put:
+     *     summary: Update an existing incident
+     *     tags: [Incidents]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/Incident'
+     *     responses:
+     *       204:
+     *         description: Incident updated successfully (No Content)
+     *       400:
+     *         description: Bad request (Invalid data)
+     */
+    .put('/update', async (request, response) => {
+        const incidentData: IIncident = request.body;
+        console.log('Updating Incident Data:', incidentData);
+        try {
+            await IncidentController.updateIncident(incidentData);    
+            response.status(204).send();
+        } catch (e) {
+            const error = e as Error;
+            console.error('Error updating incident:', error);
+            response.status(400).send({ message: error.message });
+        }
+    })
+    
 
     /**
      * @swagger

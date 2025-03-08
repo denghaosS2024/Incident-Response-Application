@@ -122,6 +122,31 @@ class IncidentController {
         .exec();
     }
 
+    /**
+     * Updates an existing incident based on incidentId 
+     * @param incident which is a partial IIncident which may or may not contain all the fields in the IIncident object
+     * @returns The updated incident object or null if the indicent with the incidentId is not found in collection
+     * @throws {Error} If the incident Id is missing
+     */
+    async updateIncident(incident: Partial<IIncident>): Promise<IIncident | null> {
+        try {
+            if (!incident.incidentId) {
+                throw new Error("Incident ID is required for updating an incident.");
+            }
+    
+            const updatedIncident = await Incident.findOneAndUpdate(
+                { incidentId: incident.incidentId },
+                { $set: incident },
+                { new: true }
+            ).exec();
+    
+            return updatedIncident;
+        } catch (error) {
+            console.error("Error updating incident:", error);
+            throw error;
+        }
+    }
+    
 }
 
 export default new IncidentController()
