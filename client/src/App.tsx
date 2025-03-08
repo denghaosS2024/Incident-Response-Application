@@ -201,6 +201,14 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       setTextColor(text)
       setAlertOpen(true)
     })
+    socket.on('new-police-alert', (message: IMessage) => {
+      dispatch(addMessage(message))
+      const [msg, bg, text] = message.content.split('-')
+      setAlertMessage(msg)
+      setBgColor(bg)
+      setTextColor(text)
+      setAlertOpen(true)
+    })
     socket.on('user-status-changed', () => {
       dispatch(loadContacts())
     })

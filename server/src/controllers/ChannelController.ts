@@ -209,13 +209,15 @@ class ChannelController {
       if (user._id.equals(senderId)) return
 
       const id = user._id.toHexString()
-      console.log(id)
+
       if (!UserConnections.isUserConnected(id)) return
 
       const connection = UserConnections.getUserConnection(id)!
 
       if(isAlert && user.role == "Fire"){
         connection.emit('new-fire-alert', message)
+      }else if(isAlert && user.role == "Police"){
+        connection.emit('new-police-alert', message)
       }else{
         connection.emit('new-message', message)
       }
