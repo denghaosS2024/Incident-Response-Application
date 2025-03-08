@@ -72,7 +72,7 @@ class ChannelController {
     // Check if the channel already exists
     const exists = await Channel.findOne({
       users,
-      name:channel.name,
+      name: channel.name,
       description: channel.description || '',
       owner: owner,
       closed: channel.closed || false,
@@ -110,27 +110,28 @@ class ChannelController {
     // Find system user
     const systemUser = await UserController.findUserByUsername('System');
     if (!systemUser) {
-        throw new Error('System user not found. Please ensure System user is created with Administrator role.');
+      throw new Error('System user not found. Please ensure System user is created with Administrator role.');
     }
-    
+
     // Use existing create method with 911-specific configurations
     const channel = await this.create({
-        name: channel911Name,
-        userIds: [userId, systemUser._id],
-        description: `911 Emergency Channel for ${username}`,
-        ownerId: userId,
-        closed: false
+      name: channel911Name,
+      userIds: [userId, systemUser._id],
+      description: `911 Emergency Channel for ${username}`,
+      ownerId: userId,
+      closed: false
     });
 
-     // Add system welcome message
-     await this.appendMessage({
+    // Add system welcome message
+    await this.appendMessage({
       content: "Hello! A dispatcher will be with you shortly. Please provide any additional information here.",
       senderId: systemUser._id,
-      channelId: channel._id
+      channelId: channel._id,
+      isAlert: false,
     });
 
     return channel;
-}
+  }
 
   /**
    * List channels, optionally filtered by user
@@ -174,10 +175,12 @@ class ChannelController {
     content,
     senderId,
     channelId,
+    isAlert,
   }: {
     content: string
     senderId: Types.ObjectId
     channelId: Types.ObjectId
+    isAlert: boolean
   }) => {
     const sender = await User.findById(senderId).exec()
     if (!sender) {
@@ -194,6 +197,7 @@ class ChannelController {
       content,
       sender,
       channelId: channel._id,
+      isAlert,
     }).save()
 
     // Add the message to the channel
@@ -205,12 +209,19 @@ class ChannelController {
       if (user._id.equals(senderId)) return
 
       const id = user._id.toHexString()
+
       if (!UserConnections.isUserConnected(id)) return
 
       const connection = UserConnections.getUserConnection(id)!
-      connection.emit('new-message', message)
-    })
 
+      if (isAlert && user.role == "Fire") {
+        connection.emit('new-fire-alert', message)
+      } else if (isAlert && user.role == "Police") {
+        connection.emit('new-police-alert', message)
+      } else {
+        connection.emit('new-message', message)
+      }
+    })
     return message
   }
 
@@ -422,6 +433,17 @@ class ChannelController {
       throw error
     }
   }
+
+  getClosedGroups = async () => {
+    try {
+      const closedGroups = await Channel.find({ closed: true }).sort({ name: 1 });
+      return closedGroups;
+    } catch (error) {
+      console.error('Error getting closed groups:', error);
+      throw error;
+    }
+  }
+
 }
 
 export default new ChannelController()

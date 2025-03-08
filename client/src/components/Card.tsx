@@ -3,13 +3,15 @@ import { DraggableStateSnapshot, DraggableProvided } from "react-beautiful-dnd";
 import styled from "styled-components";
 import IUser from '@/models/User'
 import { Draggable as Draggable1, DraggableProps } from "react-beautiful-dnd";
+import { getRoleIcon } from "./common/RoleIcon";
+
 export const Draggable = Draggable1 as React.ComponentClass<DraggableProps>;
 
 // Container styled component with TypeScript types for props
 interface ContainerProps {
-  isDragging: boolean;
-  isDraggable: boolean;
-  isBacklog: boolean;
+    isDragging: boolean;
+    isDraggable: boolean;
+    isBacklog: boolean;
 }
 
 const Container = styled.div<ContainerProps>`
@@ -47,12 +49,12 @@ function bgcolorChange(props: ContainerProps): string {
                 ? "#F2D7D5"
                 : "#EAF4FC";
 }
-const placeholder={undefined}
+const placeholder = { undefined }
 // Define types for the props of the Card component
 
 interface CardProps {
-  task: IUser;
-  index: number;
+    task: IUser;
+    index: number;
 }
 
 const Card: React.FC<CardProps> = ({ task, index }) => {
@@ -68,6 +70,7 @@ const Card: React.FC<CardProps> = ({ task, index }) => {
                     isBacklog={false}
                 >
                     <div style={{ display: "flex", justifyContent: "center", padding: 10 }}>
+                        {getRoleIcon(task.role)}
                         <TextContent>{task.username}</TextContent>
                     </div>
                 </Container>

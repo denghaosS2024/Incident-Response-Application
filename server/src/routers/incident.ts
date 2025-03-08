@@ -230,3 +230,36 @@ export default Router()
             response.status(400).json({ message: error.message })
         }
     })
+
+    /**
+     * @swagger
+     * /api/incidents:
+     *   get:
+     *     summary: Get all incidents
+     *     tags: [Incidents]
+     *     responses:
+     *       200:
+     *         description: incidents found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Incident'
+     *       404:
+     *         description: No incidents in the system
+     *       500:
+     *         description: Internal server error (e.g. database error)
+     */
+    .get('/', async (_, response) => {
+        try {
+            const result = await IncidentController.getAllIncidents()
+            // if result is empty, return 404
+            if (result.length === 0) {
+                response.status(404).json({ message: 'No incidents in the system' })
+                return
+            }
+            response.json(result)
+        } catch (e) {
+            const error = e as Error
+            response.status(500).json({ message: error.message })
+        }
+    })

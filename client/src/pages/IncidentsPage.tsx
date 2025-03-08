@@ -3,56 +3,57 @@ import { Box, FormControl, IconButton, InputLabel, Menu, MenuItem, Select, Typog
 import React, { useState, useEffect } from 'react';
 import { Add, NavigateNext as Arrow, Settings } from '@mui/icons-material';
 import { IncidentType } from '../models/Incident';
+import request, { IRequestError } from '../utils/request'
 
 interface IncidentData {
-    id: string;
-    openDate: string;
+    incidentId: string;
+    openingDate: string;
     type: string;
     priority: string;
-    state: string;
+    incidentState: string;
     owner: string;
     commander: string;
   }
 
 // ✅ Temporary Hardcoded JSON Data
-const TEMP_INCIDENTS: IncidentData[] = [
-  {
-    id: "IZoe",
-    openDate: "10-12-24 7:25",
-    type: "F",
-    priority: "E",
-    state: "Waiting",
-    owner: "John Doe",
-    commander: "paul",
-  },
-  {
-    id: "IZoe1",
-    openDate: "10-12-24 7:25",
-    type: "F",
-    priority: "E",
-    state: "Triage",
-    owner: "John Doe",
-    commander: "notme",
-  },
-  {
-    id: "IZoe2",
-    openDate: "10-12-24 7:25",
-    type: "F",
-    priority: "E",
-    state: "Assigned",
-    owner: "John Doe",
-    commander: "notme",
-  },
-  {
-    id: "IZoe3",
-    openDate: "10-12-24 7:25",
-    type: "F",
-    priority: "E",
-    state: "Closed",
-    owner: "John Doe",
-    commander: "notme",
-  }
-];
+// const TEMP_INCIDENTS: IncidentData[] = [
+//   {
+//     id: "IZoe",
+//     openDate: "10-12-24 7:25",
+//     type: "F",
+//     priority: "E",
+//     state: "Waiting",
+//     owner: "John Doe",
+//     commander: "paul",
+//   },
+//   {
+//     id: "IZoe1",
+//     openDate: "10-12-24 7:25",
+//     type: "F",
+//     priority: "E",
+//     state: "Triage",
+//     owner: "John Doe",
+//     commander: "notme",
+//   },
+//   {
+//     id: "IZoe2",
+//     openDate: "10-12-24 7:25",
+//     type: "F",
+//     priority: "E",
+//     state: "Assigned",
+//     owner: "John Doe",
+//     commander: "notme",
+//   },
+//   {
+//     id: "IZoe3",
+//     openDate: "10-12-24 7:25",
+//     type: "F",
+//     priority: "E",
+//     state: "Closed",
+//     owner: "John Doe",
+//     commander: "notme",
+//   }
+// ];
 const INCIDENT_STATES = ['Waiting', 'Triage', 'Assigned', 'Closed'];
 
 function IncidentsPage() {
@@ -77,16 +78,11 @@ function IncidentsPage() {
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      let endpoint = '';
-      if (role === 'Police') {
-        endpoint = '/api/admin/data';
-      } else if (role === 'user') {
-        endpoint = '/api/user/data';
-      } else {
-        endpoint = '/api/guest/data';
-      }
+      let endpoint = '/api/incidents';
 
       try {
+        // Fetch data from the server
+        const data = await request(endpoint);
         // const response = await fetch(endpoint);
         // if (!response.ok) {
         //   throw new Error(`Failed to fetch data: ${response.statusText}`);
@@ -96,7 +92,7 @@ function IncidentsPage() {
         // const module = await import('./dummy.json');
         // const jsonData = module.default;
         // console.log(jsonData);
-        setData(TEMP_INCIDENTS);
+        setData(data);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -131,15 +127,15 @@ function IncidentsPage() {
   if (role === 'Fire' || role === 'Police') {
     incidentGroups = {
       "My Incident": filteredData.filter((incident : IncidentData) => incident.commander === userId),
-      "Other Open Incidents": filteredData.filter((incident : IncidentData) => incident.commander !== userId && incident.state !== "Closed"),
-      "Closed Incidents": filteredData.filter((incident : IncidentData) => incident.state === "Closed"),
+      "Other Open Incidents": filteredData.filter((incident : IncidentData) => incident.commander !== userId && incident.incidentState !== "Closed"),
+      "Closed Incidents": filteredData.filter((incident : IncidentData) => incident.incidentState === "Closed"),
     };
   } else {
     incidentGroups = {
-      "Waiting": filteredData.filter(incident => incident.state === "Waiting"),
-      "Triage": filteredData.filter(incident => incident.state === "Triage"),
-      "Assigned": filteredData.filter(incident => incident.state === "Assigned"),
-      "Closed": filteredData.filter(incident => incident.state === "Closed"),
+      "Waiting": filteredData.filter(incident => incident.incidentState === "Waiting"),
+      "Triage": filteredData.filter(incident => incident.incidentState === "Triage"),
+      "Assigned": filteredData.filter(incident => incident.incidentState === "Assigned"),
+      "Closed": filteredData.filter(incident => incident.incidentState === "Closed"),
     };
   }
 
@@ -155,12 +151,12 @@ function IncidentsPage() {
           listProps={{
             items: incidents,
             loading: false,
-            getKey: (incident) => incident.id,
+            getKey: (incident) => incident.incidentId,
             renderItem: (incident) => (
               <Box sx={{ display: 'flex', alignItems: 'center', padding: 1 }}>
                 <Box sx={{ flex: 3, display: 'flex', flexDirection: 'row' }}>
-                  <Typography variant="body2" sx={{ flex: 1 }}>{incident.id}</Typography>
-                  <Typography variant="body2" sx={{ flex: 1 }}>{incident.openDate}</Typography>
+                  <Typography variant="body2" sx={{ flex: 1 }}>{incident.incidentId}</Typography>
+                  <Typography variant="body2" sx={{ flex: 1 }}>{incident.openingDate}</Typography>
                 </Box>
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', justifyContent: 'flex-end' }}>
                   <Typography variant="body2" sx={{ marginRight: 1 }}>{incident.type}</Typography>

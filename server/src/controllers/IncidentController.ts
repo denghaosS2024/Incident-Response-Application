@@ -147,6 +147,14 @@ class IncidentController {
         }
     }
     
+    /**
+     * Get all incidents
+     * @returns All incidents
+     */
+    async getAllIncidents(): Promise<IIncident[]> {
+        return Incident.find().exec()
+    }
+
 }
 
 export default new IncidentController()
