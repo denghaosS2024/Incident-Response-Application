@@ -225,7 +225,7 @@ const MapLayer: React.FC = () => {
           bottom: 0,
         }}
       >
-        <Map showMarker={is911Page} />
+        <Map />
       </div>
     </div>
   );
