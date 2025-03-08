@@ -6,14 +6,14 @@ import { IncidentType } from '../models/Incident';
 import request, { IRequestError } from '../utils/request'
 
 interface IncidentData {
-    incidentId: string;
-    openingDate: string;
-    type: string;
-    priority: string;
-    incidentState: string;
-    owner: string;
-    commander: string;
-  }
+  incidentId: string;
+  openingDate: string;
+  type: string;
+  priority: string;
+  incidentState: string;
+  owner: string;
+  commander: string;
+}
 
 // ✅ Temporary Hardcoded JSON Data
 // const TEMP_INCIDENTS: IncidentData[] = [
@@ -78,7 +78,7 @@ function IncidentsPage() {
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      let endpoint = '/api/incidents';
+      const endpoint = '/api/incidents';
 
       try {
         // Fetch data from the server
@@ -126,9 +126,9 @@ function IncidentsPage() {
 
   if (role === 'Fire' || role === 'Police') {
     incidentGroups = {
-      "My Incident": filteredData.filter((incident : IncidentData) => incident.commander === userId),
-      "Other Open Incidents": filteredData.filter((incident : IncidentData) => incident.commander !== userId && incident.incidentState !== "Closed"),
-      "Closed Incidents": filteredData.filter((incident : IncidentData) => incident.incidentState === "Closed"),
+      "My Incident": filteredData.filter((incident: IncidentData) => incident.commander === userId),
+      "Other Open Incidents": filteredData.filter((incident: IncidentData) => incident.commander !== userId && incident.incidentState !== "Closed"),
+      "Closed Incidents": filteredData.filter((incident: IncidentData) => incident.incidentState === "Closed"),
     };
   } else {
     incidentGroups = {
@@ -142,7 +142,7 @@ function IncidentsPage() {
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h4" gutterBottom>
-        Incidents Dashboard 
+        Incidents Dashboard
       </Typography>
       {Object.entries(incidentGroups).map(([header, incidents]) => (
         <GenericListContainer<IncidentData>
@@ -205,10 +205,10 @@ function IncidentsPage() {
             </MenuItem>
           </Menu>
           <IconButton
-          sx={{ position: 'fixed', bottom: 16, right: 16, width: 56, height: 56 }}
-        >
-          <Add fontSize="large" />
-        </IconButton>
+            sx={{ position: 'fixed', bottom: 16, right: 16, width: 56, height: 56 }}
+          >
+            <Add fontSize="large" />
+          </IconButton>
         </>
       ) : null}
     </Box>
