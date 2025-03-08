@@ -16,7 +16,6 @@ import ReportProblem from '@mui/icons-material/ReportProblem';
 import LocalTaxi from '@mui/icons-material/LocalTaxi';
 import LocalFireDepartment from '@mui/icons-material/LocalFireDepartment';
 import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
-import Map from './Mapbox';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { loadContacts } from '../../features/contactSlice';
@@ -24,7 +23,7 @@ import { AppDispatch } from '@/app/store';
 import { RootState } from '@/utils/types';
 import IUser from '../../models/User';
 import styles from '../../styles/MapLayer.module.css';
-import { getRoleIcon } from '../common/RoleIcon';
+import getRoleIcon from '../common/RoleIcon';
 
 const MapLayer: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(2);
@@ -39,6 +38,28 @@ const MapLayer: React.FC = () => {
   const { contacts, loading } = useSelector((state: RootState) => state.contactState);
   const currentUserId = localStorage.getItem('uid');
   const users = contacts.filter((user: IUser) => user._id !== currentUserId);
+
+  const currentUserRole = localStorage.getItem('role') || 'Citizen';
+  console.log(`Current user role: ${currentUserRole}`);
+  const normalizedRole = currentUserRole.toLowerCase();
+  let roleKey = 'Citizen';
+  if (normalizedRole.includes('admin')) {
+    roleKey = 'Administrator';
+  } else if (normalizedRole.includes('nurse')) {
+    roleKey = 'Nurse';
+  } else if (normalizedRole.includes('fire')) {
+    roleKey = 'Fire';
+  }
+
+  const roleUtilMapping: Record<string, string[]> = {
+    Citizen: ['Areas', 'Hospitals', 'Pins', 'Pollution'],
+    Fire: ['Areas', 'Blocks', 'Cars', 'Hospitals', 'Hydrants', 'Incidents', 'Pins', 'Pollution', 'SAR', 'Trucks'],
+    Nurse: ['Areas', 'Hospitals', 'Incidents', 'Pins', 'Pollution', 'Trucks'],
+    Administrator: ['Areas', 'Blocks', 'Cars', 'Hospitals', 'Hydrants', 'Incidents', 'Pins', 'Pollution', 'SAR', 'Trucks'],
+  };
+
+  const utilLayers = roleUtilMapping[roleKey] || [];
+  const sortedUtilLayers = [...utilLayers].sort();
 
   // Get navbar and tabbar heights, and set page mode.
   useEffect(() => {
@@ -56,8 +77,8 @@ const MapLayer: React.FC = () => {
   }, [dispatch]);
 
   const handleListItemClick = (event: React.MouseEvent<HTMLDivElement>, index: number) => {
-    if (index === 2) {
-      setSelectedIndex(selectedIndex === 2 ? null : 2);
+    if (selectedIndex === index) {
+      setSelectedIndex(null);
     } else {
       setSelectedIndex(index);
     }
@@ -66,6 +87,11 @@ const MapLayer: React.FC = () => {
   // TODO: Handle contact click for future implementation.
   const handleContactClick = (userId: string) => {
     console.log(`Contact clicked: ${userId}`);
+  };
+
+  // TODO: Handle util layer click for future implementation.
+  const handleUtilLayerClick = (layer: string) => {
+    console.log(`Util layer clicked: ${layer}`);
   };
 
 
@@ -103,57 +129,61 @@ const MapLayer: React.FC = () => {
         className={`${styles.levitatingList} ${!isVisible ? styles.hidden : ''}`}
         style={menuStyle}
       >
-        <List component="nav" aria-label="map layer selection">
+        <List component="nav" aria-label="map layer selection" dense>
           {/* Group */}
-          <ListItemButton
-            onClick={(e) => handleListItemClick(e, 0)}
-          >
+          <ListItemButton dense onClick={(e) => handleListItemClick(e, 0)}>
             <ListItemIcon>
-              <GroupIcon />
+              <GroupIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Group" sx={{ color: 'black' }} />
+            <ListItemText primary="Group" sx={{ color: 'black', fontSize: '0.875rem' }} />
           </ListItemButton>
 
           {/* Util */}
-          <ListItemButton
-            onClick={(e) => handleListItemClick(e, 1)}
-          >
+          <ListItemButton dense onClick={(e) => handleListItemClick(e, 1)}>
             <ListItemIcon>
-              <BuildIcon />
+              <BuildIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Util" sx={{ color: 'black' }} />
+            <ListItemText primary="Util" sx={{ color: 'black', fontSize: '0.875rem' }} />
           </ListItemButton>
 
+          {/* Inline util layers dropdown with extra top margin */}
+          {selectedIndex === 1 && (
+            <Box sx={{ mt: 1, ml: 2 }}>
+              <List dense>
+                {sortedUtilLayers.map((layer) => (
+                  <ListItemButton dense key={layer} onClick={() => handleUtilLayerClick(layer)}>
+                    <ListItemText primary={layer} sx={{ fontSize: '0.875rem' }} />
+                  </ListItemButton>
+                ))}
+              </List>
+            </Box>
+          )}
+
           {/* Contacts */}
-          <ListItemButton
-            onClick={(e) => handleListItemClick(e, 2)}
-          >
+          <ListItemButton dense onClick={(e) => handleListItemClick(e, 2)}>
             <ListItemIcon>
-              <ContactsIcon />
+              <ContactsIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Contacts" sx={{ color: 'black' }} />
+            <ListItemText primary="Contacts" sx={{ color: 'black', fontSize: '0.875rem' }} />
           </ListItemButton>
 
           {/* Inline contacts dropdown */}
           {selectedIndex === 2 && (
-            <Box>
-              <List>
+            <Box sx={{ ml: 2 }}>
+              <List dense>
                 {loading ? (
                   <ListItem>
-                    <ListItemText primary="Loading..." />
+                    <ListItemText primary="Loading..." sx={{ fontSize: '0.875rem' }} />
                   </ListItem>
                 ) : users.length === 0 ? (
                   <ListItem>
-                    <ListItemText primary="No contacts" />
+                    <ListItemText primary="No contacts" sx={{ fontSize: '0.875rem' }} />
                   </ListItem>
                 ) : (
                   users.map((user: IUser) => (
-                    <ListItemButton
-                      key={user._id}
-                      onClick={() => handleContactClick(user._id)}
-                    >
+                    <ListItemButton dense key={user._id} onClick={() => handleContactClick(user._id)}>
                       <ListItemIcon>{getRoleIcon(user.role)}</ListItemIcon>
-                      <ListItemText primary={user.username} />
+                      <ListItemText primary={user.username} sx={{ fontSize: '0.875rem' }} />
                     </ListItemButton>
                   ))
                 )}
@@ -162,13 +192,11 @@ const MapLayer: React.FC = () => {
           )}
 
           {/* You */}
-          <ListItemButton
-            onClick={(e) => handleListItemClick(e, 3)}
-          >
+          <ListItemButton dense onClick={(e) => handleListItemClick(e, 3)}>
             <ListItemIcon>
-              <PersonIcon />
+              <PersonIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="You" sx={{ color: 'black' }} />
+            <ListItemText primary="You" sx={{ color: 'black', fontSize: '0.875rem' }} />
           </ListItemButton>
         </List>
       </Box>
@@ -178,9 +206,8 @@ const MapLayer: React.FC = () => {
         onClick={toggleVisibility}
         sx={toggleButtonStyle}
       >
-        {isVisible ? <RemoveIcon /> : <AddIcon />}
+        {isVisible ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
       </IconButton>
-
     </div>
   );
 };
