@@ -26,6 +26,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
   // State to track map loading and errors
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [isMapPage, setIsMapPage] = useState<boolean>(false);
 
   const dispatch = useDispatch<AppDispatch>();
   const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident);
@@ -36,6 +37,12 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
 
   // State for the location of the pin
   const [pinLocation, setPinLocation] = useState<{ lng: number; lat: number; address?: string } | null>(null);
+
+  // Check if we're on the /map page
+  useEffect(() => {
+    const path = window.location.pathname;
+    setIsMapPage(path === '/map');
+  }, []);
 
 // -------------------------------- helper function start --------------------------------
 
@@ -86,7 +93,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
         console.error('Mapbox error:', e);
         setMapError('Failed to load map');
       });
-      // Add geolocate control to allow tracking the user’s location (only if not disabled)
+      // Add geolocate control to allow tracking the user's location (only if not disabled)
       let geolocateControl: mapboxgl.GeolocateControl | null = null;
       if (!disableGeolocation) {
         geolocateControl = new mapboxgl.GeolocateControl({
@@ -341,12 +348,14 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
           boxSizing: 'border-box'
         }} 
       />
-      <MapDrop
-        onDropPin={handleAddPin}
-        onDropRoadblock={handleAddPin}
-        onDropFireHydrant={handleAddPin}
-        onDropAirQuality={handleAddPin}
-      />
+      {isMapPage && (
+        <MapDrop
+          onDropPin={handleAddPin}
+          onDropRoadblock={handleAddPin}
+          onDropFireHydrant={handleAddPin}
+          onDropAirQuality={handleAddPin}
+        />
+      )}
       {!isMapLoaded && <MapLoading />}
     </div>
   );
