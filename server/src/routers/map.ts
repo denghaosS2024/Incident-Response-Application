@@ -68,13 +68,13 @@ export default Router()
 
   /**
    * Update the description of a MapMarker
-   * @route PATCH /api/map/:id/description
+   * @route PATCH /api/map/:id
    * @param {string} request.params.id - The ID of the marker to update
    * @param {string} request.body.description - The new description
    * @returns {Object} The updated MapMarker object
    * @throws {400} If the marker is not found or update fails
    */
-  .patch('/:id/description', async (request, response) => {
+  .patch('/:id', async (request, response) => {
     const { id } = request.params;
     const { description } = request.body;
     
