@@ -146,7 +146,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
     <Box sx={{
       border: '1px solid #e0e0e0',
       borderRadius: '4px',
-      width: "95%",
+      width: "100%",
       mx: "auto"
     }}>
       <List>
@@ -206,7 +206,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               label="Closed"
             />
           </Box>
-          <Board setUsers={setUsers} setGroupName={setGroupName} setDescription={setDescription} resetBoard={channelProps.resetBoard}/>
+          <Board setUsers={setUsers} setGroupName={setGroupName} setDescription={setDescription} resetBoard={channelProps.resetBoard} />
           <Box display="flex" justifyContent="center" mt={2}>
             <Button
               variant="contained"

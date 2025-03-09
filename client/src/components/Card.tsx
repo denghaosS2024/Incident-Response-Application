@@ -9,9 +9,9 @@ export const Draggable = Draggable1 as React.ComponentClass<DraggableProps>;
 
 // Container styled component with TypeScript types for props
 interface ContainerProps {
-    isDragging: boolean;
-    isDraggable: boolean;
-    isBacklog: boolean;
+    $isDragging: boolean;
+    $isDraggable: boolean;
+    $isBacklog: boolean;
 }
 
 const Container = styled.div<ContainerProps>`
@@ -39,13 +39,13 @@ const Icons = styled.div`
 `;
 
 function bgcolorChange(props: ContainerProps): string {
-    return props.isDragging
+    return props.$isDragging
         ? "lightgreen"
-        : props.isDraggable
-            ? props.isBacklog
+        : props.$isDraggable
+            ? props.$isBacklog
                 ? "#F2D7D5"
                 : "#DCDCDC"
-            : props.isBacklog
+            : props.$isBacklog
                 ? "#F2D7D5"
                 : "#EAF4FC";
 }
@@ -65,9 +65,9 @@ const Card: React.FC<CardProps> = ({ task, index }) => {
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                     ref={provided.innerRef}
-                    isDragging={snapshot.isDragging}
-                    isDraggable={true}
-                    isBacklog={false}
+                    $isDragging={snapshot.isDragging}
+                    $isDraggable={true}
+                    $isBacklog={false}
                 >
                     <div style={{ display: "flex", justifyContent: "center", padding: 10 }}>
                         {getRoleIcon(task.role)}
