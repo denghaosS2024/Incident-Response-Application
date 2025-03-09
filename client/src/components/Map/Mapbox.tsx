@@ -11,6 +11,11 @@ import IIncident from '../../models/Incident';
 import { Alert, Box, Typography } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MapDrop from './MapDrop';
+import ReactDOMServer from 'react-dom/server'; 
+import PushPinIcon from '@mui/icons-material/PushPin';
+import CloudIcon from '@mui/icons-material/Cloud';
+import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt';
+import BlockIcon from '@mui/icons-material/Block';
 
 interface MapboxProps {
     showMarker?: boolean;
@@ -126,6 +131,42 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
     }
   };
 
+  const createCustomMarker = (type: string): HTMLElement => {
+    const markerElement = document.createElement("div");
+    markerElement.style.width = "32px";
+    markerElement.style.height = "32px";
+    markerElement.style.display = "flex";
+    markerElement.style.alignItems = "center";
+    markerElement.style.justifyContent = "center";
+    markerElement.style.borderRadius = "50%";
+    markerElement.style.backgroundColor = "white";
+    markerElement.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
+    
+    // Choose the correct Material UI icon
+    let iconComponent;
+    switch (type) {
+      case "pin":
+        iconComponent = <PushPinIcon style={{ color: "red" }} />;
+        break;
+      case "roadblock":
+        iconComponent = <BlockIcon style={{ color: "black" }} />;
+        break;
+      case "fireHydrant":
+        iconComponent = <FireHydrantAltIcon style={{ color: "blue" }} />;
+        break;
+      case "airQuality":
+        iconComponent = <CloudIcon style={{ color: "gray" }} />;
+        break;
+      default:
+        iconComponent = <PushPinIcon style={{ color: "red" }} />;
+    }
+  
+    // Convert the React component into a string and insert into the marker
+    markerElement.innerHTML = ReactDOMServer.renderToString(iconComponent);
+    
+    return markerElement;
+  };
+
   // fetch and render markers from backend
   const fetchAndRenderMarkers = async () => {
     try {
@@ -147,7 +188,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
         const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
   
         // Create marker
-        const marker = new mapboxgl.Marker({ draggable: false })
+        const marker = new mapboxgl.Marker({element: createCustomMarker(item.type), draggable: false })
           .setLngLat([item.longitude, item.latitude])
           .setPopup(popup)
           .addTo(mapRef.current!);
@@ -288,7 +329,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
       const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
     
       // Create marker (draggable initially)
-      const marker = new mapboxgl.Marker({ draggable: true })
+      const marker = new mapboxgl.Marker({element: createCustomMarker(type), draggable: true })
         .setLngLat(initialLngLat)
         .setPopup(popup)
         .addTo(mapRef.current!);
