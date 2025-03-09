@@ -6,17 +6,16 @@ import { loadContacts, loadMockContacts } from "../features/contactSlice";
 import { AppDispatch } from "../app/store";
 import { RootState } from "../utils/types";
 import IUser from '@/models/User'
+import IChannel from "@/models/Channel";
 
 export default function Board({
     setUsers,
     onGroupClick,
     resetBoard,
-    setCurrentGroup
 }: {
     setUsers: (users: string[]) => void;
-    onGroupClick: (name: string, description: string, closed: boolean) => void;  // update parent component on click
+    onGroupClick: (group: IChannel) => void;  // update parent component on click
     resetBoard: () => void;
-    setCurrentGroup: (group: any | null) => void;
 }) {
     const [done, setDone] = useState<IUser[]>([]);
     const dispatch = useDispatch<AppDispatch>();
@@ -99,8 +98,7 @@ export default function Board({
     const handleGroupClick = (groupId: string) => {
         const group = groups.find(group => group._id === groupId); // Find the selected group
         if (group) {
-            onGroupClick(group.name, group.description, group.closed);
-            setCurrentGroup(group);
+            onGroupClick(group);
 
             const groupUsers = group.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))

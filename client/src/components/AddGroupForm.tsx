@@ -143,10 +143,12 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
     setShowForm(true)
   }
 
-  const handleGroupClickInBoard = (name: string, description: string, closed: boolean) => {
-    setGroupName(name);
-    setDescription(description || '');
-    setIsClosed(closed || false);
+  const handleGroupClickInBoard = (group: IChannel) => {
+    channelProps.setCurrentGroup(group)
+
+    setGroupName(group.name)
+    setDescription(group.description || '')
+    setIsClosed(group.closed || false)
   }
 
   return (
@@ -215,8 +217,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
           </Box>
           <Board setUsers={setUsers}
             onGroupClick={handleGroupClickInBoard}
-            resetBoard={channelProps.resetBoard}
-            setCurrentGroup={channelProps.setCurrentGroup} />
+            resetBoard={channelProps.resetBoard} />
           <Box display="flex" justifyContent="center" mt={2}>
             <Button
               variant="contained"
