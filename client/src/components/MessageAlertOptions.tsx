@@ -19,14 +19,14 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
     currentUserRole,
   }) => {
     const socket = SocketClient
-    const [maydayOpen, setMaydayOpen] = useState<boolean>(false);
+    // const [maydayOpen, setMaydayOpen] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     // TODO: Implement the logic to check if the current user is the incident commander or first responder
     // const isIncidentCommander = false
 
     // hardcode for test purpose
     let isIncidentCommander = false
-    if (currentUserId === '67cb7f30340c8e8937d2a913') {
+    if (currentUserId === '67bf9eeb085916ac1cd7afff') {
       isIncidentCommander = true;
     }
     // const isFirstResponder = true;
@@ -37,23 +37,23 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
       setOpenAlertPanel(true);
     }
 
-    useEffect(() => {
-      const handleMaydayReceived = (data: any) => {
-        console.log('Mayday received:', data);
-        // Check if the received Mayday is for this channel and from another user
-        if (data.senderId !== currentUserId) {
-          setMaydayOpen(true);
-        }
-      };
+    // useEffect(() => {
+    //   const handleMaydayReceived = (data: any) => {
+    //     console.log('Mayday received:', data);
+    //     // Check if the received Mayday is for this channel and from another user
+    //     if (data.senderId !== currentUserId) {
+    //       setMaydayOpen(true);
+    //     }
+    //   };
     
-      socket.connect();
-      socket.on('send-mayday', handleMaydayReceived);
+    //   socket.connect();
+    //   socket.on('send-mayday', handleMaydayReceived);
 
-      return () => {
-        socket.off('send-mayday');
-      };
+    //   return () => {
+    //     socket.off('send-mayday');
+    //   };
 
-    }, [currentUserId]);
+    // }, [currentUserId]);
   
     const handleMenuClose = () => {
       setAnchorEl(null)
@@ -70,22 +70,22 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
     //   setMaydayOpen(false);
     // };
 
-    const lastTap = useRef<number | null>(null);
+    // const lastTap = useRef<number | null>(null);
 
-    const handleDoubleTapDismiss = () => {
-        const now = Date.now();
-        if (lastTap.current && now - lastTap.current < 300) {
-            setMaydayOpen(false);
-            socket.emit('acknowledge-alert', { senderId: currentUserId, type: 'mayday', timestamp: now });
-        }
-        lastTap.current = now;
-    };
+    // const handleDoubleTapDismiss = () => {
+    //     const now = Date.now();
+    //     if (lastTap.current && now - lastTap.current < 300) {
+    //         setMaydayOpen(false);
+    //         socket.emit('acknowledge-alert', { senderId: currentUserId, type: 'mayday', timestamp: now });
+    //     }
+    //     lastTap.current = now;
+    // };
 
-    const flash = keyframes`
-        0% { background-color: red; }
-        50% { background-color: black; }
-        100% { background-color: red; }
-    `;
+    // const flash = keyframes`
+    //     0% { background-color: red; }
+    //     50% { background-color: black; }
+    //     100% { background-color: red; }
+    // `;
     
     return (
       <>
@@ -124,7 +124,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
           </IconButton>
         )}
 
-        <Modal open={maydayOpen}>
+        {/* <Modal open={maydayOpen}>
           <Box
               onClick={handleDoubleTapDismiss}
               sx={{
@@ -144,7 +144,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
                 MAYDAY
             </Typography>
           </Box>
-        </Modal>
+        </Modal> */}
       </>
     );
   }
