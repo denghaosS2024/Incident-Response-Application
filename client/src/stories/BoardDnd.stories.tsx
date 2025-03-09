@@ -35,7 +35,7 @@ const Template: Story = (args) => {
   return (
     <Board
       setUsers={setUsers}
-      onGroupClick={() => {}}
+      onGroupClick={(c) => {}}
       resetBoard={resetBoardState}  // Pass the mock function here
       {...args}
     />
