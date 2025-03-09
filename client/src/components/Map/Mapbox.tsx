@@ -133,40 +133,38 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
 
   const createCustomMarker = (type: string): HTMLElement => {
     const markerElement = document.createElement("div");
-    markerElement.style.width = "32px";
-    markerElement.style.height = "32px";
+  
+    // Remove background styles, only render the icon
+    markerElement.style.width = "auto";
+    markerElement.style.height = "auto";
     markerElement.style.display = "flex";
     markerElement.style.alignItems = "center";
     markerElement.style.justifyContent = "center";
-    markerElement.style.borderRadius = "50%";
-    markerElement.style.backgroundColor = "white";
-    markerElement.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
-    
+  
     // Choose the correct Material UI icon
     let iconComponent;
     switch (type) {
       case "pin":
-        iconComponent = <PushPinIcon style={{ color: "red" }} />;
+        iconComponent = <PushPinIcon style={{color: "gray", fontSize: "32px" , opacity: "80%"}} />;
         break;
       case "roadblock":
-        iconComponent = <BlockIcon style={{ color: "black" }} />;
+        iconComponent = <BlockIcon style={{ color: "gray", fontSize: "32px" , opacity: "80%" }} />;
         break;
       case "fireHydrant":
-        iconComponent = <FireHydrantAltIcon style={{ color: "blue" }} />;
+        iconComponent = <FireHydrantAltIcon style={{ color: "gray", fontSize: "32px" , opacity: "80%"}} />;
         break;
       case "airQuality":
-        iconComponent = <CloudIcon style={{ color: "gray" }} />;
+        iconComponent = <CloudIcon style={{ color: "gray", fontSize: "32px" , opacity: "80%" }} />;
         break;
       default:
-        iconComponent = <PushPinIcon style={{ color: "red" }} />;
+        iconComponent = <PushPinIcon style={{ color: "gray", fontSize: "32px" , opacity: "80%" }} />;
     }
   
     // Convert the React component into a string and insert into the marker
     markerElement.innerHTML = ReactDOMServer.renderToString(iconComponent);
-    
+  
     return markerElement;
   };
-
   // fetch and render markers from backend
   const fetchAndRenderMarkers = async () => {
     try {
