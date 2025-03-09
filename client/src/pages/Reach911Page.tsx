@@ -15,6 +15,7 @@ import IIncident from '../models/Incident';
 import { updateIncident } from '../features/incidentSlice';
 import { AppDispatch } from '../app/store';
 import { useLocation } from 'react-router-dom';
+import request, { IRequestError } from '../utils/request';
 
 
 const Reach911Page: React.FC = () => {
@@ -28,7 +29,7 @@ const Reach911Page: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const location = useLocation();
-    const { incidentId, isCreatedByFirstResponder } = location.state || {};
+    const { incidentId, isCreatedByFirstResponder, autoPopulateData, readOnly } = location.state || {};
     const role = localStorage.getItem('role')
 
     // Get the current user's username when component mounts
@@ -42,6 +43,27 @@ const Reach911Page: React.FC = () => {
             }));
         }
     }, [dispatch]);
+
+    // If autoPopulateData is true and incidentId is provided, fetch incident details and update Redux state.
+    // autoPopulateData will be true when this page is navigated from the incidentsPage to view further incident details
+    useEffect(() => {
+        const fetchIncidentAndPopulate = async (id: string) => {
+            try {
+                const data = await request(`/api/incidents?incidentId=${id}`);
+                if (Array.isArray(data) && data.length > 0) {
+                    const fetchedIncident = data[0];
+                    dispatch(updateIncident(fetchedIncident));
+                } else {
+                    console.error("No incident found for incidentId:", id);
+                }
+            } catch (err) {
+                console.error("Error fetching incident details:", err);
+            }
+        };
+        if (autoPopulateData && incidentId) {
+            fetchIncidentAndPopulate(incidentId);
+        }
+    }, [autoPopulateData, incidentId, dispatch]);
 
     // Save step to localStorage whenever it changes
     useEffect(() => {

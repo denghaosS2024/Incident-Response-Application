@@ -196,6 +196,21 @@ function IncidentsPage() {
       incident.incidentState !== 'Closed'
   );
 
+  const handleIncidentClick = (incident: IncidentData) => {
+    let readOnly = false;
+    if ( incident.incidentState === "Closed" || (incident.commander !== userId && incident.owner !== userId)) {
+      readOnly = true;
+    }
+
+    const autoPopulateData = true;
+  
+    navigate("/reach911", {
+      state: {
+        incidentId: incident.incidentId, readOnly, autoPopulateData
+      }
+    });
+  };
+
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h4" gutterBottom>
@@ -219,7 +234,7 @@ function IncidentsPage() {
                   <Typography variant="body2" sx={{ marginRight: 1 }}>{incident.type}</Typography>
                   <Typography variant="body2">{incident.priority}</Typography>
                 </Box>
-                <IconButton edge="end" size="large">
+                <IconButton edge="end" size="large" onClick={() => handleIncidentClick(incident)}>
                   <Arrow />
                 </IconButton>
               </Box>
