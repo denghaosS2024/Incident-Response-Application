@@ -1,10 +1,10 @@
 import Paper from '@mui/material/Paper';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import MyLocationIcon from '@mui/icons-material/MyLocation';
-import LayersIcon from '@mui/icons-material/Layers';
-import PlaceIcon from '@mui/icons-material/Place';
-import MapIcon from '@mui/icons-material/Map';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import CloudIcon from '@mui/icons-material/Cloud';
+import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt';
+import BlockIcon from '@mui/icons-material/Block';
 import { useState } from 'react';
 
 interface MapDropProps {
@@ -45,22 +45,22 @@ const MapDrop: React.FC<MapDropProps> = ({ onDropPin, onDropRoadblock, onDropFir
         }}
       >
         <BottomNavigationAction
-          icon={<MyLocationIcon />}
+          icon={<PushPinIcon />}
           onClick={onDropPin}
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
         <BottomNavigationAction
-          icon={<LayersIcon />}
+          icon={<CloudIcon />}
           onClick={onDropRoadblock}
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
         <BottomNavigationAction
-          icon={<PlaceIcon />}
+          icon={<FireHydrantAltIcon />}
           onClick={onDropFireHydrant}
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
         <BottomNavigationAction
-          icon={<MapIcon />}
+          icon={<BlockIcon />}
           onClick={onDropAirQuality}
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
