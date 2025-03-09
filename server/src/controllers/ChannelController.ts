@@ -444,6 +444,70 @@ class ChannelController {
     }
   }
 
+  /**
+ * Update channel members
+ * @param channel - An object containing channel details to update
+ * @param channel._id - ID of the channel to update
+ * @param channel.userIds - Array of user IDs to be in the channel
+ * @returns The updated channel object
+ * @throws Error if the channel is not found
+ */
+  updateChannelMember = async (channel: {
+    _id: Types.ObjectId
+    name: string
+    userIds: Types.ObjectId[]
+    description?: string
+    ownerId?: Types.ObjectId
+    closed?: boolean
+  }) => {
+    console.log("Updating channel members:", channel._id.toString());
+
+    // Find the channel by ID
+    const existingChannel = await Channel.findById(channel._id).exec();
+
+    if (!existingChannel) {
+      throw new Error(`Channel(${channel._id.toString()}) not found.`);
+    }
+
+    // Remove duplicates and ensure order of user IDs
+    const userIds = Array.from(new Set(channel.userIds)).sort((a, b) =>
+      a.toString().localeCompare(b.toString()),
+    );
+
+    // Find all user objects
+    const users = await Promise.all(
+      userIds.map(async (id) => {
+        const user = await User.findById(id).exec();
+        if (!user) {
+          throw new Error(`User(${id.toString()}) not found.`);
+        }
+        return user;
+      })
+    );
+
+    // Only update the users field
+    existingChannel.users = users;
+
+    // Keep other properties the same
+    existingChannel.name = channel.name || existingChannel.name;
+    existingChannel.description = channel.description || existingChannel.description;
+    existingChannel.closed = channel.closed !== undefined ? channel.closed : existingChannel.closed;
+
+    // If owner is provided, update it
+    if (channel.ownerId) {
+      const newOwner = await User.findById(channel.ownerId).exec();
+      if (newOwner) {
+        existingChannel.owner = newOwner;
+      }
+    }
+
+    // Save the updated channel
+    const updatedChannel = await existingChannel.save();
+    console.log("Channel members updated successfully");
+
+    return updatedChannel;
+  }
+
 }
 
 export default new ChannelController()

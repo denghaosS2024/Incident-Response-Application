@@ -229,27 +229,44 @@ export default Router()
    * @throws {400} If trying to create a channel with the public channel name
    */
   .post('/', async (request, response) => {
-    const { name, users, description, owner, closed } = request.body as {
+    const { _id, name, users, description, owner, closed } = request.body as {
+      _id?: string
       name: string
       users: string[]
       description?: string
       owner?: string
       closed?: boolean
     }
-    try {
-      const channel = await ChannelController.create({
-        name,
-        userIds: users.map((userId) => new Types.ObjectId(userId)),
-        description: description,
-        ownerId: owner ? new Types.ObjectId(owner) : undefined,
-        closed: closed,
-      })
 
-      // TO-DO: HTTP code should be 201 for created in Restful
-      response.send(channel)
+    try {
+      let channel;
+      console.log(_id)
+
+      if (_id) {
+        // Update existing channel
+        channel = await ChannelController.updateChannelMember({
+          _id: new Types.ObjectId(_id),
+          name,
+          userIds: users.map((userId) => new Types.ObjectId(userId)),
+          description,
+          ownerId: owner ? new Types.ObjectId(owner) : undefined,
+          closed,
+        });
+      } else {
+        // Create new channel
+        channel = await ChannelController.create({
+          name,
+          userIds: users.map((userId) => new Types.ObjectId(userId)),
+          description,
+          ownerId: owner ? new Types.ObjectId(owner) : undefined,
+          closed,
+        });
+      }
+
+      response.send(channel);
     } catch (e) {
-      const error = e as Error
-      response.status(400).send({ message: error.message })
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
     }
   })
   /**

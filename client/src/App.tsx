@@ -74,7 +74,7 @@ interface IProps {
 const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   const dispatch = useDispatch<AppDispatch>()
   const isLoggedIn = localStorage.getItem('token') ? true : false
-  const role = localStorage.getItem('role')||'Citizen';
+  const role = localStorage.getItem('role') || 'Citizen';
   // Check if there are any unread messages
   const alerts = useSelector((state: RootState) => state.messageState.alerts)
   const hasUnreadMessages = Object.values(alerts).some((alert) => alert)
@@ -82,6 +82,8 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   const [alertMessage, setAlertMessage] = useState('')
   const [bgColor, setBgColor] = useState('black')
   const [textColor, setTextColor] = useState('white')
+  // check if there are any group notifications
+  const [hasGroupNotification, setHasGroupNotification] = useState(false);
 
   const tabLinks: Array<Link> = [
     { prefix: '/', key: 'home', icon: <Home />, to: '/' },
@@ -104,7 +106,19 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       icon: <PermContactCalendar />,
       to: '/contacts',
     },
-    { prefix: '/groups', key: 'groups', icon: <Groups2Icon />, to: '/groups' },
+    {
+      prefix: '/groups',
+      key: 'groups',
+      icon: hasGroupNotification ? (
+        <Groups2Icon style={{ color: 'red' }} />
+      ) : (
+        <Groups2Icon />
+      ),
+      to: '/groups',
+      onClick: () => {
+        setHasGroupNotification(false);
+      }
+    },
     {
       prefix: '/reach911',
       key: 'reach911',
@@ -121,19 +135,19 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     {
       prefix: '/police',
       key: 'ploice',
-      icon: <PoliceIcon  />,
+      icon: <PoliceIcon />,
       to: '/police',
     },
     {
       prefix: '/firefighter',
       key: 'firefighter',
-      icon: <FirefighterIcon  />,
+      icon: <FirefighterIcon />,
       to: '/firefighter',
     },
     {
       prefix: '/nurse',
       key: 'nurse',
-      icon: <NurseIcon  />,
+      icon: <NurseIcon />,
       to: '/nurse',
     },
   ]
@@ -141,12 +155,12 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     Dispatch: { prefix: '/', key: '911', icon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, to: '/' },
     Police: { prefix: '/', key: 'police', icon: <PoliceIcon />, to: '/' },
     Fire: { prefix: '/', key: 'fire', icon: <FirefighterIcon />, to: '/' },
-    Nurse: { prefix: '/', key: 'nurse', icon:<NurseIcon />, to: '/' },
+    Nurse: { prefix: '/', key: 'nurse', icon: <NurseIcon />, to: '/' },
   };
   const homeTab = roleTabs[role] || { prefix: '/', key: 'home', icon: <Home />, to: '/' };
   const orderedTabs = [
-    homeTab, 
-    ...tabLinks.filter((link) => link.key !== 'home'), 
+    homeTab,
+    ...tabLinks.filter((link) => link.key !== 'home'),
   ];
 
   // TODO: Does Admmin see everything? If so, we need to include admin here
@@ -186,7 +200,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   }
 
   const flash = useFlashAnimation(bgColor)
-  
+
   useEffect(() => {
     const socket = SocketClient
     socket.connect()
@@ -212,6 +226,12 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     socket.on('user-status-changed', () => {
       dispatch(loadContacts())
     })
+
+    socket.on('group-member-added', (data) => {
+      if (data.userId === localStorage.getItem('uid')) {
+        setHasGroupNotification(true);
+      }
+    });
     return () => {
       socket.close()
     }

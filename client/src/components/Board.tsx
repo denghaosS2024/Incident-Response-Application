@@ -8,15 +8,17 @@ import { RootState } from "../utils/types";
 import IUser from '@/models/User'
 
 export default function Board({ setUsers,
-    setGroupName, 
-    setDescription, 
-    resetBoard
-  }: {
+    setGroupName,
+    setDescription,
+    resetBoard,
+    setCurrentGroup
+}: {
     setUsers: (users: string[]) => void;
     setGroupName: (name: string) => void; // Declare setGroupName as a prop
     setDescription: (description: string) => void; // Declare setDescription as a prop
     resetBoard: () => void;
-  }) {
+    setCurrentGroup: (group: any | null) => void;
+}) {
     const [done, setDone] = useState<IUser[]>([]);
     const dispatch = useDispatch<AppDispatch>();
     const { contacts, loading, error } = useSelector((state: RootState) => state.contactState);
@@ -44,9 +46,9 @@ export default function Board({ setUsers,
         if (contacts.length > 0) {
             const filteredContacts = contacts.filter(contact => contact._id !== owner); // Remove the logged-in user
             setTodo(filteredContacts);
-        }        setDone([]); // Reset done array
-      }, [resetBoard]); // Ensure it's triggered when resetBoard changes
-    
+        } setDone([]); // Reset done array
+    }, [resetBoard]); // Ensure it's triggered when resetBoard changes
+
     useEffect(() => {
         // Fetch groups from API
         fetch("/api/channels")
@@ -101,27 +103,28 @@ export default function Board({ setUsers,
         if (group) {
             setGroupName(group.name); // Update group name
             setDescription(group.description || ''); // Update group description
+            setCurrentGroup(group);
 
             const groupUsers = group.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
                 .filter(Boolean) as IUser[]; // Filter out undefined values
-    
+
             // Create a new filtered array excluding the logged-in user
             const filteredGroupUsers = groupUsers.filter(user => user._id !== owner);
-    
+
             // Reset: Move all users from 'done' back to 'todo'
             setTodo(prevTodo => [...prevTodo, ...done]);
             setDone([]);
-    
+
             // Move the selected group's users to the 'done' column
             setTodo(prevTodo => prevTodo.filter(user => !filteredGroupUsers.some(groupUser => groupUser._id === user._id)));
             setDone(filteredGroupUsers);
         }
     };
-    
-    
-    
-    
+
+
+
+
 
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
