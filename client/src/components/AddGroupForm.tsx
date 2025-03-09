@@ -48,6 +48,7 @@ export interface IAddGroupFormProps {
   selectedUsers: string[]; // Accept users from "This Group"
   setSelectedUsers: (users: IUser[]) => void; // Add the setSelectedUsers function here
   deleteChannel: (channelName: string) => void
+  resetBoard: () => void; // Define resetBoard function prop
 }
 
 
@@ -63,19 +64,19 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const currentUsername = localStorage.getItem('username')
   const currentUserRole = localStorage.getItem('role')
 
-  
-  console.log('owner:', owner)
+
+  // console.log('owner:', owner)
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [users, setUsers] = useState<string[]>([owner])
 
-  
-  console.log('owner:', owner)
+
+  // console.log('owner:', owner)
 
   useEffect(() => {
-    setUsers((prev) => (prev.includes(owner) ? prev : [owner, ...prev])); 
+    setUsers((prev) => (prev.includes(owner) ? prev : [owner, ...prev]));
   }, [owner]); // Runs only when the owner changes
-  
-  
+
+
   const handleSubmit = () => {
     let hasError = false
 
@@ -96,6 +97,8 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
         closed,
       })
       resetForm()
+      channelProps.resetBoard();
+
     }
   }
 
@@ -140,11 +143,12 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   }
 
   return (
-    <Box sx={{ border: '1px solid #e0e0e0', 
-              borderRadius: '4px' , 
-              width: "95%",
-              mx: "auto" 
-              }}>
+    <Box sx={{
+      border: '1px solid #e0e0e0',
+      borderRadius: '4px',
+      width: "100%",
+      mx: "auto"
+    }}>
       <List>
         {tabs.map(({ text, link, icon }, index) => (
           <Fragment key={link}>
@@ -202,7 +206,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               label="Closed"
             />
           </Box>
-          <Board setUsers={setUsers} setGroupName={setGroupName} setDescription={setDescription}/>
+          <Board setUsers={setUsers} setGroupName={setGroupName} setDescription={setDescription} resetBoard={channelProps.resetBoard} />
           <Box display="flex" justifyContent="center" mt={2}>
             <Button
               variant="contained"

@@ -86,6 +86,7 @@ const FileUploadForm: React.FC<FileUploadFormProps> = ({onClose,channelId}) => {
               },
               body: JSON.stringify({
                 content: fileUrl,
+                isAlert: false,
               }),
             }
           );

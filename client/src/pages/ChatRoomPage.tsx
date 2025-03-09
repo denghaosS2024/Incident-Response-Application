@@ -30,7 +30,8 @@ const ChatRoomPage: React.FC = () => {
     const message = await request(`/api/channels/${channelId}/messages`, {
       method: 'POST',
       body: JSON.stringify({
-        content,
+        content: content,
+        isAlert: false,
       }),
     })
     dispatch(addMessage(message))

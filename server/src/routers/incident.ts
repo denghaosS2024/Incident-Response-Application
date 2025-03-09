@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { Types } from 'mongoose';
 
 import IncidentController from '../controllers/IncidentController';
+import type { IIncident } from '../models/Incident';
 /**
  * @swagger
  * components:
@@ -101,7 +102,7 @@ export default Router()
 
     // TODO: Sawgger documentation
     .post('/new', async (request, response) => {
-        const { incident } = request.body
+        const incident = request.body as IIncident ;
         console.log('Incident:', incident);
 
         try {
@@ -113,6 +114,37 @@ export default Router()
         }
     })
 
+    /**
+     * @swagger
+     * /api/incidents/update:
+     *   put:
+     *     summary: Update an existing incident
+     *     tags: [Incidents]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/Incident'
+     *     responses:
+     *       204:
+     *         description: Incident updated successfully (No Content)
+     *       400:
+     *         description: Bad request (Invalid data)
+     */
+    .put('/update', async (request, response) => {
+        const incidentData: IIncident = request.body;
+        console.log('Updating Incident Data:', incidentData);
+        try {
+            await IncidentController.updateIncident(incidentData);    
+            response.status(204).send();
+        } catch (e) {
+            const error = e as Error;
+            console.error('Error updating incident:', error);
+            response.status(400).send({ message: error.message });
+        }
+    })
+    
 
     /**
      * @swagger
@@ -148,7 +180,7 @@ export default Router()
             const error = e as Error
             response.status(500).json({ message: error.message })
         }
-    })
+    })    
 
     /**
      * @swagger
@@ -198,3 +230,47 @@ export default Router()
             response.status(400).json({ message: error.message })
         }
     })
+
+    /**
+     * @swagger
+     * /api/incidents:
+     *   get:
+     *     summary: Get all incidents
+     *     tags: [Incidents]
+     *     responses:
+     *       200:
+     *         description: incidents found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Incident'
+     *       404:
+     *         description: No incidents in the system
+     *       500:
+     *         description: Internal server error (e.g. database error)
+     */
+    .get('/', async (request, response) => {
+        try {
+            const { caller } = request.query;
+    
+            let result;
+            if (caller) {
+                //Fetch only incidents for the specific user
+                result = await IncidentController.getIncidentsByCaller(caller as string);
+            } else {
+                //Fetch all incidents
+                result = await IncidentController.getAllIncidents();
+            }
+    
+            if (!result || result.length === 0) {
+                response.status(404).json({ message: 'No incidents found' });
+                return;
+            }
+    
+            response.json(result);
+        } catch (e) {
+            const error = e as Error;
+            response.status(500).json({ message: error.message });
+        }
+    });
+    

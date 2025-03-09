@@ -10,7 +10,7 @@ import mongoose from 'mongoose'
 // Import models to ensure their schemas are registered
 import '../models/Channel'
 import '../models/Message'
-import '../models/User'
+import User from '../models/User'
 
 import dotenv from 'dotenv'
 
@@ -24,6 +24,7 @@ export const connect = async (
   url = `${process.env.MONGODB_URL}/${process.env.MONGODB_DB_NAME}`,
 ) => {
   await mongoose.connect(url)
+  await User.ensureSystemUser()
 }
 
 /**

@@ -1,182 +1,215 @@
 import React, { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { ListItemIcon, IconButton } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
 import GroupIcon from '@mui/icons-material/Group';
 import BuildIcon from '@mui/icons-material/Build';
 import ContactsIcon from '@mui/icons-material/Contacts';
 import PersonIcon from '@mui/icons-material/Person';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import Map from './Mapbox';
+import ReportProblem from '@mui/icons-material/ReportProblem';
+import LocalTaxi from '@mui/icons-material/LocalTaxi';
+import LocalFireDepartment from '@mui/icons-material/LocalFireDepartment';
+import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { loadContacts } from '../../features/contactSlice';
+import { AppDispatch } from '@/app/store';
+import { RootState } from '@/utils/types';
+import IUser from '../../models/User';
 import styles from '../../styles/MapLayer.module.css';
+import getRoleIcon from '../common/RoleIcon';
 
 const MapLayer: React.FC = () => {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [navbarHeight, setNavbarHeight] = useState(56); // Default AppBar height
-  const [tabbarHeight, setTabbarHeight] = useState(48); // Default Tabs height
-  const [isFullPage, setIsFullPage] = useState(false);
-  const [is911Page, setIs911Page] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(2);
+  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [navbarHeight, setNavbarHeight] = useState<number>(56);
+  const [tabbarHeight, setTabbarHeight] = useState<number>(48);
+  const [isFullPage, setIsFullPage] = useState<boolean>(false);
+  const [is911Page, setIs911Page] = useState<boolean>(false);
 
+  // Using Redux hooks to dispatch actions and select state excluding the current user.
+  const dispatch = useDispatch<AppDispatch>();
+  const { contacts, loading } = useSelector((state: RootState) => state.contactState);
+  const currentUserId = localStorage.getItem('uid');
+  const users = contacts.filter((user: IUser) => user._id !== currentUserId);
+
+  const currentUserRole = localStorage.getItem('role') || 'Citizen';
+  console.log(`Current user role: ${currentUserRole}`);
+  const normalizedRole = currentUserRole.toLowerCase();
+  let roleKey = 'Citizen';
+  if (normalizedRole.includes('admin')) {
+    roleKey = 'Administrator';
+  } else if (normalizedRole.includes('nurse')) {
+    roleKey = 'Nurse';
+  } else if (normalizedRole.includes('fire')) {
+    roleKey = 'Fire';
+  }
+
+  const roleUtilMapping: Record<string, string[]> = {
+    Citizen: ['Areas', 'Hospitals', 'Pins', 'Pollution'],
+    Fire: ['Areas', 'Blocks', 'Cars', 'Hospitals', 'Hydrants', 'Incidents', 'Pins', 'Pollution', 'SAR', 'Trucks'],
+    Nurse: ['Areas', 'Hospitals', 'Incidents', 'Pins', 'Pollution', 'Trucks'],
+    Administrator: ['Areas', 'Blocks', 'Cars', 'Hospitals', 'Hydrants', 'Incidents', 'Pins', 'Pollution', 'SAR', 'Trucks'],
+  };
+
+  const utilLayers = roleUtilMapping[roleKey] || [];
+  const sortedUtilLayers = [...utilLayers].sort();
+
+  // Get navbar and tabbar heights, and set page mode.
   useEffect(() => {
-    // Get the actual heights of navbar and tabbar
     const navbar = document.querySelector('header');
     const tabbar = document.querySelector('[role="tablist"]');
-    
-    if (navbar) {
-      setNavbarHeight(navbar.clientHeight);
-    }
-    
-    if (tabbar) {
-      setTabbarHeight(tabbar.clientHeight);
-    }
-
-    // Check if we're in the full page map view or embedded in another component
+    if (navbar) setNavbarHeight(navbar.clientHeight);
+    if (tabbar) setTabbarHeight(tabbar.clientHeight);
     const path = window.location.pathname;
     setIsFullPage(path === '/map');
     setIs911Page(path.includes('911'));
   }, []);
 
-  const handleListItemClick = (index: number) => {
-    setSelectedIndex(index);
+  useEffect(() => {
+    dispatch(loadContacts());
+  }, [dispatch]);
+
+  const handleListItemClick = (event: React.MouseEvent<HTMLDivElement>, index: number) => {
+    if (selectedIndex === index) {
+      setSelectedIndex(null);
+    } else {
+      setSelectedIndex(index);
+    }
   };
+
+  // TODO: Handle contact click for future implementation.
+  const handleContactClick = (userId: string) => {
+    console.log(`Contact clicked: ${userId}`);
+  };
+
+  // TODO: Handle util layer click for future implementation.
+  const handleUtilLayerClick = (layer: string) => {
+    console.log(`Util layer clicked: ${layer}`);
+  };
+
 
   const toggleVisibility = () => {
     setIsVisible((prev) => !prev);
+    if (!isVisible) setSelectedIndex(null);
   };
 
-  // Determine container height based on whether we're in full page or embedded
-  const containerHeight = isFullPage 
+  // Determine container height based on full page vs. embedded.
+  const containerHeight = isFullPage
     ? `calc(100vh - ${navbarHeight}px - ${tabbarHeight}px)`
     : '100%';
 
-  // Menu position
-  const menuStyle = isFullPage 
-    ? {
-        left: '20px',
-        bottom: '120px', // Position above the toggle button (60px + spacing)
-        top: 'auto',
-        transform: 'none'
-      }
+  // Main menu positioning.
+  const menuStyle = isFullPage
+    ? { left: '20px', bottom: '120px', top: 'auto', transform: 'none' }
     : is911Page
-      ? {
-          left: '20px',
-          bottom: '120px',
-          top: 'auto',
-          transform: 'none'
-        }
-      : {
-          left: '20px',
-          top: '45%',
-          transform: 'translateY(-50%)'
-        };
+      ? { left: '20px', bottom: '120px', top: 'auto', transform: 'none' }
+      : { left: '20px', top: '45%', transform: 'translateY(-50%)' };
 
-  // Toggle button position
-  const toggleButtonStyle = isFullPage || is911Page
-    ? {
-        position: 'absolute',
-        bottom: '60px',
-        left: '20px',
-        zIndex: 1000, // Increased z-index to ensure visibility
-        bgcolor: 'white',
-        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.2)',
-        width: '40px',
-        height: '40px'
-      }
-    : {
-        position: 'absolute',
-        bottom: '60px',
-        left: '20px',
-        zIndex: 1000,
-        bgcolor: 'white',
-        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.2)',
-        width: '40px',
-        height: '40px'
-      };
+  const toggleButtonStyle = {
+    position: 'absolute',
+    bottom: '60px',
+    left: '20px',
+    zIndex: 1000,
+    bgcolor: 'white',
+    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.2)',
+    width: '40px',
+    height: '40px',
+  };
 
   return (
-    <div className={styles.mapLayerContainer} style={{ 
-      height: containerHeight, 
-      width: '100%', 
-      maxWidth: '100%',
-      overflow: 'hidden',
-      position: 'relative',
-      margin: 0,
-      padding: 0
-    }}>
-      <Box 
+    <div>
+      <Box
         className={`${styles.levitatingList} ${!isVisible ? styles.hidden : ''}`}
         style={menuStyle}
       >
-        <List component="nav" aria-label="map layer selection">
-          <ListItemButton
-            selected={selectedIndex === 0}
-            onClick={() => handleListItemClick(0)}
-          >
+        <List component="nav" aria-label="map layer selection" dense>
+          {/* Group */}
+          <ListItemButton dense onClick={(e) => handleListItemClick(e, 0)}>
             <ListItemIcon>
-              <GroupIcon />
+              <GroupIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Group" />
+            <ListItemText primary="Group" sx={{ color: 'black', fontSize: '0.875rem' }} />
           </ListItemButton>
 
-          <ListItemButton
-            selected={selectedIndex === 1}
-            onClick={() => handleListItemClick(1)}
-          >
+          {/* Util */}
+          <ListItemButton dense onClick={(e) => handleListItemClick(e, 1)}>
             <ListItemIcon>
-              <BuildIcon />
+              <BuildIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Util" />
+            <ListItemText primary="Util" sx={{ color: 'black', fontSize: '0.875rem' }} />
           </ListItemButton>
 
-          <ListItemButton
-            selected={selectedIndex === 2}
-            onClick={() => handleListItemClick(2)}
-          >
+          {/* Inline util layers dropdown with extra top margin */}
+          {selectedIndex === 1 && (
+            <Box sx={{ mt: 1, ml: 2 }}>
+              <List dense>
+                {sortedUtilLayers.map((layer) => (
+                  <ListItemButton dense key={layer} onClick={() => handleUtilLayerClick(layer)}>
+                    <ListItemText primary={layer} sx={{ fontSize: '0.875rem' }} />
+                  </ListItemButton>
+                ))}
+              </List>
+            </Box>
+          )}
+
+          {/* Contacts */}
+          <ListItemButton dense onClick={(e) => handleListItemClick(e, 2)}>
             <ListItemIcon>
-              <ContactsIcon />
+              <ContactsIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Contacts" />
+            <ListItemText primary="Contacts" sx={{ color: 'black', fontSize: '0.875rem' }} />
           </ListItemButton>
 
-          <ListItemButton
-            selected={selectedIndex === 3}
-            onClick={() => handleListItemClick(3)}
-          >
+          {/* Inline contacts dropdown */}
+          {selectedIndex === 2 && (
+            <Box sx={{ ml: 2 }}>
+              <List dense>
+                {loading ? (
+                  <ListItem>
+                    <ListItemText primary="Loading..." sx={{ fontSize: '0.875rem' }} />
+                  </ListItem>
+                ) : users.length === 0 ? (
+                  <ListItem>
+                    <ListItemText primary="No contacts" sx={{ fontSize: '0.875rem' }} />
+                  </ListItem>
+                ) : (
+                  users.map((user: IUser) => (
+                    <ListItemButton dense key={user._id} onClick={() => handleContactClick(user._id)}>
+                      <ListItemIcon>{getRoleIcon(user.role)}</ListItemIcon>
+                      <ListItemText primary={user.username} sx={{ fontSize: '0.875rem' }} />
+                    </ListItemButton>
+                  ))
+                )}
+              </List>
+            </Box>
+          )}
+
+          {/* You */}
+          <ListItemButton dense onClick={(e) => handleListItemClick(e, 3)}>
             <ListItemIcon>
-              <PersonIcon />
+              <PersonIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="You" />
+            <ListItemText primary="You" sx={{ color: 'black', fontSize: '0.875rem' }} />
           </ListItemButton>
         </List>
       </Box>
 
-      <IconButton 
-        className={styles.toggleButton} 
+      <IconButton
+        className={styles.toggleButton}
         onClick={toggleVisibility}
         sx={toggleButtonStyle}
       >
-        {isVisible ? <RemoveIcon /> : <AddIcon />}
+        {isVisible ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
       </IconButton>
-
-      <div className={styles.mapContainer} style={{ 
-        height: '100%', 
-        width: '100%', 
-        maxWidth: '100%',
-        overflow: 'hidden',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-      }}>
-        <Map />
-      </div>
     </div>
   );
 };
 
-export default MapLayer; 
+export default MapLayer;

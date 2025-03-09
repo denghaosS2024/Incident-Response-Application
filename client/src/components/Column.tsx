@@ -1,15 +1,15 @@
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Card from "./Card";
 import "../styles/scroll.css";
-import { Droppable } from "react-beautiful-dnd";
+import { Droppable, DroppableStateSnapshot, DroppableProvided } from "react-beautiful-dnd";
 import IUser from '@/models/User'
 
 
 interface ColumnProps {
     title: string;
     subtitle?: string;
-    tasks: IUser[];  // <-- Accept IUser instead of Task
+    tasks: IUser[];
     id: string;
     groups?: any[];
     onGroupClick?: (groupId: string) => void;
@@ -33,12 +33,20 @@ const Title = styled.h3`
     text-align: center;
 `;
 
-const TaskList = styled.div<{ isDraggingOver: boolean }>`
+
+const TaskList = styled.div`
     padding: 3px;
     transition: background-color 0.2s ease;
-    background-color: ${({ isDraggingOver }) => (isDraggingOver ? "#d3d3d3" : "#f4f5f7")};
     flex-grow: 1;
     min-height: 100px;
+    
+    &.dragging-over {
+        background-color: #d3d3d3;
+    }
+    
+    &:not(.dragging-over) {
+        background-color: #f4f5f7;
+    }
 `;
 
 const PermanentCard = styled.div`
@@ -62,17 +70,17 @@ const GroupCard = styled.div`
   cursor: pointer;
 `;
 
-const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClick  }) => {
+const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClick }) => {
     const [groups, setGroups] = useState<{ _id: string; name: string }[]>([]);
     useEffect(() => {
         // Fetch groups from API
         fetch("/api/channels")
-          .then((res) => res.json())
-          .then((data) => {
-            setGroups(data);
-          })
-          .catch((error) => console.error("Error fetching groups:", error));
-      }, []);
+            .then((res) => res.json())
+            .then((data) => {
+                setGroups(data);
+            })
+            .catch((error) => console.error("Error fetching groups:", error));
+    }, []);
 
     return (
         <Container className="column">
@@ -87,25 +95,25 @@ const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClic
             </Title>
             {subtitle && <p style={{ textAlign: "center", fontWeight: "bold" }}>{subtitle}</p>}
             <Droppable droppableId={id}>
-                {(provided, snapshot) => (
+                {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
                     <TaskList
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        isDraggingOver={snapshot.isDraggingOver}
+                        className={snapshot.isDraggingOver ? "dragging-over" : ""}
                     >
                         {/* Add the permanent cards at the top */}
                         {id === "1" && (
                             <>
                                 <PermanentCard>Groups</PermanentCard>
-                                            {/* Insert Group Cards here */}
+                                {/* Insert Group Cards here */}
                                 {groups.map((group) => (
-                                <GroupCard key={group._id} onClick={() => onGroupClick ? onGroupClick(group._id) : undefined}  >{group.name}</GroupCard>
+                                    <GroupCard key={group._id} onClick={() => onGroupClick ? onGroupClick?.(group._id) : undefined}  >{group.name}</GroupCard>
                                 ))}
                                 <PermanentCard>Contacts</PermanentCard>
                             </>
                         )}
 
-                        {/* Render the draggable tasks */}
+                        {/* Contacts badge */}
                         {tasks.map((task, index) => (
                             <Card key={task._id} index={index} task={task} />
                         ))}

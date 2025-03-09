@@ -21,10 +21,11 @@ import cx from 'classnames'
 import { Fragment, FunctionComponent } from 'react'
 import IUser from '../models/User'
 import Loading from './common/Loading'
+import { getRoleIcon } from "./common/RoleIcon"
 
 import styles from '../styles/ContactList.module.css'
 
-export type ClickContactHandler = (id: string) => void
+export type ClickContactHandler = (id: string, username: string) => void
 
 export interface IContactProps {
   user: IUser
@@ -35,20 +36,7 @@ export const Contact: FunctionComponent<IContactProps> = ({
   user: { _id, username, online, role },
   onClick,
 }) => {
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'Dispatch':
-        return <ReportProblem sx={{ color: 'red', marginRight: '8px' }} />
-      case 'Police':
-        return <LocalTaxi sx={{ color: 'red', marginRight: '8px' }} />
-      case 'Fire':
-        return <LocalFireDepartment sx={{ color: 'red', marginRight: '8px' }} />
-      case 'Nurse':
-        return <HealthAndSafety sx={{ color: 'red', marginRight: '8px' }} />
-      default:
-        return null
-    }
-  }
+
 
   return (
     <Box
@@ -66,7 +54,7 @@ export const Contact: FunctionComponent<IContactProps> = ({
         cursor: 'pointer',
         '&:hover': { backgroundColor: '#f0f0f0' },
       }}
-      onClick={() => onClick && onClick(_id)}
+      onClick={() => onClick && onClick(_id, username)}
     >
       {getRoleIcon(role)}
       <ListItemText sx={{ flex: 1 }}>{username}</ListItemText>
@@ -83,7 +71,7 @@ export const Contact: FunctionComponent<IContactProps> = ({
           size="large"
           onClick={(e) => {
             e.stopPropagation()
-            onClick(_id)
+            onClick(_id, username)
           }}
         >
           <Arrow />

@@ -13,6 +13,7 @@ import * as TestDatabase from '../utils/TestDatabase'
 import { ROLES } from '../../src/utils/Roles'
 
 describe('Channel controller', () => {
+  // "System" user is created in the database upon app run so by default there always is one user present in the database.
   let userA: IUser
   let userB: IUser
   let userC: IUser
@@ -105,6 +106,7 @@ describe('Channel controller', () => {
       content,
       senderId: userA._id,
       channelId: publicChannel._id,
+      isAlert: false
     })
 
     expect(message.content).toBe(content)

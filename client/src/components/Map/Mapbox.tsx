@@ -10,8 +10,14 @@ import { RootState } from '../../utils/types';
 import IIncident from '../../models/Incident';
 import { Alert, Box, Typography } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import MapDrop from './MapDrop';
 
-const Mapbox: React.FC = () => {
+interface MapboxProps {
+    showMarker?: boolean;
+    disableGeolocation?: boolean; // New prop to disable geolocation
+}
+
+const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation = false }) => {
   // Refs for the map container, map instance, and marker
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -20,6 +26,7 @@ const Mapbox: React.FC = () => {
   // State to track map loading and errors
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [isMapPage, setIsMapPage] = useState<boolean>(false);
 
   const dispatch = useDispatch<AppDispatch>();
   const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident);
@@ -28,12 +35,26 @@ const Mapbox: React.FC = () => {
   const [currentLat, setCurrentLat] = useState<number>(40);
   const [currentLng, setCurrentLng] = useState<number>(-74.5);
 
+  // State for the location of the pin
+  const [pinLocation, setPinLocation] = useState<{ lng: number; lat: number; address?: string } | null>(null);
+
+  // Check if we're on the /map page
+  useEffect(() => {
+    const path = window.location.pathname;
+    setIsMapPage(path === '/map');
+  }, []);
+
+// -------------------------------- helper function start --------------------------------
+
   // Function to initialize the map using the given longitude and latitude.
   // This function is called once regardless of geolocation success or failure.
   const initializeMap = (lng: number, lat: number, initialZoom: number) => {
     if (!mapContainerRef.current) return;
     try {
       // Create a new map instance
+      if (disableGeolocation) {
+        initialZoom = 14;
+      }
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: 'mapbox://styles/domoncassiu/cm7og9k1l005z01rdd6l78pdf', 
@@ -45,22 +66,26 @@ const Mapbox: React.FC = () => {
         // Add a draggable marker at the current location
         mapRef.current!.setProjection({ name: 'globe' });
 
-        markerRef.current = new mapboxgl.Marker({
-          draggable: true,
-          color: '#FF0000',
-        })
-          .setLngLat([lng, lat])
-          .addTo(mapRef.current!);
-        // When the marker dragging ends, update the address based on the new coordinates
-        markerRef.current.on('dragend', () => {
-          const lngLat = markerRef.current!.getLngLat();
-          updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
-        });
-        // Initial update of the address based on current location
-        updateAddressFromCoordinates(lng, lat);
+        // If showMarker is true, add a draggable marker
+        if (showMarker) {
+            markerRef.current = new mapboxgl.Marker({
+              draggable: true,
+              color: '#FF0000',
+            })
+              .setLngLat([lng, lat])
+              .addTo(mapRef.current!);
+            markerRef.current.on('dragend', () => {
+              const lngLat = markerRef.current!.getLngLat();
+              updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
+            });
+            // Update address initially
+            updateAddressFromCoordinates(lng, lat);
+        }
         setIsMapLoaded(true);
-        if (initialZoom == 1) {
-            geolocateControl.trigger();
+
+        // Trigger geolocation if the map was initialized with default coordinates
+        if (initialZoom == 1 && !disableGeolocation) {
+            geolocateControl!.trigger();
         }
       });
       // Handle map errors
@@ -68,25 +93,35 @@ const Mapbox: React.FC = () => {
         console.error('Mapbox error:', e);
         setMapError('Failed to load map');
       });
-      // Add geolocate control to allow tracking the user’s location
-      const geolocateControl = new mapboxgl.GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: true,
-      });
-      mapRef.current.addControl(geolocateControl);
-      // Update marker position when geolocation is triggered
-      geolocateControl.on('geolocate', (e: any) => {
-        const { longitude, latitude } = e.coords;
-        if (markerRef.current) {
-          markerRef.current.setLngLat([longitude, latitude]);
-          updateAddressFromCoordinates(longitude, latitude);
-        }
-      });
+      // Add geolocate control to allow tracking the user's location (only if not disabled)
+      let geolocateControl: mapboxgl.GeolocateControl | null = null;
+      if (!disableGeolocation) {
+        geolocateControl = new mapboxgl.GeolocateControl({
+          positionOptions: { enableHighAccuracy: true },
+          trackUserLocation: true,
+        });
+        mapRef.current.addControl(geolocateControl);
+        // Update marker position when geolocation is triggered
+        geolocateControl.on('geolocate', (e: any) => {
+          const { longitude, latitude } = e.coords;
+          if (markerRef.current && showMarker) {
+            markerRef.current.setLngLat([longitude, latitude]);
+            updateAddressFromCoordinates(longitude, latitude);
+          }
+        });
+      }
     } catch (error) {
       console.error('Error initializing map:', error);
       setMapError('Failed to initialize map');
     }
   };
+
+// -------------------------------- helper function end --------------------------------
+
+
+
+
+// -------------------------------- map init start --------------------------------
 
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA';
@@ -121,7 +156,87 @@ const Mapbox: React.FC = () => {
         mapRef.current.remove();
       }
     };
-  }, []);
+  }, [showMarker, disableGeolocation]);
+
+
+// -------------------------------- map init end --------------------------------
+
+
+
+
+
+// -------------------------------- map drop items features start --------------------------------
+    const getAddressFromCoordinates = async (lng: number, lat: number): Promise<string | undefined> => {
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
+        );
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+          return data.features[0].place_name; // Return the first result
+        }
+      } catch (error) {
+        console.error("Error fetching address:", error);
+      }
+      return undefined; // Return undefined instead of null
+    };
+
+
+    const handleAddPin = async () => {
+      if (!mapRef.current) return;
+    
+      const initialLngLat = mapRef.current.getCenter();
+      const initialAddress = await getAddressFromCoordinates(initialLngLat.lng, initialLngLat.lat);
+    
+      // Create popup content
+      const popupContent = document.createElement("div");
+      popupContent.innerHTML = `
+        <p id="popup-address">${initialAddress || "Fetching address..."}</p>
+        <button id="confirm-pin" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
+      `;
+    
+      const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
+    
+      const marker = new mapboxgl.Marker({ draggable: true })
+        .setLngLat(initialLngLat)
+        .setPopup(popup)
+        .addTo(mapRef.current);
+    
+      marker.togglePopup();
+      markerRef.current = marker;
+    
+      // Update location and address when marker is dragged
+      marker.on("dragend", async () => {
+        const newLngLat = marker.getLngLat();
+        const newAddress = await getAddressFromCoordinates(newLngLat.lng, newLngLat.lat);
+        document.getElementById("popup-address")!.innerText = newAddress || "Fetching address...";
+      });
+    
+      // Handle confirmation
+      const handleConfirm = () => {
+        marker.setDraggable(false); // Disable dragging
+    
+        // Remove confirm button and add delete button
+        popupContent.innerHTML = `
+          <p id="popup-address">${document.getElementById("popup-address")!.innerText}</p>
+          <button id="delete-pin" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+        `;
+    
+        document.getElementById("delete-pin")?.addEventListener("click", () => {
+          marker.remove(); // Remove marker from the map
+          popup.remove(); // Remove popup
+        });
+      };
+    
+      // Add event listener for confirm button
+      document.getElementById("confirm-pin")?.addEventListener("click", handleConfirm);
+    };
+    
+    
+// -------------------------------- map drop items features end --------------------------------
+
+
 
 
 // -------------------------------- reach 911 features start --------------------------------
@@ -143,7 +258,7 @@ const Mapbox: React.FC = () => {
         } catch (error) {
             console.error('Error fetching address:', error);
         }
-        };
+    };
 
     // When incident.address changes (from external updates), update the marker position
     useEffect(() => {
@@ -173,6 +288,11 @@ const Mapbox: React.FC = () => {
 // -------------------------------- reach 911 features end --------------------------------
 
 
+
+
+// -------------------------------- wildfire features start --------------------------------
+
+// -------------------------------- wildfire features end --------------------------------
 
     
   // If there is a map error, display a fallback UI
@@ -228,6 +348,14 @@ const Mapbox: React.FC = () => {
           boxSizing: 'border-box'
         }} 
       />
+      {isMapPage && (
+        <MapDrop
+          onDropPin={handleAddPin}
+          onDropRoadblock={handleAddPin}
+          onDropFireHydrant={handleAddPin}
+          onDropAirQuality={handleAddPin}
+        />
+      )}
       {!isMapLoaded && <MapLoading />}
     </div>
   );
