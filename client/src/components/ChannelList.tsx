@@ -16,6 +16,7 @@ import { Fragment, FunctionComponent } from 'react'
 import IChannel from '../models/Channel'
 import Loading from './common/Loading'
 import EditIcon from '@mui/icons-material/Edit'
+import { useNavigate } from 'react-router-dom'
 
 export interface IChannelProps {
   channel: IChannel,
@@ -41,6 +42,13 @@ export const Channel: FunctionComponent<IChannelProps> = ({
   channel: { _id, name },
   isSettingButton = false
 }) => {
+
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    // Redirect to the channel's message page
+    navigate(`/messages/${_id}?name=${name}`);
+  };
 
   const ChannelContent = (
     <Box sx={ChannelStyle}>
@@ -76,7 +84,7 @@ export const Channel: FunctionComponent<IChannelProps> = ({
           {ChannelContent}
         </Link>
       ) : (
-        <Box sx={{ width: '100%' }}>
+        <Box onClick={handleClick} sx={{ width: '100%' }}>
           {ChannelContent}
         </Box>
       )}
@@ -101,15 +109,46 @@ const ChannelList: FunctionComponent<IChannelListProps> = ({
 }) => {
   if (!channels || loading) return <Loading />
 
+  const groupChannel = channels
+    .filter(channel => channel.owner || channel.name === "Public")
+    .sort((a, b) => a.name.localeCompare(b.name));
+  
+  const contactChannel = channels
+    .filter(channel => !channel.owner && channel.name !== "Public")
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   return (
-    <List sx={{ width: '100%' }}>
-      {channels.map((channel, index) => (
-        <Fragment key={channel._id}>
-          <Channel channel={channel} />
-          {index !== channels.length - 1 && <Divider />}
-        </Fragment>
-      ))}
-    </List>
+    <Box sx={{ width: '100%' }}>
+      {/* Group Channels */}
+      {groupChannel.length > 0 && (
+        <Box sx={{ marginBottom: '2rem' }}>
+          <Typography variant="h6">Groups</Typography>
+          <List sx={{ width: '100%' }}>
+            {groupChannel.map((channel, index) => (
+              <Fragment key={channel._id}>
+                <Channel channel={channel} />
+                {index !== groupChannel.length - 1 && <Divider />}
+              </Fragment>
+            ))}
+          </List>
+        </Box>
+      )}
+
+      {/* Contact Channels */}
+      {contactChannel.length > 0 && (
+        <Box>
+          <Typography variant="h6">Contacts</Typography>
+          <List sx={{ width: '100%' }}>
+            {contactChannel.map((channel, index) => (
+              <Fragment key={channel._id}>
+                <Channel channel={channel} />
+                {index !== contactChannel.length - 1 && <Divider />}
+              </Fragment>
+            ))}
+          </List>
+        </Box>
+      )}
+    </Box>
   )
 }
 
