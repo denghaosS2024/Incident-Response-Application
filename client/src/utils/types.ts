@@ -7,6 +7,7 @@
 import IIncident from '@/models/Incident'
 import IMessage from '@/models/Message'
 import IUser from '@/models/User'
+import {IProfile} from '@/models/Profile'
 
 /**
  * Interface representing a collection of messages, indexed by channel ID
@@ -41,6 +42,7 @@ export interface RootState {
   messageState: MessagesState
   contactState: ContactsState
   incidentState: IncidentsState
+  profileState: ProfileState
 }
 
 export interface IncidentsState {
@@ -82,6 +84,12 @@ export interface PoliceQuestions {
   hasWeapons: string // Whether or not weapons are involved
   suspectDescription: string // Details about the suspect
   crimeDetails: string // Details about the crime
+}
+
+export interface ProfileState {
+  profile: IProfile | null;
+  loading: boolean;
+  error: string | null;
 }
 
 export interface EmergencyQuestions extends MedicalQuestions, FireQuestions, PoliceQuestions { }

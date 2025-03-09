@@ -30,6 +30,7 @@ import Reach911Page from './pages/Reach911Page';
 import MapPage from './pages/MapPage';
 import IncidentsPage from './pages/IncidentsPage';
 import GroupInformationPage from './pages/GroupInformationPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Utilities and Features
 import SocketClient from './utils/Socket';
@@ -55,6 +56,7 @@ const App: React.FC = () => {
             <Route path="/map" element={<MapPage />} />
             <Route path="/incidents" element={<IncidentsPage />} />
             <Route path="/organization" element={<Organization />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route element={<ProtectedRoute showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
