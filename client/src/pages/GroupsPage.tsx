@@ -105,6 +105,7 @@ const Groups: React.FC = () => {
   ) => {
     setErrorMessage('')
     try {
+      // FIXME: should delete according to currentGroup._id instead of name
       await request('/api/channels', {
         method: 'DELETE',
         body: JSON.stringify({ name }),

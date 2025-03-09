@@ -33,7 +33,8 @@ class ChannelController {
       throw new Error(`Channel(${name}) not found.`)
     }
 
-    return await Channel.findOneAndDelete({ name }).exec()
+    await Channel.findOneAndDelete({ name }).exec()
+    UserConnections.broadcast('updateGroups', {})
   }
 
   /**
@@ -516,14 +517,14 @@ class ChannelController {
   }
 
   /**
- * Update channel members
+ * Update existing channel
  * @param channel - An object containing channel details to update
  * @param channel._id - ID of the channel to update
  * @param channel.userIds - Array of user IDs to be in the channel
  * @returns The updated channel object
  * @throws Error if the channel is not found
  */
-  updateChannelMember = async (channel: {
+  updateChannel = async (channel: {
     _id: Types.ObjectId
     name: string
     userIds: Types.ObjectId[]
@@ -574,14 +575,15 @@ class ChannelController {
 
     // Save the updated channel
     const updatedChannel = await existingChannel.save();
-    console.log("Channel members updated successfully");
+    UserConnections.broadcast('updateGroups', {})
+    console.log("Channel updated successfully");
 
     return updatedChannel;
   }
 
   acknowledgeMessage = async (
-    messageId: Types.ObjectId, 
-    senderId: Types.ObjectId, 
+    messageId: Types.ObjectId,
+    senderId: Types.ObjectId,
     channelId: Types.ObjectId
   ) => {
 
@@ -610,13 +612,13 @@ class ChannelController {
       // Notify commend for acknowledgment
       channel.users.forEach((user) => {
         if (user._id.equals(senderId)) return
-        
+
         const id = user._id.toHexString()
-        
+
         if (!UserConnections.isUserConnected(id)) return
 
         const connection = UserConnections.getUserConnection(id)!
-        
+
         connection.emit('acknowledge-alert', message)
       })
 
