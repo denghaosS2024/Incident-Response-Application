@@ -14,7 +14,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { set } from 'lodash'
 import ConfirmationDialog from '../components/common/ConfirmationDialog'
 import Board from "./Board";
 import IUser from '@/models/User'
@@ -64,8 +63,6 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const [nameError, setNameError] = useState<string>('')
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
-  const currentUserRole = localStorage.getItem('role')
-  const [currentGroup, setCurrentGroup] = useState<IChannel | null>(null);
 
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [users, setUsers] = useState<string[]>([owner])
@@ -120,12 +117,9 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   }
 
   const handleDeleteClick = () => {
-    let hasError = false
-
     setNameError('')
     if (!name.trim()) {
       setNameError('Group name is required')
-      hasError = true
     } else {
       setOpenConfirmDialog(true)
     }
