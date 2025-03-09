@@ -67,7 +67,6 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const currentUserRole = localStorage.getItem('role')
   const [currentGroup, setCurrentGroup] = useState<IChannel | null>(null);
 
-  // console.log('owner:', owner)
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [users, setUsers] = useState<string[]>([owner])
 

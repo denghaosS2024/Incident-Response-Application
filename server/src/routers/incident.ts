@@ -248,17 +248,21 @@ export default Router()
      *         description: No incidents in the system
      *       500:
      *         description: Internal server error (e.g. database error)
+     * 
      */
+
+    //  NEED TO MODIFY SWAGGER AS NEW QUERY PARAMS WERE ADDED 
     .get('/', async (request, response) => {
         try {
             const { caller } = request.query;
+            const { incidentId} = request.query;
     
             let result;
             if (caller) {
-                //Fetch only incidents for the specific user
                 result = await IncidentController.getIncidentsByCaller(caller as string);
+            } else if (incidentId) {
+                result = await IncidentController.getIncidentByIncidentId(incidentId as string);
             } else {
-                //Fetch all incidents
                 result = await IncidentController.getAllIncidents();
             }
     

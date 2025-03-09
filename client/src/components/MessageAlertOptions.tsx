@@ -24,9 +24,12 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
     // TODO: Implement the logic to check if the current user is the incident commander or first responder
     // const isIncidentCommander = false
 
+    const [responders, setResponders] = useState<string[]>([])
+    const [acknowledgedBy, setAcknowledgedBy] = useState<string[]>([])
+
     // hardcode for test purpose
     let isIncidentCommander = false
-    if (currentUserId === '67cb7f30340c8e8937d2a913') {
+    if (currentUserId === '67cbf8e224fa85fea17d0c18') {
       isIncidentCommander = true;
     }
     // const isFirstResponder = true;
@@ -36,6 +39,25 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
       setAnchorEl(event.currentTarget)
       setOpenAlertPanel(true);
     }
+
+    // Fetch the first resopnders
+    const handleFetchResponders = async () => {
+      const users = await request(`/api/users`, {
+        method: 'GET',
+      });
+      const responders = users.filter((user: any) => user._id !== currentUserId && (user.role === 'Fire' || user.role === 'Police'));
+      setResponders(responders.map((responder: any) => responder._id));
+
+      console.log('Responders:', responders);
+    };
+
+    // Fetch the resopnder if commander
+    useEffect(() => {
+      if (isIncidentCommander) {
+        handleFetchResponders();
+      }
+    }, [isIncidentCommander]);
+
 
     // useEffect(() => {
     //   const handleMaydayReceived = (data: any) => {
@@ -113,6 +135,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
               <AlertPanel
                 role={currentUserRole as 'Fire' | 'Police'}
                 channelId={channelId}
+                responders={responders}
               />
             </Box>
           )}

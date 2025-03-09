@@ -16,11 +16,11 @@ import { Fragment, FunctionComponent } from 'react'
 import IChannel from '../models/Channel'
 import Loading from './common/Loading'
 import EditIcon from '@mui/icons-material/Edit'
-import { useNavigate } from 'react-router-dom'
 
 export interface IChannelProps {
   channel: IChannel,
-  isSettingButton?: boolean
+  onClick?: (channelId: string) => void,
+  isSettingButton?: boolean,
 }
 
 const ChannelStyle: SxProps = {
@@ -37,21 +37,22 @@ const ChannelStyle: SxProps = {
 
 // Channel component renders a single channel with an optional setting button
 // @param channel - The channel object to render
+// @param onClick - Optional click handler for when a user is clicked
 // @param isSettingButton - Optional flag to show the setting button
 export const Channel: FunctionComponent<IChannelProps> = ({
   channel: { _id, name },
-  isSettingButton = false
+  onClick,
+  isSettingButton = false,
 }) => {
 
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    // Redirect to the channel's message page
-    navigate(`/messages/${_id}?name=${name}`);
+  const handleClick = (event: React.MouseEvent) => {
+    if (onClick) {
+      onClick(_id);
+    }
   };
 
   const ChannelContent = (
-    <Box sx={ChannelStyle}>
+    <Box sx={ChannelStyle} onClick={handleClick}>
       <ListItemText>{name}</ListItemText>
       {isSettingButton &&
         <IconButton edge="end" size="large">
@@ -84,7 +85,7 @@ export const Channel: FunctionComponent<IChannelProps> = ({
           {ChannelContent}
         </Link>
       ) : (
-        <Box onClick={handleClick} sx={{ width: '100%' }}>
+        <Box sx={{ width: '100%' }}>
           {ChannelContent}
         </Box>
       )}
@@ -101,11 +102,14 @@ export interface IChannelListProps {
    * Whether the channels are still loading
    */
   loading: boolean
+  // Store the ID of the currently selected channel
+  onSelectChannel: (id: string) => void
 }
 
 const ChannelList: FunctionComponent<IChannelListProps> = ({
   channels,
   loading,
+  onSelectChannel
 }) => {
   if (!channels || loading) return <Loading />
 
@@ -126,7 +130,7 @@ const ChannelList: FunctionComponent<IChannelListProps> = ({
           <List sx={{ width: '100%' }}>
             {groupChannel.map((channel, index) => (
               <Fragment key={channel._id}>
-                <Channel channel={channel} />
+                <Channel channel={channel} onClick={() => onSelectChannel(channel._id)} />
                 {index !== groupChannel.length - 1 && <Divider />}
               </Fragment>
             ))}
@@ -141,7 +145,7 @@ const ChannelList: FunctionComponent<IChannelListProps> = ({
           <List sx={{ width: '100%' }}>
             {contactChannel.map((channel, index) => (
               <Fragment key={channel._id}>
-                <Channel channel={channel} />
+                <Channel channel={channel} onClick={() => onSelectChannel(channel._id)} />
                 {index !== contactChannel.length - 1 && <Divider />}
               </Fragment>
             ))}

@@ -12,4 +12,7 @@ export default interface IMessage {
   channelId: string // Identifier of the channel the message belongs to
   content: string // The actual text content of the message
   isAlert: boolean //whether is alert
+  responders?: IUser[] // List of user IDs who have responded to the message
+  acknowledgedBy?: IUser[] // List of user IDs who have acknowledged the message
+  acknowledgedAt?: string[] // List of timestamps when the message was acknowledged
 }

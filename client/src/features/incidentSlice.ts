@@ -22,6 +22,7 @@ const loadPersistatedState = (): IncidentsState | null => {
 const initialState: IncidentsState = loadPersistatedState() || {
     incident: {
         _id: '',
+        incidentId: '',
         caller: '',
         openingDate: '',
         incidentState: '',

@@ -7,7 +7,8 @@ import { AppDispatch } from "../app/store";
 import { RootState } from "../utils/types";
 import IUser from '@/models/User'
 
-export default function Board({ setUsers,
+export default function Board({
+    setUsers,
     setGroupName,
     setDescription,
     resetBoard,
@@ -25,7 +26,6 @@ export default function Board({ setUsers,
     const [todo, setTodo] = useState<IUser[]>([]);
     const [groups, setGroups] = useState<any[]>([]); // Store the groups
     const owner = localStorage.getItem('uid') || ''
-
     useEffect(() => {
         // dispatch(loadMockContacts());  
         dispatch(loadContacts());
@@ -46,8 +46,8 @@ export default function Board({ setUsers,
         if (contacts.length > 0) {
             const filteredContacts = contacts.filter(contact => contact._id !== owner); // Remove the logged-in user
             setTodo(filteredContacts);
-        } setDone([]); // Reset done array
-    }, [resetBoard]); // Ensure it's triggered when resetBoard changes
+        }
+    }, [resetBoard]);
 
     useEffect(() => {
         // Fetch groups from API

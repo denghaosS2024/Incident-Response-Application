@@ -18,6 +18,11 @@ export interface IMessage extends Document {
   timestamp: string
   channelId: Types.ObjectId
   isAlert: boolean
+  // responders: Types.ObjectId[]
+  responders: IUser[]
+  acknowledgedBy: IUser[]
+  acknowledgedAt: string[]
+  // acknowledgedAt?: string
 }
 
 /**
@@ -42,7 +47,26 @@ const MessageSchema = new Schema(
     },
     isAlert: {
       type:Boolean, require:true,
-    }
+    },
+    responders: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        autopopulate: true,
+      },
+    ],
+    acknowledgedBy: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        autopopulate: true,  
+      },
+    ],
+    acknowledgedAt: [
+      {
+        type: Date,
+      },
+    ],
   },
   {
     timestamps: {
@@ -50,6 +74,7 @@ const MessageSchema = new Schema(
       updatedAt: false,
     },
   },
+  
 )
 
 MessageSchema.plugin(AutoPopulate)

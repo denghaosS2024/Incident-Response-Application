@@ -1,7 +1,7 @@
 import IMessage from '@/models/Message'
 import { MessagesState } from '@/utils/types'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { createAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import moment from 'moment'
 import request from '../utils/request'
 
@@ -40,6 +40,22 @@ const loadMessages = createAsyncThunk(
   },
 )
 
+export const updateMessage = createAction<IMessage>('messages/updateMessage')
+
+// Async thunk for acknowledging a message
+export const acknowledgeMessage = createAsyncThunk(
+  'messages/acknowledgeMessage',
+  async ({ messageId, senderId, channelId }: { messageId: string, senderId: string, channelId: string }) => {
+    const response = await request(`/api/channels/${channelId}/messages/acknowledge`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderId, messageId }),
+    });
+    return response;
+  }
+);
+
+
 // Create the message slice with reducers and extra reducers
 export const messageSlice = createSlice({
   name: 'messages',
@@ -72,6 +88,35 @@ export const messageSlice = createSlice({
         state.messages[channelId] = messages
       },
     )
+    // Handle the fulfilled state of acknowledgeMessage
+    builder.addCase(
+      acknowledgeMessage.fulfilled,
+      (state, action: PayloadAction<IMessage>) => {
+        const updatedMessage = parseMessage(action.payload)
+        const channelId = updatedMessage.channelId
+        const channelMessages = state.messages[channelId]
+        if (channelMessages) {
+          const index = channelMessages.findIndex((msg) => msg._id === updatedMessage._id)
+          if (index !== -1) {
+            channelMessages[index] = updatedMessage
+          }
+        }
+      },
+    )
+    builder.addCase(updateMessage, (state, action) => {
+      const updatedMessage = parseMessage(action.payload)
+      const channelId = updatedMessage.channelId.toString()
+      const channelMessages = state.messages[channelId]
+      if (channelMessages) {
+        const index = channelMessages.findIndex(m => m._id === updatedMessage._id)
+        if (index !== -1) {
+          channelMessages[index] = updatedMessage
+        } else {
+          // If not found, optionally push the message
+          channelMessages.push(updatedMessage)
+        }
+      }
+    })
   },
 })
 
