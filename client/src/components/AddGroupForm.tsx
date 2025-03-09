@@ -210,10 +210,8 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               label="Closed"
             />
           </Box>
-          <Board setUsers={setUsers}
-            onGroupClick={handleGroupClickInBoard}
-            resetBoard={channelProps.resetBoard} />
-          <Box display="flex" justifyContent="center" mt={2}>
+          <Board setUsers={setUsers} setGroupName={setGroupName} setDescription={setDescription} resetBoard={channelProps.resetBoard}/>
+                    <Box display="flex" justifyContent="center" mt={2}>
             <Button
               variant="contained"
               color="primary"
