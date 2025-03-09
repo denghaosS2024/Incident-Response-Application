@@ -131,6 +131,7 @@ const Groups: React.FC = () => {
           selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
           setSelectedUsers={setSelectedUsers}
           resetBoard={resetBoard}
+          currentGroup={currentGroup}
           setCurrentGroup={setCurrentGroup} />
       </div>
       <GroupDirectory />

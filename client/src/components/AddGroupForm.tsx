@@ -49,6 +49,7 @@ export interface IAddGroupFormProps {
   setSelectedUsers: (users: IUser[]) => void; // Add the setSelectedUsers function here
   deleteChannel: (channelName: string) => void
   resetBoard: () => void; // Define resetBoard function prop
+  currentGroup: IChannel | null;
   setCurrentGroup: (group: IChannel | null) => void;
 }
 
@@ -223,7 +224,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               }}
               sx={{ mt: 2, mx: 1 }}
             >
-              Submit
+              {(channelProps.currentGroup == null) ? "Create" : "Edit"}
             </Button>
             <Button
               variant="outlined"
