@@ -46,29 +46,29 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   // Option for making a phone call
   const handleMakeCall = async() => {
     // Waiting for implementing adding phone number in profile page
-    // try {
-    //   console.log('Make phone call...');
-    //   const response = await request(
-    //     `/api/channels/${channelId}/phone-call`,
-    //     {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         'x-application-uid': currentUserId,
-    //       },
-    //       body: JSON.stringify({}),
-    //     },
-    //   )
-    //   const phoneNumber = response.phoneNumber;
-    //   if (phoneNumber) {
-    //     window.location.href = `tel:${phoneNumber}`;
-    //   } else {
-    //     alert('Failed to retrieve phone number.');
-    //   }
-    //   dispatch(addMessage(response.message));
-    // } catch (error) {
-    //   console.error('Failed to make phone call:', error)
-    // }
+    try {
+      console.log('Make phone call...');
+      const response = await request(
+        `/api/channels/${channelId}/phone-call`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-application-uid': currentUserId,
+          },
+          body: JSON.stringify({}),
+        },
+      )
+      const phoneNumber = response.phoneNumber;
+      if (phoneNumber) {
+        window.location.href = `tel:${phoneNumber}`;
+      } else {
+        alert('Failed to retrieve phone number.');
+      }
+      dispatch(addMessage(response.message));
+    } catch (error) {
+      console.error('Failed to make phone call:', error)
+    }
     handleMenuClose();
   }
 

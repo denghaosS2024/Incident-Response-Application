@@ -2,19 +2,21 @@ import React, { useState, useEffect } from "react";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import Column from "./Column";
 import { useDispatch, useSelector } from "react-redux";
-import { loadContacts, loadMockContacts } from "../features/contactSlice";
-import { AppDispatch } from "../app/store";
-import { RootState } from "../utils/types";
+import { loadContacts } from "../features/contactSlice";
+import { AppDispatch } from "@/app/store";
+import { RootState } from "@/utils/types";
 import IUser from '@/models/User'
 import IChannel from "@/models/Channel";
 
 export default function Board({
     setUsers,
-    onGroupClick,
+    setGroupName, 
+    setDescription, 
     resetBoard,
 }: {
     setUsers: (users: string[]) => void;
-    onGroupClick: (group: IChannel) => void;  // update parent component on click
+    setGroupName: (name: string) => void; // Declare setGroupName as a prop
+    setDescription: (description: string) => void; // Declare setDescription as a prop
     resetBoard: () => void;
 }) {
     const [done, setDone] = useState<IUser[]>([]);
@@ -43,6 +45,7 @@ export default function Board({
         if (contacts.length > 0) {
             const filteredContacts = contacts.filter(contact => contact._id !== owner); // Remove the logged-in user
             setTodo(filteredContacts);
+            setDone([]);
         }
     }, [resetBoard]);
 
@@ -98,8 +101,9 @@ export default function Board({
     const handleGroupClick = (groupId: string) => {
         const group = groups.find(group => group._id === groupId); // Find the selected group
         if (group) {
-            onGroupClick(group);
 
+            setGroupName(group.name); // Update group name
+            setDescription(group.description || ''); // Update group description
             const groupUsers = group.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
                 .filter(Boolean) as IUser[]; // Filter out undefined values

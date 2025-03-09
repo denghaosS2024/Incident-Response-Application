@@ -7,10 +7,22 @@ import Channel, {
   IChannel,
   PUBLIC_CHANNEL_NAME,
 } from '../../src/models/Channel'
+import Message from '../../src/models/Message'
 import { IUser } from '../../src/models/User'
 import UserConnections from '../../src/utils/UserConnections'
 import * as TestDatabase from '../utils/TestDatabase'
 import { ROLES } from '../../src/utils/Roles'
+
+jest.mock('@google-cloud/storage', () => {
+  const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
+  const mockFile = jest.fn(() => ({ getSignedUrl: mockGetSignedUrl }))
+  const mockBucket = jest.fn(() => ({ file: mockFile }))
+  const mockStorage = jest.fn().mockImplementation(() => ({
+    bucket: mockBucket,
+  }))
+
+  return { Storage: mockStorage }
+})
 
 describe('Channel controller', () => {
   // "System" user is created in the database upon app run so by default there always is one user present in the database.
@@ -180,6 +192,79 @@ describe('Channel controller', () => {
       expect(error.message).toBe('Cannot delete the public channel')
     }
   })
+
+  it('should return uploadUrl and fileUrl for an existing channel for video upload', async () => {
+    // Create a channel in the DB
+    const testChannel = await ChannelController.create({
+      name: 'Test Channel For Upload',
+      userIds: [userA._id],
+    })
+
+    // Call getVideoUploadUrl
+    const { uploadUrl, fileUrl } = await ChannelController.getVideoUploadUrl(
+      testChannel._id
+    )
+
+    // Assert that the values match mock
+    expect(uploadUrl).toBe('mock-signed-url')
+    expect(fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
+  })
+
+  it('should handle error if GCS getSignedUrl call fails for video upload', async () => {
+    // Create a channel in the DB (so the error is from the GCS layer, not from "channel not found")
+    const testChannel = await ChannelController.create({
+      name: 'Channel GCS Error',
+      userIds: [userA._id],
+    })
+
+    // Force the mock to throw an error on getSignedUrl
+    const { Storage } = require('@google-cloud/storage')
+    Storage.mockImplementation(() => ({
+      bucket: () => ({
+        file: () => ({
+          getSignedUrl: jest.fn().mockRejectedValue(new Error('GCS Error')),
+        }),
+      }),
+    }))
+    
+    const result = await ChannelController.getVideoUploadUrl(testChannel._id)
+    expect(result).toEqual({ error: 'Error generating signed URL' })
+  })
+
+  it('can acknowledge a message and notify other users', async () => {
+    // Create a channel with both users
+    const channel = await ChannelController.create({
+      name: 'Channel to Acknowledge',
+      userIds: [userA._id, userB._id],
+    })
+
+    // Create (or append) a new message in that channel from userA
+    const newMessage = await Message.create({
+      content: 'This is a test alert',
+      channelId: channel._id,
+      sender: userA._id,
+    })
+
+    // "Connect" userB’s socket so it can receive "acknowledge-alert"
+    const socketB = mock<SocketIO.Socket>()
+    UserConnections.addUserConnection(userB.id, socketB, ROLES.CITIZEN)
+
+    // userA calls acknowledgeMessage on that message
+    const acknowledged = await ChannelController.acknowledgeMessage(
+      newMessage._id,
+      userA._id,
+      channel._id
+    )
+
+    // Confirm the message in the DB was updated
+    expect(acknowledged.acknowledgedBy.length).toBe(1)
+    expect(acknowledged.acknowledgedBy[0]._id.toHexString()).toBe(userA._id.toHexString())
+    // Check that there's an acknowledgedAt
+    expect(acknowledged.acknowledgedAt).toBeDefined()
+    expect(socketB.emit).toHaveBeenCalledWith('acknowledge-alert', expect.any(Object))
+  })
+
+
 
   afterAll(TestDatabase.close)
 })
