@@ -8,14 +8,15 @@ import BlockIcon from '@mui/icons-material/Block';
 import { useState } from 'react';
 
 interface MapDropProps {
-    onDropPin: () => void;     // Center map on user's location
-    onDropRoadblock: () => void;  // Toggle layers visibility
-    onDropFireHydrant: () => void;        // Add a pin on the map
-    onDropAirQuality: () => void;   // Switch map styles
-  }
+    onDropPin: () => void;
+    onDropRoadblock: () => void;
+    onDropFireHydrant: () => void;
+    onDropAirQuality: () => void;
+}
 
 const MapDrop: React.FC<MapDropProps> = ({ onDropPin, onDropRoadblock, onDropFireHydrant, onDropAirQuality }) => {
   const [value, setValue] = useState(0);
+  const currentUserRole = localStorage.getItem('role') || 'Citizen';  // Get role
 
   return (
     <Paper
@@ -44,21 +45,30 @@ const MapDrop: React.FC<MapDropProps> = ({ onDropPin, onDropRoadblock, onDropFir
           justifyContent: 'center',
         }}
       >
+        {/* Always show Pin */}
         <BottomNavigationAction
           icon={<PushPinIcon />}
           onClick={onDropPin}
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
-        <BottomNavigationAction
-          icon={<BlockIcon />}
-          onClick={onDropRoadblock}
-          sx={{ alignItems: 'center', justifyContent: 'center' }}
-        />
-        <BottomNavigationAction
-          icon={<FireHydrantAltIcon />}
-          onClick={onDropFireHydrant}
-          sx={{ alignItems: 'center', justifyContent: 'center' }}
-        />
+
+        {/* Show Roadblock & Fire Hydrant only if NOT a Nurse */}
+        {currentUserRole !== 'Nurse' && (
+          <>
+            <BottomNavigationAction
+              icon={<BlockIcon />}
+              onClick={onDropRoadblock}
+              sx={{ alignItems: 'center', justifyContent: 'center' }}
+            />
+            <BottomNavigationAction
+              icon={<FireHydrantAltIcon />}
+              onClick={onDropFireHydrant}
+              sx={{ alignItems: 'center', justifyContent: 'center' }}
+            />
+          </>
+        )}
+
+        {/* Always show Air Quality */}
         <BottomNavigationAction
           icon={<CloudIcon />}
           onClick={onDropAirQuality}
