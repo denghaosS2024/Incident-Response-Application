@@ -5,6 +5,7 @@ import { FilterQuery, Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from '../models/Channel'
 import User from '../models/User'
+import Profile from '../models/Profile' 
 import Message from '../models/Message'
 import UserConnections from '../utils/UserConnections';
 import { Storage } from '@google-cloud/storage'
@@ -293,6 +294,72 @@ class ChannelController {
     })
 
     return message
+  }
+
+  /**
+   * Start a phone call in a channel.
+   * - Retrieves the sender and channel from the database.
+   * - Retrieves the receiver's phone number from the database.
+   * - Creates a new message including the caller and receiver and appends it to the channel.
+   * - Notifies other online users in the channel.
+   *
+   * @param channelId - The ID of the channel to start the call in.
+   * @param senderId - The ID of the user starting the call.
+   * @returns The newly created message object containing the sender and receiver username, and receiver's phone number.
+   * @throws Error if the sender or channel is not found.
+   */
+  makePhoneCall = async (
+    channelId: Types.ObjectId,
+    senderId: Types.ObjectId,
+  ) => {
+    // Retrieve the sender from the database
+    const sender = await User.findById(senderId).exec()
+    if (!sender) {
+      throw new Error(`Sender(${senderId.toHexString()}) not found.`)
+    }
+
+    // Retrieve the channel from the database
+    const channel = await Channel.findById(channelId).exec()
+    if (!channel) {
+      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
+    }
+
+    const receiverId = channel.users.find(user => !user._id.equals(senderId))?._id as Types.ObjectId | undefined;
+    if (!receiverId) {
+      throw new Error(`No other user found in Channel(${channelId.toHexString()}).`);
+    }
+
+    const receiverProfile = await Profile.findOne({ userId: receiverId }).exec();
+    if (!receiverProfile) {
+      throw new Error(`Profile for Receiver(${receiverId.toHexString()}) not found.`);
+    }
+    const receiver = await User.findById(receiverId).exec()
+    if (!receiver) {
+      throw new Error(`Receiver(${receiverId.toHexString()}) not found.`);
+    }
+    const receiverPhoneNumber = receiverProfile.phone;
+    const content = `Phone call started now between ${sender.username} and ${receiver?.username}.`;
+
+    // Create and save the new message
+    const message = await new Message({
+      content,
+      sender,
+      channelId: channel._id,
+    }).save()
+
+    // Append the new message to the channel
+    channel.messages!.push(message)
+    await channel.save()
+
+    // Notify other online users in the channel
+    channel.users.forEach((user) => {
+      if (user._id.equals(senderId)) return
+      const id = user._id.toHexString()
+      if (!UserConnections.isUserConnected(id)) return
+      const connection = UserConnections.getUserConnection(id)!
+      connection.emit('new-message', message)
+    })
+    return {message, phoneNumber: receiverPhoneNumber};
   }
 
   /**
