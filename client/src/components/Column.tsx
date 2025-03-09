@@ -13,6 +13,7 @@ interface ColumnProps {
     id: string;
     groups?: any[];
     onGroupClick?: (groupId: string) => void;
+    selectedGroupId?: string | null;
 }
 
 
