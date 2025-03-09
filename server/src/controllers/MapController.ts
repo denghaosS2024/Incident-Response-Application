@@ -5,7 +5,7 @@ class MapController {
    * Add a new MapMarker
    * @param type - The type of the marker (e.g., pin, fire hydrant, roadblock)
    * @param latitude - The latitude of the marker
-   * @param altitude - The altitude of the marker
+   * @param longitude - The longitude of the marker
    * @param description - (Optional) A description for the marker
    * @returns The newly created MapMarker object
    * @throws Error if marker creation fails
@@ -13,11 +13,11 @@ class MapController {
   async addMarker(
     type: string,
     latitude: number,
-    altitude: number,
+    longitude: number,
     description?: string
   ) {
     try {
-      const marker = new MapMarker({ type, latitude, altitude, description });
+      const marker = new MapMarker({ type, latitude, longitude, description });
       await marker.save();
       return marker;
     } catch (error: any) {
@@ -46,7 +46,7 @@ class MapController {
 
   /**
    * List all MapMarkers with their details
-   * @returns An array of all markers including id, latitude, longitude, altitude, description, and type
+   * @returns An array of all markers including id, latitude, longitude, longitude, description, and type
    * @throws Error if listing fails
    */
   async listMarkers() {

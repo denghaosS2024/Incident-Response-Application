@@ -8,16 +8,16 @@ export default Router()
    * @param {Object} request.body
    * @param {string} request.body.type - The type of the marker (e.g., pin, fire hydrant, roadblock)
    * @param {number} request.body.latitude - The latitude of the marker
-   * @param {number} request.body.altitude - The altitude of the marker
+   * @param {number} request.body.longitude - The longitude of the marker
    * @param {string} [request.body.description] - (Optional) A description for the marker
    * @returns {Object} The created MapMarker object
    * @throws {400} If marker creation fails
    */
   .post('/', async (request, response) => {
-    const { type, latitude,  altitude, description } = request.body;
+    const { type, latitude,  longitude, description } = request.body;
     
     try {
-      const marker = await MapController.addMarker(type, latitude, altitude, description);
+      const marker = await MapController.addMarker(type, latitude, longitude, description);
       response.send(marker);
     } catch (e) {
       const error = e as Error;
