@@ -53,7 +53,7 @@ const MapDrop: React.FC<MapDropProps> = ({ onDropPin, onDropRoadblock, onDropFir
         />
 
         {/* Show Roadblock & Fire Hydrant only if NOT a Nurse */}
-        {currentUserRole !== 'Nurse' && (
+        {(currentUserRole !== 'Nurse' && currentUserRole !== 'Citizen') && (
           <>
             <BottomNavigationAction
               icon={<BlockIcon />}
