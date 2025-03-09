@@ -23,6 +23,8 @@ class Socket {
    * @param server - The Socket.IO server instance
    */
   setup = (server: SocketIO.Server) => {
+    UserConnections.initializeIO(server);
+    
     server.on('connection', (socket: SocketIO.Socket) => {
       // Handle user login
       socket.on('login', (message: ILoginMessage) => {

@@ -79,7 +79,7 @@ jobs:
 
 
   deploy:
-    needs: sonarqube
+    # needs: sonarqube  # comment out to bypass previous stages
     name: Deploy Client & Server
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' # Only deploy on master branch

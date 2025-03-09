@@ -14,6 +14,15 @@ import SocketIO from 'socket.io'
 const connections = new Map<string, SocketIO.Socket>()
 
 class UserConnections {
+  private io: SocketIO.Server | null = null;
+
+  constructor() {
+  }
+
+  // Add initialization method
+  initializeIO(io: SocketIO.Server) {
+    this.io = io;
+  }
 
   /**
    * Check if a user is currently connected
@@ -31,6 +40,15 @@ class UserConnections {
     connections.set(uid, connection);
     // Join role-based room
     connection.join(`role:${role}`);
+    console.log(`User ${uid} connected with role ${role}`);
+    // Add logging to verify room joining
+    const rooms = connection.rooms;
+    console.log('User connected:', {
+      uid,
+      role,
+      rooms: Array.from(rooms || []),
+      totalConnections: connections.size
+    });
   }
 
   /**
@@ -83,10 +101,13 @@ class UserConnections {
    * @param data - The data to send with the event
    */
   broadcaseToRole = (role: ROLES, eventName: string, data: object|string = {}) => {
-    const socket = connections.values().next().value;
-    if (socket) {
-      socket.to(`role:${role}`).emit(eventName, data);
+    if (!this.io) {
+      console.error('Socket.io server not initialized');
+      return;
     }
+    console.log(`Broadcasting to role: ${role}, event: ${eventName}, data:`, data);
+    // Use server instance to broadcast to room
+    this.io.to(`role:${role}`).emit(eventName, data);
   }
 }
 

@@ -14,7 +14,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { set } from 'lodash'
 import ConfirmationDialog from '../components/common/ConfirmationDialog'
 import Board from "./Board";
 import IUser from '@/models/User'
@@ -30,7 +29,7 @@ interface ITab {
 // todo: should be refactored into a separate component as TabList
 const tabs: ITab[] = [
   {
-    text: 'Add Group',
+    text: 'Create/Edit Group',
     link: '/groups',
     icon: <AddIcon />,
   },
@@ -50,6 +49,7 @@ export interface IAddGroupFormProps {
   setSelectedUsers: (users: IUser[]) => void; // Add the setSelectedUsers function here
   deleteChannel: (channelName: string) => void
   resetBoard: () => void; // Define resetBoard function prop
+  currentGroup: IChannel | null;
   setCurrentGroup: (group: IChannel | null) => void;
 }
 
@@ -64,8 +64,6 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const [nameError, setNameError] = useState<string>('')
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
-  const currentUserRole = localStorage.getItem('role')
-  const [currentGroup, setCurrentGroup] = useState<IChannel | null>(null);
 
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [users, setUsers] = useState<string[]>([owner])
@@ -120,12 +118,9 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   }
 
   const handleDeleteClick = () => {
-    let hasError = false
-
     setNameError('')
     if (!name.trim()) {
       setNameError('Group name is required')
-      hasError = true
     } else {
       setOpenConfirmDialog(true)
     }
@@ -141,6 +136,14 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   ) => {
     event.preventDefault()
     setShowForm(true)
+  }
+
+  const handleGroupClickInBoard = (group: IChannel) => {
+    channelProps.setCurrentGroup(group)
+
+    setGroupName(group.name)
+    setDescription(group.description || '')
+    setIsClosed(group.closed || false)
   }
 
   return (
@@ -208,10 +211,8 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
             />
           </Box>
           <Board setUsers={setUsers}
-            setGroupName={setGroupName}
-            setDescription={setDescription}
-            resetBoard={channelProps.resetBoard}
-            setCurrentGroup={channelProps.setCurrentGroup} />
+            onGroupClick={handleGroupClickInBoard}
+            resetBoard={channelProps.resetBoard} />
           <Box display="flex" justifyContent="center" mt={2}>
             <Button
               variant="contained"
@@ -223,7 +224,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               }}
               sx={{ mt: 2, mx: 1 }}
             >
-              Submit
+              {(channelProps.currentGroup == null) ? "Create" : "Edit"}
             </Button>
             <Button
               variant="outlined"

@@ -79,6 +79,7 @@ class IncidentController {
                       message: `New incident ${incidentId} created by ${username}`
                     }
                   );
+                  console.log(`New incident ${incidentId} created by ${username}, message sent to dispatchers`);
                 };
             
             await notifyDispatchers(incident.incidentId, incident.caller);

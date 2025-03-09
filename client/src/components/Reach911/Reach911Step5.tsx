@@ -11,7 +11,13 @@ import {
   Button,
 } from '@mui/material';
 import request from '../../utils/request';
-import type IIncident from '@/models/Incident';
+import type IIncident from '../../models/Incident';
+import { IncidentPriority } from '../../models/Incident';
+
+// NEW: Import useDispatch and updateIncident action from incidentSlice
+import { useDispatch } from 'react-redux';
+import { updateIncident } from '../../features/incidentSlice';
+import type { AppDispatch } from '@/app/store';
 
 interface Reach911Step5Props {
   incidentId?: string;
@@ -27,6 +33,27 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
   const [priority, setPriority] = useState<string>('E');
   const [commander, setCommander] = useState<string>('System');
 
+  // NEW: Create dispatch instance
+  const dispatch = useDispatch<AppDispatch>();
+
+  // NEW: Two-way mapping
+  // UI -> Backend
+  const displayToBackend: Record<string, IncidentPriority> = {
+    'E': IncidentPriority.Immediate, // "E"
+    '1': IncidentPriority.Urgent,    // "One"
+    '2': IncidentPriority.CouldWait, // "Two"
+    '3': IncidentPriority.Dismiss,   // "Three"
+  };
+
+  // Backend -> UI
+  const backendToDisplay: Record<IncidentPriority, string> = {
+    [IncidentPriority.Immediate]: 'E',
+    [IncidentPriority.Urgent]: '1',
+    [IncidentPriority.CouldWait]: '2',
+    [IncidentPriority.Dismiss]: '3',
+    [IncidentPriority.Unset]: 'E',
+  };
+
   // Fetch incident details on mount using the incidentId passed from Reach911Page.tsx
   useEffect(() => {
     const fetchIncidentDetails = async () => {
@@ -34,14 +61,24 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         if (!incidentId) {
           throw new Error('No incidentId provided');
         }
-        // Fetch incident details
+        // Fetch incident details using query param; assuming API returns an array
         const data = await request(`/api/incidents?incidentId=${incidentId}`);
         if (Array.isArray(data) && data.length > 0) {
           const incident = data[0];
           setIncidentData(incident);
-          // Initialize form fields from fetched incident data
-          if (incident.priority) setPriority(incident.priority);
-          if (incident.commander) setCommander(incident.commander);
+
+          // NEW: Dispatch the fetched incident to update Redux state
+          dispatch(updateIncident(incident));
+
+          // CHANGED: Convert from the backend enum (e.g., "One", "Two") to UI values ("1", "2").
+          if (incident.priority) {
+            const priorityEnum = incident.priority as IncidentPriority; // cast
+            const uiPriority = backendToDisplay[priorityEnum] || 'E';
+            setPriority(uiPriority);
+          }
+          if (incident.commander) {
+            setCommander(incident.commander);
+          }
         } else {
           setError('No incident found for this incidentId');
         }
@@ -54,27 +91,23 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     };
 
     fetchIncidentDetails();
-  }, [incidentId]);
+  }, [incidentId, dispatch]);
 
   const handleSubmit = async () => {
     if (!incidentData) return;
     try {
       setLoading(true);
       setError(null);
-      const priorityMap: { [key: string]: string } = {
-        'E': 'E',
-        '1': 'One',
-        '2': 'Two',
-        '3': 'Three'
-      };
-      const convertedPriority = priorityMap[priority] || priority;
-  
+
+      // CHANGED: Convert from UI (e.g., "1") to the backend enum (e.g., "One")
+      const convertedPriority = displayToBackend[priority] || IncidentPriority.Immediate;
+
       const updatedIncident = {
         incidentId: incidentData.incidentId,
         priority: convertedPriority,
         commander,
       };
-  
+
       let updateResponse;
       try {
         updateResponse = await request("/api/incidents/update", {
@@ -83,18 +116,28 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
           body: JSON.stringify(updatedIncident),
         });
       } catch (e: any) {
-        // If we get an error about JSON parsing, assume it's because of a 204 response. // THIS IS WRONG TO DO, BUT I DIDNT WANNA EDIT THE REQUEST UTIL
+        // If we get an error about JSON parsing, assume it's because of a 204 response.
         if (e.message && e.message.includes("Unexpected end of JSON input")) {
           updateResponse = { status: 204 };
         } else {
           throw e;
         }
       }
-  
+
       if (updateResponse.status !== 204) {
         throw new Error("Failed to update incident");
       }
-  
+      
+      // NEW: Dispatch the updated incident to Redux state
+      dispatch({
+        type: updateIncident.type,
+        payload: {
+          ...incidentData,
+          priority: convertedPriority,
+          commander,
+        }
+      });
+      
       alert("Incident updated successfully!");
     } catch (err) {
       console.error("Error updating incident:", err);
@@ -104,8 +147,6 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     }
   };
   
-  
-
   if (loading) {
     return (
       <Paper elevation={3} sx={{ p: 2, m: 2 }}>
@@ -173,7 +214,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
               label="Commander"
               onChange={(e) => setCommander(e.target.value as string)}
             >
-              {/* Hardcoded placeholder options.This needs to be handled */}
+              {/* Hardcoded placeholder options */}
               <MenuItem value="System">System</MenuItem>
               <MenuItem value="John Doe">John Doe</MenuItem>
               <MenuItem value="Jane Doe">Jane Doe</MenuItem>

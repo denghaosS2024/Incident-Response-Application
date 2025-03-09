@@ -97,6 +97,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
     localStorage.removeItem('token')
     localStorage.removeItem('uid')
     localStorage.removeItem('incidentState')
+    localStorage.removeItem('911Step');
+    localStorage.removeItem('username');
+    localStorage.removeItem('role');
     navigate('/login')
   }
   const profile = () => {

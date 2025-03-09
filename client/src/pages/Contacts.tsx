@@ -9,16 +9,31 @@ import { loadContacts } from '../features/contactSlice'
 import IChannel from '../models/Channel'
 import request from '../utils/request'
 
+const roleContactMap: Record<string, string[]> = {
+  Citizen: ['Citizen', 'Administrator'],
+  Dispatch: ['Dispatch', 'Police', 'Fire', 'Administrator'],
+  Police: ['Dispatch', 'Police', 'Fire', 'Administrator'],
+  Fire: ['Dispatch', 'Police', 'Fire', 'Administrator'],
+  Nurse: ['Nurse', 'Administrator'],
+  Administrator: ['Dispatch', 'Police', 'Fire', 'Nurse', 'Citizen', 'Administrator'],
+}
+
 // Contacts component: Displays a list of contacts and handles contact interactions
 const Contacts: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
   const currentUserId = localStorage.getItem('uid')
+  const currentUserRole = localStorage.getItem('role') || ''
+
   const { contacts, loading } = useSelector(
     (state: RootState) => state.contactState,
   )
+
+  const allowedRoles = roleContactMap[currentUserRole] || []
   // Filter out the current user from the contacts list
-  const users = contacts.filter((user) => user._id !== currentUserId)
+  const users = contacts.filter(
+    (user) => user._id !== currentUserId && allowedRoles.includes(user.role)
+  )
 
   // Function to handle clicking on a contact
   // @param userId - The ID of the clicked user

@@ -35,10 +35,8 @@ const Template: Story = (args) => {
   return (
     <Board
       setUsers={setUsers}
-      setGroupName={setGroupName}
-      setDescription={setDescription}
+      onGroupClick={(c) => {setGroupName(c.name)}}  // just a random func to make eslint happy
       resetBoard={resetBoardState}  // Pass the mock function here
-      setCurrentGroup={setCurrentGroup}
       {...args}
     />
   );

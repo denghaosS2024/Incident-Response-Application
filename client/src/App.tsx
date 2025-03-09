@@ -89,6 +89,10 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   const [hasGroupNotification, setHasGroupNotification] = useState(false);
   const [currentAlertMessageId, setCurrentAlertMessageId] = useState('')
   const [currentChannelId, setCurrentChannelId] = useState('')
+  // check if there are any new incidents
+  const [hasNewIncident, setHasNewIncident] = useState<boolean>(false);
+  const [showIncidentAlert, setShowIncidentAlert] = useState<boolean>(false);
+  const [incidentAlertMessage, setIncidentAlertMessage] = useState<string>('');
 
 
   const tabLinks: Array<Link> = [
@@ -169,14 +173,47 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     ...tabLinks.filter((link) => link.key !== 'home'),
   ];
 
+  const useFlashAnimation = (bgColor: string) => {
+    return useMemo(
+      () => keyframes`
+        0% { background-color: ${bgColor};}
+        50% { background-color: black ;}
+        100% { background-color: ${bgColor};}
+      `,
+      [bgColor],
+    )
+  }
+
+  const flash = useFlashAnimation(bgColor)
+
   // TODO: Does Admmin see everything? If so, we need to include admin here
   const firstResponderRoleList = ['Dispatch', 'Police', 'Fire']
   if (firstResponderRoleList.includes(role)) {
     orderedTabs.push({
       prefix: '/incidents',
       key: 'incidents',
-      icon: <Report />,
+      // make icon different to alert when new incident created
+      icon: hasNewIncident ? (
+        <Box position="relative">
+          <Report sx={{color: 'error.main'}}/>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: -5,
+              right: -5,
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              backgroundColor: 'error.main',
+              animation: `${flash} 1s infinite`
+            }}
+          />
+        </Box>
+      ) : (
+        <Report />
+      ),
       to: '/incidents',
+      onClick: () => setHasNewIncident(false),
     })
   }
 
@@ -212,19 +249,6 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     lastTap.current = now
   }
 
-  const useFlashAnimation = (bgColor: string) => {
-    return useMemo(
-      () => keyframes`
-        0% { background-color: ${bgColor};}
-        50% { background-color: black ;}
-        100% { background-color: ${bgColor};}
-      `,
-      [bgColor],
-    )
-  }
-
-  const flash = useFlashAnimation(bgColor)
-
   useEffect(() => {
     const handleMaydayReceived = (data: any) => {
       console.log('Mayday received:', data);
@@ -234,7 +258,13 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     };
 
     const socket = SocketClient
-    socket.connect()
+    socket.connect();
+    
+    socket.on('connect', () => {
+      console.log('Socket connected successfully');
+      console.log('Current role:', role);
+    });
+
     socket.on('new-message', (message: IMessage) => {
       dispatch(addMessage(message))
     })
@@ -274,11 +304,30 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
         setHasGroupNotification(true);
       }
     });
+    socket.on('new-incident-created', (data) => {
+      console.log('New incident created:', data);
+      if (role === 'Dispatch') {
+        setHasNewIncident(true);
+        setHasNewIncident(true);
+        setShowIncidentAlert(true);
+        setIncidentAlertMessage(`New incident created by ${data.username}`);
+        setBgColor('red');
+        setTextColor('white');
+      }
+    });
+
     return () => {
-      socket.off('send-mayday')
+      socket.off('new-message');
+      socket.off('acknowledge-alert');
+      socket.off('new-fire-alert');
+      socket.off('new-police-alert');
+      socket.off('send-mayday');
+      socket.off('user-status-changed');
+      socket.off('group-member-added');
+      socket.off('new-incident-created');
       socket.close()
     }
-  }, [])
+  }, [role, dispatch])
 
   return isLoggedIn ? (
     <>
