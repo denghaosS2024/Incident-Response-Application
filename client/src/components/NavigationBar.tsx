@@ -68,6 +68,11 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   let title = pageTitles[pathname] || 'Incident Response'
 
+// If user is Fire or Police and path is /reach911, override title to "Incidents"
+  if (pathname === '/reach911' && (role === 'Fire' || role === 'Police' || role === 'Dispatch')) {
+    title = 'Incidents'
+  }
+
   if (pathname.startsWith('/messages/') && name) {
     title = `${name} Messages`
   }

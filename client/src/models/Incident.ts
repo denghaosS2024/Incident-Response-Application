@@ -24,6 +24,7 @@ export enum IncidentType {
 
 export default interface IIncident {
   _id: string // Unique identifier for the incident
+  incidentId : string
   caller: string // User object representing the sender of the incident
   openingDate: string // Timestamp of when the incident was create
   incidentState: string // Identifier of the state of the incident

@@ -162,6 +162,14 @@ class IncidentController {
         return await Incident.find({ caller }).exec();
     }
 
+    /**
+     * Get incident details based on incidentId
+     * @returns incident details based on incidentId
+     */
+    async getIncidentByIncidentId(incidentId: string): Promise<IIncident[]> {
+        return await Incident.find({ incidentId }).exec();
+    }
+
 }
 
 export default new IncidentController()

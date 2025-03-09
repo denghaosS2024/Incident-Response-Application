@@ -2,21 +2,30 @@ import ClickableStepper from '../components/ClickableStepper'
 import React, { useState, useEffect } from 'react'
 import styles from '../styles/Reach911Page.module.css'
 import Button from '@mui/material/Button';
+
 import Step3Form from '../components/Reach911/Reach911Step3Form';
 import Reach911Step1 from '../components/Reach911/Reach911Step1';
 import Reach911Step2 from '../components/Reach911/Reach911Step2';
 import Reach911Step4 from '../components/Reach911/Reach911Step4';
+import Reach911Step5 from '../components/Reach911/Reach911Step5';
+
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../utils/types';
 import IIncident from '../models/Incident';
 import { updateIncident } from '../features/incidentSlice';
 import { AppDispatch } from '../app/store';
+import { useLocation } from 'react-router-dom';
+
 
 const Reach911Page: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>()
     const [activeStep, setActiveStep] = useState<number>(0)
     const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident)
     const [error, setError] = useState<string | null>(null);
+
+    const location = useLocation();
+    const { incidentId, isCreatedByFirstResponder } = location.state || {};
+    const role = localStorage.getItem('role')
 
     // Get the current user's username when component mounts
     useEffect(() => {
@@ -34,8 +43,17 @@ const Reach911Page: React.FC = () => {
         <Reach911Step1 />,
         <Reach911Step2 />,
         <Step3Form />,
-        <Reach911Step4 />,
+        <Reach911Step4 
+            isCreatedByFirstResponder={isCreatedByFirstResponder} 
+        />,
     ];
+
+    const isResponder = role === 'Fire' || role === 'Police' || role === 'Dispatch';
+    if (isResponder) {
+        contents.push(
+          <Reach911Step5 incidentId={incidentId} />  
+        );
+      }
 
     // Function for submitting incident
     const submitIncident = async () => {

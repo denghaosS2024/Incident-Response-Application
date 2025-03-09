@@ -15,8 +15,11 @@ import type { AppDispatch } from '@/app/store';
 import type IIncident from '@/models/Incident';
 import type IChannel from '@/models/Channel';
 
+interface Reach911Step4Props {
+   isCreatedByFirstResponder?: boolean;
+ }
 
-const Reach911Step4: React.FC = () => {
+const Reach911Step4: React.FC<Reach911Step4Props> = ({ isCreatedByFirstResponder }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [channelId, setChannelId] = useState<string | null>(null);
@@ -35,6 +38,19 @@ const Reach911Step4: React.FC = () => {
         });
         dispatch(addMessage(message));
     };
+
+    // If responder clicked the + button and user is Fire/Police, return early and display "There is no 911 Caller involved"
+    if (isCreatedByFirstResponder && (currentUserRole === 'Fire' || currentUserRole === 'Police')) {
+        return (
+            <Paper elevation={3} sx={{ p: 2, m: 2 }}>
+                <Box display="flex" justifyContent="center" alignItems="center" p={3}>
+                    <Typography variant="h6">
+                        There is no 911 Caller involved
+                    </Typography>
+                </Box>
+            </Paper>
+        );
+    }
 
     useEffect(() =>{
         const setupIncidentChat = async () => {
@@ -126,7 +142,7 @@ const Reach911Step4: React.FC = () => {
             </Paper>
         );
     }
-    
+
     return (
         <Paper elevation={3} sx={{ p: 2, m: 2 }}>
         <Box 
