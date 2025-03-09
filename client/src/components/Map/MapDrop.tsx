@@ -50,7 +50,7 @@ const MapDrop: React.FC<MapDropProps> = ({ onDropPin, onDropRoadblock, onDropFir
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
         <BottomNavigationAction
-          icon={<CloudIcon />}
+          icon={<BlockIcon />}
           onClick={onDropRoadblock}
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
@@ -60,7 +60,7 @@ const MapDrop: React.FC<MapDropProps> = ({ onDropPin, onDropRoadblock, onDropFir
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
         <BottomNavigationAction
-          icon={<BlockIcon />}
+          icon={<CloudIcon />}
           onClick={onDropAirQuality}
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
