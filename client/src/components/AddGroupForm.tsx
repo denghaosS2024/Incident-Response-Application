@@ -14,11 +14,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { group } from 'console'
 import { set } from 'lodash'
 import ConfirmationDialog from '../components/common/ConfirmationDialog'
 import Board from "./Board";
 import IUser from '@/models/User'
+import IChannel from '../models/Channel'
+
 
 interface ITab {
   text: string
@@ -49,11 +50,12 @@ export interface IAddGroupFormProps {
   setSelectedUsers: (users: IUser[]) => void; // Add the setSelectedUsers function here
   deleteChannel: (channelName: string) => void
   resetBoard: () => void; // Define resetBoard function prop
+  setCurrentGroup: (group: IChannel | null) => void;
 }
 
 
 const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
-  channelProps: IAddGroupFormProps
+  channelProps: IAddGroupFormProps,
 ) => {
   const [showForm, setShowForm] = useState(false)
   const [closed, setIsClosed] = useState<boolean>(false)
@@ -63,7 +65,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
   const currentUserRole = localStorage.getItem('role')
-
+  const [currentGroup, setCurrentGroup] = useState<IChannel | null>(null);
 
   // console.log('owner:', owner)
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
@@ -206,7 +208,11 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               label="Closed"
             />
           </Box>
-          <Board setUsers={setUsers} setGroupName={setGroupName} setDescription={setDescription} resetBoard={channelProps.resetBoard} />
+          <Board setUsers={setUsers}
+            setGroupName={setGroupName}
+            setDescription={setDescription}
+            resetBoard={channelProps.resetBoard}
+            setCurrentGroup={channelProps.setCurrentGroup} />
           <Box display="flex" justifyContent="center" mt={2}>
             <Button
               variant="contained"
