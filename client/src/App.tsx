@@ -174,15 +174,19 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     })
   }
 
+  const [maydayOpen, setMaydayOpen] = useState<boolean>(false)
+
   const lastTap = useRef<number | null>(null)
 
   const handleDoubleTapDismiss = () => {
+    console.log('Double clicked')
     const now = Date.now()
     if (lastTap.current && now - lastTap.current < 300) {
-      setAlertOpen(false)
+      setAlertOpen(prev => false);
+      setMaydayOpen(prev => false);
       SocketClient.emit('acknowledge-alert', {
         senderId: localStorage.getItem('id'),
-        type: 'mayday',
+        type: alertMessage,
       })
     }
     lastTap.current = now
@@ -202,6 +206,13 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   const flash = useFlashAnimation(bgColor)
 
   useEffect(() => {
+    const handleMaydayReceived = (data: any) => {
+      console.log('Mayday received:', data);
+      setMaydayOpen(true)
+      setBgColor('red')
+      setAlertMessage('MAYDAY')
+    };
+
     const socket = SocketClient
     socket.connect()
     socket.on('new-message', (message: IMessage) => {
@@ -223,6 +234,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       setTextColor(text)
       setAlertOpen(true)
     })
+    socket.on('send-mayday', handleMaydayReceived);
     socket.on('user-status-changed', () => {
       dispatch(loadContacts())
     })
@@ -233,6 +245,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       }
     });
     return () => {
+      socket.off('send-mayday')
       socket.close()
     }
   }, [])
@@ -265,6 +278,28 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
             sx={{ color: textColor, fontWeight: 'bold', mb: 2 }}
           >
             {alertMessage}
+          </Typography>
+        </Box>
+      </Modal>
+
+      <Modal open={maydayOpen}>
+        <Box 
+          onPointerDown={handleDoubleTapDismiss}
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            animation: `${flash} 1s infinite`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'auto',
+          }}
+        >
+          <Typography variant="h2" sx={{ color: 'black', fontWeight: 'bold', mb: 2 }}>
+            MAYDAY
           </Typography>
         </Box>
       </Modal>
