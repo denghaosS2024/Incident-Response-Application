@@ -62,12 +62,7 @@ const Groups: React.FC = () => {
         isUpdate = true;
       }
 
-      console.log('Request payload:', {
-        _id: isUpdate ? groupId : undefined,
-        name, description, users, owner, closed
-      });
-
-      await request('/api/channels', {
+      await request('/api/channels/groups', {
         method: 'POST',
         body: JSON.stringify({
           _id: isUpdate ? groupId : undefined,
@@ -86,9 +81,7 @@ const Groups: React.FC = () => {
 
           newUsers.forEach(userId => {
             SocketClient.emit('group-member-added', {
-              userId: userId,
-              groupId: groupId,
-              groupName: name
+              userId: userId
             });
           });
         }

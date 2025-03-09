@@ -40,15 +40,19 @@ class Socket {
         } else {
           console.error(`Invalid login message from ${message.uid}`)
           socket.disconnect()
-        }socket.broadcast.emit('user-status-changed', { uid: message.uid })
+        } socket.broadcast.emit('user-status-changed', { uid: message.uid })
       })
 
       socket.on('send-mayday', (data) => {
         socket.broadcast.emit('send-mayday', data);
       });
 
-      socket.on('acknowledge-alert', (data) => { 
+      socket.on('acknowledge-alert', (data) => {
         socket.broadcast.emit('acknowledge-alert', data);
+      });
+
+      socket.on('group-member-added', (data) => {
+        socket.broadcast.emit('group-member-added', data);
       });
 
       // Handle user disconnection

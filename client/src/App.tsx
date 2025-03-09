@@ -283,7 +283,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       </Modal>
 
       <Modal open={maydayOpen}>
-        <Box 
+        <Box
           onPointerDown={handleDoubleTapDismiss}
           sx={{
             position: 'fixed',
