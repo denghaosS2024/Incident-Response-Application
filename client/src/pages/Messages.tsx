@@ -49,6 +49,7 @@ const Messages: React.FC = () => {
           channels={channels}
           loading={loading}
           onSelectChannel={handleSelectChannel}
+          selectedChannelId={selectedChannel}
         />
       </Box>
 

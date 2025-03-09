@@ -412,6 +412,48 @@ class ChannelController {
     }
   }
 
+  getImageUploadUrl = async (channelId: Types.ObjectId) => {
+    // Retrieve the channel from the database
+    const channel = await Channel.findById(channelId).exec()
+    if (!channel) {
+      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
+    }
+
+    // Initialize Google Cloud Storage
+    const storage = new Storage({
+      projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
+      keyFilename:
+        process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
+    })
+
+    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
+    // Generate a unique file name for the image (using channelId and current timestamp)
+    const fileName = `images/${channelId}/${Date.now()}.png`
+    const bucket = storage.bucket(bucketName)
+    const file = bucket.file(fileName)
+
+    // Set the signed URL to expire in 15 minutes
+    const expires = Date.now() + 15 * 60 * 1000
+
+    try {
+      // Generate a signed URL that allows a PUT request for the image upload
+      const [uploadUrl] = await file.getSignedUrl({
+        version: 'v4',
+        action: 'write',
+        expires,
+        contentType: 'image/png',
+      })
+
+      // Construct the public URL for accessing the image after upload
+      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`
+
+      return { uploadUrl, fileUrl }
+    } catch (error) {
+      console.error('Error generating signed URL:', error)
+      return { error: 'Error generating signed URL' }
+    }
+  }
+
   getFileUploadUrl = async (
     channelId: Types.ObjectId,
     fileName: string,

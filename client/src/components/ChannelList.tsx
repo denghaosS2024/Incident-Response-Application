@@ -21,6 +21,7 @@ export interface IChannelProps {
   channel: IChannel,
   onClick?: (channelId: string) => void,
   isSettingButton?: boolean,
+  selectedChannelId?: string | null
 }
 
 const ChannelStyle: SxProps = {
@@ -43,16 +44,19 @@ export const Channel: FunctionComponent<IChannelProps> = ({
   channel: { _id, name },
   onClick,
   isSettingButton = false,
+  selectedChannelId
 }) => {
 
-  const handleClick = (event: React.MouseEvent) => {
+  const handleClick = () => {
     if (onClick) {
       onClick(_id);
     }
   };
 
+  const isSelected = selectedChannelId === _id;
+
   const ChannelContent = (
-    <Box sx={ChannelStyle} onClick={handleClick}>
+    <Box sx={{ChannelStyle, backgroundColor: isSelected ? 'gray' : '#ADD8E6'}} onClick={handleClick}>
       <ListItemText>{name}</ListItemText>
       {isSettingButton &&
         <IconButton edge="end" size="large">
@@ -104,12 +108,14 @@ export interface IChannelListProps {
   loading: boolean
   // Store the ID of the currently selected channel
   onSelectChannel: (id: string) => void
+  selectedChannelId?: string | null
 }
 
 const ChannelList: FunctionComponent<IChannelListProps> = ({
   channels,
   loading,
-  onSelectChannel
+  onSelectChannel,
+  selectedChannelId
 }) => {
   if (!channels || loading) return <Loading />
 
@@ -130,7 +136,7 @@ const ChannelList: FunctionComponent<IChannelListProps> = ({
           <List sx={{ width: '100%' }}>
             {groupChannel.map((channel, index) => (
               <Fragment key={channel._id}>
-                <Channel channel={channel} onClick={() => onSelectChannel(channel._id)} />
+                <Channel channel={channel} onClick={() => onSelectChannel(channel._id)} selectedChannelId={selectedChannelId}/>
                 {index !== groupChannel.length - 1 && <Divider />}
               </Fragment>
             ))}
@@ -145,7 +151,7 @@ const ChannelList: FunctionComponent<IChannelListProps> = ({
           <List sx={{ width: '100%' }}>
             {contactChannel.map((channel, index) => (
               <Fragment key={channel._id}>
-                <Channel channel={channel} onClick={() => onSelectChannel(channel._id)} />
+                <Channel channel={channel} onClick={() => onSelectChannel(channel._id)} selectedChannelId={selectedChannelId}/>
                 {index !== contactChannel.length - 1 && <Divider />}
               </Fragment>
             ))}
