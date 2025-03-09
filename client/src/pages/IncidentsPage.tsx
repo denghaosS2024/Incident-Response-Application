@@ -190,6 +190,10 @@ function IncidentsPage() {
     }
   };
 
+  const hasActiveResponderIncident = data.some(
+    (incident: IncidentData) => incident.owner === userId || incident.commander === userId
+  );
+
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -256,12 +260,15 @@ function IncidentsPage() {
               </FormControl>
             </MenuItem>
           </Menu>
-          <IconButton
-            sx={{ position: 'fixed', bottom: 16, right: 16, width: 56, height: 56 }}
-            onClick={handleAddIncident}
-          >
-            <Add fontSize="large" />
-          </IconButton>
+          {/* Only render the + icon if the user does NOT have an active incident */}
+          {!hasActiveResponderIncident && (
+            <IconButton
+              sx={{ position: 'fixed', bottom: 16, right: 16, width: 56, height: 56 }}
+              onClick={handleAddIncident}
+            >
+              <Add fontSize="large" />
+            </IconButton>
+          )}
         </>
       ) : null}
     </Box>
