@@ -18,7 +18,13 @@ export default Router()
     
     try {
       const marker = await MapController.addMarker(type, latitude, longitude, description);
-      response.send(marker);
+      response.send({
+        id: marker._id,
+        type: marker.type,
+        latitude: marker.latitude,
+        longitude: marker.longitude,
+        description: marker.description
+      });
     } catch (e) {
       const error = e as Error;
       response.status(400).send({ message: error.message });
