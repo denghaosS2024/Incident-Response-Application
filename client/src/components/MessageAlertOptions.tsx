@@ -76,7 +76,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
         const now = Date.now();
         if (lastTap.current && now - lastTap.current < 300) {
             setMaydayOpen(false);
-            socket.emit('acknowledge-alert', { senderId: currentUserId, type: 'mayday' });
+            socket.emit('acknowledge-alert', { senderId: currentUserId, type: 'mayday', timestamp: now });
         }
         lastTap.current = now;
     };
