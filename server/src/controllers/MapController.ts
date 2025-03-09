@@ -49,7 +49,7 @@ class MapController {
    * @returns An array of all markers including id, latitude, longitude, longitude, description, and type
    * @throws Error if listing fails
    */
-  async listMarkers() {
+async listMarkers() {
     try {
       const markers = await MapMarker.find();
       return markers;
@@ -57,6 +57,20 @@ class MapController {
       throw new Error(`Failed to list markers: ${error.message}`);
     }
   }
+
+async updateDescription(markerId: string, description: string) {
+    try {
+        const marker = await MapMarker.findById(markerId);
+        if (!marker) {
+            throw new Error(`Marker with ID ${markerId} not found`);
+        }
+        marker.description = description;
+        await marker.save();
+        return marker;
+    } catch (error: any) {
+        throw new Error(`Failed to update marker description: ${error.message}`);
+    }
+}
 }
 
 export default new MapController();

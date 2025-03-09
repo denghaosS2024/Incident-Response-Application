@@ -129,40 +129,74 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
   // fetch and render markers from backend
   const fetchAndRenderMarkers = async () => {
     try {
-      const response = await fetch('/api/map'); // Replace with your actual API endpoint
+      const response = await fetch('/api/map'); // Fetch all markers from backend
       const data = await response.json();
   
       if (!mapRef.current) return;
-
   
-      data.forEach((item: { id: string; type: string; latitude: number; longitude: number; description: string }) => {
+      data.forEach((item: { _id: string; type: string; latitude: number; longitude: number; description: string }) => {
+        // Create popup content with buttons
+        const popupContent = document.createElement("div");
+        popupContent.id = `popup-container-${item._id}`;
+        popupContent.innerHTML = `
+          <p id="popup-address-${item._id}">${item.description}</p>
+          <button id="edit-pin-${item._id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+          <button id="delete-pin-${item._id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+        `;
+  
+        const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
+  
+        // Create marker
         const marker = new mapboxgl.Marker({ draggable: false })
           .setLngLat([item.longitude, item.latitude])
-          .setPopup(new mapboxgl.Popup().setHTML(`<p>${item.description}</p>`))
+          .setPopup(popup)
           .addTo(mapRef.current!);
   
-        // Categorize markers into the correct ref based on their type
+        // Store marker in the correct ref based on its type
         switch (item.type) {
           case 'pin':
-            pinRef.current.set(item.id, marker);
+            pinRef.current.set(item._id, marker);
             break;
           case 'roadblock':
-            roadblockRef.current.set(item.id, marker);
+            roadblockRef.current.set(item._id, marker);
             break;
-          case 'fire_hydrant':
-            fireHydrantRef.current.set(item.id, marker);
+          case 'fireHydrant':
+            fireHydrantRef.current.set(item._id, marker);
             break;
-          case 'air_quality':
-            airQualityRef.current.set(item.id, marker);
+          case 'airQuality':
+            airQualityRef.current.set(item._id, marker);
             break;
           default:
             console.warn(`Unknown marker type: ${item.type}`);
         }
+  
+        // Attach event listeners when popup opens
+        popup.on('open', () => {
+          const editButton = document.getElementById(`edit-pin-${item._id}`);
+          const deleteButton = document.getElementById(`delete-pin-${item._id}`);
+          const popupContainer = document.getElementById(`popup-container-${item._id}`) as HTMLDivElement;
+
+          if (!editButton || !deleteButton || !popupContainer) {
+            console.warn(`Popup elements not found for pin ID: ${item._id}`);
+            return;
+          }
+
+          // Bind event listeners
+          editButton.addEventListener("click", () => 
+            handleEditPin(item._id, item.type, popupContainer)
+          );
+
+          deleteButton.addEventListener("click", async () => {
+            await handleRemovePin(item._id, item.type);
+          });
+        });
       });
     } catch (error) {
       console.error("Error fetching markers:", error);
     }
   };
+  
+  
   
 
 // -------------------------------- helper function end --------------------------------
@@ -242,11 +276,13 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
       const initialLngLat = mapRef.current.getCenter();
       const initialAddress = await getAddressFromCoordinates(initialLngLat.lng, initialLngLat.lat);
     
-      // Create popup content
+      const tempId = `temp-${Date.now()}`;
+    
+      // Create popup content with unique ID
       const popupContent = document.createElement("div");
       popupContent.innerHTML = `
-        <p id="popup-address">${initialAddress || "Fetching address..."}</p>
-        <button id="confirm-pin" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
+        <p id="popup-address-${tempId}">${initialAddress || "Fetching address..."}</p>
+        <button id="confirm-pin-${tempId}" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
       `;
     
       const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
@@ -259,8 +295,6 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
     
       marker.togglePopup();
     
-      const tempId = `temp-${Date.now()}`;
-      
       // Store in the correct ref based on type
       switch (type) {
         case "roadblock":
@@ -280,11 +314,11 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
       marker.on("dragend", async () => {
         const newLngLat = marker.getLngLat();
         const newAddress = await getAddressFromCoordinates(newLngLat.lng, newLngLat.lat);
-        document.getElementById("popup-address")!.innerText = newAddress || "Fetching address...";
+        document.getElementById(`popup-address-${tempId}`)!.innerText = newAddress || "Fetching address...";
       });
     
       // Handle confirmation
-      const handleConfirm = async () => {
+      document.getElementById(`confirm-pin-${tempId}`)?.addEventListener("click", async () => {
         marker.setDraggable(false); // Disable dragging
     
         // Send request to backend to create a real pin entry
@@ -295,7 +329,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
             type: type,
             latitude: marker.getLngLat().lat,
             longitude: marker.getLngLat().lng,
-            description: document.getElementById("popup-address")!.innerText,
+            description: document.getElementById(`popup-address-${tempId}`)!.innerText,
           }),
         });
     
@@ -327,25 +361,25 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
     
         // Replace confirm button with delete and edit buttons
         popupContent.innerHTML = `
-          <p id="popup-address">${document.getElementById("popup-address")!.innerText}</p>
-          <button id="edit-pin" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
-          <button id="delete-pin" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+          <p id="popup-address-${id}">${document.getElementById(`popup-address-${tempId}`)!.innerText}</p>
+          <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+          <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
         `;
     
-        document.getElementById("delete-pin")?.addEventListener("click", async () => {
-          await removePin(id, type);
+        document.getElementById(`delete-pin-${id}`)?.addEventListener("click", async () => {
+          await handleRemovePin(id, type);
         });
     
-        document.getElementById("edit-pin")?.addEventListener("click", () => handleEditPin(id, type, popupContent));
+        document.getElementById(`edit-pin-${id}`)?.addEventListener("click", () => handleEditPin(id, type, popupContent));
     
         setIsAddingPin(false); // Re-enable MapDrop buttons after confirmation
-      };
-    
-      document.getElementById("confirm-pin")?.addEventListener("click", handleConfirm);
+      });
     };
+    
 
     // Function to remove a pin from the map
-    const removePin = async (id: string, type: string) => {
+    const handleRemovePin = async (id: string, type: string) => {
+      console.log(id, type);
       let marker: mapboxgl.Marker | undefined;
     
       switch (type) {
@@ -375,43 +409,49 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
 
     // Function to handle editing a pin's description
     const handleEditPin = (id: string, type: string, popupContent: HTMLDivElement) => {
-      const currentDescription = document.getElementById("popup-address")!.innerText;
-    
+      const descriptionElement = document.getElementById(`popup-address-${id}`);
+      if (!descriptionElement) return console.error("Description element not found");
+
+      const currentDescription = descriptionElement.innerText;
+
       // Replace text with input field
       popupContent.innerHTML = `
-        <input id="edit-description" type="text" value="${currentDescription}" style="width: 90%; padding: 5px; margin-top: 5px;" />
-        <button id="save-edit" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Save</button>
+        <input id="edit-description-${id}" type="text" value="${currentDescription}" style="width: 90%; padding: 5px; margin-top: 5px;" />
+        <button id="save-edit-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Save</button>
       `;
-    
-      document.getElementById("save-edit")?.addEventListener("click", async () => {
-        const newDescription = (document.getElementById("edit-description") as HTMLInputElement).value;
-    
+
+      // Add event listener for saving the edit
+      document.getElementById(`save-edit-${id}`)?.addEventListener("click", async () => {
+        const newDescription = (document.getElementById(`edit-description-${id}`) as HTMLInputElement).value;
+
         // Send update request to backend
         const updateResponse = await fetch(`/api/map/${id}`, {
-          method: 'PUT',
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ description: newDescription }),
         });
-    
+
         if (!updateResponse.ok) {
           console.error('Failed to update pin description');
           return;
         }
-    
+
         // Restore popup with updated description
         popupContent.innerHTML = `
-          <p id="popup-address">${newDescription}</p>
-          <button id="edit-pin" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
-          <button id="delete-pin" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+          <p id="popup-address-${id}">${newDescription}</p>
+          <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+          <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
         `;
-    
-        document.getElementById("delete-pin")?.addEventListener("click", async () => {
-          await removePin(id, type);
+
+        // Reattach event listeners
+        document.getElementById(`delete-pin-${id}`)?.addEventListener("click", async () => {
+          await handleRemovePin(id, type);
         });
-    
-        document.getElementById("edit-pin")?.addEventListener("click", () => handleEditPin(id, type, popupContent));
+
+        document.getElementById(`edit-pin-${id}`)?.addEventListener("click", () => handleEditPin(id, type, popupContent));
       });
     };
+
     
     
 // -------------------------------- map drop items features end --------------------------------
