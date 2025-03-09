@@ -16,6 +16,7 @@ import map from './map'
 import carRouter from './car';
 import truckRouter from './truck';
 import cityRouter from './city';
+import profileRouter from './profile';
 
 export default Router()
   .use('/users', user)
@@ -25,4 +26,5 @@ export default Router()
   .use('/map',map)
   .use('/cars', carRouter)
   .use('/trucks', truckRouter)
-  .use('/cities', cityRouter);
+  .use('/cities', cityRouter)
+  .use('/profiles', profileRouter);

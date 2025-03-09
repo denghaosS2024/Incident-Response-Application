@@ -19,7 +19,11 @@ import { useLocation } from 'react-router-dom';
 
 const Reach911Page: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>()
-    const [activeStep, setActiveStep] = useState<number>(0)
+    // Load saved step from localStorage or default to 0
+    const [activeStep, setActiveStep] = useState<number>(() => {
+        const savedStep = localStorage.getItem('911Step');
+        return savedStep ? parseInt(savedStep, 10) : 0;
+    });
     const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident)
     const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +42,11 @@ const Reach911Page: React.FC = () => {
             }));
         }
     }, [dispatch]);
+
+    // Save step to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('911Step', activeStep.toString());
+    }, [activeStep]);
 
     const contents = [
         <Reach911Step1 />,
@@ -112,7 +121,8 @@ const Reach911Page: React.FC = () => {
             }
 
             // Move to next step
-            setActiveStep(prev => prev + 1);
+            setActiveStep(3);
+            localStorage.setItem('911Step', '3');
         } catch (error) {
             console.error('Error submitting incident:', error);
             // Add more detailed error logging

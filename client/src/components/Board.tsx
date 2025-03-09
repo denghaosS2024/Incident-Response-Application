@@ -2,23 +2,20 @@ import React, { useState, useEffect } from "react";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import Column from "./Column";
 import { useDispatch, useSelector } from "react-redux";
-import { loadContacts, loadMockContacts } from "../features/contactSlice";
-import { AppDispatch } from "../app/store";
-import { RootState } from "../utils/types";
+import { loadContacts } from "../features/contactSlice";
+import { AppDispatch } from "@/app/store";
+import { RootState } from "@/utils/types";
 import IUser from '@/models/User'
+import IChannel from "@/models/Channel";
 
 export default function Board({
     setUsers,
-    setGroupName,
-    setDescription,
+    onGroupClick,
     resetBoard,
-    setCurrentGroup
 }: {
     setUsers: (users: string[]) => void;
-    setGroupName: (name: string) => void; // Declare setGroupName as a prop
-    setDescription: (description: string) => void; // Declare setDescription as a prop
+    onGroupClick: (group: IChannel) => void;  // update parent component on click
     resetBoard: () => void;
-    setCurrentGroup: (group: any | null) => void;
 }) {
     const [done, setDone] = useState<IUser[]>([]);
     const dispatch = useDispatch<AppDispatch>();
@@ -27,7 +24,7 @@ export default function Board({
     const [groups, setGroups] = useState<any[]>([]); // Store the groups
     const owner = localStorage.getItem('uid') || ''
     useEffect(() => {
-        // dispatch(loadMockContacts());  
+        // dispatch(loadMockContacts());
         dispatch(loadContacts());
     }, [dispatch]);  // Only dispatch when the component mounts
 
@@ -101,9 +98,7 @@ export default function Board({
     const handleGroupClick = (groupId: string) => {
         const group = groups.find(group => group._id === groupId); // Find the selected group
         if (group) {
-            setGroupName(group.name); // Update group name
-            setDescription(group.description || ''); // Update group description
-            setCurrentGroup(group);
+            onGroupClick(group);
 
             const groupUsers = group.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))

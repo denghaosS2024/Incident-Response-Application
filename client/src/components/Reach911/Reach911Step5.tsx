@@ -34,7 +34,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         if (!incidentId) {
           throw new Error('No incidentId provided');
         }
-        // Fetch incident details using query param; assuming API returns an array
+        // Fetch incident details
         const data = await request(`/api/incidents?incidentId=${incidentId}`);
         if (Array.isArray(data) && data.length > 0) {
           const incident = data[0];
@@ -61,8 +61,6 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     try {
       setLoading(true);
       setError(null);
-  
-      // Map the dropdown value to its API equivalent.
       const priorityMap: { [key: string]: string } = {
         'E': 'E',
         '1': 'One',
@@ -71,14 +69,12 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
       };
       const convertedPriority = priorityMap[priority] || priority;
   
-      // Build the payload with only the required fields.
       const updatedIncident = {
         incidentId: incidentData.incidentId,
         priority: convertedPriority,
         commander,
       };
   
-      // Try to call the update API using the request utility.
       let updateResponse;
       try {
         updateResponse = await request("/api/incidents/update", {
@@ -95,7 +91,6 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         }
       }
   
-      // Check if the response indicates success.
       if (updateResponse.status !== 204) {
         throw new Error("Failed to update incident");
       }
@@ -178,7 +173,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
               label="Commander"
               onChange={(e) => setCommander(e.target.value as string)}
             >
-              {/* Hardcoded placeholder options */}
+              {/* Hardcoded placeholder options.This needs to be handled */}
               <MenuItem value="System">System</MenuItem>
               <MenuItem value="John Doe">John Doe</MenuItem>
               <MenuItem value="Jane Doe">Jane Doe</MenuItem>

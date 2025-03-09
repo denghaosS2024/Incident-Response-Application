@@ -2,15 +2,14 @@ import React, { useEffect, useState } from 'react'
 import AddGroupForm from '../components/AddGroupForm'
 import request, { IRequestError } from '../utils/request'
 import IChannel from '../models/Channel'
-import { IAddGroupFormProps } from '../components/AddGroupForm'
+import { IAddGroupFormProps } from '@/components/AddGroupForm'
 import AlertSnackbar from '../components/common/AlertSnackbar'
-import { set } from 'lodash'
 import style from '../styles/GroupPage.module.css'
-import { RootState } from "../utils/types";
+import { RootState } from "@/utils/types";
 import { useSelector } from "react-redux";
 import SocketClient from '../utils/Socket';
 
-//Pages 
+//Pages
 import GroupDirectory from '../components/GroupDir/GroupDirectory'
 import { Container } from '@mui/material'
 import IUser from '@/models/User'

@@ -76,6 +76,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
   if (pathname.startsWith('/messages/') && name) {
     title = `${name} Messages`
   }
+  if (pathname.startsWith('/profile') ) {
+    title = 'Profile'
+  }
 
   if (pathname === '/') {
     title = roleTitles[role] || 'IR Citizen'
@@ -94,7 +97,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     localStorage.removeItem('token')
     localStorage.removeItem('uid')
     localStorage.removeItem('incidentState')
+    localStorage.removeItem('911Step');
+    localStorage.removeItem('username');
+    localStorage.removeItem('role');
     navigate('/login')
+  }
+  const profile = () => {
+    navigate('/profile')
   }
 
   return (
@@ -124,6 +133,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
           </IconButton>
         )}
         <Menu open={openMenu} anchorEl={menuAnchor} onClose={closeMenu}>
+           <MenuItem onClick={profile}>profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
         </Menu>
       </Toolbar>
