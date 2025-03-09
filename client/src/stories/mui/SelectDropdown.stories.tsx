@@ -1,118 +1,106 @@
 import { Meta, StoryObj } from '@storybook/react'
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  FormControlProps,
-} from '@mui/material'
-import { useState } from 'react'
+import { Button, Box, FormHelperText } from '@mui/material'
+import React, { useState } from 'react'
 
-interface SelectWithFormControlProps
-  extends Omit<FormControlProps, 'onChange' | 'value'> {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  helperText?: string
+const roles = ['Citizen', 'Dispatch', 'Police', 'Fire', 'Nurse', 'Administrator']
+
+interface RoleSelectionProps {
+  selectedRole: string
+  onSelectRole: (role: string) => void
+  error?: boolean
+  errorMessage?: string
 }
 
-const SelectWithFormControl = ({
-  label,
-  value,
-  onChange,
+const RoleSelection: React.FC<RoleSelectionProps> = ({
+  selectedRole,
+  onSelectRole,
   error,
-  helperText,
-  ...props
-}: SelectWithFormControlProps) => {
+  errorMessage,
+}) => {
   return (
-    <FormControl fullWidth error={error} {...props}>
-      <InputLabel id={`${label}-label`}>{label}</InputLabel>
-      <Select
-        labelId={`${label}-label`}
-        label={label}
-        value={value}
-        onChange={(e) => onChange(e.target.value as string)}
-        fullWidth
-      >
-        <MenuItem value="Citizen">Citizen</MenuItem>
-        <MenuItem value="Dispatch">Dispatch</MenuItem>
-        <MenuItem value="Police">Police</MenuItem>
-        <MenuItem value="Fire">Fire</MenuItem>
-        <MenuItem value="Nurse">Nurse</MenuItem>
-        <MenuItem value="Administrator">Administrator</MenuItem>
-      </Select>
-      {helperText && <FormHelperText>{helperText}</FormHelperText>}
-    </FormControl>
+    <Box width="100%" maxWidth="500px" my={2}>
+      <Box display="flex" flexWrap="wrap" justifyContent="space-between">
+        {roles.map((role) => (
+          <Button
+            key={role}
+            variant={selectedRole === role ? 'contained' : 'outlined'}
+            color="primary"
+            onClick={() => onSelectRole(role)}
+            sx={{
+              flex: '1 1 30%',
+              marginBottom: '8px',
+              marginLeft: '10px',
+              marginRight: '10px',
+              height: '70px',
+            }}
+          >
+            {role}
+          </Button>
+        ))}
+      </Box>
+      {error && <FormHelperText error>{errorMessage}</FormHelperText>}
+    </Box>
   )
 }
 
-const meta: Meta<typeof SelectWithFormControl> = {
-  title: 'Material UI/SelectWithFormControl',
-  component: SelectWithFormControl,
+const meta: Meta<typeof RoleSelection> = {
+  title: 'Common/RoleSelection',
+  component: RoleSelection,
   tags: ['autodocs'],
   argTypes: {
-    label: {
-      control: 'text',
-      description: 'Label for the Select component',
-    },
-    value: {
-      control: 'text',
-      description: 'Current value of the Select component',
+    selectedRole: {
+      control: 'select',
+      options: roles,
+      description: 'Currently selected role',
     },
     error: {
       control: 'boolean',
-      description: 'If true, the component will be displayed in an error state',
+      description: 'Show error message if true',
     },
-    helperText: {
+    errorMessage: {
       control: 'text',
-      description: 'Helper text to display below the Select component',
+      description: 'Error message displayed below the role buttons',
     },
-    onChange: {
-      action: 'changed',
-      description: 'Callback fired when the value is changed',
-    },
+    onSelectRole: { action: 'role selected', description: 'Triggered when a role is selected' },
   },
 }
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const DefaultSelect: Story = {
+export const DefaultRoleSelection: Story = {
   args: {
-    label: 'Role',
-    value: 'Citizen',
+    selectedRole: '',
     error: false,
-    helperText: '',
+    errorMessage: '',
   },
   render: (args) => {
-    const [role, setRole] = useState(args.value)
+    const [selectedRole, setSelectedRole] = useState(args.selectedRole)
 
     return (
-      <SelectWithFormControl
+      <RoleSelection
         {...args}
-        value={role}
-        onChange={(newValue) => setRole(newValue)}
+        selectedRole={selectedRole}
+        onSelectRole={setSelectedRole}
       />
     )
   },
 }
 
-export const ErrorSelect: Story = {
+export const ErrorRoleSelection: Story = {
   args: {
-    label: 'Role',
-    value: '',
+    selectedRole: '',
     error: true,
-    helperText: 'Please select a role',
+    errorMessage: 'Please select a role',
   },
   render: (args) => {
-    const [role, setRole] = useState(args.value)
+    const [selectedRole, setSelectedRole] = useState(args.selectedRole)
 
     return (
-      <SelectWithFormControl
+      <RoleSelection
         {...args}
-        value={role}
-        onChange={(newValue) => setRole(newValue)}
+        selectedRole={selectedRole}
+        onSelectRole={setSelectedRole}
       />
     )
   },
