@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux'
 interface AlertPanelProps {
   role: 'Fire' | 'Police'
   channelId: string
+  responders: string[]
 }
 
 const fireAlerts = [
@@ -33,7 +34,7 @@ const policeAlerts = [
   { label: 'HOSTAGE', bgColor: 'darkred', textColor: 'white' },
 ]
 
-const AlertPanel: React.FC<AlertPanelProps> = ({ role, channelId }) => {
+const AlertPanel: React.FC<AlertPanelProps> = ({ role, channelId, responders }) => {
   const dispatch = useDispatch<AppDispatch>()
   let alerts: { label: string; bgColor: string; textColor: string }[] = []
   if (role === 'Fire') {
@@ -47,6 +48,7 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ role, channelId }) => {
     bgColor: string,
     textColor: string,
     channelId: string,
+    responders: string[],
   ) => {
     const content = label + '-' + bgColor + '-' + textColor
     const message = await request(`/api/channels/${channelId}/messages`, {
@@ -54,6 +56,9 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ role, channelId }) => {
       body: JSON.stringify({
         content: content,
         isAlert: true,
+        responders: responders,
+        acknowledgedBy: [],
+        acknowledgeAt: [],
       }),
     })
 
@@ -88,6 +93,7 @@ const AlertPanel: React.FC<AlertPanelProps> = ({ role, channelId }) => {
                   alert.bgColor,
                   alert.textColor,
                   channelId,
+                  responders,
                 )
               }
               label={alert.label}

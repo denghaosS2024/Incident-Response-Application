@@ -128,6 +128,7 @@ class ChannelController {
       senderId: systemUser._id,
       channelId: channel._id,
       isAlert: false,
+      responders: []
     });
 
     return channel;
@@ -176,11 +177,13 @@ class ChannelController {
     senderId,
     channelId,
     isAlert,
+    responders,
   }: {
     content: string
     senderId: Types.ObjectId
     channelId: Types.ObjectId
     isAlert: boolean
+    responders: Types.ObjectId[]
   }) => {
     const sender = await User.findById(senderId).exec()
     if (!sender) {
@@ -198,6 +201,7 @@ class ChannelController {
       sender,
       channelId: channel._id,
       isAlert,
+      responders,
     }).save()
 
     // Add the message to the channel
@@ -508,6 +512,53 @@ class ChannelController {
     return updatedChannel;
   }
 
+  acknowledgeMessage = async (
+    messageId: Types.ObjectId, 
+    senderId: Types.ObjectId, 
+    channelId: Types.ObjectId
+  ) => {
+
+    const sender = await User.findById(senderId).exec()
+    if (!sender) {
+      throw new Error(`Sender(${senderId.toHexString()}) not found.`)
+    }
+
+    const channel = await Channel.findById(channelId).exec()
+    if (!channel) {
+      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
+    }
+
+
+    try {
+      const message = await
+        Message.findByIdAndUpdate(
+          messageId,
+          { $push: { acknowledgedBy: senderId, acknowledgedAt: new Date().toISOString() } },
+          { new: true }
+        ).exec()
+      if (!message) {
+        throw new Error(`Message(${messageId.toHexString()}) not found.`)
+      }
+
+      // Notify commend for acknowledgment
+      channel.users.forEach((user) => {
+        if (user._id.equals(senderId)) return
+        
+        const id = user._id.toHexString()
+        
+        if (!UserConnections.isUserConnected(id)) return
+
+        const connection = UserConnections.getUserConnection(id)!
+        
+        connection.emit('acknowledge-alert', message)
+      })
+
+      return message
+    } catch (error) {
+      console.error('Error acknowledging message:', error)
+      throw error
+    }
+  }
 }
 
 export default new ChannelController()

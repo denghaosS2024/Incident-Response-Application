@@ -33,9 +33,10 @@ import GroupInformationPage from './pages/GroupInformationPage';
 
 // Utilities and Features
 import SocketClient from './utils/Socket';
-import { addMessage, clearAllAlerts } from './features/messageSlice';
+import { acknowledgeMessage, addMessage, clearAllAlerts, updateMessage } from './features/messageSlice';
 import IMessage from '@/models/Message';
 import { loadContacts } from './features/contactSlice';
+import { set } from 'lodash';
 
 
 const App: React.FC = () => {
@@ -84,6 +85,9 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   const [textColor, setTextColor] = useState('white')
   // check if there are any group notifications
   const [hasGroupNotification, setHasGroupNotification] = useState(false);
+  const [currentAlertMessageId, setCurrentAlertMessageId] = useState('')
+  const [currentChannelId, setCurrentChannelId] = useState('')
+
 
   const tabLinks: Array<Link> = [
     { prefix: '/', key: 'home', icon: <Home />, to: '/' },
@@ -184,10 +188,24 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     if (lastTap.current && now - lastTap.current < 300) {
       setAlertOpen(prev => false);
       setMaydayOpen(prev => false);
-      SocketClient.emit('acknowledge-alert', {
-        senderId: localStorage.getItem('id'),
-        type: alertMessage,
+      const senderId = localStorage.getItem('uid');
+
+      if (!senderId || !currentAlertMessageId || !currentChannelId) return;
+
+      dispatch(
+        acknowledgeMessage({ 
+          messageId: currentAlertMessageId, 
+          senderId, 
+          channelId: currentChannelId,
+        })
+      ).unwrap()
+      .then((updatedMessage) => {
+        console.log('Acknowledgment updated:', updatedMessage);
       })
+      .catch((error) => {
+        console.error('Error acknowledging alert:', error);
+      });
+      
     }
     lastTap.current = now
   }
@@ -218,21 +236,31 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
     socket.on('new-message', (message: IMessage) => {
       dispatch(addMessage(message))
     })
+    socket.on('acknowledge-alert', (updatedMessage: IMessage) => {
+      dispatch(updateMessage(updatedMessage))
+      setAlertOpen(false)
+    })
     socket.on('new-fire-alert', (message: IMessage) => {
+      console.log('new-fire-alert:', message)
       dispatch(addMessage(message))
       const [msg, bg, text] = message.content.split('-')
       setAlertMessage(msg)
       setBgColor(bg)
       setTextColor(text)
       setAlertOpen(true)
+      setCurrentAlertMessageId(message._id)
+      setCurrentChannelId(message.channelId)
     })
     socket.on('new-police-alert', (message: IMessage) => {
+      console.log('new-police-alert:', message)
       dispatch(addMessage(message))
       const [msg, bg, text] = message.content.split('-')
       setAlertMessage(msg)
       setBgColor(bg)
       setTextColor(text)
       setAlertOpen(true)
+      setCurrentAlertMessageId(message._id)
+      setCurrentChannelId(message.channelId)
     })
     socket.on('send-mayday', handleMaydayReceived);
     socket.on('user-status-changed', () => {
@@ -283,7 +311,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       </Modal>
 
       <Modal open={maydayOpen}>
-        <Box 
+        <Box
           onPointerDown={handleDoubleTapDismiss}
           sx={{
             position: 'fixed',

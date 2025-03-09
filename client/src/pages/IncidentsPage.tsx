@@ -178,7 +178,12 @@ function IncidentsPage() {
       });
 
       // Step 6: Redirect the user to /reach911
-      navigate("/reach911");
+      navigate("/reach911", {
+        state: {
+          incidentId,
+          isCreatedByFirstResponder: true
+        }
+      });
 
     } catch (error) {
       console.error("Error creating new incident:", error);

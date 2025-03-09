@@ -217,8 +217,28 @@ export default Router()
   })
 
   /**
-   * Create a new channel
-   * @route POST /api/channels
+* @swagger
+* /api/channels/groups:
+*   post:
+*     summary: Create group
+*     description: Create a new group or update an existing group
+*     tags: [Groups]
+*     responses:
+*       200:
+*         description: Group created or updated successfully
+*         content:
+*           application/json:
+*             schema:
+*               type: array
+*               items:
+*                 $ref: '#/components/schemas/IChannel'
+*       500:
+*         description: Server error
+*/
+
+  /**
+   * Create a new channel & update existing channel
+   * @route POST /api/channels/groups
    * @param {Object} request.body
    * @param {string} [request.body.name] - Name for the channel
    * @param {string[]} request.body.users - Array of user IDs to be added to the channel
@@ -228,7 +248,7 @@ export default Router()
    * @returns {Object} The created or existing channel object
    * @throws {400} If trying to create a channel with the public channel name
    */
-  .post('/', async (request, response) => {
+  .post('/groups', async (request, response) => {
     const { _id, name, users, description, owner, closed } = request.body as {
       _id?: string
       name: string
@@ -289,7 +309,7 @@ export default Router()
 *   get:
 *     summary: Get all closed groups
 *     description: Retrieve all groups where "closed" is true.
-*     tags: [Channel]
+*     tags: [Groups]
 *     responses:
 *       200:
 *         description: Successfully retrieved all closed groups
@@ -326,7 +346,7 @@ export default Router()
    *   get:
    *     summary: Get groups by user ID
    *     description: Get all the groups that the user is a part of and user is a part of
-   *     tags: [Channel]
+   *     tags: [Groups]
    *     parameters:
    *       - in: path
    *         name: userId
@@ -382,7 +402,7 @@ export default Router()
     const senderId = new Types.ObjectId(
       request.headers['x-application-uid'] as string,
     )
-    const { content, isAlert } = request.body
+    const { content, isAlert, responders } = request.body
     const channelId = new Types.ObjectId(request.params.id)
 
     try {
@@ -391,6 +411,7 @@ export default Router()
         senderId,
         channelId,
         isAlert,
+        responders,
       })
       response.send(message)
     } catch (e) {
@@ -582,5 +603,22 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+  .patch('/:id/messages/acknowledge', async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id)
+    const { senderId, messageId } = request.body
+    // const messageId = new Types.ObjectId(request.params.messageId)
+    try {
+      const updatedMessage = await ChannelController.acknowledgeMessage(
+        messageId,
+        senderId,
+        channelId,
+      )
+      response.send(updatedMessage)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).send({ message: error.message })
+    }
+  })
+  
 
 
