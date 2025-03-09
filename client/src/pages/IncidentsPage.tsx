@@ -191,9 +191,10 @@ function IncidentsPage() {
   };
 
   const hasActiveResponderIncident = data.some(
-    (incident: IncidentData) => incident.owner === userId || incident.commander === userId
+    (incident: IncidentData) =>
+      (incident.owner === userId || incident.commander === userId) &&
+      incident.incidentState !== 'Closed'
   );
-
 
   return (
     <Box sx={{ padding: 2 }}>
