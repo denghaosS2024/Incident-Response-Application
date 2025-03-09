@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import Column from "./Column";
 import { useDispatch, useSelector } from "react-redux";
-import { loadContacts } from "@/features/contactSlice";
+import { loadContacts } from "../features/contactSlice";
 import { AppDispatch } from "@/app/store";
 import { RootState } from "@/utils/types";
 import IUser from '@/models/User'
