@@ -402,7 +402,7 @@ export default Router()
     const senderId = new Types.ObjectId(
       request.headers['x-application-uid'] as string,
     )
-    const { content, isAlert } = request.body
+    const { content, isAlert, responders } = request.body
     const channelId = new Types.ObjectId(request.params.id)
 
     try {
@@ -411,6 +411,7 @@ export default Router()
         senderId,
         channelId,
         isAlert,
+        responders,
       })
       response.send(message)
     } catch (e) {
@@ -602,5 +603,22 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+  .patch('/:id/messages/acknowledge', async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id)
+    const { senderId, messageId } = request.body
+    // const messageId = new Types.ObjectId(request.params.messageId)
+    try {
+      const updatedMessage = await ChannelController.acknowledgeMessage(
+        messageId,
+        senderId,
+        channelId,
+      )
+      response.send(updatedMessage)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).send({ message: error.message })
+    }
+  })
+  
 
 
