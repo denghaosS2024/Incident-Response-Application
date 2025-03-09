@@ -64,4 +64,25 @@ export default Router()
       const error = e as Error;
       response.status(400).send({ message: error.message });
     }
+  })
+
+  /**
+   * Update the description of a MapMarker
+   * @route PATCH /api/map/:id/description
+   * @param {string} request.params.id - The ID of the marker to update
+   * @param {string} request.body.description - The new description
+   * @returns {Object} The updated MapMarker object
+   * @throws {400} If the marker is not found or update fails
+   */
+  .patch('/:id/description', async (request, response) => {
+    const { id } = request.params;
+    const { description } = request.body;
+    
+    try {
+      const updatedMarker = await MapController.updateDescription(id, description);
+      response.send(updatedMarker);
+    } catch (e) {
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
+    }
   });
