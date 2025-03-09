@@ -154,54 +154,54 @@ export default Router()
 
     try {
       await ChannelController.delete(name)
-      return response.send({message: `Channel(${name}) deleted`})
+      return response.send({ message: `Channel(${name}) deleted` })
     } catch (e) {
       const error = e as Error
       return response.status(400).send({ message: error.message })
     }
   })
 
-/**
- * @swagger
- * /api/channels/911:
- *   post:
- *     summary: Create a new 911 emergency channel
- *     description: Creates a specialized channel for 911 emergency communication with automatic system message
- *     tags: [Channels]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - userId
- *             properties:
- *               username:
- *                 type: string
- *                 description: Username of the caller
- *               userId:
- *                 type: string
- *                 format: uuid
- *                 description: MongoDB ObjectId of the caller
- *     responses:
- *       200:
- *         description: 911 emergency channel created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Channel'
- *       400:
- *         description: Bad request - missing required fields or invalid data
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- */
+  /**
+   * @swagger
+   * /api/channels/911:
+   *   post:
+   *     summary: Create a new 911 emergency channel
+   *     description: Creates a specialized channel for 911 emergency communication with automatic system message
+   *     tags: [Channels]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - username
+   *               - userId
+   *             properties:
+   *               username:
+   *                 type: string
+   *                 description: Username of the caller
+   *               userId:
+   *                 type: string
+   *                 format: uuid
+   *                 description: MongoDB ObjectId of the caller
+   *     responses:
+   *       200:
+   *         description: 911 emergency channel created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Channel'
+   *       400:
+   *         description: Bad request - missing required fields or invalid data
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   */
   .post('/911', async (request, response) => {
     const { username, userId } = request.body;
     try {
@@ -243,7 +243,7 @@ export default Router()
         description: description,
         ownerId: owner ? new Types.ObjectId(owner) : undefined,
         closed: closed,
-      }) 
+      })
 
       // TO-DO: HTTP code should be 201 for created in Restful
       response.send(channel)
@@ -265,6 +265,44 @@ export default Router()
     )
     return response.send(channels)
   })
+
+  /**
+* @swagger
+* /api/channels/groups/closed:
+*   get:
+*     summary: Get all closed groups
+*     description: Retrieve all groups where "closed" is true.
+*     tags: [Channel]
+*     responses:
+*       200:
+*         description: Successfully retrieved all closed groups
+*         content:
+*           application/json:
+*             schema:
+*               type: array
+*               items:
+*                 $ref: '#/components/schemas/IChannel'
+*       500:
+*         description: Server error
+*/
+
+  /**
+   * Get all closed groups
+   * @route GET /api/channels/groups/closed
+   * @returns {Array} An array of closed group objects
+   * @throws {500} If there is a server error
+   */
+  .get('/groups/closed', async (_, response) => {
+    try {
+      const closedGroups = await ChannelController.getClosedGroups();
+      response.status(200).json(closedGroups);
+    } catch (e) {
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
+    }
+  })
+
+
   /**
    * @swagger
    * /api/channels/groups/{userId}:
@@ -317,7 +355,7 @@ export default Router()
    * Append a new message to a channel
    * @route POST /api/channels/:id/messages
    * @param {string} request.params.id - The ID of the channel
-   * @param {string} request.headers['x-application-uid'] - The ID of the user sending the message
+   * @param {string} request.headers ['x-application-uid'] - The ID of the user sending the message
    * @param {Object} request.body
    * @param {string} request.body.content - The content of the message
    * @returns {Object} The newly created message object
@@ -327,7 +365,7 @@ export default Router()
     const senderId = new Types.ObjectId(
       request.headers['x-application-uid'] as string,
     )
-    const { content } = request.body
+    const { content, isAlert } = request.body
     const channelId = new Types.ObjectId(request.params.id)
 
     try {
@@ -335,8 +373,8 @@ export default Router()
         content,
         senderId,
         channelId,
+        isAlert,
       })
-
       response.send(message)
     } catch (e) {
       const error = e as Error
@@ -527,3 +565,5 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+
+

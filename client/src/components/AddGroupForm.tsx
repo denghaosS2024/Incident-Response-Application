@@ -1,4 +1,4 @@
-import { Fragment, FunctionComponent, ReactElement, useState } from 'react'
+import { Fragment, FunctionComponent, ReactElement, useState, useEffect } from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import {
   Box,
@@ -17,6 +17,8 @@ import {
 import { group } from 'console'
 import { set } from 'lodash'
 import ConfirmationDialog from '../components/common/ConfirmationDialog'
+import Board from "./Board";
+import IUser from '@/models/User'
 
 interface ITab {
   text: string
@@ -42,12 +44,16 @@ interface IFormData {
 }
 
 export interface IAddGroupFormProps {
-  createChannel: (data: IFormData) => void
+  createChannel: (data: IFormData) => void;
+  selectedUsers: string[]; // Accept users from "This Group"
+  setSelectedUsers: (users: IUser[]) => void; // Add the setSelectedUsers function here
   deleteChannel: (channelName: string) => void
+  resetBoard: () => void; // Define resetBoard function prop
 }
 
+
 const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
-  channelProps: IAddGroupFormProps,
+  channelProps: IAddGroupFormProps
 ) => {
   const [showForm, setShowForm] = useState(false)
   const [closed, setIsClosed] = useState<boolean>(false)
@@ -57,11 +63,19 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
   const currentUserRole = localStorage.getItem('role')
+
+
+  // console.log('owner:', owner)
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [users, setUsers] = useState<string[]>([owner])
 
-  
-  console.log('owner:', owner)
+
+  // console.log('owner:', owner)
+
+  useEffect(() => {
+    setUsers((prev) => (prev.includes(owner) ? prev : [owner, ...prev]));
+  }, [owner]); // Runs only when the owner changes
+
 
   const handleSubmit = () => {
     let hasError = false
@@ -78,11 +92,13 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
       channelProps.createChannel({
         name,
         description,
-        users,
+        users: users.includes(owner) ? users : [...users, owner], // Ensure owner is in the list
         owner,
         closed,
       })
       resetForm()
+      channelProps.resetBoard();
+
     }
   }
 
@@ -127,11 +143,12 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   }
 
   return (
-    <Box sx={{ border: '1px solid #e0e0e0', 
-              borderRadius: '4px' , 
-              width: "95%",
-              mx: "auto" 
-              }}>
+    <Box sx={{
+      border: '1px solid #e0e0e0',
+      borderRadius: '4px',
+      width: "100%",
+      mx: "auto"
+    }}>
       <List>
         {tabs.map(({ text, link, icon }, index) => (
           <Fragment key={link}>
@@ -189,6 +206,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               label="Closed"
             />
           </Box>
+          <Board setUsers={setUsers} setGroupName={setGroupName} setDescription={setDescription} resetBoard={channelProps.resetBoard} />
           <Box display="flex" justifyContent="center" mt={2}>
             <Button
               variant="contained"

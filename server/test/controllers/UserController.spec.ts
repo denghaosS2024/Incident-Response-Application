@@ -10,6 +10,7 @@ import UserConnections from '../../src/utils/UserConnections'
 import * as TestDatabase from '../utils/TestDatabase'
 
 describe('User controller', () => {
+  // "System" user is created in the database upon app run so by default there always is one user present in the database.
   beforeAll(TestDatabase.connect)
 
   const username = 'test-username-1'
@@ -21,8 +22,8 @@ describe('User controller', () => {
     newUser = await UserController.register(username, password, role)
     const users = await UserController.listUsers()
 
-    expect(users.length).toBe(1)
-    expect(users[0]._id).toStrictEqual(newUser._id)
+    expect(users.length).toBe(2)
+    expect(users[1]._id).toStrictEqual(newUser._id)
   })
 
   it('will not register two users with the same username', async () => {
@@ -83,7 +84,7 @@ describe('User controller', () => {
   it('will list users with their online/offline status', async () => {
     // connect the previous user
     const socket = mock<SocketIO.Socket>()
-    UserConnections.addUserConnection(newUser.id, socket)
+    UserConnections.addUserConnection(newUser.id, socket, ROLES.CITIZEN)
 
     // add another user
     const citizenName = 'new-citizen'
@@ -94,7 +95,7 @@ describe('User controller', () => {
     )
     let users = await UserController.listUsers()
 
-    expect(users.length).toBe(2)
+    expect(users.length).toBe(3)
     expect(users).toContainEqual({
       _id: newUser._id,
       role: newUser.role,
@@ -113,7 +114,7 @@ describe('User controller', () => {
 
     users = await UserController.listUsers()
 
-    expect(users.length).toBe(2)
+    expect(users.length).toBe(3)
     expect(users).toContainEqual({
       _id: newUser._id,
       role: newUser.role,

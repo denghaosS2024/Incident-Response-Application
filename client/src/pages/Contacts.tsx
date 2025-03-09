@@ -22,15 +22,16 @@ const Contacts: React.FC = () => {
 
   // Function to handle clicking on a contact
   // @param userId - The ID of the clicked user
-  const onClick: ClickContactHandler = async (userId) => {
+  const onClick: ClickContactHandler = async (userId, username) => {
     // Create a new channel with the clicked user
     const channel = (await request('/api/channels', {
       method: 'POST',
-      body: JSON.stringify({ users: [userId, localStorage.getItem('uid')] }),
+      body: JSON.stringify({ name: username, users: [userId, localStorage.getItem('uid')] }),
     })) as IChannel
 
     const userOnOtherEnd = channel.users.filter((u) => u._id === userId)
-    const name = userOnOtherEnd[0].username
+    // const name = userOnOtherEnd[0].username
+    const name = username
 
     navigate(`/messages/${channel._id}?name=${name}`)
   }
@@ -44,7 +45,7 @@ const Contacts: React.FC = () => {
     <ContactList
       users={users}
       loading={loading}
-      onClick={(user) => onClick(user)}
+      onClick={onClick}
     />
   )
 }

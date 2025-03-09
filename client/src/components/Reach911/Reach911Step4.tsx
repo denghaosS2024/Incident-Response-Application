@@ -31,7 +31,7 @@ const Reach911Step4: React.FC = () => {
     const sendMessage = async (content: string, channelId: string) => {
         const message = await request(`/api/channels/${channelId}/messages`, {
             method: 'POST',
-            body: JSON.stringify({ content }),
+            body: JSON.stringify({ content: content, isAlert: false, }),
         });
         dispatch(addMessage(message));
     };

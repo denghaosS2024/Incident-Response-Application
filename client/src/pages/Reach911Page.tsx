@@ -7,9 +7,8 @@ import Reach911Step1 from '../components/Reach911/Reach911Step1';
 import Reach911Step2 from '../components/Reach911/Reach911Step2';
 import Reach911Step4 from '../components/Reach911/Reach911Step4';
 import { useDispatch, useSelector } from 'react-redux';
-import { MedicalQuestions, RootState } from '../utils/types';
-import IIncident, { IncidentType, IncidentPriority } from '../models/Incident';
-import request from '../utils/request';
+import { RootState } from '../utils/types';
+import IIncident from '../models/Incident';
 import { updateIncident } from '../features/incidentSlice';
 import { AppDispatch } from '../app/store';
 
@@ -55,7 +54,9 @@ const Reach911Page: React.FC = () => {
 
             // The backend expects an incident field
             const requestBody = {
-                incident: incident
+                ...incident,
+                caller: username,
+                owner: username,
             };
 
             // Construct the URL and options 
@@ -112,13 +113,22 @@ const Reach911Page: React.FC = () => {
             submitIncident();
         } else if (activeStep < contents.length - 1) {
             setActiveStep(activeStep + 1);
+            setError(null);
+        }
+    };
+
+    // Allow navigation to any step in the stepper
+    const handleStepChange = (step: number): void => {
+        if (step < contents.length) {
+            setActiveStep(step);
+            setError(null);
         }
     };
 
     return (
         <div className={styles.wrapper}>
             <div>
-                <ClickableStepper numberOfSteps={contents.length} activeStep={activeStep} setActiveStep={setActiveStep} contents={contents} />
+                <ClickableStepper numberOfSteps={contents.length} activeStep={activeStep} setActiveStep={handleStepChange} contents={contents} />
             </div>
             <div className={styles.placeholder}>
                 {error && (
@@ -127,15 +137,17 @@ const Reach911Page: React.FC = () => {
                     </div>
                 )}
             </div>
-            <div className={styles.buttonWrapper}>
-                <Button fullWidth
-                    variant="contained"
-                    color="primary"
-                    onClick={handleNextStep}
-                >
-                    Next
-                </Button>
-            </div>
+            {activeStep != contents.length - 1 &&
+                <div className={styles.buttonWrapper}>
+                    <Button fullWidth
+                        variant="contained"
+                        color="primary"
+                        onClick={handleNextStep}
+                    >
+                        Next
+                    </Button>
+                </div>
+            }
         </div >
 
     )

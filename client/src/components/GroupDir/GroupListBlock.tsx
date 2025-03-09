@@ -21,15 +21,17 @@ const GroupListBlock: React.FC<GroupListBlockProps> = ({ headerName, id, groups 
             <div className="group-subheader" id={id}>
                 <h3>{headerName}</h3>
             </div>
-            <List className="group-item">
+
+            <List className="group-item" sx={{ width: '100%' }}>
                 {
                     groups.map(group => (
-                        <div key={group._id}>
-                            <Channel channel={group} isSettingButton={true} />
-                        </div>
+                        <ListItem key={group._id} disablePadding sx={{ width: '90%' }}>
+                            <Channel channel={group} isSettingButton={id !== "closed"} />
+                        </ListItem>
                     ))
                 }
             </List>
+
         </div>
     );
 };

@@ -7,9 +7,9 @@ import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from '../models/Channel'
 import User from '../models/User'
 import Message from '../models/Message'
 import UserConnections from '../utils/UserConnections';
-import { ROLES } from '../utils/Roles';
 import { Storage } from '@google-cloud/storage'
 import dotenv from 'dotenv'
+import UserController from './UserController'
 dotenv.config()
 
 class ChannelController {
@@ -72,7 +72,7 @@ class ChannelController {
     // Check if the channel already exists
     const exists = await Channel.findOne({
       users,
-      name:channel.name,
+      name: channel.name,
       description: channel.description || '',
       owner: owner,
       closed: channel.closed || false,
@@ -106,38 +106,32 @@ class ChannelController {
      */
   create911Channel = async (username: string, userId: Types.ObjectId) => {
     const channel911Name = `I${username}_911`;
-    
+
+    // Find system user
+    const systemUser = await UserController.findUserByUsername('System');
+    if (!systemUser) {
+      throw new Error('System user not found. Please ensure System user is created with Administrator role.');
+    }
+
     // Use existing create method with 911-specific configurations
     const channel = await this.create({
-        name: channel911Name,
-        userIds: [userId],
-        description: `911 Emergency Channel for ${username}`,
-        ownerId: userId,
-        closed: false
+      name: channel911Name,
+      userIds: [userId, systemUser._id],
+      description: `911 Emergency Channel for ${username}`,
+      ownerId: userId,
+      closed: false
     });
 
-     // Add system welcome message
-     await this.appendMessage({
+    // Add system welcome message
+    await this.appendMessage({
       content: "Hello! A dispatcher will be with you shortly. Please provide any additional information here.",
-      senderId: userId, // Using the caller's ID for now, could be replaced with a system user ID
-      channelId: channel._id
+      senderId: systemUser._id,
+      channelId: channel._id,
+      isAlert: false,
     });
 
-    const notifyDispatchers = async (channelId: string, callerName: string) => {
-      UserConnections.broadcaseToRole(
-        ROLES.DISPATCH, 
-        'new-emergency-channel', 
-        {
-          channelId,
-          callerName,
-          message: `New 911 channel from ${callerName}`
-        }
-      );
-    };
-
-    await notifyDispatchers(channel._id.toString(), username);
     return channel;
-}
+  }
 
   /**
    * List channels, optionally filtered by user
@@ -181,10 +175,12 @@ class ChannelController {
     content,
     senderId,
     channelId,
+    isAlert,
   }: {
     content: string
     senderId: Types.ObjectId
     channelId: Types.ObjectId
+    isAlert: boolean
   }) => {
     const sender = await User.findById(senderId).exec()
     if (!sender) {
@@ -201,6 +197,7 @@ class ChannelController {
       content,
       sender,
       channelId: channel._id,
+      isAlert,
     }).save()
 
     // Add the message to the channel
@@ -212,12 +209,19 @@ class ChannelController {
       if (user._id.equals(senderId)) return
 
       const id = user._id.toHexString()
+
       if (!UserConnections.isUserConnected(id)) return
 
       const connection = UserConnections.getUserConnection(id)!
-      connection.emit('new-message', message)
-    })
 
+      if (isAlert && user.role == "Fire") {
+        connection.emit('new-fire-alert', message)
+      } else if (isAlert && user.role == "Police") {
+        connection.emit('new-police-alert', message)
+      } else {
+        connection.emit('new-message', message)
+      }
+    })
     return message
   }
 
@@ -429,6 +433,17 @@ class ChannelController {
       throw error
     }
   }
+
+  getClosedGroups = async () => {
+    try {
+      const closedGroups = await Channel.find({ closed: true }).sort({ name: 1 });
+      return closedGroups;
+    } catch (error) {
+      console.error('Error getting closed groups:', error);
+      throw error;
+    }
+  }
+
 }
 
 export default new ChannelController()

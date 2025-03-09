@@ -26,7 +26,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
     // hardcode for test purpose
     let isIncidentCommander = false
-    if (currentUserId === "67bf9eeb085916ac1cd7afff") {
+    if (currentUserId === '67cb7f30340c8e8937d2a913') {
       isIncidentCommander = true;
     }
     // const isFirstResponder = true;
@@ -110,7 +110,10 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
         >
           {currentUserRole && (
             <Box>
-              <AlertPanel role={currentUserRole as "Fire" | "Police"} />
+              <AlertPanel
+                role={currentUserRole as 'Fire' | 'Police'}
+                channelId={channelId}
+              />
             </Box>
           )}
         </Popover>
