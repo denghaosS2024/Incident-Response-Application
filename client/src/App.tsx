@@ -172,7 +172,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       setMaydayOpen(prev => false);
       SocketClient.emit('acknowledge-alert', {
         senderId: localStorage.getItem('id'),
-        type: 'mayday',
+        type: alertMessage,
       })
     }
     lastTap.current = now
@@ -196,6 +196,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       console.log('Mayday received:', data);
       setMaydayOpen(true)
       setBgColor('red')
+      setAlertMessage('MAYDAY')
     };
 
     const socket = SocketClient
