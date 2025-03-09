@@ -30,7 +30,7 @@ interface ITab {
 // todo: should be refactored into a separate component as TabList
 const tabs: ITab[] = [
   {
-    text: 'Add Group',
+    text: 'Create/Edit Group',
     link: '/groups',
     icon: <AddIcon />,
   },
@@ -143,6 +143,12 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
     setShowForm(true)
   }
 
+  const handleGroupClickInBoard = (name: string, description: string, closed: boolean) => {
+    setGroupName(name);
+    setDescription(description || '');
+    setIsClosed(closed || false);
+  }
+
   return (
     <Box sx={{
       border: '1px solid #e0e0e0',
@@ -208,8 +214,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
             />
           </Box>
           <Board setUsers={setUsers}
-            setGroupName={setGroupName}
-            setDescription={setDescription}
+            onGroupClick={handleGroupClickInBoard}
             resetBoard={channelProps.resetBoard}
             setCurrentGroup={channelProps.setCurrentGroup} />
           <Box display="flex" justifyContent="center" mt={2}>

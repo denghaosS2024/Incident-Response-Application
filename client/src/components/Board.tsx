@@ -9,14 +9,12 @@ import IUser from '@/models/User'
 
 export default function Board({
     setUsers,
-    setGroupName,
-    setDescription,
+    onGroupClick,
     resetBoard,
     setCurrentGroup
 }: {
     setUsers: (users: string[]) => void;
-    setGroupName: (name: string) => void; // Declare setGroupName as a prop
-    setDescription: (description: string) => void; // Declare setDescription as a prop
+    onGroupClick: (name: string, description: string, closed: boolean) => void;  // update parent component on click
     resetBoard: () => void;
     setCurrentGroup: (group: any | null) => void;
 }) {
@@ -27,7 +25,7 @@ export default function Board({
     const [groups, setGroups] = useState<any[]>([]); // Store the groups
     const owner = localStorage.getItem('uid') || ''
     useEffect(() => {
-        // dispatch(loadMockContacts());  
+        // dispatch(loadMockContacts());
         dispatch(loadContacts());
     }, [dispatch]);  // Only dispatch when the component mounts
 
@@ -101,8 +99,7 @@ export default function Board({
     const handleGroupClick = (groupId: string) => {
         const group = groups.find(group => group._id === groupId); // Find the selected group
         if (group) {
-            setGroupName(group.name); // Update group name
-            setDescription(group.description || ''); // Update group description
+            onGroupClick(group.name, group.description, group.closed);
             setCurrentGroup(group);
 
             const groupUsers = group.users
