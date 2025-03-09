@@ -264,7 +264,7 @@ export default Router()
 
       if (_id) {
         // Update existing channel
-        channel = await ChannelController.updateChannelMember({
+        channel = await ChannelController.updateChannel({
           _id: new Types.ObjectId(_id),
           name,
           userIds: users.map((userId) => new Types.ObjectId(userId)),
@@ -619,6 +619,6 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
-  
+
 
 
