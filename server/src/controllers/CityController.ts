@@ -2,6 +2,9 @@ import Car from "../models/Car";
 import City, { ICity } from "../models/City";
 import Truck from "../models/Truck";
 import Personnel from "../models/User";
+import CarController from "./CarController";
+import PersonnelController from "./PersonnelController";
+import TruckController from "./TruckController";
 
 class CityController {
 
@@ -48,6 +51,24 @@ class CityController {
       trucks: trucks.map(({ _id, name, assignedCity }) => ({ _id, name, assignedCity })),
       personnel: personnel.map(({ _id, username, assignedCity }) => ({ _id, name: username, assignedCity })),
     };
+  }
+
+  async addCityAssignment(cityName: string, type: "Car" | "Truck" | "Personnel", name: string) {
+    const city = await City.findOne({ name: cityName });
+    if (!city) {
+      throw new Error(`City '${cityName}' does not exist in the database`);
+    }
+    if (type === "Car") {
+      const car = await CarController.updateCarCity(name, cityName);
+      return car;
+    } else if (type === "Truck") {
+      const truck = await TruckController.updateTruckCity(name, cityName);
+      return truck;
+    } else if (type === "Personnel") {
+      const personnel = await PersonnelController.updatePersonnelCity(name, cityName);
+      return personnel;
+    }
+    throw new Error(`Invalid type '${type}'`);
   }
 }
 

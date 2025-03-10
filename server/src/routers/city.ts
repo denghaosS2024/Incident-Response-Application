@@ -174,4 +174,16 @@ cityRouter.get('/assignments/:cityName', async (req: Request, res: Response) => 
   }
 });
 
+cityRouter.put('/assignments/:cityName', async (req: Request, res: Response) => {
+  try {
+    const { cityName } = req.params;
+    const { type, name } = req.body;
+    const updatedCity = await CityController.addCityAssignment(cityName, type, name);
+    res.json(updatedCity);
+  } catch (err) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
+});
+
 export default cityRouter;
