@@ -18,6 +18,7 @@ import { AppDispatch } from '../../app/store'
 import { updateIncident } from '../../features/incidentSlice'
 import IIncident from '../../models/Incident'
 import eventEmitter from '../../utils/eventEmitter'
+import request from '../../utils/request'
 import SocketClient from '../../utils/Socket'
 import { RootState, WildfireArea } from '../../utils/types'
 import MapDrop from './MapDrop'
@@ -54,8 +55,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [pinsVisible, setPinsVisible] = useState(true)
   const [roadblocksVisible, setRoadblocksVisible] = useState(true)
   const [fireHydrantsVisible, setFireHydrantsVisible] = useState(true)
-  const [userLocationVisible, setUserLocationVisible] = useState(true);
-  const geoLocateRef = useRef<mapboxgl.GeolocateControl | null>(null);
+  const [userLocationVisible, setUserLocationVisible] = useState(true)
+  const geoLocateRef = useRef<mapboxgl.GeolocateControl | null>(null)
 
   // refs for areaClick
   const areaRef = useRef<boolean>(false)
@@ -72,8 +73,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [areaNum, setAreaNum] = useState<number>(0)
 
   // State for the route calculation loading
-  const [isNaviLoaded, setIsNaviLoaded] = useState(false);
-
+  const [isNaviLoaded, setIsNaviLoaded] = useState(false)
 
   const dispatch = useDispatch<AppDispatch>()
   const incident: IIncident = useSelector(
@@ -282,8 +282,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   // fetch and render markers from backend
   const fetchAndRenderMarkers = async () => {
     try {
-      const response = await fetch('/api/map') // Fetch all markers from backend
-      const data = await response.json()
+      const response = await request('/api/map') // Fetch all markers from backend
+      const data = await response
 
       if (!mapRef.current) return
 
@@ -369,14 +369,19 @@ const Mapbox: React.FC<MapboxProps> = ({
         popup.on('open', () => {
           const editButton = document.getElementById(`edit-pin-${_id}`)
           const deleteButton = document.getElementById(`delete-pin-${_id}`)
-          const navigateButton = document.getElementById(`navigate-pin-${_id}`);
+          const navigateButton = document.getElementById(`navigate-pin-${_id}`)
           const popupContainer = document.getElementById(
             `popup-container-${_id}`,
           ) as HTMLDivElement
 
           const trendingIcon = document.getElementById(`trending-icon-${_id}`)
 
-          if (!editButton || !deleteButton || !navigateButton || !popupContainer) {
+          if (
+            !editButton ||
+            !deleteButton ||
+            !navigateButton ||
+            !popupContainer
+          ) {
             console.warn(`Popup elements not found for pin ID: ${_id}`)
             return
           }
@@ -390,14 +395,19 @@ const Mapbox: React.FC<MapboxProps> = ({
             await handleRemovePin(_id, type)
           })
 
-          navigateButton.addEventListener("click", () => {
+          navigateButton.addEventListener('click', () => {
             if (mapRef.current) {
-              setIsNaviLoaded(true);
-              navigateToMarker(mapRef.current, item.longitude, item.latitude, () => setIsNaviLoaded(false));
+              setIsNaviLoaded(true)
+              navigateToMarker(
+                mapRef.current,
+                item.longitude,
+                item.latitude,
+                () => setIsNaviLoaded(false),
+              )
             } else {
-              console.error("Map reference is not available.");
+              console.error('Map reference is not available.')
             }
-          });
+          })
 
           // Add event listener for trending icon if it exists
           if (trendingIcon) {
@@ -419,101 +429,107 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
   }
 
-  const accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA';
+  const accessToken =
+    'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
 
-const navigateToMarker = async (
-  map: mapboxgl.Map | null,
-  lng: number,
-  lat: number,
-  stopLoading: () => void  // ✅ Pass function instead of state setter
-) => {
-  if (!map) {
-    console.error("Map instance is not available.");
-    stopLoading(); // ✅ Ensure loading is stopped if there's an error
-    return;
-  }
-
-  console.log("Loading started");
-  
-
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      const userLng = position.coords.longitude;
-      const userLat = position.coords.latitude;
-
-
-      
-      const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${lng},${lat}?alternatives=true&geometries=geojson&language=en&overview=full&steps=true&access_token=${accessToken}`;
-      try {
-        const query = await fetch(
-          routeUrl,
-      
-          { method: 'GET' },
-        );
-
-        const json = await query.json();
-        const data = json.routes[0];
-        const route = data.geometry;
-
-        if (map.getSource("route")) {
-          map.removeLayer("route");
-          map.removeSource("route");
-        }
-
-        map.addSource("route", {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            properties: {},
-            geometry: route,
-          },
-        });
-
-        map.addLayer({
-          id: "route",
-          type: "line",
-          source: "route",
-          layout: {
-            "line-join": "round",
-            "line-cap": "round",
-          },
-          paint: {
-            "line-color": "#007aff",
-            "line-width": 4,
-          },
-        });
-
-        const bounds = new mapboxgl.LngLatBounds();
-        route.coordinates.forEach((coord: [number, number]) => bounds.extend(coord));
-
-        map.fitBounds(bounds, { padding: 50 });
-
-      } catch (error) {
-        console.error("Error fetching directions:", error);
-      } finally {
-        console.log("Loading stopped");
-        stopLoading(); // ✅ Ensure loading stops after fetching
-      }
-    },
-    (error) => {
-      console.error("Error getting user location:", error);
-      stopLoading();
+  const navigateToMarker = async (
+    map: mapboxgl.Map | null,
+    lng: number,
+    lat: number,
+    stopLoading: () => void, // ✅ Pass function instead of state setter
+  ) => {
+    if (!map) {
+      console.error('Map instance is not available.')
+      stopLoading() // ✅ Ensure loading is stopped if there's an error
+      return
     }
-  );
-};
+
+    console.log('Loading started')
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const userLng = position.coords.longitude
+        const userLat = position.coords.latitude
+
+        const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${lng},${lat}?alternatives=true&geometries=geojson&language=en&overview=full&steps=true&access_token=${accessToken}`
+        try {
+          const query = await fetch(
+            routeUrl,
+
+            { method: 'GET' },
+          )
+
+          const json = await query.json()
+          const data = json.routes[0]
+          const route = data.geometry
+
+          if (map.getSource('route')) {
+            map.removeLayer('route')
+            map.removeSource('route')
+          }
+
+          map.addSource('route', {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              properties: {},
+              geometry: route,
+            },
+          })
+
+          map.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round',
+            },
+            paint: {
+              'line-color': '#007aff',
+              'line-width': 4,
+            },
+          })
+
+          const bounds = new mapboxgl.LngLatBounds()
+          route.coordinates.forEach((coord: [number, number]) =>
+            bounds.extend(coord),
+          )
+
+          map.fitBounds(bounds, { padding: 50 })
+        } catch (error) {
+          console.error('Error fetching directions:', error)
+        } finally {
+          console.log('Loading stopped')
+          stopLoading() // ✅ Ensure loading stops after fetching
+        }
+      },
+      (error) => {
+        console.error('Error getting user location:', error)
+        stopLoading()
+      },
+    )
+  }
 
   // Function to fetch AQI data
   const fetchAQIData = async (lng: number, lat: number): Promise<AQIData> => {
     try {
       // Get AQI data from the backend
-      const response = await fetch(`/api/airQuality?latitude=${lat}&longitude=${lng}`);
-      const data = await response.json();
-      const { air_quality } = data;
+      const response = await fetch(
+        `/api/airQuality?latitude=${lat}&longitude=${lng}`,
+      )
+      const data = await response.json()
+      const { air_quality } = data
 
       // Determine AQI level and color based on value
-      const aqiLevel = aqiToLevel(air_quality);
-      const aqiColor = aqiLevelToColor(aqiLevel);
-      return { value: air_quality, level: aqiLevel, color: aqiColor, timeStamp: data.timeStamp };
+      const aqiLevel = aqiToLevel(air_quality)
+      const aqiColor = aqiLevelToColor(aqiLevel)
+      return {
+        value: air_quality,
+        level: aqiLevel,
+        color: aqiColor,
+        timeStamp: data.timeStamp,
+      }
     } catch (error) {
       console.error('Error fetching AQI data:', error)
       return { value: null, level: 'Unknown', color: '#000000' } // Black for no data
@@ -522,31 +538,35 @@ const navigateToMarker = async (
 
   // Funtion to Convert US EPA AQI to AQI level
   // Unknown when no data is available; Good (<50); Moderate (50-100); Poor (101-300); Hazardous (>300)
-  const aqiToLevel = (aqi: number | string): 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous' => {
-    if(typeof aqi === 'number') {
-      if (aqi < 50) return 'Good';
-      if (aqi <= 100) return 'Moderate';
-      if (aqi <= 300) return 'Poor';
-      return 'Hazardous';
+  const aqiToLevel = (
+    aqi: number | string,
+  ): 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous' => {
+    if (typeof aqi === 'number') {
+      if (aqi < 50) return 'Good'
+      if (aqi <= 100) return 'Moderate'
+      if (aqi <= 300) return 'Poor'
+      return 'Hazardous'
     } else {
-      return 'Unknown';
+      return 'Unknown'
     }
   }
 
   // Function to convert AQI level to color
   // Black for Unknown air quality; Green for Good (<50); Orange for Moderate (50-100); Red for Poor (101-300); Dark Purple for Hazardous (>300)
-  const aqiLevelToColor = (level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous'): string => {
+  const aqiLevelToColor = (
+    level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous',
+  ): string => {
     switch (level) {
       case 'Good':
-        return '#00e400'; // Green
+        return '#00e400' // Green
       case 'Moderate':
-        return '#ff7e00'; // Orange
+        return '#ff7e00' // Orange
       case 'Poor':
-        return '#ff0000'; // Red
+        return '#ff0000' // Red
       case 'Hazardous':
-        return '#8f3f97'; // Dark purple
+        return '#8f3f97' // Dark purple
       default:
-        return '#000000'; // Black
+        return '#000000' // Black
     }
   }
 
@@ -569,7 +589,7 @@ const navigateToMarker = async (
           initializeMap(longitude, latitude, 1)
         },
         (error) => {
-          initializeMap(-122.059640, 37.410271, 14)
+          initializeMap(-122.05964, 37.410271, 14)
         },
       )
     } else {
@@ -788,7 +808,9 @@ const navigateToMarker = async (
             popup.on('open', () => {
               const editButton = document.getElementById(`edit-pin-${id}`)
               const deleteButton = document.getElementById(`delete-pin-${id}`)
-              const navigateButton = document.getElementById(`navigate-pin-${id}`);
+              const navigateButton = document.getElementById(
+                `navigate-pin-${id}`,
+              )
               const trendingIcon = document.getElementById(
                 `trending-icon-${id}`,
               )
@@ -802,14 +824,19 @@ const navigateToMarker = async (
                   'click',
                   async () => await handleRemovePin(id, type),
                 )
-                navigateButton.addEventListener("click", () => {
+                navigateButton.addEventListener('click', () => {
                   if (mapRef.current) {
-                    setIsNaviLoaded(true);
-                    navigateToMarker(mapRef.current, marker.getLngLat().lng, marker.getLngLat().lat, () => setIsNaviLoaded(false));
+                    setIsNaviLoaded(true)
+                    navigateToMarker(
+                      mapRef.current,
+                      marker.getLngLat().lng,
+                      marker.getLngLat().lat,
+                      () => setIsNaviLoaded(false),
+                    )
                   } else {
-                    console.error("Map reference is not available.");
+                    console.error('Map reference is not available.')
                   }
-                });
+                })
               }
 
               // Add event listener for trending icon if it exists
@@ -867,14 +894,19 @@ const navigateToMarker = async (
                 'click',
                 async () => await handleRemovePin(id, type),
               )
-              navigateButton.addEventListener("click", () => {
+              navigateButton.addEventListener('click', () => {
                 if (mapRef.current) {
-                  setIsNaviLoaded(true);
-                  navigateToMarker(mapRef.current, marker.getLngLat().lng, marker.getLngLat().lat, () => setIsNaviLoaded(false));
+                  setIsNaviLoaded(true)
+                  navigateToMarker(
+                    mapRef.current,
+                    marker.getLngLat().lng,
+                    marker.getLngLat().lat,
+                    () => setIsNaviLoaded(false),
+                  )
                 } else {
-                  console.error("Map reference is not available.");
+                  console.error('Map reference is not available.')
                 }
-              });
+              })
             }
           })
         }
@@ -898,10 +930,14 @@ const navigateToMarker = async (
         fireHydrantRef.current.delete(id)
         break
       case 'airQuality':
-        marker = airQualityRef.current.get(id);
-        airQualityRef.current.delete(id);
-        await fetch(`/api/airQuality/`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locationId: id })});
-        break;
+        marker = airQualityRef.current.get(id)
+        airQualityRef.current.delete(id)
+        await fetch(`/api/airQuality/`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ locationId: id }),
+        })
+        break
       default:
         marker = pinRef.current.get(id)
         pinRef.current.delete(id)
@@ -972,10 +1008,6 @@ const navigateToMarker = async (
           ?.addEventListener('click', () =>
             handleEditPin(id, type, popupContent),
           )
-        
-          
-        
-      
       })
   }
 
@@ -1066,21 +1098,27 @@ const navigateToMarker = async (
     }
 
     const toggleUserLocation = () => {
-      if (!mapRef.current) return;
-    
+      if (!mapRef.current) return
+
       setUserLocationVisible((prev) => {
-        const newState = !prev;
-    
-        const userLocationMarker = document.querySelector(".mapboxgl-user-location-dot") as HTMLElement | null;
-        const userLocationAccuracy = document.querySelector(".mapboxgl-user-location-accuracy-circle") as HTMLElement | null;
+        const newState = !prev
+
+        const userLocationMarker = document.querySelector(
+          '.mapboxgl-user-location-dot',
+        ) as HTMLElement | null
+        const userLocationAccuracy = document.querySelector(
+          '.mapboxgl-user-location-accuracy-circle',
+        ) as HTMLElement | null
         if (userLocationMarker && userLocationAccuracy) {
-          userLocationMarker.style.visibility = newState ? "visible" : "hidden";
-          userLocationAccuracy.style.visibility = newState ? "visible" : "hidden";
+          userLocationMarker.style.visibility = newState ? 'visible' : 'hidden'
+          userLocationAccuracy.style.visibility = newState
+            ? 'visible'
+            : 'hidden'
         }
-    
-        return newState;
-      });
-    };
+
+        return newState
+      })
+    }
 
     eventEmitter.on('you_button_clicked', toggleUserLocation)
     eventEmitter.on('toggle_pin', togglePins)
@@ -1271,14 +1309,13 @@ const navigateToMarker = async (
         areaId: areaId,
       })
 
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`, {
+      request('/api/wildfire/areas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: bodyJson,
       })
-        .then((response) => response.json())
         .then((data) => {
           console.log('Successfully posted WildfireArea:', data)
         })
@@ -1360,14 +1397,13 @@ const navigateToMarker = async (
       if (nameDisplay) {
         if (newName != previousName) {
           nameDisplay.innerText = newName || previousName
-          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`, {
+          request('/api/wildfire/areas', {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ ...wildfireArea, name: newName }),
           })
-            .then((response) => response.json())
             .then((data) => {
               console.log('Successfully updated WildfireArea name:', data)
             })
@@ -1404,16 +1440,10 @@ const navigateToMarker = async (
     const areaId: string = e.features[0]?.id?.toString() || ''
     if (areaId == '') return
 
-    fetch(
-      `${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas?areaId=${areaId}`,
-      {
-        method: 'DELETE',
-      },
-    )
+    request(`/api/wildfire/areas?areaId=${areaId}`, {
+      method: 'DELETE',
+    })
       .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to delete wildfire area')
-        }
         console.log('Successfully deleted WildfireArea:', areaId)
         deletePopup(areaId)
       })
@@ -1455,10 +1485,8 @@ const navigateToMarker = async (
   const displayAllArea = () => {
     const fetchWildfireAreas = async () => {
       try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`,
-        )
-        const data = await response.json()
+        const response = await request('/api/wildfire/areas')
+        const data = await response
         setCurrArea(data)
         data.forEach((wildfireArea: WildfireArea) => {
           drawArea(wildfireArea)
@@ -1515,42 +1543,48 @@ const navigateToMarker = async (
   }
 
   // Function to update an air quality marker when new data is received
-  const updateAirQualityMarker = (locationId: string, newAqi: number, timestamp: number) => {
+  const updateAirQualityMarker = (
+    locationId: string,
+    newAqi: number,
+    timestamp: number,
+  ) => {
     // Find the marker in our reference
-    const marker = airQualityRef.current.get(locationId);
+    const marker = airQualityRef.current.get(locationId)
     if (!marker) {
-      console.log(`No air quality marker found for locationId: ${locationId}`);
-      return;
+      console.log(`No air quality marker found for locationId: ${locationId}`)
+      return
     }
 
     // Create new AQI data object
-    const aqiLevel = aqiToLevel(newAqi);
-    const aqiColor = aqiLevelToColor(aqiLevel);
+    const aqiLevel = aqiToLevel(newAqi)
+    const aqiColor = aqiLevelToColor(aqiLevel)
     const aqiData = {
       value: newAqi,
       level: aqiLevel,
       color: aqiColor,
-      timeStamp: timestamp
-    };
+      timeStamp: timestamp,
+    }
 
     // Update marker appearance
-    const newElement = createCustomMarker('airQuality', aqiData);
-    marker.getElement().innerHTML = newElement.innerHTML;
+    const newElement = createCustomMarker('airQuality', aqiData)
+    marker.getElement().innerHTML = newElement.innerHTML
 
     // Update the popup content
-    const popup = marker.getPopup();
-    if (!popup) return;
-    
-    const popupElement = popup.getElement();
-    
+    const popup = marker.getPopup()
+    if (!popup) return
+
+    const popupElement = popup.getElement()
+
     if (popupElement && popup.isOpen()) {
       // Only update content if popup is currently open
-      const popupContent = document.createElement('div');
-      
+      const popupContent = document.createElement('div')
+
       // Safely get the address element and its text content
-      const addressElement = popupElement.querySelector(`#popup-address-${locationId}`);
-      const addressText = addressElement?.textContent || '';
-      
+      const addressElement = popupElement.querySelector(
+        `#popup-address-${locationId}`,
+      )
+      const addressText = addressElement?.textContent || ''
+
       popupContent.innerHTML = `
         <div style="min-width: 200px;">
           <div style="background-color: #f0f0f0; padding: 8px; margin-bottom: 8px;">
@@ -1572,56 +1606,67 @@ const navigateToMarker = async (
             <button id="navigate-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
           </div>
         </div>
-      `;
+      `
 
       // Replace popup content
-      popup.setDOMContent(popupContent);
-      
+      popup.setDOMContent(popupContent)
+
       // Reattach event listeners
-      const editButton = document.getElementById(`edit-pin-${locationId}`);
-      const deleteButton = document.getElementById(`delete-pin-${locationId}`);
-      const navigateButton = document.getElementById(`navigate-pin-${locationId}`);
-      const trendingIcon = document.getElementById(`trending-icon-${locationId}`);
+      const editButton = document.getElementById(`edit-pin-${locationId}`)
+      const deleteButton = document.getElementById(`delete-pin-${locationId}`)
+      const navigateButton = document.getElementById(
+        `navigate-pin-${locationId}`,
+      )
+      const trendingIcon = document.getElementById(
+        `trending-icon-${locationId}`,
+      )
 
       if (editButton && deleteButton && navigateButton) {
-        editButton.addEventListener('click', () => 
-          handleEditPin(locationId, 'airQuality', popupContent)
-        );
-        
-        deleteButton.addEventListener('click', async () => 
-          await handleRemovePin(locationId, 'airQuality')
-        );
-        
-        navigateButton.addEventListener("click", () => {
+        editButton.addEventListener('click', () =>
+          handleEditPin(locationId, 'airQuality', popupContent),
+        )
+
+        deleteButton.addEventListener(
+          'click',
+          async () => await handleRemovePin(locationId, 'airQuality'),
+        )
+
+        navigateButton.addEventListener('click', () => {
           if (mapRef.current) {
-            setIsNaviLoaded(true);
+            setIsNaviLoaded(true)
             navigateToMarker(
-              mapRef.current, 
-              marker.getLngLat().lng, 
-              marker.getLngLat().lat, 
-              () => setIsNaviLoaded(false)
-            );
+              mapRef.current,
+              marker.getLngLat().lng,
+              marker.getLngLat().lat,
+              () => setIsNaviLoaded(false),
+            )
           }
-        });
+        })
       }
 
       if (trendingIcon) {
         trendingIcon.addEventListener('click', () => {
-          alert(`Showing AQI trends for the last 24 hours. Current value: ${newAqi}`);
-        });
+          alert(
+            `Showing AQI trends for the last 24 hours. Current value: ${newAqi}`,
+          )
+        })
       }
     }
-    
-    console.log(`Updated air quality marker ${locationId} with new AQI: ${newAqi}`);
-  };
+
+    console.log(
+      `Updated air quality marker ${locationId} with new AQI: ${newAqi}`,
+    )
+  }
 
   useEffect(() => {
     const socket = SocketClient
     socket.connect()
     socket.on('map-area-update', (wildfireArea) => {
+      console.log('socket 1: ', wildfireArea)
       drawArea(wildfireArea)
     })
     socket.on('map-area-delete', (areaId) => {
+      console.log('socket 2: ', areaId)
       removeAreaById(areaId)
     })
     // Add air quality update listener
@@ -1639,7 +1684,8 @@ const navigateToMarker = async (
 
     return () => {
       eventEmitter.removeAllListeners('area_util')
-      socket.off('updataGroups')
+      socket.off('map-area-update')
+      socket.off('map-area-delete') // Clean up the listener
       socket.off('airQualityUpdate') // Clean up the listener
     }
   }, [])

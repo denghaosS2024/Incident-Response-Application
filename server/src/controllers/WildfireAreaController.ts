@@ -25,8 +25,13 @@ class WildfireAreaController {
     })
 
     await newWildfireArea.save()
-    UserConnections.broadcast('map-area-update', newWildfireArea.toJSON)
-    return wildfireArea
+    const areaJson = {
+      areaId: newWildfireArea.areaId,
+      coordinates: newWildfireArea.coordinates,
+      name: newWildfireArea.name,
+    }
+    UserConnections.broadcast('map-area-update', areaJson)
+    return areaJson
   }
 
   /**
