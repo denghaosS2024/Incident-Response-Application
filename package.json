@@ -13,7 +13,8 @@
     "dev": "concurrently --kill-others-on-fail \"npm run dev:server\" \"npm run dev:client\"",
     "test": "cd server && npm test && cd ..",
     "clean": "rm -rf node_modules && cd client && rm -rf node_modules && cd .. && cd server && rm -rf node_modules && cd ..",
-    "reinstall": "npm run clean && npm install"
+    "reinstall": "npm run clean && npm install",
+    "format": "cd client && npm run format && cd .. && cd server && npm run format && cd .."
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-alpha.6",
