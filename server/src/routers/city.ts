@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import CityController from '../controllers/CityController';
 
 const cityRouter = Router();
@@ -121,6 +121,65 @@ cityRouter.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const removedCity = await CityController.removeCityById(id);
     res.json({ message: 'City deleted', city: removedCity });
+  } catch (err) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/cities/assignments/{cityName}:
+ *   get:
+ *     summary: Get assignments for a city
+ *     description: Retrieves all assignments (cars, trucks, personnel) for a specified city.
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the city to fetch assignments for.
+ *     responses:
+ *       200:
+ *         description: Assignments retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cars:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/Car"
+ *                 trucks:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/Truck"
+ *                 personnel:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/Personnel"
+ */
+cityRouter.get('/assignments/:cityName', async (req: Request, res: Response) => {
+  try {
+    const { cityName } = req.params;
+    const assignments = await CityController.getCityAssignments(cityName);
+    res.json(assignments);
+  } catch (err) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
+});
+
+cityRouter.put('/assignments/:cityName', async (req: Request, res: Response) => {
+  try {
+    const { cityName } = req.params;
+    const { type, name } = req.body;
+    const updatedCity = await CityController.addCityAssignment(cityName, type, name);
+    res.json(updatedCity);
   } catch (err) {
     const error = err as Error;
     res.status(400).json({ error: error.message });

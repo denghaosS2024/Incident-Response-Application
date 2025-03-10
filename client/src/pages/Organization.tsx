@@ -12,13 +12,16 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import CityContainer from "../components/Organization/CityContainer";
 
 // Interfaces for your data, storing _id from the backend
 interface Car {
+  assignedCity: string;
   _id: string;
   name: string;
 }
 interface Truck {
+  assignedCity: string;
   _id: string;
   name: string;
 }
@@ -29,8 +32,7 @@ interface City {
 interface Personnel {
   assignedCity: string;
   _id: string;
-  username: string;
-  role: "Fire" | "Police";
+  name: string;
 }
 
 const Organization: React.FC = () => {
@@ -77,7 +79,7 @@ const Organization: React.FC = () => {
   const sortedCars = [...cars].sort((a, b) => a.name.localeCompare(b.name));
   const sortedTrucks = [...trucks].sort((a, b) => a.name.localeCompare(b.name));
   const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name));
-  const sortedPersonnel = [...personnel].sort((a, b) => a.username.localeCompare(b.username));
+  const sortedPersonnel = [...personnel].sort((a, b) => a.name.localeCompare(b.name));
 
   // Add a new car
   const addCar = async () => {
@@ -201,7 +203,7 @@ const Organization: React.FC = () => {
             <List>
               {sortedPersonnel.map((person) => (
                 <ListItem key={person._id}>
-                  <ListItemText primary={person.username} secondary={person.role} />
+                  <ListItemText primary={person.name} />
                 </ListItem>
               ))}
             </List>
@@ -321,17 +323,43 @@ const Organization: React.FC = () => {
             </Box>
             <List>
               {sortedCities.map((city) => (
-                <ListItem key={city._id} secondaryAction={
-                  <IconButton edge="end" onClick={async () => {
-                    const response = await fetch(`/api/cities/${city._id}`, { method: "DELETE" });
-                    if (response.ok) {
-                      setCities(cities.filter((c) => c._id !== city._id));
-                    }
-                  }}>
-                    <Delete />
-                  </IconButton>
-                }>
-                  <ListItemText primary={city.name} />
+                <ListItem
+                  key={city._id}
+                  // Make ListItem display as a column so we can stack elements
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start"
+                  }}
+                >
+                  {/* Inline row: city name + delete icon */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      width: "100%",
+                      justifyContent: "space-between",
+                      alignItems: "center"
+                    }}
+                  >
+                    <ListItemText primary={city.name} />
+                    <IconButton
+                      edge="end"
+                      onClick={async () => {
+                        const response = await fetch(`/api/cities/${city._id}`, {
+                          method: "DELETE",
+                        });
+                        if (response.ok) {
+                          setCities(cities.filter((c) => c._id !== city._id));
+                        }
+                      }}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Box>
+
+                  <Box>
+                    <CityContainer cityName={city.name} />
+                  </Box>
                 </ListItem>
               ))}
             </List>
