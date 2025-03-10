@@ -138,12 +138,27 @@ describe('Router - Channel', () => {
     expect(message.timestamp).toBeDefined()
   })
 
+  it('appends a new alert into the channel', async () => {
+    const content = 'P.A.R'
+    const { body: message } = await request(app)
+      .post(`/api/channels/${channelId}/messages`)
+      .set('x-application-uid', userA)
+      .send({ content: content, isAlert: true })
+      .expect(200)
+
+    expect(messageId).toBeDefined()
+    expect(message.content).toBe(content)
+    expect(message.sender._id).toBe(userA)
+    expect(message.isAlert).toBe(true)
+    expect(message.timestamp).toBeDefined()
+  })
+
   it('lists all messages in the channel', async () => {
     const { body: messages } = await request(app)
       .get(`/api/channels/${channelId}/messages`)
       .expect(200)
 
-    expect(messages.length).toBe(1)
+    expect(messages.length).toBe(2)
     expect(messages[0]._id).toBe(messageId)
   })
 
@@ -165,7 +180,6 @@ describe('Router - Channel', () => {
 
     expect(body.message).toBe(`Channel(${channelName}) deleted`)
   })
-
 
   it('returns a valid video upload URL for an existing channel', async () => {
     // 1) Create a channel in the DB
@@ -205,6 +219,36 @@ describe('Router - Channel', () => {
     // The error response is { message: error.message }
     expect(body).toHaveProperty('message')
     expect(body.message).toMatch(/Channel.*not found/)
+  })
+
+  it('returns a valid file upload URL for an existing channel', async () => {
+    const {
+      body: { _id },
+    } = await request(app)
+      .post('/api/channels')
+      .send({
+        name: 'Test Channel For Upload File',
+        users: [userA],
+      })
+      .expect(200)
+    
+    // Post necessary file information to get url
+    const { body } = await request(app)
+      .post(`/api/channels/${_id}/file-upload-url`)
+      .send({fileName:"file",fileType:"application/pdf",fileExtension:".pdf"})
+      .expect(200)
+
+    // Returns uploadUrl and fileUrl
+    expect(body).toHaveProperty('uploadUrl')
+    expect(body).toHaveProperty('fileUrl')
+    // We mocked the getSignedUrl to return "mock-signed-url"
+    expect(body.uploadUrl).toBe('mock-signed-url')
+    // And fileUrl typically starts with https://storage.googleapis.com/
+    expect(body.fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
+    // And fileUrl contains file extension
+    expect(body.fileUrl).toContain(".pdf")
+    // And fileUrl contains file name
+    expect(body.fileUrl).toContain("file")
   })
 
 
