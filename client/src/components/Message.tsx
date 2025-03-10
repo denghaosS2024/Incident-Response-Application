@@ -18,7 +18,7 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   const currentUserId = localStorage.getItem('uid')
   // Check if the message content looks like a video url from bucket
   const videoUrlPrefix =
-    'https://storage.googleapis.com/sem-s25-bucket/videos/'
+    'https://storage.googleapis.com/sem-video-bucket/videos/'
   const isVideo = message.content.startsWith(videoUrlPrefix)
 
   const imageUrlPrefix =
