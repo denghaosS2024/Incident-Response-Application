@@ -731,6 +731,8 @@ const Mapbox: React.FC<MapboxProps> = ({
           return
         }
 
+        console.log('Pin created successfully')
+
         const { id } = await createPinResponse.json()
 
         // Replace temporary ID with actual ID from backend
