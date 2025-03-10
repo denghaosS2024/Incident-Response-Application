@@ -7,7 +7,7 @@ export interface ICar extends Document {
 
 const CarSchema = new Schema<ICar>({
   name: { type: String, required: true },
-  assignedCity: {type: String, default: null},
+  assignedCity: { type: String, default: null },
 });
 
 export default model<ICar>("Car", CarSchema);

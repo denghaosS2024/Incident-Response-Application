@@ -85,4 +85,50 @@ personnelRouter.put("/cities", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/personnel/vehicles:
+ *   put:
+ *     summary: Update the assigned vehicle for a personnel
+ *     description: Assigns or removes a vehicle from a personnel.
+ *     tags:
+ *       - Personnel
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - personnelName
+ *               - vehicleName
+ *             properties:
+ *               personnelName:
+ *                 type: string
+ *                 example: "john_doe"
+ *               vehicleName:
+ *                 type: string
+ *                 example: "Car123"
+ *                 description: Name of the vehicle to assign. Pass `null` to remove vehicle from a personnel.
+ *     responses:
+ *       200:
+ *         description: Vehicle updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Personnel"
+ */
+personnelRouter.put("/vehicles", async (req: Request, res: Response) => {
+  try {
+    const { personnelName, vehicleName } = req.body;
+    const updatedPersonnel = await PersonnelController.selectVehicleForPersonnel(personnelName, vehicleName);
+    res.status(200).json(updatedPersonnel);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
 export default personnelRouter;

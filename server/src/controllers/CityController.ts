@@ -43,15 +43,36 @@ class CityController {
     if (!city) {
       throw new Error(`City '${cityName}' does not exist in the database`);
     }
+  
     const cars = await Car.find({ assignedCity: cityName }).sort({ name: 1 }).exec();
     const trucks = await Truck.find({ assignedCity: cityName }).sort({ name: 1 }).exec();
     const personnel = await Personnel.find({ assignedCity: cityName }).sort({ username: 1 }).exec();
+  
     return {
-      cars: cars.map(({ _id, name, assignedCity }) => ({ _id, name, assignedCity })),
-      trucks: trucks.map(({ _id, name, assignedCity }) => ({ _id, name, assignedCity })),
-      personnel: personnel.map(({ _id, username, assignedCity }) => ({ _id, name: username, assignedCity })),
+      cars: cars.map(({ _id, name, assignedCity }) => ({
+        _id,
+        name,
+        assignedCity
+      })),
+      trucks: trucks.map(({ _id, name, assignedCity }) => ({
+        _id,
+        name,
+        assignedCity
+      })),
+      personnel: personnel.map(
+        ({ _id, username, assignedCity, assignedVehicleTimestamp }) => ({
+          _id,
+          name: username,
+          assignedCity,
+          ...(assignedVehicleTimestamp
+            ? { assignedVehicleTimestamp }
+            : {})
+        })
+      )
     };
   }
+  
+  
 
   async addCityAssignment(cityName: string, type: "Car" | "Truck" | "Personnel", name: string) {
     const city = await City.findOne({ name: cityName });

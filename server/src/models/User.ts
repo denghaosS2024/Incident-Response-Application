@@ -20,6 +20,9 @@ export interface IUser extends Document {
   // phoneNumber?: string
   role: string
   assignedCity?: string | null
+  assignedCar?: string | null
+  assignedTruck?: string | null
+  assignedVehicleTimestamp?: Date
   previousLatitude: number
   previousLongitude: number
   comparePassword: (candidatePassword: string) => Promise<boolean>
@@ -56,6 +59,63 @@ const UserSchema = new Schema<IUser>({
         return val === null
       },
       message: 'assignedCity is only allowed for users with role Police or Fire.',
+    },
+  },
+  /**
+   * assignedCar should only be used if role is 'Police'.
+   * Default is null. When role is anything else, assignedCar must remain null.
+   */
+  assignedCar: {
+    type: String,
+    default: null,
+    validate: {
+      validator: function (this: IUser, val: string | null) {
+        // If role is Police, assignedCar can be any string (including null).
+        // Otherwise, assignedCar must be null.
+        if (this.role === ROLES.POLICE) {
+          return true
+        }
+        return val === null
+      },
+      message: 'assignedCar is only allowed for users with role Police.',
+    },
+  },
+  /**
+   * assignedTruck should only be used if role is 'Fire'.
+   * Default is null. When role is anything else, assignedTruck must remain null.
+   */
+  assignedTruck: {
+    type: String,
+    default: null,
+    validate: {
+      validator: function (this: IUser, val: string | null) {
+        // If role is Fire, assignedTruck can be any string (including null).
+        // Otherwise, assignedTruck must be null.
+        if (this.role === ROLES.FIRE) {
+          return true
+        }
+        return val === null
+      },
+      message: 'assignedTruck is only allowed for users with role Fire.',
+    },
+  },
+  /**
+   * assignedVehicleTimestamp should only be used if role is 'Police' or 'Fire'.
+   * Default is null. When role is anything else, assignedVehicleTimestamp must remain null.
+   */
+  assignedVehicleTimestamp: {
+    type: Date,
+    default: null,
+    validate: {
+      validator: function (this: IUser, val: Date | null) {
+        // If role is Police or Fire, assignedVehicleTimestamp can be any date (including null).
+        // Otherwise, assignedVehicleTimestamp must be null.
+        if (this.role === ROLES.POLICE || this.role === ROLES.FIRE) {
+          return true
+        }
+        return val === null
+      },
+      message: 'assignedVehicleTimestamp is only allowed for users with role Police or Fire.',
     },
   },
   previousLatitude: { type: Number, required: false, default: 0 },

@@ -174,6 +174,43 @@ cityRouter.get('/assignments/:cityName', async (req: Request, res: Response) => 
   }
 });
 
+/**
+ * @swagger
+ * /api/cities/assignments/{cityName}:
+ *   put:
+ *     summary: Update assignments for a city
+ *     description: Assigns or removes a car, truck, or personnel from a specified city.
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the city to update assignments for.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: ["Car", "Truck", "Personnel"]
+ *                 description: The type of assignment to update.
+ *               name:
+ *                 type: string
+ *                 description: The name of the car, truck, or personnel to assign or remove.
+ *     responses:
+ *       200:
+ *         description: Assignments updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/City"
+ */
 cityRouter.put('/assignments/:cityName', async (req: Request, res: Response) => {
   try {
     const { cityName } = req.params;

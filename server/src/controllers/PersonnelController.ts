@@ -1,4 +1,6 @@
+import Car from "../models/Car";
 import City from "../models/City";
+import Truck from "../models/Truck";
 import User, { IUser } from "../models/User";
 import { ROLES } from "../utils/Roles";
 
@@ -58,6 +60,41 @@ class PersonnelController {
       console.error('Error updating personnel city:', error)
       throw error
     }
+  }
+
+  async selectVehicleForPersonnel(personnelName: string, vehicleName: string) {
+    if (!vehicleName) {
+      throw new Error("Vehicle name is required");
+    }
+    const personnel = await User.findOne({ username: personnelName });
+    if (!personnel) {
+      throw new Error(`Personnel with username '${personnelName}' does not exist`);
+    }
+    if (personnel.role === ROLES.POLICE) {
+      const car = await Car.findOne({ name: vehicleName });
+      if (!car) {
+        throw new Error(`Car with name '${vehicleName}' does not exist`);
+      }
+      const updatedPersonnel = await User.findOneAndUpdate(
+        { username: personnelName },
+        { assignedCar: vehicleName, assignedVehicleTimestamp: new Date() },
+        { new: true }
+      );
+      return updatedPersonnel;
+    } else if (personnel.role === ROLES.FIRE) {
+      const truck = await Truck.findOne({ name: vehicleName });
+      if (!truck) {
+        throw new Error(`Truck with name '${vehicleName}' does not exist`);
+      }
+      const updatedPersonnel = await User.findOneAndUpdate(
+        { username: personnelName },
+        { assignedTruck: vehicleName, assignedVehicleTimestamp: new Date() },
+        { new: true }
+      );
+      return updatedPersonnel;
+    }
+
+    throw new Error(`Personnel with username '${personnelName}' is not a police or firefighter`);
   }
 }
 
