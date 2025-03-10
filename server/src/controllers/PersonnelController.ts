@@ -1,30 +1,24 @@
-import Personnel, { IPersonnel } from "../models/Personnel";
+import User, { IUser } from "../models/User";
+import { ROLES } from "../utils/Roles";
 
 class PersonnelController {
   /**
-   * Get all personnel
+   * Get all available personnel (Police and Firefighters) who are not assigned to any city.
    */
-  async getAllPersonnel(): Promise<IPersonnel[]> {  
-    return await Personnel.find().sort({ name: 1 }).exec();
-  }
-
-  /**
-   * Create a new personnel entry
-   */
-  async createPersonnel(name: string, role: string): Promise<IPersonnel> {
-    if (!name.trim() || !role.trim()) {
-      throw new Error("Both name and role are required.");
+  async getAllAvailablePersonnel(): Promise<IUser[]> {  
+    try {
+      const unassignedUsers = await User.find({
+        role: { $in: [ROLES.POLICE, ROLES.FIRE] },
+        assignedCity: null,
+      })
+  
+      return unassignedUsers
+    } catch (error) {
+      console.error('Error fetching unassigned users:', error)
+      throw error
     }
-    const personnel = new Personnel({ name: name.trim(), role: role.trim() });
-    return await personnel.save();
   }
 
-  /**
-   * Remove personnel by ID
-   */
-  async removePersonnelById(id: string): Promise<IPersonnel | null> {
-    return await Personnel.findByIdAndDelete(id);
-  }
 }
 
 export default new PersonnelController();

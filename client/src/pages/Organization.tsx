@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from "react";
+import { Add, Delete } from "@mui/icons-material";
 import {
-  Button,
+  Box,
   Card,
   CardContent,
-  Typography,
+  IconButton,
   List,
   ListItem,
   ListItemText,
-  IconButton,
   TextField,
-  Box,
-  useMediaQuery,
-  Theme
+  Typography
 } from "@mui/material";
-import { Delete, Add } from "@mui/icons-material";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Interfaces for your data, storing _id from the backend
@@ -30,10 +27,11 @@ interface City {
   name: string;
 }
 interface Personnel {
-    _id: string;
-    name: string;
-    role: "Firefighter" | "Police Officer"; 
-  }
+  assignedCity: string;
+  _id: string;
+  username: string;
+  role: "Fire" | "Police";
+}
 
 const Organization: React.FC = () => {
   const navigate = useNavigate();
@@ -69,7 +67,7 @@ const Organization: React.FC = () => {
       .then((data: City[]) => setCities(data))
       .catch(err => console.error("Failed to fetch cities:", err));
 
-      fetch("/api/personnel")
+    fetch("/api/personnel")
       .then(res => res.json())
       .then((data: Personnel[]) => setPersonnel(data))
       .catch(err => console.error("Failed to fetch personnel:", err));
@@ -79,7 +77,7 @@ const Organization: React.FC = () => {
   const sortedCars = [...cars].sort((a, b) => a.name.localeCompare(b.name));
   const sortedTrucks = [...trucks].sort((a, b) => a.name.localeCompare(b.name));
   const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name));
-  const sortedPersonnel = [...personnel].sort((a, b) => a.name.localeCompare(b.name));
+  const sortedPersonnel = [...personnel].sort((a, b) => a.username.localeCompare(b.username));
 
   // Add a new car
   const addCar = async () => {
@@ -188,7 +186,7 @@ const Organization: React.FC = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <Button variant="contained" onClick={() => navigate(-1)}>Back</Button>
+      {/* <Button variant="contained" onClick={() => navigate(-1)}>Back</Button> */}
 
       <Typography variant="h6" align="center" style={{ marginBottom: "20px" }}>
         Drag & drop personnel & vehicles:
@@ -203,7 +201,7 @@ const Organization: React.FC = () => {
             <List>
               {sortedPersonnel.map((person) => (
                 <ListItem key={person._id}>
-                  <ListItemText primary={person.name} secondary={person.role} />
+                  <ListItemText primary={person.username} secondary={person.role} />
                 </ListItem>
               ))}
             </List>
