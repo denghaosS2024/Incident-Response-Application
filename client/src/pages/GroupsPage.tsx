@@ -5,18 +5,16 @@ import IChannel from '../models/Channel'
 import { IAddGroupFormProps } from '@/components/AddGroupForm'
 import AlertSnackbar from '../components/common/AlertSnackbar'
 import style from '../styles/GroupPage.module.css'
-import SocketClient from '../utils/Socket';
+import SocketClient from '../utils/Socket'
 
 //Pages
 import GroupDirectory from '../components/GroupDir/GroupDirectory'
 import { Container } from '@mui/material'
-import IUser from '@/models/User'
 
 const Groups: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | ''>('')
-  const [selectedUsers, setSelectedUsers] = useState<IUser[]>([]);
   const [currentGroup, setCurrentGroup] = useState<IChannel | null>(null);
 
   // create or update channel
@@ -121,8 +119,6 @@ const Groups: React.FC = () => {
     <Container>
       <div className={style.centeredForm}>
         <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup}
-          selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
-          setSelectedUsers={setSelectedUsers}
           currentGroup={currentGroup}
           setCurrentGroup={setCurrentGroup} />
       </div>
