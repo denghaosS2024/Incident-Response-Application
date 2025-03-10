@@ -10,9 +10,11 @@ import mongoose, { Document, Schema } from 'mongoose'
  * Interface for the WildfireArea document
  */
 export interface IWildfireArea extends Document {
-    areaId: string;
-    coordinates: [number, number][];
-    name?: string;
+  areaId: string
+  coordinates: [number, number][]
+  name?: string
+  containment?: number
+  last_updated?: Date
 }
 
 /**
@@ -26,11 +28,22 @@ const WildfireAreaSchema = new Schema<IWildfireArea>({
   },
   coordinates: {
     type: [[Number]],
-    required: true
+    required: true,
   },
   name: {
     type: String,
-    required: false
+    required: false,
+  },
+  containment: {
+    type: Number,
+    required: false,
+    min: 0,
+    max: 1,
+  },
+  last_updated: {
+    type: Date,
+    required: false,
+    default: Date.now,
   },
 })
 
