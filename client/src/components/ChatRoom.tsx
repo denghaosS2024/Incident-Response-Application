@@ -47,23 +47,18 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ channelId }) => {
     if (channel){
       setChannelName(channel.name);
     }
-  };
-
-  useEffect(() => {
-    // Function to handle redirection to public channel
-    const handlePublicChannel = async () => {
+    else{
       const channels = (await request('/api/channels')) as IChannel[]
       const publicChannel = channels.filter(
         (channel) => channel.name === 'Public',
       )[0]
-      history(`/messages/${publicChannel._id}`)
+      if (publicChannel){
+        setChannelName(publicChannel.name);
+      }
     }
+  };
 
-    // Redirect '/public' to the actual public channel ID
-    if (channelId === 'public') {
-      handlePublicChannel()
-    }
-
+  useEffect(() => {
     loadChannelInfo();
     // Load messages for the current channel
     dispatch(loadMessages(channelId))
