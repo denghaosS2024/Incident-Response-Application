@@ -26,6 +26,22 @@ airQualityRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
+airQualityRouter.get("/all", async (req: Request, res: Response) => {
+    try {
+        const { locationId } = req.query;
+        
+        if (!locationId) {
+            return res.status(400).json({ error: 'Location ID is required' });
+        }
+        
+        const result = await AirQualityController.getAllAirQuality(locationId as string);
+        return res.json(result);
+    } catch (err) {
+        const error = err as Error;
+        return res.status(500).json({ error: error.message });
+    }
+});
+
 airQualityRouter.post("/", async (req: Request, res: Response) => {
     const { locationId, latitude, longitude, air_quality, timeStamp } = req.body;
     try {

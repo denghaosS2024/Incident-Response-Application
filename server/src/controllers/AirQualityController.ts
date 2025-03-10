@@ -97,6 +97,7 @@ class AirQualityController {
         }
     }
 
+    // Get air quality data from PurpleAir API (single)
     async getAirQuality(latitude: number, longitude: number) {
         // Ensure API key is defined
         if (!PURPLEAIR_API_KEY) {
@@ -168,6 +169,38 @@ class AirQualityController {
                 distance_miles: s.distance.toFixed(2),
             }))
         };
+    }
+
+    // Get all air quality data from the database filtered by locationId
+    async getAllAirQuality(locationId: string) {
+        const maxNumReadings = 24 * 6; // 24 hours of readings (6 times per hour)
+
+        const location = await AirQuality.findOne({
+            locationId
+        });
+
+        if (location && location.air_qualities.length > 0) {
+            // Sort by timestamp in descending order (newest first)
+            location.air_qualities.sort((a, b) => b.timeStamp - a.timeStamp);
+            
+            // Take only the latest readings up to maxNumReadings
+            if (location.air_qualities.length > maxNumReadings) {
+                location.air_qualities = location.air_qualities.slice(0, maxNumReadings);
+            } else {
+                // fill in missing readings with the last available reading
+                const lastReading = location.air_qualities[location.air_qualities.length - 1];
+                const missingReadings = maxNumReadings - location.air_qualities.length;
+                for (let i = 0; i < missingReadings; i++) {
+                    location.air_qualities.push(lastReading);
+                }
+            }
+        }
+
+        if (!location) {
+            throw new Error(`Location with ID ${locationId} not found`);
+        }
+
+        return location.air_qualities;
     }
 
     // Add air quality data to the database
