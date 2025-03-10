@@ -726,7 +726,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           }),
         })
 
-        const { id } = await createPinResponse.json()
+        const { id } = await createPinResponse
 
         // Replace temporary ID with actual ID from backend
         let finalLngLat: mapboxgl.LngLat | undefined
