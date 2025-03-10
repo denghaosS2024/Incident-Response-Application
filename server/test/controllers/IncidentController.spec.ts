@@ -1,7 +1,7 @@
-import { Types } from 'mongoose'
-import IncidentController from '../../src/controllers/IncidentController'
-import Incident from '../../src/models/Incident'
-import * as TestDatabase from '../utils/TestDatabase'
+import { Query, Types } from 'mongoose';
+import IncidentController from '../../src/controllers/IncidentController';
+import Incident, { IIncident } from '../../src/models/Incident';
+import * as TestDatabase from '../utils/TestDatabase';
 
 describe('Incident Controller', () => {
   beforeAll(TestDatabase.connect)
@@ -168,9 +168,17 @@ describe('Incident Controller', () => {
   })
 
   it('should return database error if get all incidents fails', async () => {
-    jest.spyOn(Incident, 'find').mockRejectedValue(new Error('Database error'))
+    // Create a partial query object implementing exec()
+    const fakeQuery: Partial<Query<IIncident[], IIncident>> = {
+      exec: () => Promise.reject(new Error('Mocked MongoDB error')),
+    };
+
+    // Mock Incident.find to return the fake query
+    jest.spyOn(Incident, 'find').mockReturnValue(
+      fakeQuery as Query<IIncident[], IIncident>
+    );
     await expect(IncidentController.getAllIncidents()).rejects.toThrow(
-      'Database error',
+      'Mocked MongoDB error',
     )
   })
 })
