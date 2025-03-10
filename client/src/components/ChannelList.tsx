@@ -24,18 +24,6 @@ export interface IChannelProps {
   selectedChannelId?: string | null
 }
 
-const ChannelStyle: SxProps = {
-  backgroundColor: '#ADD8E6',
-  boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
-  p: 2,
-  borderRadius: 1,
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  width: '100%',
-  overflow: 'hidden'
-};
-
 // Channel component renders a single channel with an optional setting button
 // @param channel - The channel object to render
 // @param onClick - Optional click handler for when a user is clicked
@@ -56,7 +44,16 @@ export const Channel: FunctionComponent<IChannelProps> = ({
   const isSelected = selectedChannelId === _id;
 
   const ChannelContent = (
-    <Box sx={{ChannelStyle, backgroundColor: isSelected ? 'gray' : '#ADD8E6'}} onClick={handleClick}>
+    <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
+        boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
+        padding: '12px',
+        borderRadius: '12px',
+        overflow: 'hidden', 
+        backgroundColor: isSelected ? 'gray' : '#1976d2',
+        color: 'white'
+      }} onClick={handleClick}>
       <ListItemText>{name}</ListItemText>
       {isSettingButton &&
         <IconButton edge="end" size="large">
@@ -128,11 +125,11 @@ const ChannelList: FunctionComponent<IChannelListProps> = ({
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%'}}>
       {/* Group Channels */}
       {groupChannel.length > 0 && (
-        <Box sx={{ marginBottom: '2rem' }}>
-          <Typography variant="h6">Groups</Typography>
+        <Box>
+          <Typography variant="h6" fontWeight='bold'>Groups</Typography>
           <List sx={{ width: '100%' }}>
             {groupChannel.map((channel, index) => (
               <Fragment key={channel._id}>
@@ -147,7 +144,7 @@ const ChannelList: FunctionComponent<IChannelListProps> = ({
       {/* Contact Channels */}
       {contactChannel.length > 0 && (
         <Box>
-          <Typography variant="h6">Contacts</Typography>
+          <Typography variant="h6" fontWeight='bold'>Contacts</Typography>
           <List sx={{ width: '100%' }}>
             {contactChannel.map((channel, index) => (
               <Fragment key={channel._id}>
