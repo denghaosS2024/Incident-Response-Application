@@ -44,6 +44,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markerRef = useRef<mapboxgl.Marker | null>(null)
+  const socketRef = useRef(SocketClient)
 
   // Refs for add pin, roadblock, fire hydrant, and air quality
   const pinRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
@@ -1321,17 +1322,21 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
   }
 
-  const createPopup = (wildfireArea: WildfireArea) => {
+  const updatePopup = (wildfireArea: WildfireArea) => {
     const areaId = wildfireArea.areaId
     const coordinates = wildfireArea.coordinates
     const areaName = wildfireArea.name
 
     if (popupRef.current.has(areaId)) {
-      const nameDisplay = document.getElementById(`area-name-display-${areaId}`)
-      if (nameDisplay) {
-        nameDisplay.innerText = areaName || ''
-      }
+      deletePopup(wildfireArea.areaId)
     }
+    createPopup(wildfireArea)
+  }
+
+  const createPopup = (wildfireArea: WildfireArea) => {
+    const areaId = wildfireArea.areaId
+    const coordinates = wildfireArea.coordinates
+    const areaName = wildfireArea.name
 
     const popupContent = document.createElement('div')
     popupContent.innerHTML = `
@@ -1463,6 +1468,16 @@ const Mapbox: React.FC<MapboxProps> = ({
     mapRef.current.on('draw.delete', deleteArea)
     mapRef.current.on('draw.update', updateArea)
     displayAllArea()
+
+    const socket = socketRef.current
+    socket.on('map-area-update', (wildfireArea) => {
+      console.log('socket 1: ', wildfireArea)
+      drawArea(wildfireArea)
+    })
+    socket.on('map-area-delete', (areaId) => {
+      console.log('socket 2: ', areaId)
+      removeAreaById(areaId)
+    })
   }
 
   const removeDrawControls = () => {
@@ -1475,6 +1490,9 @@ const Mapbox: React.FC<MapboxProps> = ({
     mapRef.current.off('draw.update', updateArea)
     // remove all names
     deleteAllPopups()
+    const socket = socketRef.current
+    socket.off('map-area-update')
+    socket.off('map-area-delete')
   }
 
   const displayAllArea = () => {
@@ -1511,7 +1529,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       })
     }
 
-    createPopup(wildfireArea)
+    updatePopup(wildfireArea)
   }
 
   const removeArea = () => {
@@ -1654,16 +1672,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   }
 
   useEffect(() => {
-    const socket = SocketClient
+    const socket = socketRef.current
     socket.connect()
-    socket.on('map-area-update', (wildfireArea) => {
-      console.log('socket 1: ', wildfireArea)
-      drawArea(wildfireArea)
-    })
-    socket.on('map-area-delete', (areaId) => {
-      console.log('socket 2: ', areaId)
-      removeAreaById(areaId)
-    })
     // Add air quality update listener
     socket.on('airQualityUpdate', (data) => {
       updateAirQualityMarker(data.locationId, data.air_quality, data.timestamp)
