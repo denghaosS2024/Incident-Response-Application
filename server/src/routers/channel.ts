@@ -216,16 +216,17 @@ export default Router()
     }
   })
 
+
   /**
 * @swagger
-* /api/channels/groups:
+* /api/channels:
 *   post:
 *     summary: Create group
 *     description: Create a new group or update an existing group
-*     tags: [Groups]
+*     tags: [Channels]
 *     responses:
 *       200:
-*         description: Group created or updated successfully
+*         description: Channel created
 *         content:
 *           application/json:
 *             schema:
@@ -237,8 +238,8 @@ export default Router()
 */
 
   /**
-   * Create a new channel & update existing channel
-   * @route POST /api/channels/groups
+   * Create a new channel
+   * @route POST /api/channels
    * @param {Object} request.body
    * @param {string} [request.body.name] - Name for the channel
    * @param {string[]} request.body.users - Array of user IDs to be added to the channel
@@ -248,23 +249,77 @@ export default Router()
    * @returns {Object} The created or existing channel object
    * @throws {400} If trying to create a channel with the public channel name
    */
-  .post('/groups', async (request, response) => {
-    const { _id, name, users, description, owner, closed } = request.body as {
-      _id?: string
+  .post('/', async (request, response) => {
+    const { name, users, description, owner, closed } = request.body as {
       name: string
       users: string[]
       description?: string
       owner?: string
       closed?: boolean
     }
-
     try {
-      let channel;
-      console.log(_id)
+      const channel = await ChannelController.create({
+        name,
+        userIds: users.map((userId) => new Types.ObjectId(userId)),
+        description: description,
+        ownerId: owner ? new Types.ObjectId(owner) : undefined,
+        closed: closed,
+      })
+      response.send(channel);
+    } catch (e) {
+      const error = e as Error
+      response.status(400).send({ message: error.message })
+    }
+  })
 
-      if (_id) {
-        // Update existing channel
-        channel = await ChannelController.updateChannel({
+    /**
+  * @swagger
+  * /api/channels:
+  *   put:
+  *     summary: Update group
+  *     description: Update an existing group
+  *     tags: [Groups]
+  *     responses:
+  *       200:
+  *         description: Group updated successfully
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: array
+  *               items:
+  *                 $ref: '#/components/schemas/IChannel'
+  *       500:
+  *         description: Server error
+  */
+    /**
+     * Update existing channel
+     * @route PUT /api/channels
+     * @param {Object} request.body
+     * @param {string} [request.body.name] - Name for the channel
+     * @param {string[]} request.body.users - Array of user IDs to be added to the channel
+     * @param {string} [request.body.description] - Optional description for the channel
+     * @param {string} [request.body.owner] - Optional owner ID of the channel
+     * @param {boolean} [request.body.closed] - Flag indicating if the channel is closed
+     * @returns {Object} The created or existing channel object
+     * @throws {400} If trying to create a channel with the public channel name
+     */
+    .put('/', async (request, response) => {
+      const { _id, name, users, description, owner, closed } = request.body as {
+        _id?: string
+        name: string
+        users: string[]
+        description?: string
+        owner?: string
+        closed?: boolean
+      }
+
+      if (!_id) {
+        response.status(400).send({ message: 'Channel id is required' });
+        return;
+      }
+
+      try {
+        let channel = await ChannelController.updateChannel({
           _id: new Types.ObjectId(_id),
           name,
           userIds: users.map((userId) => new Types.ObjectId(userId)),
@@ -272,23 +327,13 @@ export default Router()
           ownerId: owner ? new Types.ObjectId(owner) : undefined,
           closed,
         });
-      } else {
-        // Create new channel
-        channel = await ChannelController.create({
-          name,
-          userIds: users.map((userId) => new Types.ObjectId(userId)),
-          description,
-          ownerId: owner ? new Types.ObjectId(owner) : undefined,
-          closed,
-        });
+        response.status(200).send(channel);
+      } catch (e) {
+        const error = e as Error;
+        response.status(400).send({ message: error.message });
       }
+    })
 
-      response.send(channel);
-    } catch (e) {
-      const error = e as Error;
-      response.status(400).send({ message: error.message });
-    }
-  })
   /**
    * List channels
    * @route GET /api/channels
@@ -513,14 +558,58 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
-  /**
-   * Make a phone call in a channel
-   * @route POST /api/channels/:id/phone-call
-   * @param {string} request.params.id - The ID of the channel
-   * @returns {string, string} The message indicating the call is being made and phone number to call
-   * @throws {404} If the channel is not found
-   */
 
+  /**
+   * @swagger
+   * /api/channels/{id}/phone-call:
+   *   post:
+   *     summary: Make a phone call in a channel.
+   *     tags: [Channels]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: header
+   *         name: x-application-uid
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the user making the phone call.
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the channel.
+   *     responses:
+   *       200:
+   *         description: The phone number to call.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 phoneNumber:
+   *                   type: string
+   *                   description: The phone number to call.
+   *       404:
+   *         description: Sender or channel not found.
+   */
+.post('/:id/phone-call', async (request, response) => {    
+  const senderId = new Types.ObjectId(      
+    request.headers['x-application-uid'] as string,    
+  )    
+  const channelId = new Types.ObjectId(request.params.id)    
+  try {      
+    const result = await ChannelController.makePhoneCall(        
+      channelId,        
+      senderId,      
+    )      
+    response.send(result)    
+  } catch (e) {      
+    const error = e as Error      
+    response.status(404).send({ message: error.message })    
+  }
+})
   /**
    * @swagger
    * /api/channels/{id}/video-upload-url:
@@ -571,6 +660,81 @@ export default Router()
     }
   })
 
+  .get('/:id/image-upload-url', async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id)
+
+    try {
+      const uploadUrl = await ChannelController.getImageUploadUrl(channelId)
+      response.send(uploadUrl)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).send({ message: error.message })
+    }
+  })
+
+  /**
+ * @swagger
+ * /api/channels/{id}/file-upload-url:
+ *   post:
+ *     summary: Post a signed URL for uploading a file to a channel.
+ *     tags: [Channels]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: x-application-uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user uploading the file.
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the channel.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fileName
+ *               - fileType
+ *               - fileExtension
+ *             properties:
+ *               fileName:
+ *                 type: string
+ *                 description: The name of the file being uploaded.
+ *                 example: "document"
+ *               fileType:
+ *                 type: string
+ *                 description: The MIME type of the file.
+ *                 example: "application/pdf"
+ *               fileExtension:
+ *                 type: string
+ *                 description: The file extension.
+ *                 example: ".pdf"
+ *     responses:
+ *       200:
+ *         description: The signed URL for uploading the file.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 uploadUrl:
+ *                   type: string
+ *                   description: The signed URL for uploading the file.
+ *                 fileUrl:
+ *                   type: string
+ *                   description: The URL to access the uploaded file.
+ *       400:
+ *         description: Bad request if parameters are missing.
+ *       404:
+ *         description: Sender or channel not found.
+ */
   .post('/:id/file-upload-url', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const fileName = request.body.fileName
@@ -589,6 +753,7 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+  
   .post('/:id/voice-upload-url', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const fileName = request.body.fileName
@@ -603,6 +768,47 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+  /**
+   * @swagger
+   * /api/channels/{id}/messages/acknowledge:
+   *   patch:
+   *     summary: Acknowledge a message in a channel.
+   *     tags: [Channels]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the channel.
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - senderId
+   *               - messageId
+   *             properties:
+   *               senderId:
+   *                 type: string
+   *                 description: The ID of the user acknowledging the message.
+   *               messageId:
+   *                 type: string
+   *                 description: The ID of the message to acknowledge.
+   *     responses:
+   *       200:
+   *         description: The updated message object.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Message'
+   *       404:
+   *         description: Sender, message, or channel not found.
+   */
   .patch('/:id/messages/acknowledge', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const { senderId, messageId } = request.body
@@ -619,6 +825,7 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+
 
 
 

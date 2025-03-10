@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { IconButton, Menu, MenuItem, Dialog } from '@mui/material'
-import { AttachFile } from '@mui/icons-material'
+import { AttachFile, CameraAlt } from '@mui/icons-material'
 import MessageVideoRecorder from './MessageVideoRecorder'
 import { useDispatch } from 'react-redux'
 import { addMessage } from '../features/messageSlice'
 import request from '../utils/request'
 import FileUploadForm from './FileUploadForm'
+import CameraCapture from './CameraCapture';
 
 interface MessageAttachmentOptionsProps {
   channelId: string,
@@ -20,6 +21,7 @@ const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
   const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false)
   const [videoRecorderOpen, setVideoRecorderOpen] = useState<boolean>(false)
   const [openFileUpload, setOpenFileUpload] = useState(false);
+  const [openCamera, setOpenCamera] = useState(false);
   const handleOpenFileUpload = () => setOpenFileUpload(true);
   const handleCloseFileUpload = () => setOpenFileUpload(false);
   const dispatch = useDispatch()
@@ -57,6 +59,14 @@ const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
     setVideoRecorderOpen(false)
   }
 
+  const handelOpenCamera = () => {
+    setOpenCamera(true)
+  }
+
+  const handelcCloseCamera = () => {
+    setOpenCamera(false)
+  }
+
   return (
     <>
       <IconButton color="primary" onClick={handleMenuOpen}>
@@ -68,6 +78,10 @@ const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
         onClose={handleMenuClose}
       >
         {/* Existing attachment options can go here */}
+        <MenuItem onClick={handelOpenCamera}>
+          Take Photo
+        </MenuItem>
+
         <MenuItem onClick={openVideoRecorder}>
           Record Video
         </MenuItem>
@@ -76,6 +90,10 @@ const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
           File Upload
         </MenuItem>
       </Menu>
+      
+      <Dialog open={openCamera} onClose={handelcCloseCamera} maxWidth="sm" fullWidth>
+        <CameraCapture channelId={channelId} currentUserId={currentUserId} />
+      </Dialog>
       {/* Modal for video recording */}
       <Dialog open={videoRecorderOpen} onClose={closeVideoRecorder} maxWidth="sm" fullWidth>
         <MessageVideoRecorder channelId={channelId} currentUserId={currentUserId} />

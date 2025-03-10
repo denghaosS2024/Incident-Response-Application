@@ -16,13 +16,10 @@ interface ContainerProps {
 
 const Container = styled.div<ContainerProps>`
     border-radius: 10px;
-    box-shadow: 5px 5px 5px 2px grey;
     padding: 1px;
     color: #000;
-    margin-bottom: 8px;
+    margin: 5px 0;
     height: 10%;
-    margin-left: 10px;
-    margin-right: 10px;
     background-color: ${(props) => bgcolorChange(props)};
     cursor: pointer;
     display: flex;
@@ -40,7 +37,7 @@ const Icons = styled.div`
 
 function bgcolorChange(props: ContainerProps): string {
     return props.$isDragging
-        ? "lightgreen"
+        ? "#0288d1"
         : props.$isDraggable
             ? props.$isBacklog
                 ? "#F2D7D5"

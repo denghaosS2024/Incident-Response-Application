@@ -1,4 +1,5 @@
 import { Socket, io } from 'socket.io-client'
+import Globals from './Globals'
 import { ROLES, isValidRole } from './Roles'
 /**
  * SocketClient Class
@@ -20,14 +21,14 @@ class SocketClient {
       console.error('Invalid role:', roleFromStorage)
       return
     }
-  
+
     const role = roleFromStorage as ROLES
-    
+
     if (this.socket || !uid || !token || !Object.values(ROLES).includes(role)) {
       return
     }
 
-    const url = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'
+    const url = Globals.backendUrl()
     this.socket = io(url)
 
     // Authenticate the socket connection
@@ -55,14 +56,15 @@ class SocketClient {
 
   off(eventName: string) {
     if (this.socket) {
-      this.socket.off(eventName);
+      this.socket.off(eventName)
     }
   }
 
+  // TODO: Whoever wrote this "any", please fix it when you figure out what type it should be
   emit(eventName: string, data: any) {
     if (this.socket) {
       // console.log('Emitting:', eventName, data);
-      this.socket.emit(eventName, data);
+      this.socket.emit(eventName, data)
     }
   }
 

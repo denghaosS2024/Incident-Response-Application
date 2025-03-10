@@ -44,11 +44,12 @@ const Messages: React.FC = () => {
   return (
     <Box display="flex" height="100vh">
       {/* Channel list */}
-      <Box width="30%" borderRight="1px solid #ccc" overflow="auto">
+      <Box width="30%" borderRight="1px solid #ccc" overflow="auto" sx={{ padding: '0.75rem' }}>
         <ChannelList
           channels={channels}
           loading={loading}
           onSelectChannel={handleSelectChannel}
+          selectedChannelId={selectedChannel}
         />
       </Box>
 

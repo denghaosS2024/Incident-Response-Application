@@ -1,5 +1,5 @@
 import _ from 'lodash'
-
+import Globals from './Globals'
 /**
  * Request Utility
  *
@@ -47,7 +47,7 @@ const request = async <T = any>(
   }
 
   // Send the request and handle the response
-  return fetch(`${process.env.REACT_APP_BACKEND_URL}${url}`, fetchOptions).then(
+  return fetch(`${Globals.backendUrl()}${url}`, fetchOptions).then(
     async (response) => {
       const body = (await response.json()) as Promise<T>
 

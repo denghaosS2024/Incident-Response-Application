@@ -6,6 +6,7 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import request from '../utils/request';
 import { useDispatch } from 'react-redux'
 import { addMessage } from '../features/messageSlice'
+import FilePreview from "./FilePreview";
 
 interface FileUploadFormProps {
     onClose: () => void;
@@ -34,14 +35,6 @@ const FileUploadForm: React.FC<FileUploadFormProps> = ({onClose,channelId}) => {
             setSelectedFile(event.target.files[0]);
         }
     }
-
-    const formatFileSize = (size: number): string => {
-        return size < 1024
-            ? `${size} B`
-            : size < 1024 * 1024
-            ? `${(size / 1024).toFixed(1)} KB`
-            : `${(size / 1024 / 1024).toFixed(1)} MB`;
-    };
 
     const uploadFile = async () => {
         if(!selectedFile){
@@ -114,15 +107,7 @@ const FileUploadForm: React.FC<FileUploadFormProps> = ({onClose,channelId}) => {
                 </Box>
 
                 {selectedFile && (
-                    <Box display="flex" alignItems="center" p={1} bgcolor="#F5F5F5" borderRadius={1} mt={2} mb={2}>
-                        <InsertDriveFileIcon sx={{ fontSize: 40, color: "#FFA726", mr: 2 }} />
-                        <Box>
-                            <Typography variant="body1">{selectedFile.name}</Typography>
-                            <Typography variant="body2" color="gray">
-                                {formatFileSize(selectedFile.size)}
-                            </Typography>
-                        </Box>
-                    </Box>
+                    <FilePreview filename={selectedFile.name} size={selectedFile.size}/>
                 )}
 
                 <Box display="flex" justifyContent="space-between" mt={2}>
