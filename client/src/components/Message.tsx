@@ -22,7 +22,7 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   const isVideo = message.content.startsWith(videoUrlPrefix)
 
   const imageUrlPrefix =
-    'https://storage.googleapis.com/sem-s25-bucket/images/'
+    'https://storage.googleapis.com/sem-video-bucket/images/'
   const isImage = message.content.startsWith(imageUrlPrefix)
 
   const fileUrlPrefix =
@@ -72,7 +72,7 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
         <img 
           src={message.content} 
           alt="Sent image" 
-          style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', marginTop: '8px' }} 
+          style={{ maxWidth: '30%', height: 'auto', borderRadius: '8px', marginTop: '8px' }} 
         />
       )  : isAudio ? (
         <audio controls style={{ width: '100%', marginTop: '8px' }}>
