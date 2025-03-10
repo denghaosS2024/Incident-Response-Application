@@ -13,6 +13,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CityContainer from "../components/Organization/CityContainer";
+import request from "../utils/request";
 
 // Interfaces for your data, storing _id from the backend
 interface Car {
@@ -49,30 +50,31 @@ const Organization: React.FC = () => {
   const [newTruck, setNewTruck] = useState("");
   const [newCity, setNewCity] = useState("");
 
+  // This is our "force reload" for every CityContainer
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // A helper to (re)fetch all data from the backend, used after changes
+  const fetchAllData = async () => {
+    try {
+      const [carsData, trucksData, citiesData, personnelData] = await Promise.all([
+        request<Car[]>("/api/cars"),
+        request<Truck[]>("/api/trucks"),
+        request<City[]>("/api/cities"),
+        request<Personnel[]>("/api/personnel"),
+      ]);
+
+      setCars(carsData);
+      setTrucks(trucksData);
+      setCities(citiesData);
+      setPersonnel(personnelData);
+    } catch (err) {
+      console.error("Failed to fetch data:", err);
+    }
+  };
+
   // On mount, load all from backend
   useEffect(() => {
-    // Load cars
-    fetch("/api/cars")
-      .then(res => res.json())
-      .then((data: Car[]) => setCars(data))
-      .catch(err => console.error("Failed to fetch cars:", err));
-
-    // Load trucks
-    fetch("/api/trucks")
-      .then(res => res.json())
-      .then((data: Truck[]) => setTrucks(data))
-      .catch(err => console.error("Failed to fetch trucks:", err));
-
-    // Load cities
-    fetch("/api/cities")
-      .then(res => res.json())
-      .then((data: City[]) => setCities(data))
-      .catch(err => console.error("Failed to fetch cities:", err));
-
-    fetch("/api/personnel")
-      .then(res => res.json())
-      .then((data: Personnel[]) => setPersonnel(data))
-      .catch(err => console.error("Failed to fetch personnel:", err));
+    fetchAllData();
   }, []);
 
   // Sort them by name for display
@@ -85,18 +87,13 @@ const Organization: React.FC = () => {
   const addCar = async () => {
     if (!newCar.trim()) return;
     try {
-      const response = await fetch("/api/cars", {
+      // POST new car
+      await request("/api/cars", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newCar.trim() })
+        body: JSON.stringify({ name: newCar.trim() }),
       });
-      if (response.ok) {
-        const createdCar: Car = await response.json();
-        setCars([...cars, createdCar]);
-        setNewCar("");
-      } else {
-        console.error("Failed to create car:", response.statusText);
-      }
+      setNewCar("");
+      await fetchAllData();
     } catch (err) {
       console.error("Error creating car:", err);
     }
@@ -105,12 +102,10 @@ const Organization: React.FC = () => {
   // Remove a car by ID
   const removeCar = async (carId: string) => {
     try {
-      const response = await fetch(`/api/cars/${carId}`, { method: "DELETE" });
-      if (response.ok) {
-        setCars(cars.filter((c) => c._id !== carId));
-      } else {
-        console.error("Failed to delete car:", response.statusText);
-      }
+      await request(`/api/cars/${carId}`, {
+        method: "DELETE",
+      });
+      setCars(cars.filter((c) => c._id !== carId));
     } catch (err) {
       console.error("Error deleting car:", err);
     }
@@ -120,18 +115,13 @@ const Organization: React.FC = () => {
   const addTruck = async () => {
     if (!newTruck.trim()) return;
     try {
-      const response = await fetch("/api/trucks", {
+      // POST new truck
+      await request("/api/trucks", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newTruck.trim() })
+        body: JSON.stringify({ name: newTruck.trim() }),
       });
-      if (response.ok) {
-        const createdTruck: Truck = await response.json();
-        setTrucks([...trucks, createdTruck]);
-        setNewTruck("");
-      } else {
-        console.error("Failed to create truck:", response.statusText);
-      }
+      setNewTruck("");
+      await fetchAllData();
     } catch (err) {
       console.error("Error creating truck:", err);
     }
@@ -140,12 +130,10 @@ const Organization: React.FC = () => {
   // Remove a truck by ID
   const removeTruck = async (truckId: string) => {
     try {
-      const response = await fetch(`/api/trucks/${truckId}`, { method: "DELETE" });
-      if (response.ok) {
-        setTrucks(trucks.filter((t) => t._id !== truckId));
-      } else {
-        console.error("Failed to delete truck:", response.statusText);
-      }
+      await request(`/api/trucks/${truckId}`, {
+        method: "DELETE",
+      });
+      setTrucks(trucks.filter((t) => t._id !== truckId));
     } catch (err) {
       console.error("Error deleting truck:", err);
     }
@@ -155,18 +143,13 @@ const Organization: React.FC = () => {
   const addCity = async () => {
     if (!newCity.trim()) return;
     try {
-      const response = await fetch("/api/cities", {
+      // POST new city
+      await request("/api/cities", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newCity.trim() })
+        body: JSON.stringify({ name: newCity.trim() }),
       });
-      if (response.ok) {
-        const createdCity: City = await response.json();
-        setCities([...cities, createdCity]);
-        setNewCity("");
-      } else {
-        console.error("Failed to create city:", response.statusText);
-      }
+      setNewCity("");
+      await fetchAllData();
     } catch (err) {
       console.error("Error creating city:", err);
     }
@@ -175,14 +158,49 @@ const Organization: React.FC = () => {
   // Remove a city by ID
   const removeCity = async (cityId: string) => {
     try {
-      const response = await fetch(`/api/cities/${cityId}`, { method: "DELETE" });
-      if (response.ok) {
-        setCities(cities.filter((c) => c._id !== cityId));
-      } else {
-        console.error("Failed to delete city:", response.statusText);
-      }
+      await request(`/api/cities/${cityId}`, {
+        method: "DELETE",
+      });
+      setCities(cities.filter((c) => c._id !== cityId));
     } catch (err) {
       console.error("Error deleting city:", err);
+    }
+  };
+
+  // -----------------------
+  // DRAG & DROP LOGIC
+  // -----------------------
+  const handleDragStart = (
+    e: React.DragEvent<HTMLElement>,
+    itemType: "Car" | "Truck" | "Personnel",
+    itemName: string
+  ) => {
+    e.dataTransfer.setData("type", itemType);
+    e.dataTransfer.setData("name", itemName);
+  };
+
+  const handleDropOnCity = async (
+    e: React.DragEvent<HTMLElement>,
+    cityName: string
+  ) => {
+    e.preventDefault();
+    const itemType = e.dataTransfer.getData("type");
+    const itemName = e.dataTransfer.getData("name");
+
+    if (!itemType || !itemName) return;
+
+    try {
+      // PUT assignment
+      await request(`/api/cities/assignments/${cityName}`, {
+        method: "PUT",
+        body: JSON.stringify({ type: itemType, name: itemName }),
+      });
+      // Re-fetch parent data for the left lists
+      await fetchAllData();
+      // Also tell all CityContainers to refresh
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err) {
+      console.error("Error assigning item to city:", err);
     }
   };
 
@@ -202,14 +220,20 @@ const Organization: React.FC = () => {
             <Typography variant="h6">Personnel</Typography>
             <List>
               {sortedPersonnel.map((person) => (
-                <ListItem key={person._id}>
+                <ListItem
+                  key={person._id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, "Personnel", person.name)}
+                >
                   <ListItemText primary={person.name} />
                 </ListItem>
               ))}
             </List>
 
             {/* Cars */}
-            <Typography variant="h6" style={{ marginTop: 16 }}>Cars</Typography>
+            <Typography variant="h6" style={{ marginTop: 16 }}>
+              Cars
+            </Typography>
             <Box display="flex" alignItems="center" mb={1}>
               <TextField
                 size="small"
@@ -217,41 +241,31 @@ const Organization: React.FC = () => {
                 onChange={(e) => setNewCar(e.target.value)}
                 placeholder="New Car"
               />
-              <IconButton onClick={async () => {
-                if (!newCar.trim()) return;
-                const response = await fetch("/api/cars", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ name: newCar.trim() })
-                });
-                if (response.ok) {
-                  const createdCar: Car = await response.json();
-                  setCars([...cars, createdCar]);
-                  setNewCar("");
-                }
-              }}>
+              <IconButton onClick={addCar}>
                 <Add />
               </IconButton>
             </Box>
             <List>
               {sortedCars.map((car) => (
-                <ListItem key={car._id} secondaryAction={
-                  <IconButton edge="end" onClick={async () => {
-                    const response = await fetch(`/api/cars/${car._id}`, { method: "DELETE" });
-                    if (response.ok) {
-                      setCars(cars.filter((c) => c._id !== car._id));
-                    }
-                  }}>
-                    <Delete />
-                  </IconButton>
-                }>
+                <ListItem
+                  key={car._id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, "Car", car.name)}
+                  secondaryAction={
+                    <IconButton edge="end" onClick={() => removeCar(car._id)}>
+                      <Delete />
+                    </IconButton>
+                  }
+                >
                   <ListItemText primary={car.name} />
                 </ListItem>
               ))}
             </List>
 
             {/* Trucks */}
-            <Typography variant="h6" style={{ marginTop: 16 }}>Trucks</Typography>
+            <Typography variant="h6" style={{ marginTop: 16 }}>
+              Trucks
+            </Typography>
             <Box display="flex" alignItems="center" mb={1}>
               <TextField
                 size="small"
@@ -259,34 +273,22 @@ const Organization: React.FC = () => {
                 onChange={(e) => setNewTruck(e.target.value)}
                 placeholder="New Truck"
               />
-              <IconButton onClick={async () => {
-                if (!newTruck.trim()) return;
-                const response = await fetch("/api/trucks", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ name: newTruck.trim() })
-                });
-                if (response.ok) {
-                  const createdTruck: Truck = await response.json();
-                  setTrucks([...trucks, createdTruck]);
-                  setNewTruck("");
-                }
-              }}>
+              <IconButton onClick={addTruck}>
                 <Add />
               </IconButton>
             </Box>
             <List>
               {sortedTrucks.map((truck) => (
-                <ListItem key={truck._id} secondaryAction={
-                  <IconButton edge="end" onClick={async () => {
-                    const response = await fetch(`/api/trucks/${truck._id}`, { method: "DELETE" });
-                    if (response.ok) {
-                      setTrucks(trucks.filter((t) => t._id !== truck._id));
-                    }
-                  }}>
-                    <Delete />
-                  </IconButton>
-                }>
+                <ListItem
+                  key={truck._id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, "Truck", truck.name)}
+                  secondaryAction={
+                    <IconButton edge="end" onClick={() => removeTruck(truck._id)}>
+                      <Delete />
+                    </IconButton>
+                  }
+                >
                   <ListItemText primary={truck.name} />
                 </ListItem>
               ))}
@@ -305,19 +307,7 @@ const Organization: React.FC = () => {
                 onChange={(e) => setNewCity(e.target.value)}
                 placeholder="New City"
               />
-              <IconButton onClick={async () => {
-                if (!newCity.trim()) return;
-                const response = await fetch("/api/cities", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ name: newCity.trim() })
-                });
-                if (response.ok) {
-                  const createdCity: City = await response.json();
-                  setCities([...cities, createdCity]);
-                  setNewCity("");
-                }
-              }}>
+              <IconButton onClick={addCity}>
                 <Add />
               </IconButton>
             </Box>
@@ -325,40 +315,34 @@ const Organization: React.FC = () => {
               {sortedCities.map((city) => (
                 <ListItem
                   key={city._id}
-                  // Make ListItem display as a column so we can stack elements
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleDropOnCity(e, city.name)}
                   sx={{
                     display: "flex",
                     flexDirection: "column",
-                    alignItems: "flex-start"
+                    alignItems: "flex-start",
                   }}
                 >
-                  {/* Inline row: city name + delete icon */}
                   <Box
                     sx={{
                       display: "flex",
                       width: "100%",
                       justifyContent: "space-between",
-                      alignItems: "center"
+                      alignItems: "center",
                     }}
                   >
                     <ListItemText primary={city.name} />
                     <IconButton
                       edge="end"
-                      onClick={async () => {
-                        const response = await fetch(`/api/cities/${city._id}`, {
-                          method: "DELETE",
-                        });
-                        if (response.ok) {
-                          setCities(cities.filter((c) => c._id !== city._id));
-                        }
-                      }}
+                      onClick={() => removeCity(city._id)}
                     >
                       <Delete />
                     </IconButton>
                   </Box>
 
+                  {/* CityContainer for vehicles & personnel */}
                   <Box>
-                    <CityContainer cityName={city.name} />
+                    <CityContainer cityName={city.name} refreshTrigger={refreshTrigger} />
                   </Box>
                 </ListItem>
               ))}
