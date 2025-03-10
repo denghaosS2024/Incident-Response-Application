@@ -203,7 +203,14 @@ function IncidentsPage() {
                     {incident.incidentId}
                   </Typography>
                   <Typography variant="body2" sx={{ flex: 1 }}>
-                    {incident.openingDate}
+                    {new Date(incident.openingDate).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false})}
                   </Typography>
                 </Box>
                 <Box
@@ -217,7 +224,16 @@ function IncidentsPage() {
                   <Typography variant="body2" sx={{ marginRight: 1 }}>
                     {incident.type}
                   </Typography>
-                  <Typography variant="body2">{incident.priority}</Typography>
+                  <Typography variant="body2">
+                  {(() => {
+                    const priorityMap: Record<string, string> = {
+                      One: "1",
+                      Two: "2",
+                      Three: "3",
+                    };
+                    return priorityMap[incident.priority] || incident.priority; // Default to original value if not found
+                  })()}
+                  </Typography>
                 </Box>
                 <IconButton
                   edge="end"
