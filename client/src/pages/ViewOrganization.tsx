@@ -156,7 +156,7 @@ const ViewOrganization: React.FC = () => {
         `Starting fetchCityAssignments for ${city.name} (ID: ${city._id})`,
       )
       const encodedCityName = encodeURIComponent(city.name)
-      const requestUrl = `http://localhost:3000/api/cities/assignments/${encodedCityName}`
+      const requestUrl = `/api/cities/assignments/${encodedCityName}`
       console.log(`Fetching from URL: ${requestUrl}`)
 
       const response = await fetch(requestUrl)

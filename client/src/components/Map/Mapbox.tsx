@@ -860,9 +860,9 @@ const Mapbox: React.FC<MapboxProps> = ({
         if (type !== 'airQuality') {
           // Replace confirm button with delete and edit buttons
           popupContent.innerHTML = `
-            <p id="popup-address-${id}">${document.getElementById(`popup-address-${tempId}`)!.innerText}</p>
-            <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
-            <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+          <p id="popup-address-${id}">${document.getElementById(`popup-address-${tempId}`)!.innerText}</p>
+          <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+          <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
             <button id="navigate-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
           `
 
