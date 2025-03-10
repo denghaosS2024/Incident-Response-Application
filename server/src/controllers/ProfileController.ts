@@ -1,6 +1,5 @@
-import Profile from '../models/Profile';
-import { IProfile } from '../models/Profile';
 import { Types } from 'mongoose';
+import Profile, { IProfile } from '../models/Profile';
 
 class ProfileController {
     /**

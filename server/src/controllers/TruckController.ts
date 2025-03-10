@@ -3,7 +3,17 @@ import Truck, { ITruck } from "../models/Truck";
 
 class TruckController {
   async getAllTrucks() {
-    return await Truck.find({assignedCity: null }).sort({ name: 1 }).exec();
+    try {
+      const cars = await Truck.find({ assignedCity: null })
+        .sort({ name: 1 })
+        .select('-__v') // Exclude the __v field
+        .exec();
+  
+      return cars;
+    } catch (error) {
+      console.error('Error fetching cars:', error);
+      throw error;
+    }
   }
 
   async createTruck(name: string) {

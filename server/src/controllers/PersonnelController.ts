@@ -6,17 +6,21 @@ class PersonnelController {
   /**
    * Get all available personnel (Police and Firefighters) who are not assigned to any city.
    */
-  async getAllAvailablePersonnel(): Promise<IUser[]> {  
+  async getAllAvailablePersonnel(){  
     try {
       const unassignedUsers = await User.find({
         role: { $in: [ROLES.POLICE, ROLES.FIRE] },
         assignedCity: null,
       }).sort({ username: 1 }).exec();
   
-      return unassignedUsers
+      return unassignedUsers.map(({ _id, username, assignedCity }) => ({
+        _id,
+        name: username,
+        assignedCity,
+      }));
     } catch (error) {
-      console.error('Error fetching unassigned users:', error)
-      throw error
+      console.error('Error fetching unassigned users:', error);
+      throw error;
     }
   }
 

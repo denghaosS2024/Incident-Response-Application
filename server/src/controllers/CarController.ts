@@ -3,9 +3,18 @@ import City from "../models/City";
 
 class CarController {
   async getAllCars() {
-    return Car.find({ assignedCity: null }).sort({ name: 1 }).exec();
+    try {
+      const cars = await Car.find({ assignedCity: null })
+        .sort({ name: 1 })
+        .select('-__v')
+        .exec();
+  
+      return cars;
+    } catch (error) {
+      console.error('Error fetching cars:', error);
+      throw error;
+    }
   }
-
   async createCar(name: string) {
     if (!name.trim()) {
       throw new Error("Car name is required");
