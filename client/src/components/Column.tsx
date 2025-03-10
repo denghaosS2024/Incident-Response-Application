@@ -2,18 +2,19 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Card from "./Card";
 import "../styles/scroll.css";
-import { Droppable, DroppableStateSnapshot, DroppableProvided } from "react-beautiful-dnd";
+import { Droppable } from "react-beautiful-dnd";
 import IUser from '@/models/User'
 
 
 interface ColumnProps {
     title: string;
     subtitle?: string;
-    tasks: IUser[];
+    tasks: IUser[];  // <-- Accept IUser instead of Task
     id: string;
     groups?: any[];
     onGroupClick?: (groupId: string) => void;
     selectedGroupId?: string | null;
+
 }
 
 
@@ -34,20 +35,12 @@ const Title = styled.h3`
     text-align: center;
 `;
 
-
-const TaskList = styled.div`
+const TaskList = styled.div<{ isDraggingOver: boolean }>`
     padding: 3px;
     transition: background-color 0.2s ease;
+    background-color: ${({ isDraggingOver }) => (isDraggingOver ? "#d3d3d3" : "#f4f5f7")};
     flex-grow: 1;
     min-height: 100px;
-    
-    &.dragging-over {
-        background-color: #d3d3d3;
-    }
-    
-    &:not(.dragging-over) {
-        background-color: #f4f5f7;
-    }
 `;
 
 const PermanentCard = styled.div`
@@ -96,11 +89,11 @@ const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClic
             </Title>
             {subtitle && <p style={{ textAlign: "center", fontWeight: "bold" }}>{subtitle}</p>}
             <Droppable droppableId={id}>
-                {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
+                {(provided, snapshot) => (
                     <TaskList
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={snapshot.isDraggingOver ? "dragging-over" : ""}
+                        isDraggingOver={snapshot.isDraggingOver}
                     >
                         {/* Add the permanent cards at the top */}
                         {id === "1" && (

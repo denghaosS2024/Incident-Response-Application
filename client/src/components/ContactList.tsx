@@ -1,18 +1,11 @@
 import {
   NavigateNext as Arrow,
   Visibility,
-  VisibilityOff,
-  ReportProblem,
-  LocalTaxi,
-  LocalFireDepartment,
-  HealthAndSafety
+  VisibilityOff
 } from '@mui/icons-material'
 import {
-  Divider,
   IconButton,
   List,
-  ListItem,
-  ListItemSecondaryAction,
   ListItemText,
   Typography,
   Box,

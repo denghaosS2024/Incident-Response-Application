@@ -138,7 +138,7 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
         </Box>
         <Box width="100%" maxWidth="500px" my={2}>
           <Box display="flex " flexWrap="wrap" justifyContent="space-between" >
-            {['Citizen', 'Dispatch', 'Police', 'Fire', 'Nurse', 'Admin'].map((r) => (
+            {['Citizen', 'Dispatch', 'Police', 'Fire', 'Nurse', 'Administrator'].map((r) => (
               <Button
                 key={r}
                 variant={role === r ? 'contained' : 'outlined'}

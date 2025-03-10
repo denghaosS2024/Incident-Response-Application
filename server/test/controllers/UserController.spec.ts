@@ -129,5 +129,26 @@ describe('User controller', () => {
     })
   })
 
+  it('sorts users: online first, then alphabetical order', async () => {
+    await UserController.register('Zack', 'pass1', ROLES.CITIZEN)
+    await UserController.register('Alice', 'pass2', ROLES.POLICE)
+    const userC = await UserController.register('Bob', 'pass3', ROLES.FIRE)
+    const userD = await UserController.register('Charlie', 'pass4', ROLES.DISPATCH)
+
+    const socket = mock<SocketIO.Socket>()
+    UserConnections.addUserConnection(userC.id, socket, ROLES.FIRE)
+    UserConnections.addUserConnection(userD.id, socket, ROLES.DISPATCH)
+
+    const users = await UserController.listUsers()
+
+    const expectedSortedUsernames = ['Bob', 'Charlie', 'Alice', 'new-citizen', 'System', 'test-username-1', 'Zack']
+
+    expect(users.map(u => u.username)).toEqual(expectedSortedUsernames)
+
+    UserConnections.removeUserConnection(userC.id)
+    UserConnections.removeUserConnection(userD.id)
+  })
+
+
   afterAll(TestDatabase.close)
 })

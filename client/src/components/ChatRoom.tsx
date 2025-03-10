@@ -70,7 +70,9 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ channelId }) => {
   // Reuse ChatBox component
   return (
     <Box sx={{height: '100%'}}>
-        <Typography variant='h6'>{channelName}</Typography>
+    <Box sx={{borderBottom: '1px solid #ccc'}}>
+      <Typography variant='h6' fontWeight='bold'>{channelName}</Typography>
+    </Box>
     <ChatBox
       channelId={channelId}
       messages={messages || []}

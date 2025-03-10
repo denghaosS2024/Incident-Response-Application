@@ -88,15 +88,15 @@ UserSchema.statics.ensureSystemUser = async function () {
     const existingUser = await this.findOne({ username: username })
 
     if (!existingUser) {
-      console.log('System user does not exist. Creating now.')
-
-      const hashedPassword = await bcrypt.hash(password, SALT_WORK_FACTOR)
-      await this.create({
+      console.log('System user does not exist. Creating now.')      
+      // Create user using new model instance to trigger pre-save hook
+      const systemUser = new this({
         username: username,
-        password: hashedPassword,
+        password: password,  // Plain password - will be hashed by pre-save hook
         role: role
       })
-      console.log('System user created successfully.')
+      await systemUser.save()
+      console.log('System user created successfully.');
     } else {
       console.log('System user already exists.')
     }
