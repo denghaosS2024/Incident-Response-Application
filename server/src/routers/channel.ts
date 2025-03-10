@@ -272,79 +272,68 @@ export default Router()
     }
   })
 
-  //   /**
-  // * @swagger
-  // * /api/channels/groups:
-  // *   post:
-  // *     summary: Create group
-  // *     description: Create a new group or update an existing group
-  // *     tags: [Groups]
-  // *     responses:
-  // *       200:
-  // *         description: Group created or updated successfully
-  // *         content:
-  // *           application/json:
-  // *             schema:
-  // *               type: array
-  // *               items:
-  // *                 $ref: '#/components/schemas/IChannel'
-  // *       500:
-  // *         description: Server error
-  // */
+    /**
+  * @swagger
+  * /api/channels:
+  *   put:
+  *     summary: Update group
+  *     description: Update an existing group
+  *     tags: [Groups]
+  *     responses:
+  *       200:
+  *         description: Group updated successfully
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: array
+  *               items:
+  *                 $ref: '#/components/schemas/IChannel'
+  *       500:
+  *         description: Server error
+  */
+    /**
+     * Update existing channel
+     * @route PUT /api/channels
+     * @param {Object} request.body
+     * @param {string} [request.body.name] - Name for the channel
+     * @param {string[]} request.body.users - Array of user IDs to be added to the channel
+     * @param {string} [request.body.description] - Optional description for the channel
+     * @param {string} [request.body.owner] - Optional owner ID of the channel
+     * @param {boolean} [request.body.closed] - Flag indicating if the channel is closed
+     * @returns {Object} The created or existing channel object
+     * @throws {400} If trying to create a channel with the public channel name
+     */
+    .put('/', async (request, response) => {
+      const { _id, name, users, description, owner, closed } = request.body as {
+        _id?: string
+        name: string
+        users: string[]
+        description?: string
+        owner?: string
+        closed?: boolean
+      }
 
-  //   /**
-  //    * Create a new channel & update existing channel
-  //    * @route POST /api/channels/groups
-  //    * @param {Object} request.body
-  //    * @param {string} [request.body.name] - Name for the channel
-  //    * @param {string[]} request.body.users - Array of user IDs to be added to the channel
-  //    * @param {string} [request.body.description] - Optional description for the channel
-  //    * @param {string} [request.body.owner] - Optional owner ID of the channel
-  //    * @param {boolean} [request.body.closed] - Flag indicating if the channel is closed
-  //    * @returns {Object} The created or existing channel object
-  //    * @throws {400} If trying to create a channel with the public channel name
-  //    */
-  //   .post('/groups', async (request, response) => {
-  //     const { _id, name, users, description, owner, closed } = request.body as {
-  //       _id?: string
-  //       name: string
-  //       users: string[]
-  //       description?: string
-  //       owner?: string
-  //       closed?: boolean
-  //     }
+      if (!_id) {
+        response.status(400).send({ message: 'Channel id is required' });
+        return;
+      }
 
-  //     try {
-  //       let channel;
-  //       console.log(_id)
+      try {
+        let channel = await ChannelController.updateChannel({
+          _id: new Types.ObjectId(_id),
+          name,
+          userIds: users.map((userId) => new Types.ObjectId(userId)),
+          description,
+          ownerId: owner ? new Types.ObjectId(owner) : undefined,
+          closed,
+        });
+        response.status(200).send(channel);
+      } catch (e) {
+        const error = e as Error;
+        response.status(400).send({ message: error.message });
+      }
+    })
 
-  //       if (_id) {
-  //         // Update existing channel
-  //         channel = await ChannelController.updateChannelMember({
-  //           _id: new Types.ObjectId(_id),
-  //           name,
-  //           userIds: users.map((userId) => new Types.ObjectId(userId)),
-  //           description,
-  //           ownerId: owner ? new Types.ObjectId(owner) : undefined,
-  //           closed,
-  //         });
-  //       } else {
-  //         // Create new channel
-  //         channel = await ChannelController.create({
-  //           name,
-  //           userIds: users.map((userId) => new Types.ObjectId(userId)),
-  //           description,
-  //           ownerId: owner ? new Types.ObjectId(owner) : undefined,
-  //           closed,
-  //         });
-  //       }
-
-  //       response.send(channel);
-  //     } catch (e) {
-  //       const error = e as Error;
-  //       response.status(400).send({ message: error.message });
-  //     }
-  //   })
   /**
    * List channels
    * @route GET /api/channels
