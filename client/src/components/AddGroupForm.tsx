@@ -15,8 +15,7 @@ import {
   Typography,
 } from '@mui/material'
 import ConfirmationDialog from '../components/common/ConfirmationDialog'
-import Board from "./Board";
-import IUser from '@/models/User'
+import Board from "./Board"
 import IChannel from '../models/Channel'
 
 
@@ -45,8 +44,6 @@ interface IFormData {
 
 export interface IAddGroupFormProps {
   createChannel: (data: IFormData) => void;
-  selectedUsers: string[]; // Accept users from "This Group"
-  setSelectedUsers: (users: IUser[]) => void; // Add the setSelectedUsers function here
   deleteChannel: (channelName: string) => void
   currentGroup: IChannel | null;
   setCurrentGroup: (group: IChannel | null) => void;
