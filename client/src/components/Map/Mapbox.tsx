@@ -1,27 +1,21 @@
-import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import MapLoading from './MapLoading';
-import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+import BlockIcon from '@mui/icons-material/Block';
+import CloudIcon from '@mui/icons-material/Cloud';
+import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import { Alert, Box, Typography } from '@mui/material';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import React, { useEffect, useRef, useState } from 'react';
+import ReactDOMServer from 'react-dom/server';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../app/store';
 import { updateIncident } from '../../features/incidentSlice';
-import { RootState } from '../../utils/types';
 import IIncident from '../../models/Incident';
-import { Alert, Box, Typography } from '@mui/material';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import { v4 as uuidv4 } from 'uuid';
+import { RootState } from '../../utils/types';
 import MapDrop from './MapDrop';
-import ReactDOMServer from 'react-dom/server'; 
-import PushPinIcon from '@mui/icons-material/PushPin';
-import CloudIcon from '@mui/icons-material/Cloud';
-import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt';
-import BlockIcon from '@mui/icons-material/Block';
-import { WildfireArea } from '../../utils/types';
-import eventEmitter from '../../utils/eventEmitter';
-import { Geometry } from 'geojson';
+import MapLoading from './MapLoading';
 
 interface MapboxProps {
     showMarker?: boolean;
@@ -39,9 +33,6 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
   const roadblockRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const fireHydrantRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const airQualityRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-
-  // refs for areaClick
-  const areaRef = useRef<boolean>(false);
 
   // state to track add pin start and end
   const [isAddingPin, setIsAddingPin] = useState(false);
@@ -61,11 +52,9 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
   // State for the location of the pin
   const [pinLocation, setPinLocation] = useState<{ lng: number; lat: number; address?: string } | null>(null);
 
-  // state for current wildfire area
-  const [currArea, setCurrArea] = useState<WildfireArea[]>([]);
-  // const [currNamePopup, setNamePopup] = useState<mapboxgl.Popup[]>([]);
-  // Refs for popups
-  const popupRef = useRef<Map<string, mapboxgl.Popup>>(new Map());
+  // State for the route calculation loading
+  const [loading, setLoading] = useState(false);
+
 
   // Check if we're on the /map page
   useEffect(() => {
@@ -248,7 +237,8 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
 
           navigateButton.addEventListener("click", () => {
             if (mapRef.current) {
-              navigateToMarker(mapRef.current, item.longitude, item.latitude);
+              setLoading(true);
+              navigateToMarker(mapRef.current, item.longitude, item.latitude, () => setLoading(false));
             } else {
               console.error("Map reference is not available.");
             }
@@ -263,42 +253,45 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
 
 const accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA';
 
-const navigateToMarker = async (map: mapboxgl.Map | null, lng: number, lat: number) => {
-  console.log("-1")
+const navigateToMarker = async (
+  map: mapboxgl.Map | null,
+  lng: number,
+  lat: number,
+  stopLoading: () => void  // ✅ Pass function instead of state setter
+) => {
   if (!map) {
     console.error("Map instance is not available.");
+    stopLoading(); // ✅ Ensure loading is stopped if there's an error
     return;
   }
-  console.log("0")
-  // Get user's current location
+
+  console.log("Loading started");
+  
+
   navigator.geolocation.getCurrentPosition(
     async (position) => {
-      console.log("1")
       const userLng = position.coords.longitude;
       const userLat = position.coords.latitude;
 
-      // Fetch route from Mapbox Directions API
       const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${lng},${lat}?geometries=geojson&access_token=${accessToken}`;
 
       try {
-        console.log("2")
         const response = await fetch(routeUrl);
         const data = await response.json();
 
         if (!data.routes || data.routes.length === 0) {
           console.error("No route found.");
+          stopLoading();
           return;
         }
 
         const route = data.routes[0].geometry;
 
-        // Remove previous route if it exists
         if (map.getSource("route")) {
           map.removeLayer("route");
           map.removeSource("route");
         }
 
-        // Add new route
         map.addSource("route", {
           type: "geojson",
           data: {
@@ -317,12 +310,11 @@ const navigateToMarker = async (map: mapboxgl.Map | null, lng: number, lat: numb
             "line-cap": "round",
           },
           paint: {
-            "line-color": "#007aff", // Blue color for the route
+            "line-color": "#007aff",
             "line-width": 4,
           },
         });
-        console.log("3")
-        // Fit map to route bounds
+
         const bounds = new mapboxgl.LngLatBounds();
         route.coordinates.forEach((coord: [number, number]) => bounds.extend(coord));
 
@@ -330,13 +322,19 @@ const navigateToMarker = async (map: mapboxgl.Map | null, lng: number, lat: numb
 
       } catch (error) {
         console.error("Error fetching directions:", error);
+      } finally {
+        console.log("Loading stopped");
+        stopLoading(); // ✅ Ensure loading stops after fetching
       }
     },
     (error) => {
       console.error("Error getting user location:", error);
+      stopLoading();
     }
   );
 };
+
+
 
   
 
@@ -655,152 +653,6 @@ const navigateToMarker = async (map: mapboxgl.Map | null, lng: number, lat: numb
 
 // -------------------------------- wildfire features start --------------------------------
 
-const draw = new MapboxDraw({
-  displayControlsDefault: false,
-  controls: {
-    polygon: true,
-    trash: true
-  },
-  defaultMode: 'draw_polygon'
-});
-
-const createArea = (e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] }) => {
-  console.log("current event: ", e);
-  const data = draw.getAll();
-  if (data.features.length > 0 && mapRef.current) {
-    
-    const areaId: string = e.features[0]?.id?.toString() || '';
-    if (areaId == '') return;
-    console.log("all coordinates: ", data.features);
-    const geometry = e.features[0].geometry as Geometry & { coordinates: any };
-    const coordinates = geometry.coordinates;
-    let areaIndex = -1;
-    data.features.find((feature, index) => {
-      if (feature.id === areaId) {
-      console.log('Matched feature index:', index);
-      areaIndex = index;
-      return true;
-      }
-      return false;
-    });
-    const areaName: string = 'Area ' + areaId;
-
-    // Add properties to the feature
-    if (areaIndex >= 0){
-      data.features[areaIndex].properties = {
-        areaId: areaId,
-        name: areaName
-      };
-    }
-    
-    console.log('Polygon coordinates:', coordinates);
-    console.log('Area ID:', areaId);
-    console.log('Area Name:', areaName);
-    console.log("bbox: ", geometry.coordinates);
-
-    const centerCoord: [number, number] = coordinates[0].reduce(
-      (acc: [number, number], coord: [number, number]) => {
-        acc[0] += coord[0];
-        acc[1] += coord[1];
-        return acc;
-      },
-        [0, 0]
-    ).map((sum: number) => sum / coordinates[0].length) as [number, number];
-    console.log("coord:  ", centerCoord);
-    createPopup(areaId, centerCoord, areaName);
-  }
-};
-
-const createPopup = (areaId: string, centerCoord: [number, number], areaName: string) => {
-
-  const popupContent = document.createElement("div");
-    popupContent.innerHTML = `
-      <span id="area-name-display-${areaId}" style="cursor: pointer;">${areaName || 'Area ' + areaId}</span>
-      <input id="area-name-input-${areaId}" type="text" value="${areaName || 'Area ' + areaId}" style="display: none; width: 90%; padding: 5px; margin-top: 5px;" />
-    `;
-
-  const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, className: 'transparent-popup' })
-      .setLngLat(centerCoord)
-      .setDOMContent(popupContent)
-      .addTo(mapRef.current!);
-
-    const nameDisplay = document.getElementById(`area-name-display-${areaId}`);
-    const nameInput = document.getElementById(`area-name-input-${areaId}`) as HTMLInputElement;
-
-    nameDisplay?.addEventListener("click", () => {
-      nameDisplay.style.display = "none";
-      nameInput.style.display = "block";
-      nameInput.focus();
-    });
-
-    nameInput?.addEventListener("blur", () => {
-      const newName = nameInput.value;
-      if (nameDisplay) {
-        nameDisplay.innerText = newName || 'Area ' + areaId;
-        nameDisplay.style.display = "block";
-      }
-      nameInput.style.display = "none";
-    });
-    popupRef.current.set(areaId, popup);
-}
-
-const deletePopup = (areaId: string) => {
-
-  popupRef.current.get(areaId)?.remove();
-  popupRef.current.delete(areaId);
-}
-
-const deleteArea = (e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] }) => {
-  const data = draw.getAll();
-  // TODO: delete the area from the database
-  // delete the popup as well
-  const areaId: string = e.features[0]?.id?.toString() || '';
-  if (areaId == '') return;
-  deletePopup(areaId);
-};
-
-const updateArea = (e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] }) => {
-  // const data = draw.getAll();
-  // TODO: update name of the area
-
-  
-};
-
-const addDrawControls = () => {
-  if (!mapRef.current) return;
-
-  mapRef.current.addControl(draw);
-
-  mapRef.current.on('draw.create', createArea);
-  mapRef.current.on('draw.delete', deleteArea);
-  mapRef.current.on('draw.update', updateArea);
-};
-
-const removeDrawControls = () => {
-  if (!mapRef.current) return;
-
-  mapRef.current.removeControl(draw);
-
-  mapRef.current.off('draw.create', createArea);
-  mapRef.current.off('draw.delete', deleteArea);
-  mapRef.current.off('draw.update', updateArea);
-};
-
-useEffect(() => {
-  eventEmitter.on('area_util', () => {
-    if (areaRef.current) {
-      removeDrawControls();
-    } else {
-      addDrawControls();
-    }
-    areaRef.current = !areaRef.current;
-  });
-
-  return () => {
-    eventEmitter.removeAllListeners('area_util');
-  };
-}, []);
-
 // -------------------------------- wildfire features end --------------------------------
 
     
@@ -865,7 +717,7 @@ useEffect(() => {
           onDropAirQuality={() => handleAddPin("airQuality")}
         />
       )}
-      {!isMapLoaded && <MapLoading />}
+      {(!isMapLoaded || loading) && <MapLoading />}
     </div>
   );
 };
