@@ -115,7 +115,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({ isCreatedByFirstResponder }) 
                     </Box>
                 )}
                 
-                <Box sx={{ display: "flex", width: "100%", alignItems: "start", color: "rgba(0, 0, 0, 0.6)" }}> {/**TODO: Add colors to style guide */}
+                <Box sx={{ display: "flex", maxWidth: "500px", width: "100%", alignItems: "start", color: "rgba(0, 0, 0, 0.6)" }}> {/**TODO: Add colors to style guide */}
                     <Typography >Username:</Typography>
                 </Box>
 

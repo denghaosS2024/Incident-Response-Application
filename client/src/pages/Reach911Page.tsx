@@ -14,6 +14,7 @@ import { useLocation } from 'react-router-dom'
 import { AppDispatch } from '../app/store'
 import { updateIncident } from '../features/incidentSlice'
 import IIncident from '../models/Incident'
+import request from '../utils/request'
 import { RootState } from '../utils/types'
 
 const Reach911Page: React.FC = () => {
@@ -47,26 +48,30 @@ const Reach911Page: React.FC = () => {
     }
   }, [dispatch])
 
-  // If autoPopulateData is true and incidentId is provided, fetch incident details and update Redux state.
-  // autoPopulateData will be true when this page is navigated from the incidentsPage to view further incident details
-  // useEffect(() => {
-  //     const fetchIncidentAndPopulate = async (id: string) => {
-  //         try {
-  //             const data = await request(`/api/incidents?incidentId=${id}`);
-  //             if (Array.isArray(data) && data.length > 0) {
-  //                 const fetchedIncident = data[0];
-  //                 dispatch(updateIncident(fetchedIncident));
-  //             } else {
-  //                 console.error("No incident found for incidentId:", id);
-  //             }
-  //         } catch (err) {
-  //             console.error("Error fetching incident details:", err);
-  //         }
-  //     };
-  //     if (autoPopulateData && incidentId) {
-  //         fetchIncidentAndPopulate(incidentId);
-  //     }
-  // }, [autoPopulateData, incidentId, dispatch]);
+  // If the user is first responder and viewing an incident
+  useEffect(() => {
+    const fetchIncidentAndPopulate = async (id: string) => {
+      try {
+        const data = await request(`/api/incidents?incidentId=${id}`)
+        if (Array.isArray(data) && data.length > 0) {
+          const fetchedIncident = data[0]
+          dispatch(updateIncident(fetchedIncident))
+        } else {
+          console.error('No incident found for incidentId:', id)
+        }
+      } catch (err) {
+        console.error('Error fetching incident details:', err)
+      }
+    }
+    console.log(
+      'Incident Id are autoPopulateData values are:{},{}',
+      incidentId,
+      autoPopulateData,
+    )
+    if (autoPopulateData && incidentId) {
+      fetchIncidentAndPopulate(incidentId)
+    }
+  }, [autoPopulateData, incidentId, dispatch])
 
   // Save step to localStorage whenever it changes
   useEffect(() => {
@@ -174,6 +179,14 @@ const Reach911Page: React.FC = () => {
       if (!cleanedIncident.incidentCallGroup)
         delete (cleanedIncident as any).incidentCallGroup
 
+      if (!cleanedIncident.openingDate)
+        delete (cleanedIncident as any).openingDate
+      if (!cleanedIncident.incidentState)
+        delete (cleanedIncident as any).incidentState
+      if (!cleanedIncident.owner) delete (cleanedIncident as any).owner
+      if (!cleanedIncident.commander) delete (cleanedIncident as any).commander
+      if (!cleanedIncident.caller) delete (cleanedIncident as any).caller
+
       const requestBody = {
         ...cleanedIncident,
         incidentId: incidentId,
@@ -241,14 +254,48 @@ const Reach911Page: React.FC = () => {
     }
   }
 
+  const lockedContents = contents.map((content, index) =>
+    readOnly ? (
+      <div key={index} style={{ pointerEvents: 'none' }}>
+        {content}
+      </div>
+    ) : (
+      content
+    ),
+  )
+
   return (
-    <div className={styles.wrapper}>
-      <div>
+    <div
+      className={styles.wrapper}
+      style={
+        readOnly
+          ? { pointerEvents: 'none', position: 'relative', paddingTop: '50px' }
+          : {}
+      }
+    >
+      {readOnly && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            padding: '10px',
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            textAlign: 'center',
+            zIndex: 1000,
+          }}
+        >
+          This incident is in read-only mode.
+        </div>
+      )}
+      <div style={readOnly ? { pointerEvents: 'auto' } : {}}>
         <ClickableStepper
           numberOfSteps={contents.length}
           activeStep={activeStep}
           setActiveStep={handleStepChange}
-          contents={contents}
+          contents={lockedContents}
         />
       </div>
       <div className={styles.placeholder}>
@@ -258,7 +305,7 @@ const Reach911Page: React.FC = () => {
           </div>
         )}
       </div>
-      {activeStep != contents.length - 1 && (
+      {activeStep != lockedContents.length - 1 && (
         <div className={styles.buttonWrapper}>
           <Button
             fullWidth

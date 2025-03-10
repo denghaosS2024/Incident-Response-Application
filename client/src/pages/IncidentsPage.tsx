@@ -1,4 +1,4 @@
-import GenericListContainer from '../components/GenericListContainer';
+import { Add, NavigateNext as Arrow, Settings } from '@mui/icons-material'
 import {
   Box,
   FormControl,
@@ -7,160 +7,200 @@ import {
   MenuItem,
   Select,
   Typography,
-} from '@mui/material';
-import React, { useState, useEffect } from 'react';
-import { Add, NavigateNext as Arrow, Settings } from '@mui/icons-material';
-import { IncidentType } from '../models/Incident';
-import request from '../utils/request';
-import { useNavigate } from 'react-router-dom';
-import { resetIncident } from '../features/incidentSlice';
-import { useDispatch } from "react-redux";
+} from '@mui/material'
+import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import GenericListContainer from '../components/GenericListContainer'
+import { resetIncident } from '../features/incidentSlice'
+import { IncidentType } from '../models/Incident'
+import request from '../utils/request'
 
 interface IncidentData {
-  incidentId: string;
-  openingDate: string;
-  type: string;
-  priority: string;
-  incidentState: string;
-  owner: string;
-  commander: string;
+  incidentId: string
+  openingDate: string
+  type: string
+  priority: string
+  incidentState: string
+  owner: string
+  commander: string
 }
 
 function IncidentsPage() {
-  const [role, setRole] = useState(localStorage.getItem('role'));
-  const [data, setData] = useState<IncidentData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedType, setSelectedType] = useState('All');
-  const [userId] = useState(localStorage.getItem('username') || '');
-  const [filteredData, setFilteredData] = useState<IncidentData[]>([]);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const [role, setRole] = useState(localStorage.getItem('role'))
+  const [data, setData] = useState<IncidentData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null)
+  const [selectedType, setSelectedType] = useState('All')
+  const [userId] = useState(localStorage.getItem('username') || '')
+  const [filteredData, setFilteredData] = useState<IncidentData[]>([])
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(resetIncident())
+  }, [dispatch])
 
   // Retrieve role from localStorage
   useEffect(() => {
-    const storedRole = localStorage.getItem('role');
-    if (storedRole) setRole(storedRole);
-  }, []);
+    const storedRole = localStorage.getItem('role')
+    if (storedRole) setRole(storedRole)
+  }, [])
 
   // Fetch incidents from the server
   useEffect(() => {
     async function fetchData() {
-      setLoading(true);
+      setLoading(true)
       try {
-        const data = await request('/api/incidents');
-        setData(data);
+        const data = await request('/api/incidents')
+        setData(data)
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     }
-    fetchData();
-  }, [role]);
+    fetchData()
+  }, [role])
 
   // Filter incidents based on selected type
   useEffect(() => {
     if (selectedType === 'All') {
-      setFilteredData(data);
+      setFilteredData(data)
     } else {
       const mappedType = {
         Fire: IncidentType.Fire,
         Medical: IncidentType.Medical,
         Police: IncidentType.Police,
         Unset: IncidentType.Unset,
-      }[selectedType];
-      setFilteredData(data.filter((incident) => incident.type === mappedType));
+      }[selectedType]
+      setFilteredData(data.filter((incident) => incident.type === mappedType))
     }
-  }, [selectedType, data]);
+  }, [selectedType, data])
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error}</div>
+
+  // Sort incidents by opening date function
+  const sortByOpeningDate = (incidents: IncidentData[]) => 
+    incidents.sort((a, b) => new Date(a.openingDate).getTime() - new Date(b.openingDate).getTime());
 
   // Group incidents for display based on role
-  let incidentGroups: { [key: string]: IncidentData[] } = {};
+  let incidentGroups: { [key: string]: IncidentData[] } = {}
   if (role === 'Fire' || role === 'Police') {
-    incidentGroups = {
-      "My Incident": filteredData.filter((incident) => incident.commander === userId),
-      "Other Open Incidents": filteredData.filter(
-        (incident) => incident.commander !== userId && incident.incidentState !== "Closed"
-      ),
-      "Closed Incidents": filteredData.filter((incident) => incident.incidentState === "Closed"),
+    const filteredByAssigned = filteredData.filter(
+      (incident) => incident.incidentState === 'Assigned',
+    )
+    const priorityOrder: Record<string, number> = {
+      E: 1,
+      One: 2,
+      Two: 3,
+      Three: 4,
     };
+  
+    const sortByPriorityOnly = (incidents: IncidentData[]) =>
+      incidents.sort((a, b) => {
+        const priorityA = priorityOrder[a.priority] || 99; 
+        const priorityB = priorityOrder[b.priority] || 99;
+        return priorityA - priorityB; 
+      });
+
+    incidentGroups = {
+      'My Incident': filteredByAssigned.filter(
+        (incident) => incident.commander === userId,
+      ),
+      'Other Open Incidents': sortByPriorityOnly(
+        filteredByAssigned.filter((incident) => incident.commander !== userId)
+      ),
+      'Closed Incidents': sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === 'Closed',
+      ))
+    }
   } else {
     incidentGroups = {
-      "Waiting": filteredData.filter((incident) => incident.incidentState === "Waiting"),
-      "Triage": filteredData.filter((incident) => incident.incidentState === "Triage"),
-      "Assigned": filteredData.filter((incident) => incident.incidentState === "Assigned"),
-      "Closed": filteredData.filter((incident) => incident.incidentState === "Closed"),
-    };
+      Waiting: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Waiting")
+      ),
+      Triage: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Triage")
+      ),
+      Assigned: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Assigned")
+      ),
+      Closed: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Closed")
+      ),
+    }
   }
 
   // Create new incident when the + button is clicked and redirect to the first page
   const handleAddIncident = async () => {
     try {
-      dispatch(resetIncident()); // Clears previous incident from store before creating a new one
+      const username = localStorage.getItem('username')
+      if (!username) throw new Error('Username not found in local storage.')
 
-      const username = localStorage.getItem("username");
-      if (!username) throw new Error("Username not found in local storage.");
-
-      let incidentCount = 1;
+      let incidentCount = 1
       try {
-        const userIncidents = await request(`/api/incidents?caller=${username}`);
-        incidentCount = Array.isArray(userIncidents) ? userIncidents.length + 1 : 1;
+        const userIncidents = await request(`/api/incidents?caller=${username}`)
+        incidentCount = Array.isArray(userIncidents)
+          ? userIncidents.length + 1
+          : 1
       } catch (error: any) {
-        if (error.status !== 404) throw error;
+        if (error.status !== 404) throw error
       }
-      const incidentId = `I${username}${incidentCount}`;
+      const incidentId = `I${username}${incidentCount}`
       const newIncident = {
         incidentId,
         caller: username,
         openingDate: new Date().toISOString(),
-        incidentState: "Assigned",
+        incidentState: 'Assigned',
         owner: username,
         commander: username,
-      };
+      }
 
-      await request("/api/incidents/new", {
-        method: "POST",
+      await request('/api/incidents/new', {
+        method: 'POST',
         body: JSON.stringify(newIncident),
-        headers: { "Content-Type": "application/json" },
-      });
+        headers: { 'Content-Type': 'application/json' },
+      })
 
-      navigate("/reach911", {
+      navigate('/reach911', {
         state: {
           incidentId,
           isCreatedByFirstResponder: true,
         },
-      });
+      })
     } catch (error) {
-      console.error("Error creating new incident:", error);
+      console.error('Error creating new incident:', error)
     }
-  };
+  }
 
   // Check if the user has an active incident (not closed)
   const hasActiveResponderIncident = data.some(
     (incident) =>
       (incident.owner === userId || incident.commander === userId) &&
-      incident.incidentState !== 'Closed'
-  );
+      incident.incidentState !== 'Closed',
+  )
 
   // Navigate to incident description with auto-populate on
   const handleIncidentClick = (incident: IncidentData) => {
-    let readOnly = false;
-    if (incident.incidentState === "Closed" || (incident.commander !== userId && incident.owner !== userId)) {
-      readOnly = true;
+    let readOnly = false
+    if (
+      incident.incidentState === 'Closed' ||
+      (incident.commander !== userId && incident.owner !== userId)
+    ) {
+      readOnly = true
     }
-    const autoPopulateData = true;
-    navigate("/reach911", {
+    const autoPopulateData = true
+    navigate('/reach911', {
       state: {
         incidentId: incident.incidentId,
         readOnly,
         autoPopulateData,
       },
-    });
-  };
+    })
+  }
 
   // Render the page
   return (
@@ -183,18 +223,43 @@ function IncidentsPage() {
                     {incident.incidentId}
                   </Typography>
                   <Typography variant="body2" sx={{ flex: 1 }}>
-                    {incident.openingDate}
+                    {new Date(incident.openingDate).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false})}
                   </Typography>
                 </Box>
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                  }}
+                >
                   <Typography variant="body2" sx={{ marginRight: 1 }}>
                     {incident.type}
                   </Typography>
                   <Typography variant="body2">
-                    {incident.priority}
+                  {(() => {
+                    const priorityMap: Record<string, string> = {
+                      One: "1",
+                      Two: "2",
+                      Three: "3",
+                    };
+                    return priorityMap[incident.priority] || incident.priority; // Default to original value if not found
+                  })()}
                   </Typography>
                 </Box>
-                <IconButton edge="end" size="large" onClick={() => handleIncidentClick(incident)}>
+                <IconButton
+                  edge="end"
+                  size="large"
+                  onClick={() => handleIncidentClick(incident)}
+                >
                   <Arrow />
                 </IconButton>
               </Box>
@@ -205,11 +270,20 @@ function IncidentsPage() {
       {role === 'Fire' || role === 'Police' ? (
         <>
           <IconButton
-            sx={{ position: 'fixed', bottom: 16, left: 18, width: 56, height: 56 }}
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              left: 18,
+              width: 56,
+              height: 56,
+            }}
             onClick={(event) => setFilterAnchorEl(event.currentTarget)}
           >
             <Settings />
-            <Typography variant="caption" sx={{ marginLeft: 1, fontSize: "medium" }}>
+            <Typography
+              variant="caption"
+              sx={{ marginLeft: 1, fontSize: 'medium' }}
+            >
               Type
             </Typography>
           </IconButton>
@@ -223,8 +297,8 @@ function IncidentsPage() {
                 <Select
                   value={selectedType}
                   onChange={(event) => {
-                    setSelectedType(event.target.value);
-                    setFilterAnchorEl(null);
+                    setSelectedType(event.target.value)
+                    setFilterAnchorEl(null)
                   }}
                 >
                   <MenuItem value="All">All</MenuItem>
@@ -237,7 +311,13 @@ function IncidentsPage() {
           </Menu>
           {!hasActiveResponderIncident && (
             <IconButton
-              sx={{ position: 'fixed', bottom: 16, right: 16, width: 56, height: 56 }}
+              sx={{
+                position: 'fixed',
+                bottom: 16,
+                right: 16,
+                width: 56,
+                height: 56,
+              }}
               onClick={handleAddIncident}
             >
               <Add fontSize="large" />
@@ -246,7 +326,7 @@ function IncidentsPage() {
         </>
       ) : null}
     </Box>
-  );
+  )
 }
 
-export default IncidentsPage;
+export default IncidentsPage

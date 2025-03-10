@@ -43,7 +43,10 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ channelId }) => {
   // Load channel info and set channel name
   const loadChannelInfo = async () => {
     const channel = (await request(`/api/channels/${channelId}`)) as IChannel;
-    setChannelName(channel.name);
+    console.log('Channel:', channel);
+    if (channel){
+      setChannelName(channel.name);
+    }
   };
 
   useEffect(() => {

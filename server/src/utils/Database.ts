@@ -13,6 +13,7 @@ import '../models/Message'
 import User from '../models/User'
 
 import dotenv from 'dotenv'
+import Channel from "../models/Channel";
 
 dotenv.config({ path: '.env' })
 
@@ -55,6 +56,7 @@ export const connect = async (
       : undefined,
   )
   await User.ensureSystemUser()
+  await Channel.ensureSystemDefinedGroup()
 }
 
 /**

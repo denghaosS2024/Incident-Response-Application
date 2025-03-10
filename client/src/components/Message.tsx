@@ -18,12 +18,20 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   const currentUserId = localStorage.getItem('uid')
   // Check if the message content looks like a video url from bucket
   const videoUrlPrefix =
-    'https://storage.googleapis.com/sem-video-bucket/videos/'
+    'https://storage.googleapis.com/sem-s25-bucket/videos/'
   const isVideo = message.content.startsWith(videoUrlPrefix)
+
+  const imageUrlPrefix =
+    'https://storage.googleapis.com/sem-s25-bucket/images/'
+  const isImage = message.content.startsWith(imageUrlPrefix)
 
   const fileUrlPrefix =
     'https://storage.googleapis.com/sem-video-bucket/uploads/'
   const isFile = message.content.startsWith(fileUrlPrefix)
+
+  const audioUrlPrefix =
+    'https://storage.googleapis.com/sem-video-bucket/voice-messages/'
+  const isAudio = message.content.startsWith(audioUrlPrefix)
 
   const isAlert = message.isAlert
   const senderId = message.sender._id
@@ -60,7 +68,18 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
           <source src={message.content} type="video/webm" />
           Your browser does not support the video tag.
         </video>
-      ) : isFile ? (
+      ) : isImage ? (
+        <img 
+          src={message.content} 
+          alt="Sent image" 
+          style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', marginTop: '8px' }} 
+        />
+      )  : isAudio ? (
+        <audio controls style={{ width: '100%', marginTop: '8px' }}>
+          <source src={message.content} type="audio/webm" />
+          Your browser does not support the audio element.
+        </audio>
+      ): isFile ? (
         <a
           href={message.content}
           download

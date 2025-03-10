@@ -20,12 +20,44 @@ export const Default: Story = {
     },
   },
 }
+
+export const Alert: Story = {
+  args: {
+    message: {
+      sender: { username: 'John Doe' },
+      timestamp: '10 minutes ago',
+      isAlert: true,
+      content: 'ALL CLEAR-#00e6e6-black',
+    },
+  },
+}
+
 export const VideoMessage: Story = {
   args: {
     message: {
       sender: { username: 'Jane Doe' },
       timestamp: '5 minutes ago',
       content: 'https://storage.googleapis.com/sem-video-bucket/videos/sample-video.webm',
+    },
+  },
+}
+
+export const FileMessage: Story = {
+  args: {
+    message: {
+      sender: { username: 'Jane Doe' },
+      timestamp: '5 minutes ago',
+      content: 'https://storage.googleapis.com/sem-video-bucket/uploads/file.pdf',
+    },
+  },
+}
+
+export const AudioMessage: Story = {
+  args: {
+    message: { 
+      sender: { username: 'Jane Doe' },
+      timestamp: '5 minutes ago',
+      content: 'https://storage.googleapis.com/sem-video-bucket/uploads/sample-voice.webcam',
     },
   },
 }

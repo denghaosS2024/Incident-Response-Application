@@ -1,5 +1,5 @@
-import { Divider, IconButton, List, ListItem, ListItemSecondaryAction, ListItemText, Typography, Link } from '@mui/material'
-import { Fragment, FunctionComponent, ReactNode } from 'react'
+import { Divider, List, Typography } from '@mui/material'
+import { Fragment, ReactNode } from 'react'
 import Loading from './common/Loading'
 
 export interface ItemListProps<T> {
@@ -13,7 +13,7 @@ const ItemList = <T,>({ items, loading, getKey, renderItem }: ItemListProps<T>) 
   if (loading) return <Loading />
 
   if (!items || items.length === 0) {
-    return <Typography style={{ padding: 16 }}>No items available</Typography>
+    return <Typography style={{ padding: 16 }}>No Incidents available</Typography>
   }
 
   return (

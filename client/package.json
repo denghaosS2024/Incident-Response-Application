@@ -70,6 +70,7 @@
     "babel-plugin-named-exports-order": "^0.0.2",
     "chromatic": "^11.7.1",
     "eslint-plugin-storybook": "^0.6.15",
+    "prettier": "^3.5.3",
     "prop-types": "^15.8.1",
     "react-dev-utils": "^12.0.1",
     "storybook": "^7.6.12",
@@ -85,7 +86,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "chromatic": "npx chromatic --project-token=<YOUR_CHROMATIC_TOKEN_HERE>",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "eslintConfig": {
     "extends": [

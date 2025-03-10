@@ -30,7 +30,7 @@ const generateRoleStory = (role: string): Story => ({
     showMenu: true,
   },
   parameters: {
-    role, 
+    role,
   },
   decorators: [
     (Story) => {
@@ -38,7 +38,7 @@ const generateRoleStory = (role: string): Story => ({
       return <Story />
     },
   ],
-  name: roleTitles[role] || 'IR Citizen', 
+  name: roleTitles[role] || 'IR Citizen',
 })
 
 export const Default: Story = {}
