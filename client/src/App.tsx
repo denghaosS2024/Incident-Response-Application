@@ -9,7 +9,6 @@ import {
   PermContactCalendar,
   LocalPolice as PoliceIcon,
 } from '@mui/icons-material'
-import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import FmdBadRoundedIcon from '@mui/icons-material/FmdBadRounded'
 import Groups2Icon from '@mui/icons-material/Groups2'
 import { Box, Modal, Typography, keyframes } from '@mui/material'
@@ -57,6 +56,7 @@ import {
   clearAllAlerts,
   updateMessage,
 } from './features/messageSlice'
+import ViewOrganization from './pages/ViewOrganization'
 import SocketClient from './utils/Socket'
 
 const App: React.FC = () => {
@@ -75,6 +75,7 @@ const App: React.FC = () => {
             <Route path="/map" element={<MapPage />} />
             <Route path="/incidents" element={<IncidentsPage />} />
             <Route path="/organization" element={<Organization />} />
+            <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route element={<ProtectedRoute showBackButton isSubPage />}>
@@ -282,19 +283,6 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
         setHasNewIncident(false)
         setSelectedTab('incidents')
       },
-    })
-  }
-
-  // Add Organization Chart tab for Dispatch, Police, and Fire roles
-  const hasOrgChartTab = orderedTabs.some((tab) => tab.key === 'organization')
-
-  if (!hasOrgChartTab && ['Administrator'].includes(role)) {
-    orderedTabs.push({
-      prefix: '/organization',
-      key: 'organization',
-      icon: <AccountTreeIcon />,
-      to: '/organization',
-      onClick: () => setSelectedTab('organization'),
     })
   }
 
