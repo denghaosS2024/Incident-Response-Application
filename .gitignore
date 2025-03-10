@@ -19,3 +19,6 @@ yarn-error.log*
 db
 
 sem-project-s25.json
+
+**/pnpm-lock.yaml
+**/node_modules

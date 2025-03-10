@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile.client
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - ./client:/app/client
       - /app/client/node_modules
@@ -26,7 +26,7 @@ services:
       context: .
       dockerfile: Dockerfile.server
     ports:
-      - "3001:3001"
+      - '3001:3001'
     volumes:
       - ./server:/app/server
       - /app/server/node_modules
@@ -40,9 +40,9 @@ services:
   mongo:
     image: mongo:latest
     ports:
-      - "27018:27017"
+      - '27018:27017'
     volumes:
       - mongo-data:/data/db
-    
+
 volumes:
   mongo-data:

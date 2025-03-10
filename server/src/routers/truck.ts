@@ -1,15 +1,32 @@
-/**
- * Truck Routes
- *
- * Provides endpoints for managing trucks.
- */
-
 import { Router, Request, Response } from 'express';
 import TruckController from '../controllers/TruckController';
 
 const truckRouter = Router();
 
-// GET /api/trucks
+/**
+ * @swagger
+ * /api/trucks:
+ *   get:
+ *     summary: Get all trucks
+ *     description: Retrieves a list of all available trucks sorted by name.
+ *     tags:
+ *       - Trucks
+ *     responses:
+ *       200:
+ *         description: A list of trucks retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Truck"
+ *       500:
+ *         description: Server error while fetching trucks.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
+ */
 truckRouter.get('/', async (_req: Request, res: Response) => {
   try {
     const trucks = await TruckController.getAllTrucks();
@@ -20,7 +37,39 @@ truckRouter.get('/', async (_req: Request, res: Response) => {
   }
 });
 
-// POST /api/trucks
+/**
+ * @swagger
+ * /api/trucks:
+ *   post:
+ *     summary: Create a new truck
+ *     description: Adds a new truck to the system.
+ *     tags:
+ *       - Trucks
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Fire Truck 1"
+ *                 description: The name of the truck to add.
+ *     responses:
+ *       201:
+ *         description: Truck successfully created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Truck"
+ *       400:
+ *         description: Invalid input or missing truck name.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
+ */
 truckRouter.post('/', async (req: Request, res: Response) => {
   try {
     const { name } = req.body;
@@ -32,7 +81,41 @@ truckRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/trucks/:id
+/**
+ * @swagger
+ * /api/trucks/{id}:
+ *   delete:
+ *     summary: Delete a truck
+ *     description: Removes a truck from the system by its ID.
+ *     tags:
+ *       - Trucks
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique identifier of the truck.
+ *     responses:
+ *       200:
+ *         description: Truck successfully deleted.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Truck deleted"
+ *                 truck:
+ *                   $ref: "#/components/schemas/Truck"
+ *       400:
+ *         description: Invalid truck ID or truck not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
+ */
 truckRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

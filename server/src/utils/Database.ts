@@ -19,11 +19,41 @@ dotenv.config({ path: '.env' })
 /**
  * Connect to the MongoDB database
  * @param url - The MongoDB connection URL (default: constructed from environment variables)
+ * @param useTls - Whether to use TLS (default: constructed from environment variables)
  */
 export const connect = async (
-  url = `${process.env.MONGODB_URL}/${process.env.MONGODB_DB_NAME}`,
+  url: string | undefined = undefined,
+  useTls: boolean | undefined = undefined,
 ) => {
-  await mongoose.connect(url)
+  // If MongoDB URL is not provided, use the environment variables
+  if (url === undefined) {
+    let baseUrl = process.env.MONGODB_URL
+    let dbName = process.env.MONGODB_DB_NAME
+
+    // Edge case for those who added an extra forward slash at either ends
+    if (baseUrl?.endsWith('/')) {
+      baseUrl = baseUrl.slice(0, -1)
+    }
+    if (dbName?.startsWith('/')) {
+      dbName = dbName.slice(1)
+    }
+
+    url = `${baseUrl}/${dbName}`
+  }
+
+  // If TLS is not provided, use the environment variables
+  if (useTls === undefined) {
+    useTls = process.env.MONGODB_TLS === '1'
+  }
+
+  await mongoose.connect(
+    url,
+    useTls
+      ? {
+          tls: true,
+        }
+      : undefined,
+  )
   await User.ensureSystemUser()
 }
 

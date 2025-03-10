@@ -14,7 +14,7 @@ export default function Board({
     resetBoard,
 }: {
     setUsers: (users: string[]) => void;
-    onGroupClick: (group: IChannel) => void;  // update parent component on click
+    onGroupClick: (group: IChannel) => void;  // handle parent component on click logic
     resetBoard: () => void;
 }) {
     const [done, setDone] = useState<IUser[]>([]);
@@ -43,6 +43,7 @@ export default function Board({
         if (contacts.length > 0) {
             const filteredContacts = contacts.filter(contact => contact._id !== owner); // Remove the logged-in user
             setTodo(filteredContacts);
+            setDone([]);
         }
     }, [resetBoard]);
 

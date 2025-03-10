@@ -11,37 +11,55 @@ import {
   Button,
 } from '@mui/material';
 import request from '../../utils/request';
-import type IIncident from '@/models/Incident';
+import type IIncident from '../../models/Incident';
+import { IncidentPriority } from '../../models/Incident';
+import { useDispatch } from 'react-redux';
+import { updateIncident } from '../../features/incidentSlice';
+import type { AppDispatch } from '@/app/store';
 
 interface Reach911Step5Props {
   incidentId?: string;
 }
 
 const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
-  // State for loading, error, and fetched incident details
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [incidentData, setIncidentData] = useState<IIncident | null>(null);
-
-  // Form states for updatable fields
   const [priority, setPriority] = useState<string>('E');
-  const [commander, setCommander] = useState<string>('System');
+  const [commander] = useState<string>('System');
 
-  // Fetch incident details on mount using the incidentId passed from Reach911Page.tsx
+  const dispatch = useDispatch<AppDispatch>();
+
+  // Two-way mapping between UI and backend values for priority.
+  const displayToBackend: Record<string, IncidentPriority> = {
+    'E': IncidentPriority.Immediate,
+    '1': IncidentPriority.Urgent,
+    '2': IncidentPriority.CouldWait,
+    '3': IncidentPriority.Dismiss,
+  };
+
+  const backendToDisplay: Record<IncidentPriority, string> = {
+    [IncidentPriority.Immediate]: 'E',
+    [IncidentPriority.Urgent]: '1',
+    [IncidentPriority.CouldWait]: '2',
+    [IncidentPriority.Dismiss]: '3',
+    [IncidentPriority.Unset]: 'E',
+  };
+
+  // Fetch incident details and update Redux state
   useEffect(() => {
     const fetchIncidentDetails = async () => {
       try {
-        if (!incidentId) {
-          throw new Error('No incidentId provided');
-        }
-        // Fetch incident details
+        if (!incidentId) throw new Error('No incidentId provided');
         const data = await request(`/api/incidents?incidentId=${incidentId}`);
         if (Array.isArray(data) && data.length > 0) {
           const incident = data[0];
           setIncidentData(incident);
-          // Initialize form fields from fetched incident data
-          if (incident.priority) setPriority(incident.priority);
-          if (incident.commander) setCommander(incident.commander);
+          dispatch(updateIncident(incident));
+          if (incident.priority) {
+            const uiPriority = backendToDisplay[incident.priority as IncidentPriority] || 'E';
+            setPriority(uiPriority);
+          }
         } else {
           setError('No incident found for this incidentId');
         }
@@ -52,29 +70,22 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         setLoading(false);
       }
     };
-
     fetchIncidentDetails();
-  }, [incidentId]);
+  }, [incidentId, dispatch]);
 
+  // Handle submission: convert UI value to backend value, update the incident, and update Redux state
   const handleSubmit = async () => {
     if (!incidentData) return;
     try {
       setLoading(true);
       setError(null);
-      const priorityMap: { [key: string]: string } = {
-        'E': 'E',
-        '1': 'One',
-        '2': 'Two',
-        '3': 'Three'
-      };
-      const convertedPriority = priorityMap[priority] || priority;
-  
+      const convertedPriority = displayToBackend[priority] || IncidentPriority.Immediate;
       const updatedIncident = {
         incidentId: incidentData.incidentId,
         priority: convertedPriority,
-        commander,
+        commander: incidentData.commander,
       };
-  
+
       let updateResponse;
       try {
         updateResponse = await request("/api/incidents/update", {
@@ -83,18 +94,18 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
           body: JSON.stringify(updatedIncident),
         });
       } catch (e: any) {
-        // If we get an error about JSON parsing, assume it's because of a 204 response. // THIS IS WRONG TO DO, BUT I DIDNT WANNA EDIT THE REQUEST UTIL
         if (e.message && e.message.includes("Unexpected end of JSON input")) {
           updateResponse = { status: 204 };
         } else {
           throw e;
         }
       }
-  
+
       if (updateResponse.status !== 204) {
         throw new Error("Failed to update incident");
       }
-  
+      
+      dispatch(updateIncident({ ...incidentData, priority: convertedPriority, commander: incidentData.commander }));
       alert("Incident updated successfully!");
     } catch (err) {
       console.error("Error updating incident:", err);
@@ -103,8 +114,6 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
       setLoading(false);
     }
   };
-  
-  
 
   if (loading) {
     return (
@@ -149,11 +158,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         <Typography variant="subtitle1" sx={{ mb: 1 }}>Incident Priority</Typography>
         <FormControl fullWidth>
           <InputLabel>Priority</InputLabel>
-          <Select
-            value={priority}
-            label="Priority"
-            onChange={(e) => setPriority(e.target.value as string)}
-          >
+          <Select value={priority} label="Priority" onChange={(e) => setPriority(e.target.value as string)}>
             <MenuItem value="E">E</MenuItem>
             <MenuItem value="1">1</MenuItem>
             <MenuItem value="2">2</MenuItem>
@@ -165,21 +170,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
       <Box sx={{ mb: 2 }}>
         <Typography variant="subtitle1" sx={{ mb: 1 }}>Who is on the Team?</Typography>
         <Typography>Owner: {incidentData.owner}</Typography>
-        <Box sx={{ mt: 1 }}>
-          <FormControl fullWidth>
-            <InputLabel>Commander</InputLabel>
-            <Select
-              value={commander}
-              label="Commander"
-              onChange={(e) => setCommander(e.target.value as string)}
-            >
-              {/* Hardcoded placeholder options.This needs to be handled */}
-              <MenuItem value="System">System</MenuItem>
-              <MenuItem value="John Doe">John Doe</MenuItem>
-              <MenuItem value="Jane Doe">Jane Doe</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
+        <Typography>Commander: {incidentData.commander}</Typography>
       </Box>
 
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>

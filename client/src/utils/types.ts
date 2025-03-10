@@ -92,4 +92,10 @@ export interface ProfileState {
   error: string | null;
 }
 
+export interface WildfireArea{
+  areaId: string;
+  coordinates: [number, number][];
+  name?: string;
+}
+
 export interface EmergencyQuestions extends MedicalQuestions, FireQuestions, PoliceQuestions { }

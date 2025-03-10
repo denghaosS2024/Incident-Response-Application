@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -16,6 +16,7 @@ import ReportProblem from '@mui/icons-material/ReportProblem';
 import LocalTaxi from '@mui/icons-material/LocalTaxi';
 import LocalFireDepartment from '@mui/icons-material/LocalFireDepartment';
 import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
+import eventEmitter  from '../../utils/eventEmitter';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { loadContacts } from '../../features/contactSlice';
@@ -50,6 +51,9 @@ const MapLayer: React.FC = () => {
   } else if (normalizedRole.includes('fire')) {
     roleKey = 'Fire';
   }
+
+  // use context to toggle area control
+  
 
   const roleUtilMapping: Record<string, string[]> = {
     Citizen: ['Areas', 'Hospitals', 'Pins', 'Pollution'],
@@ -91,7 +95,14 @@ const MapLayer: React.FC = () => {
 
   // TODO: Handle util layer click for future implementation.
   const handleUtilLayerClick = (layer: string) => {
-    console.log(`Util layer clicked: ${layer}`);
+    switch (layer) {
+      case 'Areas':
+        eventEmitter.emit('area_util');
+        break;
+      default:
+        console.log(`Util Layer clicked: ${layer}`);
+        break;
+    }
   };
 
 

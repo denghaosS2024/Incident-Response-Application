@@ -7,10 +7,23 @@ import Channel, {
   IChannel,
   PUBLIC_CHANNEL_NAME,
 } from '../../src/models/Channel'
+import Message from '../../src/models/Message'
 import { IUser } from '../../src/models/User'
 import UserConnections from '../../src/utils/UserConnections'
 import * as TestDatabase from '../utils/TestDatabase'
 import { ROLES } from '../../src/utils/Roles'
+import Profile, { IProfile } from '../../src/models/Profile'
+
+jest.mock('@google-cloud/storage', () => {
+  const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
+  const mockFile = jest.fn(() => ({ getSignedUrl: mockGetSignedUrl }))
+  const mockBucket = jest.fn(() => ({ file: mockFile }))
+  const mockStorage = jest.fn().mockImplementation(() => ({
+    bucket: mockBucket,
+  }))
+
+  return { Storage: mockStorage }
+})
 
 describe('Channel controller', () => {
   // "System" user is created in the database upon app run so by default there always is one user present in the database.
@@ -18,6 +31,7 @@ describe('Channel controller', () => {
   let userB: IUser
   let userC: IUser
   let channel: IChannel
+  let profileB: IProfile
 
   beforeAll(async () => {
     TestDatabase.connect()
@@ -25,6 +39,29 @@ describe('Channel controller', () => {
     userA = await UserController.register('Channel-User-A', 'password-A')
     userB = await UserController.register('Channel-User-B', 'password-B')
     userC = await UserController.register('Channel-User-C', 'password-C')
+
+    const profileData = {
+      userId: userB._id,
+      name: "Test User B",
+      dob: new Date("1990-01-01"),
+      sex: "Male" as "Male" | "Female" | "Other",
+      address: "123 Test St, Test City",
+      phone: "+11234567890",
+      email: "userb@example.com",
+      medicalInfo: {
+        condition: "None",
+        drugs: "None",
+        allergies: "None"
+      },
+      emergencyContacts: []
+    };
+    
+    // Create/update profile directly using findOneAndUpdate
+    profileB = await Profile.findOneAndUpdate(
+      { userId: userB._id }, 
+      { $set: profileData }, 
+      { new: true, upsert: true }
+    ).exec();
   })
 
   it('will not allow to create the public channel manually', async () => {
@@ -181,5 +218,119 @@ describe('Channel controller', () => {
     }
   })
 
+  it('should return uploadUrl and fileUrl for an existing channel for video upload', async () => {
+    // Create a channel in the DB
+    const testChannel = await ChannelController.create({
+      name: 'Test Channel For Upload',
+      userIds: [userA._id],
+    })
+
+    // Call getVideoUploadUrl
+    const { uploadUrl, fileUrl } = await ChannelController.getVideoUploadUrl(
+      testChannel._id
+    )
+
+    // Assert that the values match mock
+    expect(uploadUrl).toBe('mock-signed-url')
+    expect(fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
+  })
+
+  it('should return uploadUrl and fileUrl for an existing channel for file upload', async () => {
+    // Create a channel in the DB
+    const testChannel = await ChannelController.create({
+      name: 'Test Channel For Upload File',
+      userIds: [userA._id],
+    })
+
+    // Call getFileUploadUrl
+    const { uploadUrl, fileUrl } = await ChannelController.getFileUploadUrl(
+      testChannel._id,"file","application/pdf",".pdf")
+
+    // Assert that the values match mock
+    expect(uploadUrl).toBe('mock-signed-url')
+    expect(fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
+    expect(fileUrl).toContain(".pdf")
+    expect(fileUrl).toContain("file")
+  })
+
+  it('should handle error if GCS getSignedUrl call fails for video upload', async () => {
+    // Create a channel in the DB (so the error is from the GCS layer, not from "channel not found")
+    const testChannel = await ChannelController.create({
+      name: 'Channel GCS Error',
+      userIds: [userA._id],
+    })
+
+    // Force the mock to throw an error on getSignedUrl
+    const { Storage } = require('@google-cloud/storage')
+    Storage.mockImplementation(() => ({
+      bucket: () => ({
+        file: () => ({
+          getSignedUrl: jest.fn().mockRejectedValue(new Error('GCS Error')),
+        }),
+      }),
+    }))
+    
+    const result = await ChannelController.getVideoUploadUrl(testChannel._id)
+    expect(result).toEqual({ error: 'Error generating signed URL' })
+  })
+
+  it('can acknowledge a message and notify other users', async () => {
+    // Create a channel with both users
+    const channel = await ChannelController.create({
+      name: 'Channel to Acknowledge',
+      userIds: [userA._id, userB._id],
+    })
+
+    // Create (or append) a new message in that channel from userA
+    const newMessage = await Message.create({
+      content: 'This is a test alert',
+      channelId: channel._id,
+      sender: userA._id,
+    })
+
+    // "Connect" userB’s socket so it can receive "acknowledge-alert"
+    const socketB = mock<SocketIO.Socket>()
+    UserConnections.addUserConnection(userB.id, socketB, ROLES.CITIZEN)
+
+    // userA calls acknowledgeMessage on that message
+    const acknowledged = await ChannelController.acknowledgeMessage(
+      newMessage._id,
+      userA._id,
+      channel._id
+    )
+
+    // Confirm the message in the DB was updated
+    expect(acknowledged.acknowledgedBy.length).toBe(1)
+    expect(acknowledged.acknowledgedBy[0]._id.toHexString()).toBe(userA._id.toHexString())
+    // Check that there's an acknowledgedAt
+    expect(acknowledged.acknowledgedAt).toBeDefined()
+    expect(socketB.emit).toHaveBeenCalledWith('acknowledge-alert', expect.any(Object))
+  })
+
+  it('should make a phone call between two users and notify the other user', async () => {
+    // Mock socket connections for notifications
+    const socketA = mock<SocketIO.Socket>();
+    const socketB = mock<SocketIO.Socket>();
+  
+    UserConnections.addUserConnection(userA.id, socketA, ROLES.CITIZEN);
+    UserConnections.addUserConnection(userB.id, socketB, ROLES.CITIZEN);
+  
+    // Create a direct message channel between userA and userB
+    const privateChannel = await ChannelController.create({
+      name: 'Private Channel',
+      userIds: [userA._id, userB._id],
+    });
+  
+    const result = await ChannelController.makePhoneCall(privateChannel._id, userA._id);
+  
+    expect(result.message.content).toBe(`Phone call started now between ${userA.username} and ${userB.username}.`);
+    expect(result.message.sender._id).toEqual(userA._id);
+    expect(result.message.channelId).toEqual(privateChannel._id);
+    expect(result.phoneNumber).toBe(profileB.phone);
+  
+    expect(socketB.emit).toHaveBeenCalledWith('new-message', result.message);
+  })
+
   afterAll(TestDatabase.close)
 })
+

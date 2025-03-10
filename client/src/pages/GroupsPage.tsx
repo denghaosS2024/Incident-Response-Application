@@ -54,20 +54,31 @@ const Groups: React.FC = () => {
       let isUpdate = false;
 
       if (currentGroup) {
+        // Update existing channel
         groupId = currentGroup._id;
         originalUsers = currentGroup.users
           ? currentGroup.users.map(user => typeof user === 'object' ? user._id : user)
           : [];
-        isUpdate = true;
-      }
 
-      await request('/api/channels/groups', {
-        method: 'POST',
-        body: JSON.stringify({
-          _id: isUpdate ? groupId : undefined,
-          name, description, users, owner, closed
-        }),
-      })
+        await request('/api/channels', {
+          method: 'PUT',
+          body: JSON.stringify({
+            _id: groupId,
+            name, description, users, owner, closed
+          }),
+        })
+
+        isUpdate = true;
+      } else {
+        // Create new channel
+        await request('/api/channels', {
+          method: 'POST',
+          body: JSON.stringify({
+            _id: undefined,
+            name, description, users, owner, closed
+          }),
+        })
+      }
 
       if (isUpdate) {
         const newUsers = users.filter(userId =>
@@ -105,6 +116,7 @@ const Groups: React.FC = () => {
   ) => {
     setErrorMessage('')
     try {
+      // FIXME: should delete according to currentGroup._id instead of name
       await request('/api/channels', {
         method: 'DELETE',
         body: JSON.stringify({ name }),
@@ -131,6 +143,7 @@ const Groups: React.FC = () => {
           selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
           setSelectedUsers={setSelectedUsers}
           resetBoard={resetBoard}
+          currentGroup={currentGroup}
           setCurrentGroup={setCurrentGroup} />
       </div>
       <GroupDirectory />

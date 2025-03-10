@@ -4,7 +4,6 @@ import Board from "../components/Board";
 import { Provider } from "react-redux";
 import { store } from "../app/store";
 
-
 export default {
   title: "Groups/BoardDnd",
   component: Board,
@@ -30,12 +29,11 @@ const Template: Story = (args) => {
     setGroupName("");  // Reset group name
     setDescription("");  // Reset description
   };
-  const setCurrentGroup = (group: any) => console.log('Set current group:', group);
 
   return (
     <Board
       setUsers={setUsers}
-      onGroupClick={() => {}}
+      onGroupClick={(c) => {setGroupName(c.name)}}  // just a random func to make eslint happy
       resetBoard={resetBoardState}  // Pass the mock function here
       {...args}
     />
