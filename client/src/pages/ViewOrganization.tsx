@@ -1,30 +1,38 @@
-import { Directions, FireTruck, LocalPolice, Person } from '@mui/icons-material'
 import {
+  Directions,
+  DirectionsCar,
+  ExpandMore,
+  FireExtinguisher,
+  LocalPolice,
+  Place,
+} from '@mui/icons-material'
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Avatar,
-  Badge,
   Box,
   Button,
   Card,
   CardContent,
-  Chip,
+  CardHeader,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   FormControl,
+  FormControlLabel,
   Grid,
-  InputLabel,
   List,
   ListItem,
+  ListItemAvatar,
   ListItemText,
-  MenuItem,
-  Paper,
-  Select,
-  Tab,
-  Tabs,
+  Radio,
+  RadioGroup,
+  Stack,
   Typography,
 } from '@mui/material'
+import { format } from 'date-fns'
 import React, { useEffect, useState } from 'react'
 
 // Interfaces for data models
@@ -50,6 +58,7 @@ interface Personnel {
   assignedCity?: string
   assignedVehicle?: string
   badge?: string
+  assignmentTimestamp?: string
 }
 
 interface VehicleAssignment {
@@ -60,7 +69,6 @@ interface VehicleAssignment {
 
 const ViewOrganization: React.FC = () => {
   // State management
-  const [tabValue, setTabValue] = useState(0)
   const [cars, setCars] = useState<Car[]>([])
   const [trucks, setTrucks] = useState<Truck[]>([])
   const [cities, setCities] = useState<City[]>([])
@@ -69,9 +77,10 @@ const ViewOrganization: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<Personnel | null>(null)
 
-  // Dialog states for vehicle selection
+  // Vehicle assignment dialog states
   const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false)
   const [selectedVehicleId, setSelectedVehicleId] = useState('')
+  const [selectedCity, setSelectedCity] = useState<City | null>(null)
 
   // Fetch data on component mount
   useEffect(() => {
@@ -129,13 +138,9 @@ const ViewOrganization: React.FC = () => {
     }
   }
 
-  // Handle tab change
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue)
-  }
-
-  // Open the vehicle selection dialog
-  const handleOpenVehicleDialog = () => {
+  // Open the vehicle selection dialog for a specific city
+  const handleOpenVehicleDialog = (city: City) => {
+    setSelectedCity(city)
     setVehicleDialogOpen(true)
   }
 
@@ -143,6 +148,7 @@ const ViewOrganization: React.FC = () => {
   const handleCloseVehicleDialog = () => {
     setVehicleDialogOpen(false)
     setSelectedVehicleId('')
+    setSelectedCity(null)
   }
 
   // Submit vehicle selection
@@ -167,11 +173,18 @@ const ViewOrganization: React.FC = () => {
       })
 
       if (response.ok) {
+        // Create timestamp
+        const timestamp = format(new Date(), 'MM.dd h:mma')
+
         // Update local state to reflect the change
         setPersonnel((prevPersonnel) =>
           prevPersonnel.map((person) =>
             person._id === userId
-              ? { ...person, assignedVehicle: selectedVehicleId }
+              ? {
+                  ...person,
+                  assignedVehicle: selectedVehicleId,
+                  assignmentTimestamp: timestamp,
+                }
               : person,
           ),
         )
@@ -188,28 +201,6 @@ const ViewOrganization: React.FC = () => {
       console.error('Error assigning vehicle:', error)
     }
   }
-
-  // Group personnel by city
-  const policeByCity = cities.map((city) => ({
-    city,
-    personnel: personnel.filter(
-      (p) => p.role === 'Police' && p.assignedCity === city._id,
-    ),
-  }))
-
-  const fireByCity = cities.map((city) => ({
-    city,
-    personnel: personnel.filter(
-      (p) => p.role === 'Fire' && p.assignedCity === city._id,
-    ),
-  }))
-
-  const dispatchByCity = cities.map((city) => ({
-    city,
-    personnel: personnel.filter(
-      (p) => p.role === 'Dispatch' && p.assignedCity === city._id,
-    ),
-  }))
 
   // Helper function to get vehicle name by ID
   const getVehicleName = (
@@ -238,282 +229,325 @@ const ViewOrganization: React.FC = () => {
   const canSelectVehicle =
     (userRole === 'Police' || userRole === 'Fire') && userId
 
+  // Group personnel by city for easier rendering
+  const personnelByCity = cities.map((city) => ({
+    city,
+    police: personnel.filter(
+      (p) => p.role === 'Police' && p.assignedCity === city._id,
+    ),
+    fire: personnel.filter(
+      (p) => p.role === 'Fire' && p.assignedCity === city._id,
+    ),
+    dispatch: personnel.filter(
+      (p) => p.role === 'Dispatch' && p.assignedCity === city._id,
+    ),
+  }))
+
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom align="center">
         Organization Chart
       </Typography>
 
-      <Tabs value={tabValue} onChange={handleTabChange} centered sx={{ mb: 3 }}>
-        <Tab icon={<LocalPolice />} label="Police" />
-        <Tab icon={<FireTruck />} label="Fire" />
-        <Tab icon={<Directions />} label="Dispatch" />
-      </Tabs>
-
-      {/* User's vehicle selection (if applicable) */}
-      {canSelectVehicle && (
-        <Paper elevation={3} sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5' }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={8}>
-              <Typography variant="h6">
-                Your Assignment: {getCityName(currentUser?.assignedCity)}
-              </Typography>
-              <Typography>
-                Your Vehicle:{' '}
+      {/* Display user's current assignment if applicable */}
+      {canSelectVehicle && currentUser && (
+        <Card sx={{ mb: 3, bgcolor: 'background.paper' }}>
+          <CardContent>
+            <Typography variant="h6">Your Assignment</Typography>
+            <Typography variant="body1">
+              Location: {getCityName(currentUser.assignedCity)}
+            </Typography>
+            {currentUser.assignedVehicle && (
+              <Typography variant="body1">
+                Vehicle:{' '}
                 {getVehicleName(
-                  currentUser?.assignedVehicle,
+                  currentUser.assignedVehicle,
                   userRole === 'Police' ? 'car' : 'truck',
                 )}
+                {currentUser.assignmentTimestamp && (
+                  <Typography
+                    component="span"
+                    sx={{ ml: 1, color: 'text.secondary' }}
+                  >
+                    (assigned: {currentUser.assignmentTimestamp})
+                  </Typography>
+                )}
               </Typography>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Location-Based Grouping */}
+      {personnelByCity.map(({ city, police, fire, dispatch }) => (
+        <Accordion key={city._id} defaultExpanded sx={{ mb: 2 }}>
+          <AccordionSummary
+            expandIcon={<ExpandMore />}
+            sx={{
+              backgroundColor: 'primary.light',
+              color: 'primary.contrastText',
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Place />
+              <Typography variant="h6">{city.name}</Typography>
+            </Stack>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              {/* Fire Department */}
+              {fire.length > 0 && (
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ mb: 2 }}>
+                    <CardHeader
+                      title="Fire Department"
+                      avatar={
+                        <Avatar sx={{ bgcolor: 'error.main' }}>
+                          <FireExtinguisher />
+                        </Avatar>
+                      }
+                      sx={{
+                        backgroundColor: 'error.light',
+                        color: 'error.contrastText',
+                      }}
+                    />
+                    <CardContent>
+                      <List>
+                        {fire.map((firefighter) => (
+                          <ListItem
+                            key={firefighter._id}
+                            sx={{ borderBottom: '1px solid #eee', py: 2 }}
+                          >
+                            <ListItemAvatar>
+                              <Avatar sx={{ bgcolor: 'error.main' }}>
+                                <FireExtinguisher />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={
+                                <Typography sx={{ fontWeight: 'bold' }}>
+                                  {firefighter.username}
+                                  {firefighter.assignedVehicle &&
+                                    firefighter.assignmentTimestamp && (
+                                      <Typography
+                                        component="span"
+                                        sx={{ fontWeight: 'normal', ml: 1 }}
+                                      >
+                                        (
+                                        {getVehicleName(
+                                          firefighter.assignedVehicle,
+                                          'truck',
+                                        )}{' '}
+                                        – {firefighter.assignmentTimestamp})
+                                      </Typography>
+                                    )}
+                                </Typography>
+                              }
+                              secondary={
+                                firefighter.badge
+                                  ? `Badge: ${firefighter.badge}`
+                                  : undefined
+                              }
+                            />
+
+                            {/* Vehicle Assignment for current user */}
+                            {userId === firefighter._id &&
+                              userRole === 'Fire' && (
+                                <Button
+                                  variant="outlined"
+                                  color="error"
+                                  size="small"
+                                  onClick={() => handleOpenVehicleDialog(city)}
+                                >
+                                  Assign Truck
+                                </Button>
+                              )}
+                          </ListItem>
+                        ))}
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Police Department */}
+              {police.length > 0 && (
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ mb: 2 }}>
+                    <CardHeader
+                      title="Police Department"
+                      avatar={
+                        <Avatar sx={{ bgcolor: 'primary.main' }}>
+                          <LocalPolice />
+                        </Avatar>
+                      }
+                      sx={{
+                        backgroundColor: 'primary.light',
+                        color: 'primary.contrastText',
+                      }}
+                    />
+                    <CardContent>
+                      <List>
+                        {police.map((officer) => (
+                          <ListItem
+                            key={officer._id}
+                            sx={{ borderBottom: '1px solid #eee', py: 2 }}
+                          >
+                            <ListItemAvatar>
+                              <Avatar sx={{ bgcolor: 'primary.main' }}>
+                                <DirectionsCar />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={
+                                <Typography sx={{ fontWeight: 'bold' }}>
+                                  {officer.username}
+                                  {officer.assignedVehicle &&
+                                    officer.assignmentTimestamp && (
+                                      <Typography
+                                        component="span"
+                                        sx={{ fontWeight: 'normal', ml: 1 }}
+                                      >
+                                        (
+                                        {getVehicleName(
+                                          officer.assignedVehicle,
+                                          'car',
+                                        )}{' '}
+                                        – {officer.assignmentTimestamp})
+                                      </Typography>
+                                    )}
+                                </Typography>
+                              }
+                              secondary={
+                                officer.badge
+                                  ? `Badge: ${officer.badge}`
+                                  : undefined
+                              }
+                            />
+
+                            {/* Vehicle Assignment for current user */}
+                            {userId === officer._id &&
+                              userRole === 'Police' && (
+                                <Button
+                                  variant="outlined"
+                                  color="primary"
+                                  size="small"
+                                  onClick={() => handleOpenVehicleDialog(city)}
+                                >
+                                  Assign Car
+                                </Button>
+                              )}
+                          </ListItem>
+                        ))}
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Dispatch */}
+              {dispatch.length > 0 && (
+                <Grid item xs={12}>
+                  <Card sx={{ mb: 2 }}>
+                    <CardHeader
+                      title="Dispatch"
+                      avatar={
+                        <Avatar sx={{ bgcolor: 'warning.main' }}>
+                          <Directions />
+                        </Avatar>
+                      }
+                      sx={{
+                        backgroundColor: 'warning.light',
+                        color: 'warning.contrastText',
+                      }}
+                    />
+                    <CardContent>
+                      <List>
+                        {dispatch.map((dispatcher) => (
+                          <ListItem
+                            key={dispatcher._id}
+                            sx={{ borderBottom: '1px solid #eee', py: 2 }}
+                          >
+                            <ListItemAvatar>
+                              <Avatar sx={{ bgcolor: 'warning.main' }}>
+                                <Directions />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={
+                                <Typography sx={{ fontWeight: 'bold' }}>
+                                  {dispatcher.username}
+                                </Typography>
+                              }
+                              secondary={
+                                dispatcher.badge
+                                  ? `Badge: ${dispatcher.badge}`
+                                  : undefined
+                              }
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Show message if no personnel assigned to this location */}
+              {police.length === 0 &&
+                fire.length === 0 &&
+                dispatch.length === 0 && (
+                  <Grid item xs={12}>
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      sx={{ p: 2, textAlign: 'center' }}
+                    >
+                      No personnel assigned to this location
+                    </Typography>
+                  </Grid>
+                )}
             </Grid>
-            <Grid item xs={12} sm={4} sx={{ textAlign: 'right' }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleOpenVehicleDialog}
-                startIcon={
-                  userRole === 'Police' ? <LocalPolice /> : <FireTruck />
-                }
-              >
-                Select {userRole === 'Police' ? 'Car' : 'Truck'}
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
-      )}
+          </AccordionDetails>
+        </Accordion>
+      ))}
 
-      {/* Police Organization Tab */}
-      {tabValue === 0 && (
-        <Box>
-          <Typography variant="h5" gutterBottom>
-            Police Department Organization
-          </Typography>
-
-          {policeByCity.map(({ city, personnel }) => (
-            <Card key={city._id} sx={{ mb: 2 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {city.name} Police
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-
-                {personnel.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">
-                    No police officers assigned to this city
-                  </Typography>
-                ) : (
-                  <List>
-                    {personnel.map((officer) => (
-                      <ListItem key={officer._id}>
-                        <Badge
-                          overlap="circular"
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          badgeContent={
-                            <Avatar
-                              sx={{
-                                width: 22,
-                                height: 22,
-                                bgcolor: 'primary.main',
-                              }}
-                            >
-                              <LocalPolice sx={{ fontSize: 12 }} />
-                            </Avatar>
-                          }
-                        >
-                          <Avatar sx={{ bgcolor: 'blue.main', mr: 2 }}>
-                            <Person />
-                          </Avatar>
-                        </Badge>
-                        <ListItemText
-                          primary={officer.username}
-                          secondary={`Badge: ${officer.badge || 'N/A'}`}
-                        />
-                        {officer.assignedVehicle && (
-                          <Chip
-                            icon={<LocalPolice />}
-                            label={getVehicleName(
-                              officer.assignedVehicle,
-                              'car',
-                            )}
-                            color="primary"
-                            size="small"
-                            variant="outlined"
-                          />
-                        )}
-                      </ListItem>
-                    ))}
-                  </List>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-      )}
-
-      {/* Fire Department Tab */}
-      {tabValue === 1 && (
-        <Box>
-          <Typography variant="h5" gutterBottom>
-            Fire Department Organization
-          </Typography>
-
-          {fireByCity.map(({ city, personnel }) => (
-            <Card key={city._id} sx={{ mb: 2 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {city.name} Fire Department
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-
-                {personnel.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">
-                    No firefighters assigned to this city
-                  </Typography>
-                ) : (
-                  <List>
-                    {personnel.map((firefighter) => (
-                      <ListItem key={firefighter._id}>
-                        <Badge
-                          overlap="circular"
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          badgeContent={
-                            <Avatar
-                              sx={{
-                                width: 22,
-                                height: 22,
-                                bgcolor: 'error.main',
-                              }}
-                            >
-                              <FireTruck sx={{ fontSize: 12 }} />
-                            </Avatar>
-                          }
-                        >
-                          <Avatar sx={{ bgcolor: 'error.main', mr: 2 }}>
-                            <Person />
-                          </Avatar>
-                        </Badge>
-                        <ListItemText
-                          primary={firefighter.username}
-                          secondary={`Badge: ${firefighter.badge || 'N/A'}`}
-                        />
-                        {firefighter.assignedVehicle && (
-                          <Chip
-                            icon={<FireTruck />}
-                            label={getVehicleName(
-                              firefighter.assignedVehicle,
-                              'truck',
-                            )}
-                            color="error"
-                            size="small"
-                            variant="outlined"
-                          />
-                        )}
-                      </ListItem>
-                    ))}
-                  </List>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-      )}
-
-      {/* Dispatch Tab */}
-      {tabValue === 2 && (
-        <Box>
-          <Typography variant="h5" gutterBottom>
-            Dispatch Organization
-          </Typography>
-
-          {dispatchByCity.map(({ city, personnel }) => (
-            <Card key={city._id} sx={{ mb: 2 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {city.name} Dispatch
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-
-                {personnel.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">
-                    No dispatchers assigned to this city
-                  </Typography>
-                ) : (
-                  <List>
-                    {personnel.map((dispatcher) => (
-                      <ListItem key={dispatcher._id}>
-                        <Badge
-                          overlap="circular"
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          badgeContent={
-                            <Avatar
-                              sx={{
-                                width: 22,
-                                height: 22,
-                                bgcolor: 'warning.main',
-                              }}
-                            >
-                              <Directions sx={{ fontSize: 12 }} />
-                            </Avatar>
-                          }
-                        >
-                          <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
-                            <Person />
-                          </Avatar>
-                        </Badge>
-                        <ListItemText
-                          primary={dispatcher.username}
-                          secondary={`Badge: ${dispatcher.badge || 'N/A'}`}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-      )}
-
-      {/* Vehicle Selection Dialog */}
-      <Dialog open={vehicleDialogOpen} onClose={handleCloseVehicleDialog}>
+      {/* Vehicle Assignment Dialog with Radio Buttons */}
+      <Dialog
+        open={vehicleDialogOpen}
+        onClose={handleCloseVehicleDialog}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>
-          Select Your {userRole === 'Police' ? 'Police Car' : 'Fire Truck'}
+          {userRole === 'Police'
+            ? 'Select Your Police Car'
+            : 'Select Your Fire Truck'}
         </DialogTitle>
         <DialogContent>
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel id="vehicle-select-label">
-              {userRole === 'Police' ? 'Car' : 'Truck'}
-            </InputLabel>
-            <Select
-              labelId="vehicle-select-label"
+          <FormControl component="fieldset" sx={{ mt: 2, width: '100%' }}>
+            <RadioGroup
               value={selectedVehicleId}
-              label={userRole === 'Police' ? 'Car' : 'Truck'}
               onChange={(e) => setSelectedVehicleId(e.target.value)}
             >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
               {userRole === 'Police'
                 ? cars.map((car) => (
-                    <MenuItem key={car._id} value={car._id}>
-                      {car.name}
-                    </MenuItem>
+                    <FormControlLabel
+                      key={car._id}
+                      value={car._id}
+                      control={<Radio />}
+                      label={car.name}
+                    />
                   ))
                 : trucks.map((truck) => (
-                    <MenuItem key={truck._id} value={truck._id}>
-                      {truck.name}
-                    </MenuItem>
+                    <FormControlLabel
+                      key={truck._id}
+                      value={truck._id}
+                      control={<Radio />}
+                      label={truck.name}
+                    />
                   ))}
-            </Select>
+            </RadioGroup>
           </FormControl>
         </DialogContent>
         <DialogActions>
