@@ -5,6 +5,7 @@ import "../styles/scroll.css";
 import { Droppable } from "react-beautiful-dnd";
 import IUser from '@/models/User'
 import IChannel from "@/models/Channel";
+import request from '../utils/request'
 
 
 interface ColumnProps {
@@ -81,13 +82,14 @@ const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClic
 
     useEffect(() => {
         // Fetch groups from API
-        fetch("/api/channels")
-            .then(async (res) => (await res.json()) as IChannel[])
+      request('/api/channels', {
+        method: 'GET',
+      })
             .then((data) => {
               // remove groups without current user
-              data = data.filter((channel => {
+              data = data.filter((channel: IChannel) => {
                 return channel.users.some(user => user._id === owner);
-              }))
+              })
               setGroups(data);
             })
             .catch((error) => console.error("Error fetching groups:", error));

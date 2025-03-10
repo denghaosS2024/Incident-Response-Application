@@ -7,6 +7,7 @@ import { AppDispatch } from "@/app/store";
 import { RootState } from "@/utils/types";
 import IUser from '@/models/User'
 import IChannel from "@/models/Channel";
+import request from '../utils/request'
 
 export default function Board({
     setUsers,
@@ -52,12 +53,13 @@ export default function Board({
 
     useEffect(() => {
         // Fetch groups from API
-        fetch("/api/channels")
-            .then((res) => res.json())
-            .then((data) => {
-                setGroups(data);
-            })
-            .catch((error) => console.error("Error fetching groups:", error));
+        request('/api/channels', {
+          method: 'GET',
+        })
+          .then((data) => {
+              setGroups(data);
+          })
+          .catch((error) => console.error("Error fetching groups:", error));
     }, []);
 
     const handleDragEnd = (result: DropResult) => {
