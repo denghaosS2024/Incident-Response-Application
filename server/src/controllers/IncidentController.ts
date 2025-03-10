@@ -1,7 +1,7 @@
-import Incident, { IncidentPriority, type IIncident } from "../models/Incident"
 import { Types } from 'mongoose';
-import UserConnections from "../utils/UserConnections";
+import Incident, { IncidentPriority, type IIncident } from "../models/Incident";
 import { ROLES } from "../utils/Roles";
+import UserConnections from "../utils/UserConnections";
 
 class IncidentController {
     /**
@@ -152,7 +152,12 @@ class IncidentController {
      * @returns All incidents
      */
     async getAllIncidents(): Promise<IIncident[]> {
-        return Incident.find().exec()
+        try {
+            return Incident.find().exec();
+        } catch (error) {
+            // MongoDB error
+            throw new Error(`Error getting all incidents: ${error}`);
+        }
     }
 
     /**
