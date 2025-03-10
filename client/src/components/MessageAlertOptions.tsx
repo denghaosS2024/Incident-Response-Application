@@ -32,7 +32,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
     // hardcode for test purpose
     let isIncidentCommander = false
-    if (currentUserId === '67ce465482bd0210e349ef33' || currentUserId === '67ce74f1e36ac4f372e8b576') {
+    if (currentUserId === '67cf2ea7882f62d18e656388' || currentUserId === '67cf29fba2deacf6b964a599') {
       isIncidentCommander = true;
     }
     // const isFirstResponder = true;
@@ -86,11 +86,6 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
       setAnchorEl(null)
       setOpenAlertPanel(false);
     }
-
-    const handleMayday = () => {
-      socket.emit('send-mayday', { senderId: currentUserId });
-      console.log('Mayday sent');
-    };
     
     const sendAlert = async () => {
       const message = await request(`/api/channels/${channelId}/messages`, {
