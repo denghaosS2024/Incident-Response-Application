@@ -127,8 +127,47 @@ personnelRouter.put("/vehicles", async (req: Request, res: Response) => {
     const error = err as Error;
     res.status(500).json({ error: error.message });
   }
-});
+})
 
+/**
+ * @swagger
+ * /api/personnel/vehicles/release:
+ *   put:
+ *     summary: Release a vehicle from a personnel
+ *     description: Removes a vehicle assignment from a personnel.
+ *     tags:
+ *       - Personnel
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - personnelName
+ *               - vehicleName
+ *             properties:
+ *               personnelName:
+ *                 type: string
+ *                 example: "john_doe"
+ *               vehicleName:
+ *                 type: string
+ *                 example: "Car123"
+ *     responses:
+ *       200:
+ *         description: Vehicle released successfully.
+ */
+personnelRouter.put("/vehicles/release", async (req: Request, res: Response) => {
+  try {
+    const { personnelName, vehicleName } = req.body;
+    const updatedPersonnel = await PersonnelController.releaseVehicleFromPersonnel(personnelName, vehicleName);
+    res.status(200).json(updatedPersonnel);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+}
+);
 
 
 export default personnelRouter;

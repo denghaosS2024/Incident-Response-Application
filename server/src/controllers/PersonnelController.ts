@@ -96,6 +96,37 @@ class PersonnelController {
 
     throw new Error(`Personnel with username '${personnelName}' is not a police or firefighter`);
   }
+
+  async releaseVehicleFromPersonnel(personnelName: string, vehicleName: string) {
+    const personnel = await User.findOne({ username: personnelName });
+    if (!personnel) {
+      throw new Error(`Personnel with username '${personnelName}' does not exist`);
+    }
+    if (personnel.role === ROLES.POLICE) {
+      const car = await Car.findOne({ name: vehicleName });
+      if (!car) {
+        throw new Error(`Car with name '${vehicleName}' does not exist`);
+      }
+      const updatedPersonnel = await User.findOneAndUpdate(
+        { username: personnelName },
+        { assignedCar: null, assignedVehicleTimestamp: null },
+        { new: true }
+      );
+      return updatedPersonnel;
+    } else if (personnel.role === ROLES.FIRE) {
+      const truck = await Truck.findOne({ name: vehicleName });
+      if (!truck) {
+        throw new Error(`Truck with name '${vehicleName}' does not exist`);
+      }
+      const updatedPersonnel = await User.findOneAndUpdate(
+        { username: personnelName },
+        { assignedTruck: null, assignedVehicleTimestamp: null },
+        { new: true }
+      );
+      return updatedPersonnel;
+    }
+    throw new Error(`Personnel with username '${personnelName}' is not a police or firefighter`);
+  }
 }
 
 export default new PersonnelController();
