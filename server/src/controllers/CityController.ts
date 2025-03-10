@@ -60,13 +60,14 @@ class CityController {
         assignedCity
       })),
       personnel: personnel.map(
-        ({ _id, username, assignedCity, assignedVehicleTimestamp }) => ({
+        ({ _id, username, assignedCity, assignedVehicleTimestamp, role }) => ({
           _id,
           name: username,
           assignedCity,
           ...(assignedVehicleTimestamp
             ? { assignedVehicleTimestamp }
-            : {})
+            : {}),
+          role
         })
       )
     };
