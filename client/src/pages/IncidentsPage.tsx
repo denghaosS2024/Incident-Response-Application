@@ -82,6 +82,10 @@ function IncidentsPage() {
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 
+  // Sort incidents by opening date function
+  const sortByOpeningDate = (incidents: IncidentData[]) => 
+    incidents.sort((a, b) => new Date(a.openingDate).getTime() - new Date(b.openingDate).getTime());
+
   // Group incidents for display based on role
   let incidentGroups: { [key: string]: IncidentData[] } = {}
   if (role === 'Fire' || role === 'Police') {
@@ -99,17 +103,17 @@ function IncidentsPage() {
     }
   } else {
     incidentGroups = {
-      Waiting: filteredData.filter(
-        (incident) => incident.incidentState === 'Waiting',
+      Waiting: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Waiting")
       ),
-      Triage: filteredData.filter(
-        (incident) => incident.incidentState === 'Triage',
+      Triage: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Triage")
       ),
-      Assigned: filteredData.filter(
-        (incident) => incident.incidentState === 'Assigned',
+      Assigned: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Assigned")
       ),
-      Closed: filteredData.filter(
-        (incident) => incident.incidentState === 'Closed',
+      Closed: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Closed")
       ),
     }
   }
