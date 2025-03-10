@@ -726,13 +726,6 @@ const Mapbox: React.FC<MapboxProps> = ({
           }),
         })
 
-        if (!createPinResponse.ok) {
-          console.error('Failed to create pin on backend')
-          return
-        }
-
-        console.log('Pin created successfully')
-
         const { id } = await createPinResponse.json()
 
         // Replace temporary ID with actual ID from backend
