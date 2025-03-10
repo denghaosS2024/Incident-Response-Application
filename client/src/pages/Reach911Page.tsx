@@ -15,7 +15,7 @@ import IIncident from '../models/Incident';
 import { updateIncident } from '../features/incidentSlice';
 import { AppDispatch } from '../app/store';
 import { useLocation } from 'react-router-dom';
-
+import request from '../utils/request';
 
 const Reach911Page: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>()
@@ -43,26 +43,25 @@ const Reach911Page: React.FC = () => {
         }
     }, [dispatch]);
 
-    // If autoPopulateData is true and incidentId is provided, fetch incident details and update Redux state.
-    // autoPopulateData will be true when this page is navigated from the incidentsPage to view further incident details
-    // useEffect(() => {
-    //     const fetchIncidentAndPopulate = async (id: string) => {
-    //         try {
-    //             const data = await request(`/api/incidents?incidentId=${id}`);
-    //             if (Array.isArray(data) && data.length > 0) {
-    //                 const fetchedIncident = data[0];
-    //                 dispatch(updateIncident(fetchedIncident));
-    //             } else {
-    //                 console.error("No incident found for incidentId:", id);
-    //             }
-    //         } catch (err) {
-    //             console.error("Error fetching incident details:", err);
-    //         }
-    //     };
-    //     if (autoPopulateData && incidentId) {
-    //         fetchIncidentAndPopulate(incidentId);
-    //     }
-    // }, [autoPopulateData, incidentId, dispatch]);
+    // For viewing the incident description, update the redux store with new incident details
+    useEffect(() => {
+        const fetchIncidentAndPopulate = async (id: string) => {
+            try {
+                const data = await request(`/api/incidents?incidentId=${id}`);
+                if (Array.isArray(data) && data.length > 0) {
+                    const fetchedIncident = data[0];
+                    dispatch(updateIncident(fetchedIncident));
+                } else {
+                    console.error("No incident found for incidentId:", id);
+                }
+            } catch (err) {
+                console.error("Error fetching incident details:", err);
+            }
+        };
+        if (autoPopulateData && incidentId) {
+            fetchIncidentAndPopulate(incidentId);
+        }
+    }, [autoPopulateData, incidentId, dispatch]);
 
     // Save step to localStorage whenever it changes
     useEffect(() => {
@@ -169,6 +168,13 @@ const Reach911Page: React.FC = () => {
             const cleanedIncident = { ...incident };
             if (!cleanedIncident._id) delete (cleanedIncident as any)._id;
             if (!cleanedIncident.incidentCallGroup) delete (cleanedIncident as any).incidentCallGroup;
+
+            // Fields which were populated when the incident was initially created
+            if (!cleanedIncident.caller) delete (cleanedIncident as any).caller;
+            if (!cleanedIncident.openingDate) delete (cleanedIncident as any).openingDate;
+            if (!cleanedIncident.incidentState) delete (cleanedIncident as any).incidentState;
+            if (!cleanedIncident.owner) delete (cleanedIncident as any).owner;
+            if (!cleanedIncident.commander) delete (cleanedIncident as any).commander;
     
             const requestBody = {
                 ...cleanedIncident,
