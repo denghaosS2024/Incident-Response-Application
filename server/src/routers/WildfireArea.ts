@@ -1,6 +1,23 @@
 import { Router } from 'express'
 
 import WildfireAreaController from '../controllers/WildfireAreaController'
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Incident:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: name for the selected wildfire area
+ *           example: Danger Zone 1
+ *         coordinates:
+ *           type: number[][]
+ *           description:
+ *           example: [[124.32847, -110.186261], [124.31827, -110.112861], [124.30527, -110.107161]]
+ *       required:
+ *         - coordinates
 
 /**
  * @swagger
@@ -43,10 +60,10 @@ export default Router()
    *         description: Bad request
    */
   .post('/areas', async (request, response) => {
-    const { coordinates, name } = request.body
+    const { areaId, coordinates, name } = request.body
 
     try {
-      const result = await WildfireAreaController.add(coordinates, name)
+      const result = await WildfireAreaController.add(areaId, coordinates, name)
       response.status(201).send(result)
     } catch (e) {
       const error = e as Error
@@ -175,7 +192,7 @@ export default Router()
         return
       }
 
-      const result = await WildfireAreaController.delete(request.body.areaId)
+      const result = await WildfireAreaController.delete(request.query['areaId'].toString())
       if (!result) {
         response.status(404).json({ message: 'Wildfire Area not found' })
         return

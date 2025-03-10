@@ -75,6 +75,11 @@ const Mapbox: React.FC<MapboxProps> = ({
   const fireHydrantRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const airQualityRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
 
+  // Visibility states for the map layers
+  const [pinsVisible, setPinsVisible] = useState(true)
+  const [roadblocksVisible, setRoadblocksVisible] = useState(true)
+  const [fireHydrantsVisible, setFireHydrantsVisible] = useState(true)
+
   // refs for areaClick
   const areaRef = useRef<boolean>(false)
 
@@ -116,6 +121,29 @@ const Mapbox: React.FC<MapboxProps> = ({
 
   // -------------------------------- helper function start --------------------------------
 
+  // Function to update the util layer visibility based on the markers present on the map
+  const checkForUtilMarkers = () => {
+    const hasPins = pinRef.current.size > 0
+    const hasRoadblocks = roadblockRef.current.size > 0
+    const hasHydrants = fireHydrantRef.current.size > 0
+
+    if (hasPins || hasRoadblocks || hasHydrants) {
+      // Emit event to mark the main Util button as active
+      eventEmitter.emit('selectUtil', { layer: 'Util', visible: true })
+
+      // Emit events for each util type that exists
+      if (hasPins) {
+        eventEmitter.emit('selectUtil', { layer: 'Pins', visible: true })
+      }
+      if (hasRoadblocks) {
+        eventEmitter.emit('selectUtil', { layer: 'Blocks', visible: true })
+      }
+      if (hasHydrants) {
+        eventEmitter.emit('selectUtil', { layer: 'Hydrants', visible: true })
+      }
+    }
+  }
+
   // Function to initialize the map using the given longitude and latitude.
   // This function is called once regardless of geolocation success or failure.
   const initializeMap = (lng: number, lat: number, initialZoom: number) => {
@@ -135,7 +163,9 @@ const Mapbox: React.FC<MapboxProps> = ({
       mapRef.current.on('load', () => {
         // Add a draggable marker at the current location
         mapRef.current!.setProjection({ name: 'globe' })
-        fetchAndRenderMarkers()
+        fetchAndRenderMarkers().then(() => {
+          checkForUtilMarkers()
+        })
 
         // If showMarker is true, add a draggable marker
         if (showMarker) {
@@ -669,12 +699,21 @@ const Mapbox: React.FC<MapboxProps> = ({
             <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
           `
 
-          // Attach event listeners when popup opens for non-air quality markers
-          popup.on('open', () => {
+          // Create a new popup with the updated content
+          const updatedPopup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(
+            popupContent,
+          )
+
+          // Replace the marker's popup
+          marker.setPopup(updatedPopup)
+
+          // Attach event listeners when the popup opens, like we did for air quality markers
+          updatedPopup.on('open', () => {
             const editButton = document.getElementById(`edit-pin-${id}`)
             const deleteButton = document.getElementById(`delete-pin-${id}`)
 
             if (editButton && deleteButton) {
+              // Bind event listeners
               editButton.addEventListener('click', () =>
                 handleEditPin(id, type, popupContent),
               )
@@ -782,6 +821,101 @@ const Mapbox: React.FC<MapboxProps> = ({
 
   // -------------------------------- map drop items features end --------------------------------
 
+  // -------------------------------- map layer toggle start --------------------------------
+  useEffect(() => {
+    // Toggle pins visibility at the component level
+    const togglePins = () => {
+      if (!mapRef.current) return
+      setPinsVisible((prev) => {
+        const newState = !prev
+
+        pinRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          // This is to handle the popup visibility
+          // If the popup is open and the pins are hidden, close the popup
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Pins',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
+    const toggleRoadblocks = () => {
+      if (!mapRef.current) return
+      setRoadblocksVisible((prev) => {
+        const newState = !prev
+
+        roadblockRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Blocks',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
+    const toggleFireHydrants = () => {
+      if (!mapRef.current) return
+      setFireHydrantsVisible((prev) => {
+        const newState = !prev
+
+        fireHydrantRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Hydrants',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
+    eventEmitter.on('toggle_pin', togglePins)
+    eventEmitter.on('toggle_roadblock', toggleRoadblocks)
+    eventEmitter.on('toggle_fireHydrant', toggleFireHydrants)
+
+    return () => {
+      eventEmitter.removeListener('toggle_pin', togglePins)
+      eventEmitter.removeListener('toggle_roadblock', toggleRoadblocks)
+      eventEmitter.removeListener('toggle_fireHydrant', toggleFireHydrants)
+    }
+  }, [])
+
   // -------------------------------- reach 911 features start --------------------------------
 
   // Function to update the address using Mapbox's Geocoding API based on longitude and latitude
@@ -876,41 +1010,71 @@ const Mapbox: React.FC<MapboxProps> = ({
           areaId: areaId,
           name: areaName,
         }
+      } else {
+        return
       }
 
-      console.log('Polygon coordinates:', coordinates)
-      console.log('Area ID:', areaId)
-      console.log('Area Name:', areaName)
-      console.log('bbox: ', geometry.coordinates)
+      const formattedCoordinates = coordinates.map((coord: any) =>
+        coord.map((point: any) => [point[0], point[1]]),
+      )
 
-      const centerCoord: [number, number] = coordinates[0]
-        .reduce(
-          (acc: [number, number], coord: [number, number]) => {
-            acc[0] += coord[0]
-            acc[1] += coord[1]
-            return acc
-          },
-          [0, 0],
-        )
-        .map((sum: number) => sum / coordinates[0].length) as [number, number]
-      console.log('coord:  ', centerCoord)
-      createPopup(areaId, centerCoord, areaName)
+      const bodyJson = JSON.stringify({
+        name: areaName,
+        coordinates: coordinates[0],
+        areaId: areaId,
+      })
+      console.log('POST:   ', bodyJson)
+
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: bodyJson,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Successfully posted WildfireArea:', data)
+        })
+        .catch((error) => {
+          console.error('Error posting WildfireArea:', error)
+        })
+
+      // save to backend
+
+      // console.log('Polygon coordinates:', coordinates)
+      // console.log('Area ID:', areaId)
+      // console.log('Area Name:', areaName)
+      // console.log('bbox: ', geometry.coordinates)
+
+      // console.log('coord:  ', centerCoord)
+      createPopup({ areaId, coordinates: coordinates[0], name: areaName })
     }
   }
 
-  const createPopup = (
-    areaId: string,
-    centerCoord: [number, number],
-    areaName: string,
-  ) => {
+  const createPopup = (wildfireArea: WildfireArea) => {
+    const areaId = wildfireArea.areaId
+    const coordinates = wildfireArea.coordinates
+    const areaName = wildfireArea.name
     const popupContent = document.createElement('div')
     popupContent.innerHTML = `
       <span id="area-name-display-${areaId}" style="cursor: pointer;">${areaName || 'Area ' + areaId}</span>
       <input id="area-name-input-${areaId}" type="text" value="${areaName || 'Area ' + areaId}" style="display: none; width: 90%; padding: 5px; margin-top: 5px;" />
     `
+    const centerCoord = coordinates
+      .reduce(
+        (acc, coord) => {
+          acc[0] += coord[0]
+          acc[1] += coord[1]
+          return acc
+        },
+        [0, 0],
+      )
+      .map((sum: number) => sum / coordinates.length) as [number, number]
 
+    console.log('CenterCoord: ', centerCoord)
     const popup = new mapboxgl.Popup({
-      offset: 25,
+      offset: 0,
       closeButton: false,
       className: 'transparent-popup',
     })
@@ -945,6 +1109,13 @@ const Mapbox: React.FC<MapboxProps> = ({
     popupRef.current.delete(areaId)
   }
 
+  const deleteAllPopups = () => {
+    popupRef.current.forEach((_, areaId) => {
+      deletePopup(areaId)
+    })
+    popupRef.current.clear()
+  }
+
   const deleteArea = (
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
@@ -953,7 +1124,23 @@ const Mapbox: React.FC<MapboxProps> = ({
     // delete the popup as well
     const areaId: string = e.features[0]?.id?.toString() || ''
     if (areaId == '') return
-    deletePopup(areaId)
+
+    fetch(
+      `${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas?areaId=${areaId}`,
+      {
+        method: 'DELETE',
+      },
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to delete wildfire area')
+        }
+        console.log('Successfully deleted WildfireArea:', areaId)
+        deletePopup(areaId)
+      })
+      .catch((error) => {
+        console.error('Error deleting WildfireArea:', error)
+      })
   }
 
   const updateArea = (
@@ -971,6 +1158,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     mapRef.current.on('draw.create', createArea)
     mapRef.current.on('draw.delete', deleteArea)
     mapRef.current.on('draw.update', updateArea)
+    displayAllArea()
   }
 
   const removeDrawControls = () => {
@@ -981,6 +1169,55 @@ const Mapbox: React.FC<MapboxProps> = ({
     mapRef.current.off('draw.create', createArea)
     mapRef.current.off('draw.delete', deleteArea)
     mapRef.current.off('draw.update', updateArea)
+    // remove all names
+    deleteAllPopups()
+  }
+
+  const displayAllArea = () => {
+    const fetchWildfireAreas = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`,
+        )
+        const data = await response.json()
+        setCurrArea(data)
+        data.forEach((wildfireArea: WildfireArea) => {
+          drawArea(wildfireArea)
+        })
+      } catch (error) {
+        console.error('Error fetching wildfire areas:', error)
+      }
+    }
+
+    fetchWildfireAreas()
+  }
+
+  const drawArea = (wildfireArea: WildfireArea) => {
+    const newPolygon = draw.add({
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [wildfireArea.coordinates],
+      },
+      id: wildfireArea.areaId,
+      properties: {
+        areaId: wildfireArea.areaId,
+        name: wildfireArea.name,
+      },
+    })
+    createPopup(wildfireArea)
+  }
+
+  const removeArea = () => {
+    const data = draw.getAll()
+    if (data.features.length > 0) {
+      data.features.forEach((feature) => {
+        if (feature.id) {
+          draw.delete(feature.id.toString())
+        }
+      })
+    }
+    deleteAllPopups()
   }
 
   useEffect(() => {

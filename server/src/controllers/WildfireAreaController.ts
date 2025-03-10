@@ -1,5 +1,4 @@
 // import WildfireArea, { IWildfireArea } from '../models/WildfireArea';
-import { v4 as uuidv4 } from 'uuid'
 import WildfireArea from '../models/WildfireArea'
 
 class WildfireAreaController {
@@ -10,15 +9,16 @@ class WildfireAreaController {
    * @returns The newly created wildfireArea object
    * @throws Error if the name already exists
    */
-  async add(coordinates: [number, number][], name?: string) {
-    //Check if the name is already taken
-    const wildfireArea = await WildfireArea.findOne({ name }).exec()
+  async add(areaId: string, coordinates: number[][], name?: string) {
+    // Check if the wildfire area already exists
+    let wildfireArea = await WildfireArea.findOne({ areaId }).exec()
+
     if (wildfireArea) {
-      throw new Error(`WildfireArea "${name}" already exists`)
+      throw new Error(`WildfireArea "${areaId}" already exists`)
     }
 
     const newWildfireArea = new WildfireArea({
-      areaId: uuidv4(),
+      areaId,
       coordinates,
       name,
     })
