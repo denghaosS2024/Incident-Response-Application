@@ -56,7 +56,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ channelId }) => {
         body: JSON.stringify({ fileName: "recording" }),
       });
 
-      console.log('Uploading file to:', uploadUrl);
+      console.log('Uploading voice message to:', uploadUrl);
 
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
@@ -85,7 +85,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ channelId }) => {
       );
   
       dispatch(addMessage(message));
-      console.log('File uploaded successfully:', fileUrl);
+      console.log('Voice message uploaded successfully:', fileUrl);
     } catch (error) {
       console.error("Error uploading audio:", error);
     }

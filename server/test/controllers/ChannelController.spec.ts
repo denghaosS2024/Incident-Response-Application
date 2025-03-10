@@ -269,6 +269,23 @@ describe('Channel controller', () => {
     expect(fileUrl).toContain("file")
   })
 
+  it('should return voiceMessageUrl for an existing channel for sending voice message', async () => {
+    // Create a channel in the DB
+    const testChannel = await ChannelController.create({
+      name: 'Test Channel For Sending Voice Message',
+      userIds: [userA._id],
+    })
+
+    // Call getFileUploadUrl
+    const { uploadUrl, fileUrl } = await ChannelController.getVoiceUploadUrl(
+      testChannel._id, "recording")
+
+    // Assert that the values match mock
+    expect(uploadUrl).toBe('mock-signed-url')
+    expect(fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
+    expect(fileUrl).toContain(".webm")
+  })
+
   it('should handle error if GCS getSignedUrl call fails for video upload', async () => {
     // Create a channel in the DB (so the error is from the GCS layer, not from "channel not found")
     const testChannel = await ChannelController.create({
