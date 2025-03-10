@@ -56,7 +56,15 @@ function IncidentsPage() {
         const data = await request('/api/incidents')
         setData(data)
       } catch (err: any) {
-        setError(err.message)
+        if (
+          err &&
+          err.message &&
+          err.message.includes('Unexpected end of JSON input') // NEED TO REFACTOR AND HANDLE IN BACKEND
+        ) {
+          setData([])
+        } else {
+          setError(err.message)
+        }
       } finally {
         setLoading(false)
       }
@@ -155,7 +163,7 @@ function IncidentsPage() {
         if (
           error &&
           error.message &&
-          error.message.includes('Unexpected end of JSON input')
+          error.message.includes('Unexpected end of JSON input') // NEED TO HANDLE IN BACKEND INSTEAD
         ) {
           incidentCount = 1
         } else {
