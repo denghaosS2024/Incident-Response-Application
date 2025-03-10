@@ -6,14 +6,18 @@ import FireForm from './FireForm';
 import PoliceForm from './PoliceForm';
 import { IncidentType } from '../../models/Incident';
 
-const Step3Form: React.FC = () => {
+interface Reach911Step3Props {
+    isCreatedByFirstResponder?: boolean;
+  }
+
+const Step3Form: React.FC<Reach911Step3Props> = ({ isCreatedByFirstResponder }) => {
 
     const type = useSelector((state: RootState) => state.incidentState.incident.type)
 
     const renderForm = () => {
         switch(type){
             case IncidentType.Medical:
-                return <MedicalForm></MedicalForm>
+                return <MedicalForm isCreatedByFirstResponder={isCreatedByFirstResponder} />;
             case IncidentType.Fire:
                 return <FireForm></FireForm>
             case IncidentType.Police:
@@ -21,7 +25,7 @@ const Step3Form: React.FC = () => {
             default:
                 return (
                     <>
-                        <MedicalForm></MedicalForm>
+                        <MedicalForm isCreatedByFirstResponder={isCreatedByFirstResponder} />
                         <FireForm></FireForm>
                         <PoliceForm></PoliceForm>
                     </>

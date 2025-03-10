@@ -25,7 +25,12 @@ import { AppDispatch } from '../../app/store';
 import IUser from '../../models/User';
 import Loading from '../common/Loading';
 
-const MedicalForm: React.FC = () => {
+interface MedicalFormProps {
+    isCreatedByFirstResponder?: boolean;
+}
+
+
+const MedicalForm: React.FC<MedicalFormProps> = ({ isCreatedByFirstResponder }) => {
 
     const dispatch = useDispatch<AppDispatch>();
     const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident)
@@ -96,16 +101,20 @@ const MedicalForm: React.FC = () => {
                 paddingX="32px"
             >
 
-                <Box width="100%" maxWidth="500px" my={2}>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={isPatient}
-                                onChange={(e) => onChange("isPatient", e)}
-                            />}
-                        label="I am the patient"
-                    />
-                </Box>
+                {!isCreatedByFirstResponder && (
+                    <Box width="100%" maxWidth="500px" my={2}>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={isPatient}
+                                    onChange={(e) => onChange("isPatient", e)}
+                                />
+                            }
+                            label="I am the patient"
+                        />
+                    </Box>
+                )}
+                
                 <Box sx={{ display: "flex", width: "100%", alignItems: "start", color: "rgba(0, 0, 0, 0.6)" }}> {/**TODO: Add colors to style guide */}
                     <Typography >Username:</Typography>
                 </Box>
