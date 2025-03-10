@@ -1339,15 +1339,6 @@ const Mapbox: React.FC<MapboxProps> = ({
   }
 
   useEffect(() => {
-    // temp code
-    const waitForMapToLoad = () => {
-      if (mapRef.current && mapRef.current.isStyleLoaded()) {
-        addDrawControls()
-      } else {
-        setTimeout(waitForMapToLoad, 100)
-      }
-    }
-
     const socket = SocketClient
     socket.connect()
     socket.on('map-area-update', (wildfireArea) => {
@@ -1356,8 +1347,6 @@ const Mapbox: React.FC<MapboxProps> = ({
     socket.on('map-area-delete', (areaId) => {
       removeAreaById(areaId)
     })
-
-    waitForMapToLoad()
     eventEmitter.on('area_util', () => {
       if (areaRef.current) {
         removeDrawControls()
