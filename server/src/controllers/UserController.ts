@@ -4,9 +4,9 @@
 import Channel from '../models/Channel'
 import User, { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
+import SystemGroupConfigs from "../utils/SystemDefinedGroups"
 import * as Token from '../utils/Token'
 import UserConnections from '../utils/UserConnections'
-import SystemGroupConfigs from "../utils/SystemDefinedGroups";
 
 class UserController {
   /**
@@ -106,6 +106,40 @@ class UserController {
       .sort((a, b) => a.username.localeCompare(b.username))
 
     return onlineUsers.concat(offlineUsers)
+  }
+
+  /**
+   * Get user's last known location
+   * @param userId - The ID of the user
+   * @returns The last known latitude and longitude of the user
+   */
+  async getUserLastLocation(userId: string) {
+    const user = await User.findById(userId).exec();
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    return {
+      latitude: user.previousLatitude,
+      longitude: user.previousLongitude,
+    };
+  }
+
+  /**
+   * Update user's last known location
+   * @param userId - The ID of the user
+   * @param latitude - The new latitude to store
+   * @param longitude - The new longitude to store
+   * @returns The updated user object
+   */
+  async updateUserLastLocation(userId: string, latitude: number, longitude: number) {
+    const user = await User.findById(userId).exec();
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    user.previousLatitude = latitude;
+    user.previousLongitude = longitude;
+    await user.save();
+    return user;
   }
 
   /**

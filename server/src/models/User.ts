@@ -20,7 +20,8 @@ export interface IUser extends Document {
   // phoneNumber?: string
   role: string
   assignedCity?: string | null
-
+  previousLatitude: number
+  previousLongitude: number
   comparePassword: (candidatePassword: string) => Promise<boolean>
 }
 
@@ -57,6 +58,8 @@ const UserSchema = new Schema<IUser>({
       message: 'assignedCity is only allowed for users with role Police or Fire.',
     },
   },
+  previousLatitude: { type: Number, required: false, default: 0 },
+  previousLongitude: { type: Number, required: false, default: 0 },
   __v: { type: Number, select: false },
 })
 
