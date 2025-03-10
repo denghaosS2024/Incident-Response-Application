@@ -13,6 +13,8 @@ import { Add, NavigateNext as Arrow, Settings } from '@mui/icons-material';
 import { IncidentType } from '../models/Incident';
 import request from '../utils/request';
 import { useNavigate } from 'react-router-dom';
+import { resetIncident } from '../features/incidentSlice';
+import { useDispatch } from "react-redux";
 
 interface IncidentData {
   incidentId: string;
@@ -34,6 +36,7 @@ function IncidentsPage() {
   const [userId] = useState(localStorage.getItem('username') || '');
   const [filteredData, setFilteredData] = useState<IncidentData[]>([]);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // Retrieve role from localStorage
   useEffect(() => {
@@ -97,6 +100,8 @@ function IncidentsPage() {
   // Create new incident when the + button is clicked and redirect to the first page
   const handleAddIncident = async () => {
     try {
+      dispatch(resetIncident()); // Clears previous incident from store before creating a new one
+
       const username = localStorage.getItem("username");
       if (!username) throw new Error("Username not found in local storage.");
 
