@@ -1,8 +1,8 @@
-import { Types } from 'mongoose';
+import { Query, Types } from 'mongoose';
 import request from 'supertest';
 
 import app from '../../src/app';
-import Incident from '../../src/models/Incident';
+import Incident, { IIncident } from '../../src/models/Incident';
 import * as TestDatabase from '../utils/TestDatabase';
 
 describe('Router - Incident', () => {
@@ -103,13 +103,29 @@ describe('Router - Incident', () => {
     it('should return all incidents if they exist', async () => {
         // Create an incident
         await create().expect(201);
-        
+
         const { body: incidents } = await request(app)
             .get('/api/incidents')
             .expect(200);
 
         expect(incidents.length).toBeGreaterThan(0);
     })
+
+    it('should return 500 for error in getting all incidents', async () => {
+        // Mock the find method to throw an error
+        const fakeQuery: Partial<Query<IIncident[], IIncident>> = {
+              exec: () => Promise.reject(new Error('Mocked MongoDB error')),
+            };
+        
+        // Mock Incident.find to return the fake query
+        jest.spyOn(Incident, 'find').mockReturnValue(
+            fakeQuery as Query<IIncident[], IIncident>
+        );
+            
+        await request(app)
+            .get('/api/incidents')
+            .expect(500);
+    });
 
     afterAll(TestDatabase.close)
 })
