@@ -138,7 +138,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
           </IconButton>
         )}
         <Menu open={openMenu} anchorEl={menuAnchor} onClose={closeMenu}>
-          {(role === 'Dispatch' || role === 'Police' || role === 'Fire') && (
+          {(role === 'Dispatch' || role === 'Police' || role === 'Fire' || role === 'Administrator') && (
             <MenuItem onClick={navigateToOrganization}>Organization</MenuItem>
           )}
           <MenuItem onClick={profile}>profile</MenuItem>
