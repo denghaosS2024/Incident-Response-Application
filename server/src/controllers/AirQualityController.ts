@@ -1,5 +1,6 @@
 import haversine from "haversine-distance";
 import fetch from "node-fetch";
+import AirQuality from "../models/AirQuality";
 
 const PURPLEAIR_API_URL = process.env.PURPLEAIR_API_URL + "sensors/";
 const PURPLEAIR_API_KEY = process.env.PURPLEAIR_API_KEY_READ;
@@ -39,7 +40,7 @@ class AirQualityController {
         }
 
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
         // fields: [ 'sensor_index', 'latitude', 'longitude', 'pm2.5_atm' ]
         const sensors = data.data;
 
@@ -69,6 +70,7 @@ class AirQualityController {
         const averagePm25 = totalPm25 / nearestSensors.length;
 
         return {
+            time_stamp: data.time_stamp,
             air_quality: aqiFromPM(averagePm25.toFixed(2)),
             sensor_count: nearestSensors.length,
             sensors_used: nearestSensors.map(s => ({
@@ -78,6 +80,46 @@ class AirQualityController {
                 distance_miles: s.distance.toFixed(2),
             }))
         };
+    }
+
+    // Add air quality data to the database
+    async addAirQuality(locationId: string, latitude: number, longitude: number, air_quality: number, timeStamp: number) {
+        // Check if locationId already exists
+        const existingLocation = await AirQuality.findOne({
+            locationId
+        });
+
+        // If locationId already exists, update the air_quality array
+        if (existingLocation) {
+            existingLocation.air_qualities.push({ air_quality, timeStamp });
+            await existingLocation.save();
+            return existingLocation;
+        }
+
+        // Create a new locationId with air_quality array
+        const newLocation = new AirQuality({
+            locationId,
+            latitude,
+            longitude,
+            air_qualities: [{ air_quality, timeStamp }]
+        });
+
+        await newLocation.save();
+        return newLocation;
+    }
+
+    // Delete air quality data from the database
+    async deleteAirQuality(locationId: string) {
+        const existingLocation = await AirQuality.findOne({
+            locationId
+        });
+
+        if (!existingLocation) {
+            throw new Error(`Location with ID ${locationId} not found`);
+        }
+
+        await existingLocation.deleteOne();
+        return { message: `Location ${locationId} removed successfully` };
     }
 }
 

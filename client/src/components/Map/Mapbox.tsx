@@ -33,6 +33,7 @@ interface AQIData {
   value: number | null
   level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous'
   color: string
+  timeStamp?: number
 }
 
 const Mapbox: React.FC<MapboxProps> = ({
@@ -501,7 +502,7 @@ const navigateToMarker = async (
   );
 };
 
-  // Mock function to fetch AQI data
+  // Function to fetch AQI data
   const fetchAQIData = async (lng: number, lat: number): Promise<AQIData> => {
     try {
       // Get AQI data from the backend
@@ -512,7 +513,7 @@ const navigateToMarker = async (
       // Determine AQI level and color based on value
       const aqiLevel = aqiToLevel(air_quality);
       const aqiColor = aqiLevelToColor(aqiLevel);
-      return { value: air_quality, level: aqiLevel, color: aqiColor };
+      return { value: air_quality, level: aqiLevel, color: aqiColor, timeStamp: data.timeStamp };
     } catch (error) {
       console.error('Error fetching AQI data:', error)
       return { value: null, level: 'Unknown', color: '#000000' } // Black for no data
@@ -730,6 +731,19 @@ const navigateToMarker = async (
             // For air quality markers, now we fetch the AQI data
             finalLngLat = marker.getLngLat()
             finalAqiData = await fetchAQIData(finalLngLat.lng, finalLngLat.lat)
+            // Store the AQI data of the marker to the backend
+            // const { locationId, latitude, longitude, air_quality, timeStamp } = req.body;
+            await fetch('/api/airQuality', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                locationId: id,
+                latitude: finalLngLat.lat,
+                longitude: finalLngLat.lng,
+                air_quality: finalAqiData.value,
+                timeStamp: finalAqiData?.timeStamp ?? Date.now(),
+              }),
+            })
 
             // Create specialized popup content for confirmed air quality marker
             popupContent.innerHTML = `
@@ -884,9 +898,10 @@ const navigateToMarker = async (
         fireHydrantRef.current.delete(id)
         break
       case 'airQuality':
-        marker = airQualityRef.current.get(id)
-        airQualityRef.current.delete(id)
-        break
+        marker = airQualityRef.current.get(id);
+        airQualityRef.current.delete(id);
+        await fetch(`/api/airQuality/`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locationId: id })});
+        break;
       default:
         marker = pinRef.current.get(id)
         pinRef.current.delete(id)
