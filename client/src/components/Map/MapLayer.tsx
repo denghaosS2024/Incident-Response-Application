@@ -133,8 +133,13 @@ const MapLayer: React.FC = () => {
           ...prev,
           util: visible,
         }))
+
+        // Open util dropdown if any of the util layers drops down a marker
+        if (visible) {
+          setSelectedIndex(1)
+        }
       } else {
-        // For individual util layers (like Pins, Blocks, Hydrants)
+        // Update visibility of util layers when toggled from the map
         setActiveUtil((prev) => ({
           ...prev,
           [layer]: visible,
@@ -231,6 +236,26 @@ const MapLayer: React.FC = () => {
       ...prev,
       [button]: !prev[button],
     }))
+
+    if (button === 'group') {
+      if (selectedIndex === 0) {
+        setSelectedIndex(null)
+      } else {
+        setSelectedIndex(0)
+      }
+    } else if (button === 'contacts') {
+      if (selectedIndex === 2) {
+        setSelectedIndex(null)
+      } else {
+        setSelectedIndex(2)
+      }
+    } else if (button === 'util') {
+      if (selectedIndex === 1) {
+        setSelectedIndex(null)
+      } else {
+        setSelectedIndex(1)
+      }
+    }
   }
 
   return (
@@ -260,9 +285,10 @@ const MapLayer: React.FC = () => {
             dense
             onClick={() => handleMainButtonClick('util')}
             sx={{
-              backgroundColor: activeMainButtons.util
-                ? '#F0F5FB'
-                : 'transparent',
+              backgroundColor:
+                selectedIndex === 1 || activeMainButtons.util
+                  ? '#F0F5FB'
+                  : 'transparent',
             }}
           >
             <ListItemIcon sx={{ minWidth: '32px', mr: 1 }}>
