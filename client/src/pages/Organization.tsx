@@ -394,6 +394,9 @@ const Organization: React.FC = () => {
                           display: "flex",
                           flexDirection: "column",
                           alignItems: "flex-start",
+                          border: "1px solid #ccc",
+                          marginBottom: 1,
+                          borderRadius: 1,
                         }}
                       >
                         <Box
@@ -405,20 +408,14 @@ const Organization: React.FC = () => {
                           }}
                         >
                           <ListItemText primary={city.name} />
-                          <IconButton
-                            edge="end"
-                            onClick={() => removeCity(city._id)}
-                          >
+                          <IconButton edge="end" onClick={() => removeCity(city._id)}>
                             <Delete />
                           </IconButton>
                         </Box>
 
                         {/* CityContainer for assigned vehicles & personnel */}
                         <Box>
-                          <CityContainer
-                            cityName={city.name}
-                            refreshTrigger={refreshTrigger}
-                          />
+                          <CityContainer cityName={city.name} refreshTrigger={refreshTrigger} />
                         </Box>
 
                         {provided.placeholder}
@@ -427,6 +424,7 @@ const Organization: React.FC = () => {
                   </Droppable>
                 ))}
               </List>
+
             </CardContent>
           </Card>
         </Box>

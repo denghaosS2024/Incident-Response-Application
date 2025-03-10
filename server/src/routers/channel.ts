@@ -218,25 +218,22 @@ export default Router()
 
 
   /**
-* @swagger
-* /api/channels:
-*   post:
-*     summary: Create group
-*     description: Create a new group or update an existing group
-*     tags: [Channels]
-*     responses:
-*       200:
-*         description: Channel created
-*         content:
-*           application/json:
-*             schema:
-*               type: array
-*               items:
-*                 $ref: '#/components/schemas/IChannel'
-*       500:
-*         description: Server error
-*/
-
+   * @swagger
+   * /api/channels:
+   *   post:
+   *     summary: Create channel
+   *     description: Create a new channel
+   *     tags: [Channels]
+   *     responses:
+   *       200:
+   *         description: Channel created
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Channel'
+   *       500:
+   *         description: Server error
+   */
   /**
    * Create a new channel
    * @route POST /api/channels
@@ -273,24 +270,22 @@ export default Router()
   })
 
     /**
-  * @swagger
-  * /api/channels:
-  *   put:
-  *     summary: Update group
-  *     description: Update an existing group
-  *     tags: [Groups]
-  *     responses:
-  *       200:
-  *         description: Group updated successfully
-  *         content:
-  *           application/json:
-  *             schema:
-  *               type: array
-  *               items:
-  *                 $ref: '#/components/schemas/IChannel'
-  *       500:
-  *         description: Server error
-  */
+     * @swagger
+     * /api/channels:
+     *   put:
+     *     summary: Update channel
+     *     description: Update an existing channel
+     *     tags: [Channels]
+     *     responses:
+     *       200:
+     *         description: Group updated successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Channel'
+     *       500:
+     *         description: Server error
+     */
     /**
      * Update existing channel
      * @route PUT /api/channels
@@ -594,20 +589,20 @@ export default Router()
    *       404:
    *         description: Sender or channel not found.
    */
-.post('/:id/phone-call', async (request, response) => {    
-  const senderId = new Types.ObjectId(      
-    request.headers['x-application-uid'] as string,    
-  )    
-  const channelId = new Types.ObjectId(request.params.id)    
-  try {      
-    const result = await ChannelController.makePhoneCall(        
-      channelId,        
-      senderId,      
-    )      
-    response.send(result)    
-  } catch (e) {      
-    const error = e as Error      
-    response.status(404).send({ message: error.message })    
+.post('/:id/phone-call', async (request, response) => {
+  const senderId = new Types.ObjectId(
+    request.headers['x-application-uid'] as string,
+  )
+  const channelId = new Types.ObjectId(request.params.id)
+  try {
+    const result = await ChannelController.makePhoneCall(
+      channelId,
+      senderId,
+    )
+    response.send(result)
+  } catch (e) {
+    const error = e as Error
+    response.status(404).send({ message: error.message })
   }
 })
   /**
@@ -791,7 +786,7 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
-  
+
   .post('/:id/voice-upload-url', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const fileName = request.body.fileName
