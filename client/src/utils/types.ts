@@ -6,8 +6,8 @@
 
 import IIncident from '@/models/Incident'
 import IMessage from '@/models/Message'
+import { IProfile } from '@/models/Profile'
 import IUser from '@/models/User'
-import {IProfile} from '@/models/Profile'
 
 /**
  * Interface representing a collection of messages, indexed by channel ID
@@ -46,9 +46,9 @@ export interface RootState {
 }
 
 export interface IncidentsState {
-  incident: IIncident,
-  loading: false, // Indicates if a incident operation is in progress
-  error: null, // Stores any error that occurred during incident operations
+  incident: IIncident
+  loading: false // Indicates if a incident operation is in progress
+  error: null // Stores any error that occurred during incident operations
 }
 
 /**
@@ -87,15 +87,18 @@ export interface PoliceQuestions {
 }
 
 export interface ProfileState {
-  profile: IProfile | null;
-  loading: boolean;
-  error: string | null;
+  profile: IProfile | null
+  loading: boolean
+  error: string | null
 }
 
-export interface WildfireArea{
-  areaId: string;
-  coordinates: [number, number][];
-  name?: string;
+export interface WildfireArea {
+  areaId: string
+  coordinates: number[][]
+  name?: string
 }
 
-export interface EmergencyQuestions extends MedicalQuestions, FireQuestions, PoliceQuestions { }
+export interface EmergencyQuestions
+  extends MedicalQuestions,
+    FireQuestions,
+    PoliceQuestions {}

@@ -52,6 +52,16 @@ export const FileMessage: Story = {
   },
 }
 
+export const AudioMessage: Story = {
+  args: {
+    message: { 
+      sender: { username: 'Jane Doe' },
+      timestamp: '5 minutes ago',
+      content: 'https://storage.googleapis.com/sem-video-bucket/uploads/sample-voice.webcam',
+    },
+  },
+}
+
 export const AcknowledgeAlertVariant: Story = {
   args: {
     message: {

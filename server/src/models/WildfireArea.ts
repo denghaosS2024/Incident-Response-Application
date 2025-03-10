@@ -11,7 +11,7 @@ import mongoose, { Document, Schema } from 'mongoose'
  */
 export interface IWildfireArea extends Document {
   areaId: string
-  coordinates: [number, number][]
+  coordinates: number[][]
   name?: string
   containment?: number
   last_updated?: Date
