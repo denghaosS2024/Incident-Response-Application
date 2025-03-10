@@ -251,6 +251,34 @@ describe('Router - Channel', () => {
     expect(body.fileUrl).toContain("file")
   })
 
+  it('returns a valid voice message upload URL for an existing channel', async () => {
+    const {
+      body: { _id },
+    } = await request(app)
+      .post('/api/channels')
+      .send({
+        name: 'Test Channel For Upload Voice Message',
+        users: [userA],
+      })
+      .expect(200)
+    
+    // Post necessary file information to get url
+    const { body } = await request(app)
+      .post(`/api/channels/${_id}/voice-upload-url`)
+      .send({fileName:"recording"})
+      .expect(200)
+
+    // Returns uploadUrl and fileUrl
+    expect(body).toHaveProperty('uploadUrl')
+    expect(body).toHaveProperty('fileUrl')
+    // We mocked the getSignedUrl to return "mock-signed-url"
+    expect(body.uploadUrl).toBe('mock-signed-url')
+    // And fileUrl typically starts with https://storage.googleapis.com/
+    expect(body.fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
+    // And fileUrl contains file extension
+    expect(body.fileUrl).toContain(".webm")
+  })
+
 
   it('should initiate a phone call between two users and return the phone number', async () => {
 
