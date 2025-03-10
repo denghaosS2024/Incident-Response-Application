@@ -445,7 +445,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
   }
 
-  const accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA';
+  const accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA';
 
 const navigateToMarker = async (
   map: mapboxgl.Map | null,
@@ -535,7 +535,7 @@ const navigateToMarker = async (
 
   useEffect(() => {
     mapboxgl.accessToken =
-      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA'
+      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
 
     // If geolocation is available, get the user's current position
     if ('geolocation' in navigator) {
@@ -548,12 +548,7 @@ const navigateToMarker = async (
           initializeMap(longitude, latitude, 1)
         },
         (error) => {
-          console.error('Geolocation error:', error)
-          setMapError(
-            'Could not access your location. Please enter your address manually.',
-          )
-          // Use default coordinates if geolocation fails
-          initializeMap(-74.5, 40, 14)
+          initializeMap(-122.059640, 37.410271, 14)
         },
       )
     } else {

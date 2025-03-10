@@ -23,7 +23,7 @@ import getRoleIcon from '../common/RoleIcon'
 
 const MapLayer: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(3)
-  const [isVisible, setIsVisible] = useState<boolean>(true)
+  const [isVisible, setIsVisible] = useState<boolean>(false)
   const [navbarHeight, setNavbarHeight] = useState<number>(56)
   const [tabbarHeight, setTabbarHeight] = useState<number>(48)
   const [isFullPage, setIsFullPage] = useState<boolean>(false)
