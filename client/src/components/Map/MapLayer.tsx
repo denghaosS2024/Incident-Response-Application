@@ -154,6 +154,11 @@ const MapLayer: React.FC = () => {
     }
   }, [])
 
+  // Auto-emit "you" clicked event on component mount
+  useEffect(() => {
+    eventEmitter.emit('you_button_clicked', true)
+  }, [])
+
   const handleListItemClick = (
     event: React.MouseEvent<HTMLDivElement>,
     index: number,
@@ -232,10 +237,20 @@ const MapLayer: React.FC = () => {
   const handleMainButtonClick = (
     button: 'group' | 'util' | 'contacts' | 'you',
   ) => {
-    setActiveMainButtons((prev) => ({
-      ...prev,
-      [button]: !prev[button],
-    }))
+    setActiveMainButtons((prev) => {
+      const newState = {
+        ...prev,
+        [button]: !prev[button],
+      }
+
+      // Emit you button clicked event
+      // new state is true if the button is clicked and false otherwise
+      if (button === 'you') {
+        eventEmitter.emit('you_button_clicked', newState.you)
+      }
+
+      return newState
+    })
 
     if (button === 'group') {
       if (selectedIndex === 0) {
