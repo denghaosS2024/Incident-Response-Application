@@ -16,6 +16,7 @@ const Groups: React.FC = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | ''>('')
   const [currentGroup, setCurrentGroup] = useState<IChannel | null>(null);
+  const uid = localStorage.getItem('uid') || ''
 
   // create or update channel
   const newGroup: IAddGroupFormProps['createChannel'] = async ({
@@ -114,11 +115,45 @@ const Groups: React.FC = () => {
     }
   }
 
+  const removeCurrentUserFromGroup: IAddGroupFormProps['removeCurrentUserFromGroup'] = async () => {
+    setErrorMessage('')
+
+    if (currentGroup) {
+      const originalUsers = currentGroup.users
+        ? currentGroup.users.map(user => typeof user === 'object' ? user._id : user)
+        : [];
+      const usersWithoutCurrent = originalUsers.filter(userId => userId !== uid)
+
+      try {
+        await request('/api/channels', {
+          method: 'PUT',
+          body: JSON.stringify({
+            _id: currentGroup._id,
+            name: currentGroup.name,
+            description: currentGroup.description,
+            users: usersWithoutCurrent,
+            owner: currentGroup.owner._id,
+            closed: currentGroup.closed,
+          }),
+        })
+      } catch (e) {
+        const error = e as IRequestError
+        setErrorMessage(`Error: ${error.message}`)
+      }
+
+      setSuccessMessage('You are removed from the selected group.')
+      setOpenSnackbar(true)
+    }
+  }
+
 
   return (
     <Container>
       <div className={style.centeredForm}>
-        <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup}
+        <AddGroupForm
+          createChannel={newGroup}
+          deleteChannel={deleteGroup}
+          removeCurrentUserFromGroup={removeCurrentUserFromGroup}
           currentGroup={currentGroup}
           setCurrentGroup={setCurrentGroup} />
       </div>
