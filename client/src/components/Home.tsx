@@ -25,21 +25,21 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Messages', link: '/messages', icon: <Message /> },
     { text: 'Contacts', link: '/contacts', icon: <Contact /> },
     { text: 'Groups', link: '/groups', icon: <Groups2Icon /> },
-    { text: 'Maps', link: '/maps', icon: <LocationIcon /> },
+    { text: 'Map', link: '/map', icon: <LocationIcon /> },
     { text: '911', link: '/reach911' }
   ],
   Dispatch: [
     { text: 'Messages', link: '/messages', icon: <Message /> },
     { text: 'Contacts', link: '/contacts', icon: <Contact /> },
     { text: 'Groups', link: '/groups', icon: <Groups2Icon /> },
-    { text: 'Maps', link: '/maps', icon: <LocationIcon /> },
+    { text: 'Map', link: '/map', icon: <LocationIcon /> },
     { text: 'Incidents', link: '/incidents', icon: <ExclamationIcon /> },
   ],
   Police: [
     { text: 'Messages', link: '/messages', icon: <Message /> },
     { text: 'Contacts', link: '/contacts', icon: <Contact /> },
     { text: 'Groups', link: '/groups', icon: <Groups2Icon /> },
-    { text: 'Maps', link: '/maps', icon: <LocationIcon /> },
+    { text: 'Map', link: '/map', icon: <LocationIcon /> },
     { text: 'Incidents', link: '/incidents', icon: <ExclamationIcon /> },
     // please add route here
     { text: 'Resource Allocation', link: '/' },
@@ -50,7 +50,7 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Messages', link: '/messages', icon: <Message /> },
     { text: 'Contacts', link: '/contacts', icon: <Contact /> },
     { text: 'Groups', link: '/groups', icon: <Groups2Icon /> },
-    { text: 'Maps', link: '/maps', icon: <LocationIcon /> },
+    { text: 'Map', link: '/map', icon: <LocationIcon /> },
     { text: 'Incidents', link: '/incidents', icon: <ExclamationIcon /> },
     // please add route here
     { text: 'Resource Allocation', link: '/' },
@@ -61,9 +61,9 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Messages', link: '/messages', icon: <Message /> },
     { text: 'Contacts', link: '/contacts', icon: <Contact /> },
     { text: 'Groups', link: '/groups', icon: <Groups2Icon /> },
-    { text: 'Maps', link: '/maps', icon: <LocationIcon /> },
-    // please add route here
-    { text: 'Patients', link: '/nurse', icon: <BedIcon /> },
+    { text: 'Map', link: '/map', icon: <LocationIcon /> },
+    // please add route here, now there will be no navigate
+    { text: 'Patients', link: '/', icon: <BedIcon /> },
   ]
 
 };
