@@ -1,5 +1,6 @@
 import haversine from "haversine-distance";
 import fetch from "node-fetch";
+import { Server as SocketIOServer } from "socket.io";
 import AirQuality from "../models/AirQuality";
 
 const PURPLEAIR_API_URL = process.env.PURPLEAIR_API_URL + "sensors/";
@@ -9,6 +10,93 @@ const PURPLEAIR_API_KEY = process.env.PURPLEAIR_API_KEY_READ;
 const location_type = 0;
 
 class AirQualityController {
+    private updateIntervals: Map<string, NodeJS.Timeout> = new Map();
+    private io: SocketIOServer | null = null;
+    
+    constructor() {
+        // Initialize updates for existing locations when server starts
+        this.initializeUpdates();
+    }
+
+    // Set Socket.io instance
+    setSocketIO(io: SocketIOServer) {
+        this.io = io;
+        console.log('Socket.io integrated with AirQualityController');
+    }
+    
+    // Initialize periodic updates for all locations in the database
+    async initializeUpdates() {
+        try {
+            const locations = await AirQuality.find({});
+            for (const location of locations) {
+                this.startPeriodicUpdates(location.locationId, location.latitude, location.longitude);
+            }
+            console.log(`Initialized air quality updates for ${locations.length} locations`);
+        } catch (error) {
+            console.error('Failed to initialize air quality updates:', error);
+        }
+    }
+    
+    // Start periodic updates for a location
+    private startPeriodicUpdates(locationId: string, latitude: number, longitude: number) {
+        // Clear any existing interval for this location
+        this.stopPeriodicUpdates(locationId);
+        
+        // Create a new interval that updates every 10 minutes
+        const interval = setInterval(async () => {
+            try {
+                // Get fresh air quality data
+                const airQualityData = await this.getAirQuality(latitude, longitude);
+                const currentTime = airQualityData?.time_stamp || Date.now();
+                
+                // Update the database with new reading
+                const location = await AirQuality.findOne({ locationId });
+                if (location) {
+                    location.air_qualities.push({
+                        air_quality: airQualityData.air_quality,
+                        timeStamp: currentTime
+                    });
+                    await location.save();
+
+                    // Notify clients via Socket.io
+                    this.notifyAirQualityUpdate(
+                        locationId, 
+                        airQualityData.air_quality, 
+                        currentTime
+                    );
+                    
+                    console.log(`Updated air quality for ${locationId}: ${airQualityData.air_quality}`);
+                }
+            } catch (error) {
+                console.error(`Failed to update air quality for ${locationId}:`, error);
+            }
+        }, 10 * 60 * 1000); // 10 minutes in milliseconds
+        
+        // Store the interval
+        this.updateIntervals.set(locationId, interval);
+    }
+
+    // Notify clients of air quality update via Socket.io
+    private notifyAirQualityUpdate(locationId: string, air_quality: number, timestamp: number) {
+        if (this.io) {
+            this.io.emit('airQualityUpdate', {
+                locationId,
+                air_quality,
+                timestamp,
+            });
+            console.log(`Emitted air quality update for ${locationId} via Socket.io`);
+        }
+    }
+        
+    // Stop periodic updates for a location
+    private stopPeriodicUpdates(locationId: string) {
+        const interval = this.updateIntervals.get(locationId);
+        if (interval) {
+            clearInterval(interval);
+            this.updateIntervals.delete(locationId);
+        }
+    }
+
     async getAirQuality(latitude: number, longitude: number) {
         // Ensure API key is defined
         if (!PURPLEAIR_API_KEY) {
@@ -93,6 +181,13 @@ class AirQualityController {
         if (existingLocation) {
             existingLocation.air_qualities.push({ air_quality, timeStamp });
             await existingLocation.save();
+            
+            // Notify clients via Socket.io
+            this.notifyAirQualityUpdate(locationId, air_quality, timeStamp);
+            
+            // Start periodic updates for this location
+            this.startPeriodicUpdates(locationId, latitude, longitude);
+            
             return existingLocation;
         }
 
@@ -105,6 +200,13 @@ class AirQualityController {
         });
 
         await newLocation.save();
+        
+        // Notify clients via Socket.io
+        this.notifyAirQualityUpdate(locationId, air_quality, timeStamp);
+        
+        // Start periodic updates for this new location
+        this.startPeriodicUpdates(locationId, latitude, longitude);
+        
         return newLocation;
     }
 
@@ -118,8 +220,20 @@ class AirQualityController {
             throw new Error(`Location with ID ${locationId} not found`);
         }
 
+        // Stop periodic updates for this location
+        this.stopPeriodicUpdates(locationId);
+        
         await existingLocation.deleteOne();
         return { message: `Location ${locationId} removed successfully` };
+    }
+    
+    // Method to clean up all intervals (useful for server shutdown)
+    stopAllUpdates() {
+        for (const [locationId, interval] of this.updateIntervals.entries()) {
+            clearInterval(interval);
+            console.log(`Stopped updates for location ${locationId}`);
+        }
+        this.updateIntervals.clear();
     }
 }
 

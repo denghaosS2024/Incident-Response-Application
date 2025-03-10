@@ -1514,6 +1514,107 @@ const navigateToMarker = async (
     return `Area ${newAreaNum}`
   }
 
+  // Function to update an air quality marker when new data is received
+  const updateAirQualityMarker = (locationId: string, newAqi: number, timestamp: number) => {
+    // Find the marker in our reference
+    const marker = airQualityRef.current.get(locationId);
+    if (!marker) {
+      console.log(`No air quality marker found for locationId: ${locationId}`);
+      return;
+    }
+
+    // Create new AQI data object
+    const aqiLevel = aqiToLevel(newAqi);
+    const aqiColor = aqiLevelToColor(aqiLevel);
+    const aqiData = {
+      value: newAqi,
+      level: aqiLevel,
+      color: aqiColor,
+      timeStamp: timestamp
+    };
+
+    // Update marker appearance
+    const newElement = createCustomMarker('airQuality', aqiData);
+    marker.getElement().innerHTML = newElement.innerHTML;
+
+    // Update the popup content
+    const popup = marker.getPopup();
+    if (!popup) return;
+    
+    const popupElement = popup.getElement();
+    
+    if (popupElement && popup.isOpen()) {
+      // Only update content if popup is currently open
+      const popupContent = document.createElement('div');
+      
+      // Safely get the address element and its text content
+      const addressElement = popupElement.querySelector(`#popup-address-${locationId}`);
+      const addressText = addressElement?.textContent || '';
+      
+      popupContent.innerHTML = `
+        <div style="min-width: 200px;">
+          <div style="background-color: #f0f0f0; padding: 8px; margin-bottom: 8px;">
+            <p style="margin: 0;">US EPA PM2.5 AQI is now ${newAqi}</p>
+            <p style="margin: 0; font-size: 0.8em;">Updated: ${new Date(timestamp * 1000).toLocaleString()}</p>
+          </div>
+          <div style="background-color: ${aqiColor}; color: white; padding: 8px; margin-bottom: 8px;">
+            <p style="margin: 0 0 5px 0;">Air quality is ${aqiLevel}</p>
+            <p style="margin: 0 0 5px 0;">Measurement quality is high</p>
+            <p style="margin: 0 0 5px 0;">Evolution over the last 24 hours:</p>
+            <div id="trending-icon-${locationId}" style="cursor: pointer;">
+              ${ReactDOMServer.renderToString(<TrendingUpIcon style={{ color: 'white' }} />)}
+            </div>
+          </div>
+          ${addressText ? `<p id="popup-address-${locationId}">${addressText}</p>` : ''}
+          <div style="display: flex; justify-content: space-between;">
+            <button id="edit-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+            <button id="delete-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+            <button id="navigate-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
+          </div>
+        </div>
+      `;
+
+      // Replace popup content
+      popup.setDOMContent(popupContent);
+      
+      // Reattach event listeners
+      const editButton = document.getElementById(`edit-pin-${locationId}`);
+      const deleteButton = document.getElementById(`delete-pin-${locationId}`);
+      const navigateButton = document.getElementById(`navigate-pin-${locationId}`);
+      const trendingIcon = document.getElementById(`trending-icon-${locationId}`);
+
+      if (editButton && deleteButton && navigateButton) {
+        editButton.addEventListener('click', () => 
+          handleEditPin(locationId, 'airQuality', popupContent)
+        );
+        
+        deleteButton.addEventListener('click', async () => 
+          await handleRemovePin(locationId, 'airQuality')
+        );
+        
+        navigateButton.addEventListener("click", () => {
+          if (mapRef.current) {
+            setIsNaviLoaded(true);
+            navigateToMarker(
+              mapRef.current, 
+              marker.getLngLat().lng, 
+              marker.getLngLat().lat, 
+              () => setIsNaviLoaded(false)
+            );
+          }
+        });
+      }
+
+      if (trendingIcon) {
+        trendingIcon.addEventListener('click', () => {
+          alert(`Showing AQI trends for the last 24 hours. Current value: ${newAqi}`);
+        });
+      }
+    }
+    
+    console.log(`Updated air quality marker ${locationId} with new AQI: ${newAqi}`);
+  };
+
   useEffect(() => {
     const socket = SocketClient
     socket.connect()
@@ -1522,6 +1623,10 @@ const navigateToMarker = async (
     })
     socket.on('map-area-delete', (areaId) => {
       removeAreaById(areaId)
+    })
+    // Add air quality update listener
+    socket.on('airQualityUpdate', (data) => {
+      updateAirQualityMarker(data.locationId, data.air_quality, data.timestamp)
     })
     eventEmitter.on('area_util', () => {
       if (areaRef.current) {
@@ -1535,6 +1640,7 @@ const navigateToMarker = async (
     return () => {
       eventEmitter.removeAllListeners('area_util')
       socket.off('updataGroups')
+      socket.off('airQualityUpdate') // Clean up the listener
     }
   }, [])
 

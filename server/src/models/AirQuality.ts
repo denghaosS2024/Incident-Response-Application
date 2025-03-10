@@ -14,7 +14,7 @@ const AirQualitySchema: Schema = new Schema(
     {
         locationId: { type: String, required: true },
         air_qualities: [{
-            air_quality: { type: Number, required: true },
+            air_quality: { type: Number || String, required: true },
             timeStamp: { type: Date, required: true }
         }]
     },
