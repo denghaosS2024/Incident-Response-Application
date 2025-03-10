@@ -5,7 +5,7 @@
  */
 
 import bcrypt from 'bcrypt'
-import mongoose, { Document, Schema, Model } from 'mongoose'
+import mongoose, { Document, Model, Schema } from 'mongoose'
 
 import ROLES from '../utils/Roles'
 
@@ -19,6 +19,7 @@ export interface IUser extends Document {
   password?: string
   // phoneNumber?: string
   role: string
+  assignedCity?: string | null
 
   comparePassword: (candidatePassword: string) => Promise<boolean>
 }
@@ -37,6 +38,25 @@ const UserSchema = new Schema<IUser>({
   password: { type: String, required: true, select: false },
   // phoneNumber: { type: String, required: true },
   role: { type: String, required: true, default: ROLES.CITIZEN },
+  /**
+   * assignedCity should only be used if role is 'Police' or 'Fire'.
+   * Default is null. When role is anything else, assignedCity must remain null.
+   */
+  assignedCity: {
+    type: String,
+    default: null,
+    validate: {
+      validator: function (this: IUser, val: string | null) {
+        // If role is Police or Fire, assignedCity can be any string (including null).
+        // Otherwise, assignedCity must be null.
+        if (this.role === ROLES.POLICE || this.role === ROLES.FIRE) {
+          return true
+        }
+        return val === null
+      },
+      message: 'assignedCity is only allowed for users with role Police or Fire.',
+    },
+  },
   __v: { type: Number, select: false },
 })
 

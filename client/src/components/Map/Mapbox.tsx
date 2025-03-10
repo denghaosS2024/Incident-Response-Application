@@ -230,7 +230,6 @@ const Mapbox: React.FC<MapboxProps> = ({
     markerElement.style.display = 'flex'
     markerElement.style.alignItems = 'center'
     markerElement.style.justifyContent = 'center'
-    markerElement.style.position = 'relative' // Added for absolute positioning of AQI value
 
     // Choose the correct Material UI icon
     let iconComponent

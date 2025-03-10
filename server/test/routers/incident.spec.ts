@@ -1,12 +1,12 @@
-import request from 'supertest';
 import { Types } from 'mongoose';
+import request from 'supertest';
 
 import app from '../../src/app';
+import Incident from '../../src/models/Incident';
 import * as TestDatabase from '../utils/TestDatabase';
 
 describe('Router - Incident', () => {
     beforeAll(TestDatabase.connect)
-
     const username: string = 'Test'
 
     const create = () => {
@@ -87,6 +87,29 @@ describe('Router - Incident', () => {
             .send({ channelId: 'invalid-id' })
             .expect(400);
     });
+
+    it('should return 204 for get all incidents if none exist', async () => {
+        // TODO: Tech Debt - Clear all incidents before running this test manually for now 
+        // There is some dependency between tests rn because when each test create an incident,
+        // it is not being deleted after the test is done
+
+        await Incident.deleteMany({});
+
+        await request(app)
+            .get('/api/incidents')
+            .expect(204);
+    });
+
+    it('should return all incidents if they exist', async () => {
+        // Create an incident
+        await create().expect(201);
+        
+        const { body: incidents } = await request(app)
+            .get('/api/incidents')
+            .expect(200);
+
+        expect(incidents.length).toBeGreaterThan(0);
+    })
 
     afterAll(TestDatabase.close)
 })

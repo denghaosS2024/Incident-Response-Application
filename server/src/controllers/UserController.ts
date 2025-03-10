@@ -6,6 +6,7 @@ import User, { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
 import * as Token from '../utils/Token'
 import UserConnections from '../utils/UserConnections'
+import SystemGroupConfigs from "../utils/SystemDefinedGroups";
 
 class UserController {
   /**
@@ -35,10 +36,21 @@ class UserController {
         role,
       }).save()
 
-      // Subscribe the new user to the public channel
-      const publicChannel = await Channel.getPublicChannel()
-      publicChannel.users.push(user._id)
-      publicChannel.save()
+      // Subscribe the new user to the appropriate system defined groups
+      for (const config of SystemGroupConfigs) {
+        if (config.participantRole.includes(role)) {
+          const channel = await Channel.findOne({ name: config.name }).exec()
+
+          if (channel) {
+            channel.users.push(user._id);
+            await channel.save();
+            console.log(`User ${username} added to system group: ${config.name}`)
+          } else {
+            console.log(`System group ${config.name} not found for user ${username}`)
+          }
+        }
+      }
+
     }
 
     // NOTE: password is still visible in the user instance.
@@ -105,7 +117,7 @@ class UserController {
   // TO-DO: Write Unit Test
   async findUserByUsername(username: string) {
     const query = { username };
-    
+
     const user = await User.findOne(query).exec();
     if (!user) {
         return null;

@@ -234,28 +234,27 @@ export default Router()
 
   /**
    * @swagger
-   * /:
+   * /api/incidents/:
    *   get:
-   *     summary: Retrieve Incidents
+   *     summary: Get all incidents or incident based on specified query parameter
    *     tags: [Incidents]
    *     description: >
-   *       Retrieves incidents based on the query parameters. If **caller** is provided,
-   *       returns incidents created by that caller. If **incidentId** is provided,
-   *       returns details for the specific incident. If no query parameters are provided,
-   *       returns all incidents.
+   *       Returns an array of incidents. If a **caller** query parameter is provided, the endpoint returns
+   *       all incidents created by that caller. If an **incidentId** query parameter is provided, it returns
+   *       details for the specific incident. If no query parameters are provided, it returns all incidents.
    *     parameters:
    *       - in: query
    *         name: caller
+   *         required: false
    *         schema:
    *           type: string
-   *         required: false
-   *         description: Identifier of the caller to filter incidents.
+   *         description: Filter incidents by caller.
    *       - in: query
    *         name: incidentId
+   *         required: false
    *         schema:
    *           type: string
-   *         required: false
-   *         description: Unique identifier of the incident.
+   *         description: Retrieve incident details by incidentId.
    *     responses:
    *       200:
    *         description: Incidents retrieved successfully.
@@ -265,8 +264,8 @@ export default Router()
    *               type: array
    *               items:
    *                 $ref: '#/components/schemas/Incident'
-   *       404:
-   *         description: No incidents found for the given incident Id.
+   *       204:
+   *         description: No incidents found.
    *         content:
    *           application/json:
    *             schema:
@@ -275,8 +274,8 @@ export default Router()
    *                 message:
    *                   type: string
    *                   example: No incidents found
-   *       204:
-   *         description: No incidents found as there are no incidents.
+   *       404:
+   *         description: No incident found for the given incidentId.
    *         content:
    *           application/json:
    *             schema:
@@ -296,7 +295,6 @@ export default Router()
    *                   type: string
    *                   example: Internal server error
    */
-
   .get('/', async (request, response) => {
     try {
       const { caller } = request.query

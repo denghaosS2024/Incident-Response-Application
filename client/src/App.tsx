@@ -9,6 +9,7 @@ import {
   PermContactCalendar,
   LocalPolice as PoliceIcon,
 } from '@mui/icons-material'
+import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import FmdBadRoundedIcon from '@mui/icons-material/FmdBadRounded'
 import Groups2Icon from '@mui/icons-material/Groups2'
 import { Box, Modal, Typography, keyframes } from '@mui/material'
@@ -122,6 +123,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       icon: (
         <img
           src="/911-icon-selected.png"
+          alt="Selected 911 Icon"
           style={{ width: '28px', height: '28px', borderRadius: '8px' }}
         />
       ),
@@ -140,11 +142,13 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
         selectedTab === 'home' ? (
           <img
             src="/911-icon-selected.png"
+            alt="Selected 911 Icon"
             style={{ width: '28px', height: '28px', borderRadius: '8px' }}
           />
         ) : (
           <img
             src="/911-icon.png"
+            alt="911 Icon"
             style={{ width: '28px', height: '28px', borderRadius: '8px' }}
           />
         )
@@ -165,11 +169,13 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
               selectedTab === 'reach911' ? (
                 <img
                   src="/911-icon-selected.png"
+                  alt="Selected 911 Icon"
                   style={{ width: '28px', height: '28px', borderRadius: '8px' }}
                 />
               ) : (
                 <img
                   src="/911-icon.png"
+                  alt="911 Icon"
                   style={{ width: '28px', height: '28px', borderRadius: '8px' }}
                 />
               ),
@@ -278,6 +284,20 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       },
     })
   }
+
+  // Add Organization Chart tab for Dispatch, Police, and Fire roles
+  const hasOrgChartTab = orderedTabs.some((tab) => tab.key === 'organization')
+
+  if (!hasOrgChartTab && ['Dispatch', 'Police', 'Fire'].includes(role)) {
+    orderedTabs.push({
+      prefix: '/organization',
+      key: 'organization',
+      icon: <AccountTreeIcon />,
+      to: '/organization',
+      onClick: () => setSelectedTab('organization'),
+    })
+  }
+
   if (role == 'Nurse') {
     orderedTabs.push({
       prefix: '/patients',
