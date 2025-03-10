@@ -11,7 +11,7 @@ class PersonnelController {
       const unassignedUsers = await User.find({
         role: { $in: [ROLES.POLICE, ROLES.FIRE] },
         assignedCity: null,
-      })
+      }).sort({ username: 1 }).exec();
   
       return unassignedUsers
     } catch (error) {

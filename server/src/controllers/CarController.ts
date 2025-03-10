@@ -1,8 +1,9 @@
 import Car, { ICar } from "../models/Car";
+import City from "../models/City";
 
 class CarController {
   async getAllCars() {
-    return Car.find().sort({ name: 1 }).exec();
+    return Car.find({ assignedCity: null }).sort({ name: 1 }).exec();
   }
 
   async createCar(name: string) {
@@ -19,6 +20,31 @@ class CarController {
       throw new Error("Car not found");
     }
     return deleted;
+  }
+
+  async updateCarCity(carName: string, cityName: string) {
+    if (!cityName) {
+      const updatedCar = await Car.findOneAndUpdate(
+        { name: carName },
+        { assignedCity: null },
+        { new: true }
+      );
+      return updatedCar;
+    }
+    const car = await Car.findOne({ name: carName });
+    if (!car) {
+      throw new Error(`Car with name '${carName}' does not exist`);
+    }
+    const cityExists = await City.findOne({ name: cityName });
+    if (!cityExists) {
+      throw new Error(`City '${cityName}' does not exist in the database`);
+    }
+    const updatedCar = await Car.findOneAndUpdate(
+      { name: carName },
+      { assignedCity: cityName },
+      { new: true }
+    );
+    return updatedCar;
   }
 }
 
