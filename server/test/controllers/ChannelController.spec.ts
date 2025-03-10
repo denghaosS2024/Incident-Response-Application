@@ -235,6 +235,24 @@ describe('Channel controller', () => {
     expect(fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
   })
 
+  it('should return uploadUrl and fileUrl for an existing channel for file upload', async () => {
+    // Create a channel in the DB
+    const testChannel = await ChannelController.create({
+      name: 'Test Channel For Upload File',
+      userIds: [userA._id],
+    })
+
+    // Call getFileUploadUrl
+    const { uploadUrl, fileUrl } = await ChannelController.getFileUploadUrl(
+      testChannel._id,"file","application/pdf",".pdf")
+
+    // Assert that the values match mock
+    expect(uploadUrl).toBe('mock-signed-url')
+    expect(fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
+    expect(fileUrl).toContain(".pdf")
+    expect(fileUrl).toContain("file")
+  })
+
   it('should handle error if GCS getSignedUrl call fails for video upload', async () => {
     // Create a channel in the DB (so the error is from the GCS layer, not from "channel not found")
     const testChannel = await ChannelController.create({
