@@ -4,6 +4,7 @@ import Card from "./Card";
 import "../styles/scroll.css";
 import { Droppable } from "react-beautiful-dnd";
 import IUser from '@/models/User'
+import IChannel from "@/models/Channel";
 
 
 interface ColumnProps {
@@ -14,7 +15,6 @@ interface ColumnProps {
     groups?: any[];
     onGroupClick?: (groupId: string) => void;
     selectedGroupId?: string | null;
-
 }
 
 
@@ -75,13 +75,19 @@ const GroupCard = styled.div`
 `;
 
 const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClick }) => {
+    const owner = localStorage.getItem('uid') || ''
     const [groups, setGroups] = useState<{ _id: string; name: string }[]>([]);
+
     useEffect(() => {
         // Fetch groups from API
         fetch("/api/channels")
-            .then((res) => res.json())
+            .then(async (res) => (await res.json()) as IChannel[])
             .then((data) => {
-                setGroups(data);
+              // remove groups without current user
+              data = data.filter((channel => {
+                return channel.users.some(user => user._id === owner);
+              }))
+              setGroups(data);
             })
             .catch((error) => console.error("Error fetching groups:", error));
     }, []);

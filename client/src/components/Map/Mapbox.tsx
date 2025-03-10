@@ -669,12 +669,21 @@ const Mapbox: React.FC<MapboxProps> = ({
             <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
           `
 
-          // Attach event listeners when popup opens for non-air quality markers
-          popup.on('open', () => {
+          // Create a new popup with the updated content
+          const updatedPopup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(
+            popupContent,
+          )
+
+          // Replace the marker's popup
+          marker.setPopup(updatedPopup)
+
+          // Attach event listeners when the popup opens, like we did for air quality markers
+          updatedPopup.on('open', () => {
             const editButton = document.getElementById(`edit-pin-${id}`)
             const deleteButton = document.getElementById(`delete-pin-${id}`)
 
             if (editButton && deleteButton) {
+              // Bind event listeners
               editButton.addEventListener('click', () =>
                 handleEditPin(id, type, popupContent),
               )
@@ -891,7 +900,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       })
       console.log('POST:   ', bodyJson)
 
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfireAreas`, {
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -991,9 +1000,12 @@ const Mapbox: React.FC<MapboxProps> = ({
     const areaId: string = e.features[0]?.id?.toString() || ''
     if (areaId == '') return
 
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfireAreas/${areaId}`, {
-      method: 'DELETE',
-    })
+    fetch(
+      `${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas?areaId=${areaId}`,
+      {
+        method: 'DELETE',
+      },
+    )
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to delete wildfire area')
@@ -1040,7 +1052,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     const fetchWildfireAreas = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL}/api/wildfireAreas`,
+          `${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`,
         )
         const data = await response.json()
         setCurrArea(data)

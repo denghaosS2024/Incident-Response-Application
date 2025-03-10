@@ -141,7 +141,7 @@ const FireForm: React.FC = () => {
                 
 
 
-               <Box sx={{ display: "flex", width: "100%", alignItems: "start", color: "rgba(0, 0, 0, 0.6)" }}> {/**TODO: Add colors to style guide */}
+               <Box sx={{ display: "flex", maxWidth: "500px", width: "100%", alignItems: "start", color: "rgba(0, 0, 0, 0.6)" }}> {/**TODO: Add colors to style guide */}
                     <Typography >What is the number of people within the fire perimeter?</Typography>
                 </Box>
                

@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express'
+import { Router } from 'express'
 
 import WildfireAreaController from '../controllers/WildfireAreaController'
 /**
@@ -18,62 +18,48 @@ import WildfireAreaController from '../controllers/WildfireAreaController'
  *           example: [[124.32847, -110.186261], [124.31827, -110.112861], [124.30527, -110.107161]]
  *       required:
  *         - coordinates
+
+/**
+ * @swagger
+ * tags:
+ *   name: WildfireArea
+ *   description: WildfireArea management API
  */
 export default Router()
   /**
    * @swagger
-   * tags:
-   *   name: WildfireArea
-   *   description: WildfireArea management API
-   * /api/wildfireAreas:
+   * /api/wildfire/areas:
    *   post:
-   *     summary: Create a new wildfire area.
-   *     description: Creates a new wildfire area with the provided details.
+   *     summary: Create a new wildfire area
+   *     description: Create a new wildfire area
    *     tags: [WildfireArea]
-   *     security:
-   *       - bearerAuth: []
    *     requestBody:
    *       required: true
    *       content:
    *         application/json:
    *           schema:
    *             type: object
+   *             required:
+   *               - coordinates
+   *               - name
    *             properties:
-   *               areaId:
-   *                 type: string
-   *                 description: The ID of the wildfire area.
-   *                 example: 12345
    *               coordinates:
    *                 type: array
    *                 items:
-   *                   type: array
-   *                   items:
-   *                     type: number
-   *                 description: The coordinates of the wildfire area.
-   *                 example: [[124.32847, -110.186261], [124.31827, -110.112861], [124.30527, -110.107161]]
+   *                   type: number
    *               name:
    *                 type: string
-   *                 description: The name of the wildfire area.
-   *                 example: Danger Zone 1
    *     responses:
-   *       201:
-   *         description: The newly created wildfire area.
+   *       200:
+   *         description: Wildfire area created
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/WildfireArea'
    *       400:
-   *         description: Bad request, the wildfire area could not be created.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Invalid input or server error.
+   *         description: Bad request
    */
-  .post('/', async (request: Request, response: Response) => {
+  .post('/areas', async (request, response) => {
     const { areaId, coordinates, name } = request.body
 
     try {
@@ -84,36 +70,39 @@ export default Router()
       response.status(400).send({ message: error.message })
     }
   })
+
   /**
    * @swagger
-   * /api/incidents/{username}/active:
-   *   get:
-   *     summary: Get active incident for a user
-   *     tags: [Incidents]
-   *     parameters:
-   *       - in: path
-   *         name: username
-   *         required: true
-   *         schema:
-   *           type: string
-   *     responses:
-   *       200:
-   *         description: Active incident found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Incident'
-   *       404:
-   *         description: No active incident found
+   * /api/wildfire/areas:
+   *   put:
+   *     summary: Update a wildfire area's name
+   *     description: Update a wildfire area's name
+   *     tags: [WildfireArea]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - areaId
+   *               - name
+   *             properties:
+   *               areaId:
+   *                 type: string
+   *               name:
+   *                 type: string
    */
-  .put('/:areaId', async (request: Request, response: Response) => {
-    const { name } = request.body
+  .put('/areas', async (request, response) => {
+    if (!request.body.areaId || !request.body.name) {
+      response.status(400).json({ message: 'areaId and name are required' })
+      return
+    }
+
+    const { areaId, name } = request.body
 
     try {
-      const result = await WildfireAreaController.update(
-        request.params.areaId,
-        name,
-      )
+      const result = await WildfireAreaController.update(areaId, name)
       if (!result) {
         response.status(404).json({ message: 'the update operation failed' })
         return
@@ -127,39 +116,83 @@ export default Router()
 
   /**
    * @swagger
-   * /api/incidents/{incidentId}/chat-group:
+   * /api/wildfire/areas/containment:
    *   put:
-   *     summary: Update incident chat group
-   *     tags: [Incidents]
-   *     parameters:
-   *       - in: path
-   *         name: incidentId
-   *         required: true
-   *         schema:
-   *           type: string
+   *     summary: Update a wildfire area's containment level
+   *     description: Update a wildfire area's containment level
+   *     tags: [WildfireArea]
    *     requestBody:
    *       required: true
    *       content:
    *         application/json:
    *           schema:
    *             type: object
+   *             required:
+   *               - areaId
+   *               - containmentLevel
    *             properties:
-   *               channelId:
+   *               areaId:
    *                 type: string
-   *                 format: uuid
+   *               containmentLevel:
+   */
+  .put('/areas/containment', async (request, response) => {
+    if (!request.body.areaId || !request.body.containmentLevel) {
+      response
+        .status(400)
+        .json({ message: 'areaId and containmentLevel are required' })
+      return
+    }
+
+    const { areaId, containmentLevel } = request.body
+
+    try {
+      const result = await WildfireAreaController.updateContainmentLevel(
+        areaId,
+        containmentLevel,
+      )
+      if (!result) {
+        response.status(404).json({ message: 'the update operation failed' })
+        return
+      }
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(400).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/wildfire/areas:
+   *   delete:
+   *     summary: Delete a wildfire area
+   *     description: Delete a wildfire area
+   *     tags: [WildfireArea]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - areaId
+   *             properties:
+   *               areaId:
+   *                 type: string
    *     responses:
    *       200:
-   *         description: Incident updated with chat group
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Incident'
-   *       404:
-   *         description: Incident not found
+   *         description: Wildfire area deleted
+   *       400:
+   *         description: Bad request
    */
-  .delete('/:areaId', async (request: Request, response: Response) => {
+  .delete('/areas', async (request, response) => {
     try {
-      const result = await WildfireAreaController.delete(request.params.areaId)
+      if (request.query['areaId'] === undefined) {
+        response.status(400).json({ message: 'areaId is required' })
+        return
+      }
+
+      const result = await WildfireAreaController.delete(request.query['areaId'].toString())
       if (!result) {
         response.status(404).json({ message: 'Wildfire Area not found' })
         return
@@ -173,44 +206,39 @@ export default Router()
 
   /**
    * @swagger
-   * /api/incidents/{incidentId}/chat-group:
-   *   put:
-   *     summary: Update incident chat group
-   *     tags: [Incidents]
+   * /api/wildfire/areas:
+   *   get:
+   *     summary: Get wildfire areas. If no param is provided, return all wildfire areas. If param "areaId" is provided, return the wildfire area with the given ID.
+   *     description: Get all wildfire areas
+   *     tags: [WildfireArea]
    *     parameters:
-   *       - in: path
-   *         name: incidentId
-   *         required: true
-   *         schema:
-   *           type: string
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               channelId:
-   *                 type: string
-   *                 format: uuid
+   *       - in: query
+   *         name: areaId
+   *         description: Id of the wildfire area
+   *         required: false
+   *         type: string
    *     responses:
    *       200:
-   *         description: Incident updated with chat group
+   *         description: Wildfire areas retrieved
    *         content:
    *           application/json:
    *             schema:
-   *               $ref: '#/components/schemas/Incident'
-   *       404:
-   *         description: Incident not found
+   *               type: array
+   *               items:
    */
-  .get('/', async (_: Request, response: Response) => {
+  .get('/areas', async (request, response) => {
     try {
-      const result = await WildfireAreaController.listWildfireAreas()
-      if (!result) {
-        response.status(404).json({ message: 'Wildfire Area not found' })
-        return
+      const areaId = request.query['areaId']
+
+      // if no areaId is provided, return all wildfire areas
+      // In case the user sends malicious param, ignore such param
+      if (areaId !== undefined && areaId !== '' && areaId !== null) {
+        const result = await WildfireAreaController.findById(areaId as string)
+        response.json(result)
+      } else {
+        const result = await WildfireAreaController.listWildfireAreas()
+        response.json(result)
       }
-      response.json(result)
     } catch (e) {
       const error = e as Error
       response.status(400).json({ message: error.message })

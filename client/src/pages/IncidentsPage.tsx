@@ -82,6 +82,10 @@ function IncidentsPage() {
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 
+  // Sort incidents by opening date function
+  const sortByOpeningDate = (incidents: IncidentData[]) => 
+    incidents.sort((a, b) => new Date(a.openingDate).getTime() - new Date(b.openingDate).getTime());
+
   // Group incidents for display based on role
   let incidentGroups: { [key: string]: IncidentData[] } = {}
   if (role === 'Fire' || role === 'Police') {
@@ -99,17 +103,17 @@ function IncidentsPage() {
     }
   } else {
     incidentGroups = {
-      Waiting: filteredData.filter(
-        (incident) => incident.incidentState === 'Waiting',
+      Waiting: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Waiting")
       ),
-      Triage: filteredData.filter(
-        (incident) => incident.incidentState === 'Triage',
+      Triage: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Triage")
       ),
-      Assigned: filteredData.filter(
-        (incident) => incident.incidentState === 'Assigned',
+      Assigned: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Assigned")
       ),
-      Closed: filteredData.filter(
-        (incident) => incident.incidentState === 'Closed',
+      Closed: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === "Closed")
       ),
     }
   }
@@ -203,7 +207,14 @@ function IncidentsPage() {
                     {incident.incidentId}
                   </Typography>
                   <Typography variant="body2" sx={{ flex: 1 }}>
-                    {incident.openingDate}
+                    {new Date(incident.openingDate).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false})}
                   </Typography>
                 </Box>
                 <Box
@@ -217,7 +228,16 @@ function IncidentsPage() {
                   <Typography variant="body2" sx={{ marginRight: 1 }}>
                     {incident.type}
                   </Typography>
-                  <Typography variant="body2">{incident.priority}</Typography>
+                  <Typography variant="body2">
+                  {(() => {
+                    const priorityMap: Record<string, string> = {
+                      One: "1",
+                      Two: "2",
+                      Three: "3",
+                    };
+                    return priorityMap[incident.priority] || incident.priority; // Default to original value if not found
+                  })()}
+                  </Typography>
                 </Box>
                 <IconButton
                   edge="end"
