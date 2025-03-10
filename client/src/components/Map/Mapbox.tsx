@@ -726,7 +726,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           }),
         })
 
-        const { id } = await createPinResponse.json()
+        const { id } = await createPinResponse
 
         // Replace temporary ID with actual ID from backend
         let finalLngLat: mapboxgl.LngLat | undefined
@@ -978,10 +978,10 @@ const Mapbox: React.FC<MapboxProps> = ({
           body: JSON.stringify({ description: newDescription }),
         })
 
-        if (!updateResponse.ok) {
-          console.error('Failed to update pin description')
-          return
-        }
+        // if (!updateResponse.ok) {
+        //   console.error('Failed to update pin description')
+        //   return
+        // }
 
         // Restore popup with updated description
         popupContent.innerHTML = `
