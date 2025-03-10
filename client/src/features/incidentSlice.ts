@@ -69,10 +69,27 @@ const incidentsSlice = createSlice({
         //     state.error = action.payload;
         // },
 
+        resetIncident: (state) => {
+            state.incident = {
+                _id: '',
+                incidentId: '',
+                caller: '',
+                openingDate: '',
+                incidentState: '',
+                owner: '',
+                commander: '',
+                address: '',
+                type: IncidentType.Unset,
+                questions: {} as EmergencyQuestions,
+                incidentCallGroup: '',
+                priority: IncidentPriority.Unset
+            };
+            persistState(state); // Save cleared state to localStorage
+        }
     }
 })
 
 
 
 export default incidentsSlice.reducer
-export const { updateIncident } = incidentsSlice.actions 
+export const { updateIncident, resetIncident } = incidentsSlice.actions;
