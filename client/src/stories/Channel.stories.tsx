@@ -31,15 +31,30 @@ const channel: IChannel =
   }
   ;
 
+// Mock function to simulate selecting a channel
+const onSelectChannel = (id: string) => {
+  console.log(`Channel selected: ${id}`);
+};
+
 export const Default: Story = {
   args: {
     channel,
+    onClick: onSelectChannel,
   },
 };
 
 export const Editable: Story = {
   args: {
     channel, 
-    isSettingButton: true
+    isSettingButton: true,
+    onClick: onSelectChannel,
+  },
+};
+
+export const SelectedChannel: Story = {
+  args: {
+    channel, 
+    onClick: onSelectChannel,
+    selectedChannelId: channel._id
   },
 };
