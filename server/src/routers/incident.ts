@@ -100,7 +100,24 @@ export default Router()
     }
   })
 
-  // TODO: Sawgger documentation
+  /**
+   * @swagger
+   * /api/incidents/new:
+   *   post:
+   *     summary: Create a new incident
+   *     tags: [Incidents]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/Incident'
+   *     responses:
+   *       201:
+   *         description: Incident created successfully
+   *       400:
+   *         description: Bad request (Invalid data)
+   */
   .post('/new', async (request, response) => {
     const incident = request.body as IIncident
     console.log('Incident:', incident)
