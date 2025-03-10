@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react'
 import IChannel from '@/models/Channel';
-import { Channel, IChannelProps } from '../ChannelList';
-import request from '@/utils/request';
 import { Box, List, ListItem, SxProps, Typography } from '@mui/material';
+import { Channel } from '../ChannelList';
 
 
 interface GroupListBlockProps {
@@ -32,18 +30,7 @@ const GroupListBlock: React.FC<GroupListBlockProps> = ({ headerName, id, groups 
                     groups.map(group => (
                         <ListItem key={group._id} disablePadding sx={{ width: '90%', marginLeft: "1%"}}>
                         <Box sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '5px 5px',
-                        border: '1.5px solid #ddd',
-                        borderRadius: '8px',
-                        backgroundColor: '#1976d2',
-                        color: 'white',
-                        marginBottom: '8px',
                         width: '90%',
-                        mx: 'auto',
-                        cursor: 'pointer',
                         }}>
                             <Channel channel={group} isSettingButton={id !== "closed"} />
                         </Box>

@@ -11,11 +11,11 @@ import IChannel from "@/models/Channel";
 export default function Board({
     setUsers,
     onGroupClick,
-    resetBoard,
+    triggerResetBoard,
 }: {
     setUsers: (users: string[]) => void;
     onGroupClick: (group: IChannel) => void;  // handle parent component on click logic
-    resetBoard: () => void;
+    triggerResetBoard: number;
 }) {
     const [done, setDone] = useState<IUser[]>([]);
     const dispatch = useDispatch<AppDispatch>();
@@ -40,12 +40,13 @@ export default function Board({
     }, [done, setUsers]);
 
     useEffect(() => {
+        console.log('[Board] triggerResetBoard - reset contact list')
         if (contacts.length > 0) {
             const filteredContacts = contacts.filter(contact => contact._id !== owner); // Remove the logged-in user
             setTodo(filteredContacts);
             setDone([]);
         }
-    }, [resetBoard]);
+    }, [triggerResetBoard]);
 
     useEffect(() => {
         // Fetch groups from API

@@ -64,6 +64,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const [nameError, setNameError] = useState<string>('')
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
+  const [triggerResetBoard, setTriggerResetBoard] = useState(0);  // use a counter to notify child to update (bad approach)
 
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [users, setUsers] = useState<string[]>([owner])
@@ -106,6 +107,8 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
     setGroupName('')
     setDescription('')
     setIsClosed(false)
+
+    setTriggerResetBoard(triggerResetBoard + 1)  // notify child to reset
   }
 
   const handleToggleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,7 +213,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               label="Closed"
             />
           </Box>
-          <Board setUsers={setUsers} onGroupClick={handleGroupClickInBoard} resetBoard={channelProps.resetBoard}/>
+          <Board setUsers={setUsers} onGroupClick={handleGroupClickInBoard} triggerResetBoard={triggerResetBoard}/>
           <Box display="flex" justifyContent="center" mt={2}>
             <Button
               variant="contained"

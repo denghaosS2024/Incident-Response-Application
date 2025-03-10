@@ -1,380 +1,547 @@
-import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import MapLoading from './MapLoading';
-import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch } from '../../app/store';
-import { updateIncident } from '../../features/incidentSlice';
-import { RootState } from '../../utils/types';
-import IIncident from '../../models/Incident';
-import { Alert, Box, Typography } from '@mui/material';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import { v4 as uuidv4 } from 'uuid';
-import MapDrop from './MapDrop';
-import ReactDOMServer from 'react-dom/server'; 
-import PushPinIcon from '@mui/icons-material/PushPin';
-import CloudIcon from '@mui/icons-material/Cloud';
-import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt';
-import BlockIcon from '@mui/icons-material/Block';
-import { WildfireArea } from '../../utils/types';
-import eventEmitter from '../../utils/eventEmitter';
-import { Geometry } from 'geojson';
+import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
+import BlockIcon from '@mui/icons-material/Block'
+import CloudIcon from '@mui/icons-material/Cloud'
+import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt'
+import LocationOnIcon from '@mui/icons-material/LocationOn'
+import PushPinIcon from '@mui/icons-material/PushPin'
+import TrendingUpIcon from '@mui/icons-material/TrendingUp'
+import { Alert, Box, Typography } from '@mui/material'
+import { Geometry } from 'geojson'
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
+import React, { useEffect, useRef, useState } from 'react'
+import ReactDOMServer from 'react-dom/server'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch } from '../../app/store'
+import { updateIncident } from '../../features/incidentSlice'
+import IIncident from '../../models/Incident'
+import eventEmitter from '../../utils/eventEmitter'
+import { RootState, WildfireArea } from '../../utils/types'
+import MapDrop from './MapDrop'
+import MapLoading from './MapLoading'
 
 interface MapboxProps {
-    showMarker?: boolean;
-    disableGeolocation?: boolean; // New prop to disable geolocation
+  showMarker?: boolean
+  disableGeolocation?: boolean // New prop to disable geolocation
 }
 
-const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation = false }) => {
-  // Refs for the map container, map instance, and marker
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+// Define interface for AQI data
+interface AQIData {
+  value: number | null
+  level: 'no data' | 'good' | 'moderate' | 'poor' | 'hazardous'
+  color: string
+}
+
+// Mock function to fetch AQI data
+const fetchAQIData = async (lng: number, lat: number): Promise<AQIData> => {
+  try {
+    // In a real implementation, this would be an actual API call
+    // For now, we'll simulate a random AQI value
+    // const response = await fetch(`/api/aqi?lng=${lng}&lat=${lat}`);
+    // const data = await response.json();
+
+    // Mock random AQI value for demonstration purposes
+    const mockValue = Math.floor(Math.random() * 400)
+
+    // Determine AQI level and color based on value
+    if (mockValue < 50) {
+      return { value: mockValue, level: 'good', color: '#00e400' } // Green
+    } else if (mockValue < 100) {
+      return { value: mockValue, level: 'moderate', color: '#ff7e00' } // Orange
+    } else if (mockValue < 300) {
+      return { value: mockValue, level: 'poor', color: '#ff0000' } // Red
+    } else {
+      return { value: mockValue, level: 'hazardous', color: '#8f3f97' } // Dark purple
+    }
+  } catch (error) {
+    console.error('Error fetching AQI data:', error)
+    return { value: null, level: 'no data', color: '#000000' } // Black for no data
+  }
+}
+
+const Mapbox: React.FC<MapboxProps> = ({
+  showMarker = true,
+  disableGeolocation = false,
+}) => {
+  const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<mapboxgl.Map | null>(null)
+  const markerRef = useRef<mapboxgl.Marker | null>(null)
 
   // Refs for add pin, roadblock, fire hydrant, and air quality
-  const pinRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-  const roadblockRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-  const fireHydrantRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-  const airQualityRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const pinRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const roadblockRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const fireHydrantRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const airQualityRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
 
   // refs for areaClick
-  const areaRef = useRef<boolean>(false);
+  const areaRef = useRef<boolean>(false)
 
   // state to track add pin start and end
-  const [isAddingPin, setIsAddingPin] = useState(false);
+  const [isAddingPin, setIsAddingPin] = useState(false)
 
   // State to track map loading and errors
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
-  const [isMapPage, setIsMapPage] = useState<boolean>(false);
+  const [isMapLoaded, setIsMapLoaded] = useState(false)
+  const [mapError, setMapError] = useState<string | null>(null)
+  const [isMapPage, setIsMapPage] = useState<boolean>(false)
 
-  const dispatch = useDispatch<AppDispatch>();
-  const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident);
+  const dispatch = useDispatch<AppDispatch>()
+  const incident: IIncident = useSelector(
+    (state: RootState) => state.incidentState.incident,
+  )
 
   // State for current location
-  const [currentLat, setCurrentLat] = useState<number>(40);
-  const [currentLng, setCurrentLng] = useState<number>(-74.5);
+  const [currentLat, setCurrentLat] = useState<number>(40)
+  const [currentLng, setCurrentLng] = useState<number>(-74.5)
 
   // State for the location of the pin
-  const [pinLocation, setPinLocation] = useState<{ lng: number; lat: number; address?: string } | null>(null);
+  const [pinLocation, setPinLocation] = useState<{
+    lng: number
+    lat: number
+    address?: string
+  } | null>(null)
 
   // state for current wildfire area
-  const [currArea, setCurrArea] = useState<WildfireArea[]>([]);
+  const [currArea, setCurrArea] = useState<WildfireArea[]>([])
   // const [currNamePopup, setNamePopup] = useState<mapboxgl.Popup[]>([]);
   // Refs for popups
-  const popupRef = useRef<Map<string, mapboxgl.Popup>>(new Map());
+  const popupRef = useRef<Map<string, mapboxgl.Popup>>(new Map())
 
   // Check if we're on the /map page
   useEffect(() => {
-    const path = window.location.pathname;
-    setIsMapPage(path === '/map');
-  }, []);
+    const path = window.location.pathname
+    setIsMapPage(path === '/map')
+  }, [])
 
-// -------------------------------- helper function start --------------------------------
+  // -------------------------------- helper function start --------------------------------
 
   // Function to initialize the map using the given longitude and latitude.
   // This function is called once regardless of geolocation success or failure.
   const initializeMap = (lng: number, lat: number, initialZoom: number) => {
-    if (!mapContainerRef.current) return;
+    if (!mapContainerRef.current) return
     try {
       // Create a new map instance
       if (disableGeolocation) {
-        initialZoom = 14;
+        initialZoom = 14
       }
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style: 'mapbox://styles/domoncassiu/cm7og9k1l005z01rdd6l78pdf', 
+        style: 'mapbox://styles/domoncassiu/cm7og9k1l005z01rdd6l78pdf',
         center: [lng, lat],
         zoom: initialZoom,
-      });
+      })
       // When the map loads, add a draggable marker and update the address
       mapRef.current.on('load', () => {
         // Add a draggable marker at the current location
-        mapRef.current!.setProjection({ name: 'globe' });
-        fetchAndRenderMarkers();
+        mapRef.current!.setProjection({ name: 'globe' })
+        fetchAndRenderMarkers()
 
         // If showMarker is true, add a draggable marker
         if (showMarker) {
-            markerRef.current = new mapboxgl.Marker({
-              draggable: true,
-              color: '#FF0000',
-            })
-              .setLngLat([lng, lat])
-              .addTo(mapRef.current!);
-            markerRef.current.on('dragend', () => {
-              const lngLat = markerRef.current!.getLngLat();
-              updateAddressFromCoordinates(lngLat.lng, lngLat.lat);
-            });
-            // Update address initially
-            updateAddressFromCoordinates(lng, lat);
+          markerRef.current = new mapboxgl.Marker({
+            draggable: true,
+            color: '#FF0000',
+          })
+            .setLngLat([lng, lat])
+            .addTo(mapRef.current!)
+          markerRef.current.on('dragend', () => {
+            const lngLat = markerRef.current!.getLngLat()
+            updateAddressFromCoordinates(lngLat.lng, lngLat.lat)
+          })
+          // Update address initially
+          updateAddressFromCoordinates(lng, lat)
         }
-        setIsMapLoaded(true);
+        setIsMapLoaded(true)
 
         // Trigger geolocation if the map was initialized with default coordinates
         if (initialZoom == 1 && !disableGeolocation) {
-            geolocateControl!.trigger();
+          geolocateControl!.trigger()
         }
-      });
+      })
       // Handle map errors
       mapRef.current.on('error', (e: any) => {
-        console.error('Mapbox error:', e);
-        setMapError('Failed to load map');
-      });
+        console.error('Mapbox error:', e)
+        setMapError('Failed to load map')
+      })
       // Add geolocate control to allow tracking the user's location (only if not disabled)
-      let geolocateControl: mapboxgl.GeolocateControl | null = null;
+      let geolocateControl: mapboxgl.GeolocateControl | null = null
       if (!disableGeolocation) {
         geolocateControl = new mapboxgl.GeolocateControl({
           positionOptions: { enableHighAccuracy: true },
           trackUserLocation: true,
-        });
-        mapRef.current.addControl(geolocateControl);
+        })
+        mapRef.current.addControl(geolocateControl)
         // Update marker position when geolocation is triggered
         geolocateControl.on('geolocate', (e: any) => {
-          const { longitude, latitude } = e.coords;
+          const { longitude, latitude } = e.coords
           if (markerRef.current && showMarker) {
-            markerRef.current.setLngLat([longitude, latitude]);
-            updateAddressFromCoordinates(longitude, latitude);
+            markerRef.current.setLngLat([longitude, latitude])
+            updateAddressFromCoordinates(longitude, latitude)
           }
-        });
+        })
       }
     } catch (error) {
-      console.error('Error initializing map:', error);
-      setMapError('Failed to initialize map');
+      console.error('Error initializing map:', error)
+      setMapError('Failed to initialize map')
     }
-  };
+  }
 
-  const createCustomMarker = (type: string): HTMLElement => {
-    const markerElement = document.createElement("div");
-  
+  const createCustomMarker = (type: string, aqiData?: AQIData): HTMLElement => {
+    const markerElement = document.createElement('div')
+
     // Remove background styles, only render the icon
-    markerElement.style.width = "auto";
-    markerElement.style.height = "auto";
-    markerElement.style.display = "flex";
-    markerElement.style.alignItems = "center";
-    markerElement.style.justifyContent = "center";
-  
+    markerElement.style.width = 'auto'
+    markerElement.style.height = 'auto'
+    markerElement.style.display = 'flex'
+    markerElement.style.alignItems = 'center'
+    markerElement.style.justifyContent = 'center'
+    markerElement.style.position = 'relative' // Added for absolute positioning of AQI value
+
     // Choose the correct Material UI icon
-    let iconComponent;
+    let iconComponent
+    // Pre-define variables used in the switch cases
+    let markerColor = ''
+
     switch (type) {
-      case "pin":
-        iconComponent = <PushPinIcon style={{color: "gray", fontSize: "32px" , opacity: "80%"}} />;
-        break;
-      case "roadblock":
-        iconComponent = <BlockIcon style={{ color: "gray", fontSize: "32px" , opacity: "80%" }} />;
-        break;
-      case "fireHydrant":
-        iconComponent = <FireHydrantAltIcon style={{ color: "gray", fontSize: "32px" , opacity: "80%"}} />;
-        break;
-      case "airQuality":
-        iconComponent = <CloudIcon style={{ color: "gray", fontSize: "32px" , opacity: "80%" }} />;
-        break;
+      case 'pin':
+        iconComponent = (
+          <PushPinIcon
+            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
+          />
+        )
+        break
+      case 'roadblock':
+        iconComponent = (
+          <BlockIcon
+            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
+          />
+        )
+        break
+      case 'fireHydrant':
+        iconComponent = (
+          <FireHydrantAltIcon
+            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
+          />
+        )
+        break
+      case 'airQuality':
+        // Use the AQI data to determine the marker color, default to black for no data
+        markerColor = aqiData ? aqiData.color : '#000000'
+
+        iconComponent = (
+          <div style={{ position: 'relative' }}>
+            <CloudIcon
+              style={{ color: markerColor, fontSize: '32px', opacity: '80%' }}
+            />
+            {aqiData && aqiData.value !== null && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  color: '#ffffff',
+                  textShadow: '0px 0px 2px rgba(0,0,0,0.8)',
+                }}
+              >
+                {aqiData.value}
+              </div>
+            )}
+          </div>
+        )
+        break
       default:
-        iconComponent = <PushPinIcon style={{ color: "gray", fontSize: "32px" , opacity: "80%" }} />;
+        iconComponent = (
+          <PushPinIcon
+            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
+          />
+        )
     }
-  
+
     // Convert the React component into a string and insert into the marker
-    markerElement.innerHTML = ReactDOMServer.renderToString(iconComponent);
-  
-    return markerElement;
-  };
+    markerElement.innerHTML = ReactDOMServer.renderToString(iconComponent)
+
+    return markerElement
+  }
   // fetch and render markers from backend
   const fetchAndRenderMarkers = async () => {
     try {
-      const response = await fetch('/api/map'); // Fetch all markers from backend
-      const data = await response.json();
-  
-      if (!mapRef.current) return;
-  
-      data.forEach((item: { _id: string; type: string; latitude: number; longitude: number; description: string }) => {
-        // Create popup content with buttons
-        const popupContent = document.createElement("div");
-        popupContent.id = `popup-container-${item._id}`;
-        popupContent.innerHTML = `
-          <p id="popup-address-${item._id}">${item.description}</p>
-          <button id="edit-pin-${item._id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
-          <button id="delete-pin-${item._id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
-        `;
-  
-        const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
-  
-        // Create marker
-        const marker = new mapboxgl.Marker({element: createCustomMarker(item.type), draggable: false })
-          .setLngLat([item.longitude, item.latitude])
-          .setPopup(popup)
-          .addTo(mapRef.current!);
-  
-        // Store marker in the correct ref based on its type
-        switch (item.type) {
-          case 'pin':
-            pinRef.current.set(item._id, marker);
-            break;
-          case 'roadblock':
-            roadblockRef.current.set(item._id, marker);
-            break;
-          case 'fireHydrant':
-            fireHydrantRef.current.set(item._id, marker);
-            break;
-          case 'airQuality':
-            airQualityRef.current.set(item._id, marker);
-            break;
-          default:
-            console.warn(`Unknown marker type: ${item.type}`);
+      const response = await fetch('/api/map') // Fetch all markers from backend
+      const data = await response.json()
+
+      if (!mapRef.current) return
+
+      for (const item of data) {
+        // Destructure the item for easier access
+        const { _id, type, latitude, longitude, description } = item
+
+        // If it's an air quality marker, fetch AQI data
+        let aqiData: AQIData | undefined
+        if (type === 'airQuality') {
+          aqiData = await fetchAQIData(longitude, latitude)
         }
-  
+
+        // Create popup content with buttons
+        const popupContent = document.createElement('div')
+        popupContent.id = `popup-container-${_id}`
+
+        if (type === 'airQuality') {
+          // For air quality markers, create specialized popup content
+          popupContent.innerHTML = `
+            <div style="min-width: 200px;">
+              <div style="background-color: #f0f0f0; padding: 8px; margin-bottom: 8px;">
+                <p style="margin: 0;">US EPA PM2.5 AQI is now ${aqiData?.value ?? 'N/A'}</p>
+              </div>
+              <div style="background-color: ${aqiData?.color}; color: white; padding: 8px; margin-bottom: 8px;">
+                <p style="margin: 0 0 5px 0;">Air quality is ${aqiData?.level ?? 'no data'}</p>
+                <p style="margin: 0 0 5px 0;">Measurement quality is high</p>
+                <p style="margin: 0 0 5px 0;">Evolution over the last 24 hours:</p>
+                <div id="trending-icon-${_id}" style="cursor: pointer;">
+                  ${ReactDOMServer.renderToString(<TrendingUpIcon style={{ color: 'white' }} />)}
+                </div>
+              </div>
+              <p id="popup-address-${_id}">${description}</p>
+              <div style="display: flex; justify-content: space-between;">
+                <button id="edit-pin-${_id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+                <button id="delete-pin-${_id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+              </div>
+            </div>
+          `
+        } else {
+          // For other marker types, use the standard popup content
+          popupContent.innerHTML = `
+            <p id="popup-address-${_id}">${description}</p>
+            <button id="edit-pin-${_id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+            <button id="delete-pin-${_id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+          `
+        }
+
+        const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(
+          popupContent,
+        )
+
+        // Create marker
+        const marker = new mapboxgl.Marker({
+          element: createCustomMarker(type, aqiData),
+          draggable: false,
+        })
+          .setLngLat([longitude, latitude])
+          .setPopup(popup)
+          .addTo(mapRef.current!)
+
+        // Store marker in the correct ref based on its type
+        switch (type) {
+          case 'pin':
+            pinRef.current.set(_id, marker)
+            break
+          case 'roadblock':
+            roadblockRef.current.set(_id, marker)
+            break
+          case 'fireHydrant':
+            fireHydrantRef.current.set(_id, marker)
+            break
+          case 'airQuality':
+            airQualityRef.current.set(_id, marker)
+            break
+          default:
+            console.warn(`Unknown marker type: ${type}`)
+        }
+
         // Attach event listeners when popup opens
         popup.on('open', () => {
-          const editButton = document.getElementById(`edit-pin-${item._id}`);
-          const deleteButton = document.getElementById(`delete-pin-${item._id}`);
-          const popupContainer = document.getElementById(`popup-container-${item._id}`) as HTMLDivElement;
+          const editButton = document.getElementById(`edit-pin-${_id}`)
+          const deleteButton = document.getElementById(`delete-pin-${_id}`)
+          const popupContainer = document.getElementById(
+            `popup-container-${_id}`,
+          ) as HTMLDivElement
+
+          const trendingIcon = document.getElementById(`trending-icon-${_id}`)
 
           if (!editButton || !deleteButton || !popupContainer) {
-            console.warn(`Popup elements not found for pin ID: ${item._id}`);
-            return;
+            console.warn(`Popup elements not found for pin ID: ${_id}`)
+            return
           }
 
           // Bind event listeners
-          editButton.addEventListener("click", () => 
-            handleEditPin(item._id, item.type, popupContainer)
-          );
+          editButton.addEventListener('click', () =>
+            handleEditPin(_id, type, popupContainer),
+          )
 
-          deleteButton.addEventListener("click", async () => {
-            await handleRemovePin(item._id, item.type);
-          });
-        });
-      });
+          deleteButton.addEventListener('click', async () => {
+            await handleRemovePin(_id, type)
+          })
+
+          // Add event listener for trending icon if it exists
+          if (trendingIcon) {
+            trendingIcon.addEventListener('click', () => {
+              if (aqiData?.value === null || aqiData?.value === undefined) {
+                alert('No AQI data available for trends')
+              } else {
+                alert(
+                  `Showing AQI trends for the last 24 hours. Current value: ${aqiData.value}`,
+                )
+                // In a real implementation, this would show a chart or detailed data
+              }
+            })
+          }
+        })
+      }
     } catch (error) {
-      console.error("Error fetching markers:", error);
+      console.error('Error fetching markers:', error)
     }
-  };
-  
-  
-  
+  }
 
-// -------------------------------- helper function end --------------------------------
+  // -------------------------------- helper function end --------------------------------
 
-
-
-
-// -------------------------------- map init start --------------------------------
+  // -------------------------------- map init start --------------------------------
 
   useEffect(() => {
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA';
+    mapboxgl.accessToken =
+      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA'
 
     // If geolocation is available, get the user's current position
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
-          setCurrentLat(latitude);
-          setCurrentLng(longitude);
+          const { latitude, longitude } = position.coords
+          setCurrentLat(latitude)
+          setCurrentLng(longitude)
           // Initialize the map with the user's coordinates
-          initializeMap(longitude, latitude, 1);
+          initializeMap(longitude, latitude, 1)
         },
         (error) => {
-          console.error('Geolocation error:', error);
-          setMapError('Could not access your location. Please enter your address manually.');
+          console.error('Geolocation error:', error)
+          setMapError(
+            'Could not access your location. Please enter your address manually.',
+          )
           // Use default coordinates if geolocation fails
-          initializeMap(-74.5, 40, 14);
-        }
-      );
+          initializeMap(-74.5, 40, 14)
+        },
+      )
     } else {
-      console.log('Geolocation is not supported by this browser.');
-      setMapError('Geolocation is not supported by your browser. Please enter your address manually.');
+      console.log('Geolocation is not supported by this browser.')
+      setMapError(
+        'Geolocation is not supported by your browser. Please enter your address manually.',
+      )
       // Initialize with default coordinates if geolocation is not supported
-      initializeMap(-74.5, 40, 14);
+      initializeMap(-74.5, 40, 14)
     }
-    
+
     // Cleanup: remove the map instance on unmount
     return () => {
       if (mapRef.current) {
-        mapRef.current.remove();
+        mapRef.current.remove()
       }
-    };
-  }, [showMarker, disableGeolocation]);
+    }
+  }, [showMarker, disableGeolocation])
 
+  // -------------------------------- map init end --------------------------------
 
-// -------------------------------- map init end --------------------------------
+  // -------------------------------- map drop items features start --------------------------------
+  // Function to fetch and render markers from the backend
+  const getAddressFromCoordinates = async (
+    lng: number,
+    lat: number,
+  ): Promise<string | undefined> => {
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`,
+      )
+      const data = await response.json()
 
-
-
-
-
-// -------------------------------- map drop items features start --------------------------------
-    // Function to fetch and render markers from the backend
-    const getAddressFromCoordinates = async (lng: number, lat: number): Promise<string | undefined> => {
-      try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
-        );
-        const data = await response.json();
-
-        if (data.features && data.features.length > 0) {
-          return data.features[0].place_name; // Return the first result
-        }
-      } catch (error) {
-        console.error("Error fetching address:", error);
+      if (data.features && data.features.length > 0) {
+        return data.features[0].place_name // Return the first result
       }
-      return undefined; // Return undefined instead of null
-    };
+    } catch (error) {
+      console.error('Error fetching address:', error)
+    }
+    return undefined // Return undefined instead of null
+  }
 
-    // Function to add a pin to the map
-    const handleAddPin = async (type: string) => {
-      if (!mapRef.current || isAddingPin) return;
-    
-      setIsAddingPin(true); // Disable MapDrop buttons while adding a pin
-    
-      // Get initial location and address
-      const initialLngLat = mapRef.current.getCenter();
-      const initialAddress = await getAddressFromCoordinates(initialLngLat.lng, initialLngLat.lat);
-    
-      const tempId = `temp-${Date.now()}`;
-    
-      // Create popup content with unique ID
-      const popupContent = document.createElement("div");
+  // Function to add a pin to the map
+  const handleAddPin = async (type: string) => {
+    if (!mapRef.current || isAddingPin) return
+
+    setIsAddingPin(true) // Disable MapDrop buttons while adding a pin
+
+    // Get initial location and address
+    const initialLngLat = mapRef.current.getCenter()
+    const initialAddress = await getAddressFromCoordinates(
+      initialLngLat.lng,
+      initialLngLat.lat,
+    )
+
+    const tempId = `temp-${Date.now()}`
+
+    // Create popup content with unique ID
+    const popupContent = document.createElement('div')
+
+    if (type === 'airQuality') {
+      // Simplified popup content for air quality markers before confirmation
       popupContent.innerHTML = `
-        <p id="popup-address-${tempId}">${initialAddress || "Fetching address..."}</p>
+        <p id="popup-address-${tempId}">${initialAddress || 'Fetching address...'}</p>
         <button id="confirm-pin-${tempId}" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
-      `;
-    
-      const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
-    
-      // Create marker (draggable initially)
-      const marker = new mapboxgl.Marker({element: createCustomMarker(type), draggable: true })
-        .setLngLat(initialLngLat)
-        .setPopup(popup)
-        .addTo(mapRef.current!);
-    
-      marker.togglePopup();
-    
-      // Store in the correct ref based on type
-      switch (type) {
-        case "roadblock":
-          roadblockRef.current.set(tempId, marker);
-          break;
-        case "fireHydrant":
-          fireHydrantRef.current.set(tempId, marker);
-          break;
-        case "airQuality":
-          airQualityRef.current.set(tempId, marker);
-          break;
-        default:
-          pinRef.current.set(tempId, marker);
+      `
+    } else {
+      // Standard popup content for other marker types
+      popupContent.innerHTML = `
+        <p id="popup-address-${tempId}">${initialAddress || 'Fetching address...'}</p>
+        <button id="confirm-pin-${tempId}" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
+      `
+    }
+
+    const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent)
+
+    // Create marker (draggable initially)
+    const marker = new mapboxgl.Marker({
+      element: createCustomMarker(type), // Don't pass aqiData initially
+      draggable: true,
+    })
+      .setLngLat(initialLngLat)
+      .setPopup(popup)
+      .addTo(mapRef.current!)
+
+    marker.togglePopup()
+
+    // Store in the correct ref based on type
+    switch (type) {
+      case 'pin':
+        pinRef.current.set(tempId, marker)
+        break
+      case 'roadblock':
+        roadblockRef.current.set(tempId, marker)
+        break
+      case 'fireHydrant':
+        fireHydrantRef.current.set(tempId, marker)
+        break
+      case 'airQuality':
+        airQualityRef.current.set(tempId, marker)
+        break
+      default:
+        console.warn(`Unknown marker type: ${type}`)
+    }
+
+    // When marker is dragged to a new location
+    marker.on('dragend', async () => {
+      const lngLat = marker.getLngLat()
+      const address = await getAddressFromCoordinates(lngLat.lng, lngLat.lat)
+
+      // For all marker types, just update the address
+      const addressElement = document.getElementById(`popup-address-${tempId}`)
+      if (addressElement) {
+        addressElement.textContent = address || 'Address not found'
       }
-    
-      // Update address when dragging ends
-      marker.on("dragend", async () => {
-        const newLngLat = marker.getLngLat();
-        const newAddress = await getAddressFromCoordinates(newLngLat.lng, newLngLat.lat);
-        document.getElementById(`popup-address-${tempId}`)!.innerText = newAddress || "Fetching address...";
-      });
-    
-      // Handle confirmation
-      document.getElementById(`confirm-pin-${tempId}`)?.addEventListener("click", async () => {
-        marker.setDraggable(false); // Disable dragging
-    
+    })
+
+    // Handle confirmation
+    document
+      .getElementById(`confirm-pin-${tempId}`)
+      ?.addEventListener('click', async () => {
+        marker.setDraggable(false) // Disable dragging
+
         // Send request to backend to create a real pin entry
         const createPinResponse = await fetch('/api/map', {
           method: 'POST',
@@ -383,111 +550,212 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
             type: type,
             latitude: marker.getLngLat().lat,
             longitude: marker.getLngLat().lng,
-            description: document.getElementById(`popup-address-${tempId}`)!.innerText,
+            description: document.getElementById(`popup-address-${tempId}`)!
+              .innerText,
           }),
-        });
-    
+        })
+
         if (!createPinResponse.ok) {
-          console.error('Failed to create pin on backend');
-          return;
+          console.error('Failed to create pin on backend')
+          return
         }
-    
-        const { id } = await createPinResponse.json();
-    
+
+        const { id } = await createPinResponse.json()
+
         // Replace temporary ID with actual ID from backend
+        let finalLngLat: mapboxgl.LngLat | undefined
+        let finalAqiData: AQIData | undefined
+        let finalMarker: mapboxgl.Marker | undefined
+
         switch (type) {
-          case "roadblock":
-            roadblockRef.current.delete(tempId);
-            roadblockRef.current.set(id, marker);
-            break;
-          case "fireHydrant":
-            fireHydrantRef.current.delete(tempId);
-            fireHydrantRef.current.set(id, marker);
-            break;
-          case "airQuality":
-            airQualityRef.current.delete(tempId);
-            airQualityRef.current.set(id, marker);
-            break;
+          case 'roadblock':
+            roadblockRef.current.delete(tempId)
+            roadblockRef.current.set(id, marker)
+            break
+          case 'fireHydrant':
+            fireHydrantRef.current.delete(tempId)
+            fireHydrantRef.current.set(id, marker)
+            break
+          case 'airQuality':
+            // For air quality markers, now we fetch the AQI data
+            finalLngLat = marker.getLngLat()
+            finalAqiData = await fetchAQIData(finalLngLat.lng, finalLngLat.lat)
+
+            // Create specialized popup content for confirmed air quality marker
+            popupContent.innerHTML = `
+              <div style="min-width: 200px;">
+                <div style="background-color: #f0f0f0; padding: 8px; margin-bottom: 8px;">
+                  <p style="margin: 0;">US EPA PM2.5 AQI is now ${finalAqiData?.value ?? 'N/A'}</p>
+                </div>
+                <div style="background-color: ${finalAqiData?.color}; color: white; padding: 8px; margin-bottom: 8px;">
+                  <p style="margin: 0 0 5px 0;">Air quality is ${finalAqiData?.level ?? 'no data'}</p>
+                  <p style="margin: 0 0 5px 0;">Measurement quality is high</p>
+                  <p style="margin: 0 0 5px 0;">Evolution over the last 24 hours:</p>
+                  <div id="trending-icon-${id}" style="cursor: pointer;">
+                    ${ReactDOMServer.renderToString(<TrendingUpIcon style={{ color: 'white' }} />)}
+                  </div>
+                </div>
+                <p id="popup-address-${id}">${document.getElementById(`popup-address-${tempId}`)!.innerText}</p>
+                <div style="display: flex; justify-content: space-between;">
+                  <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+                  <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+                </div>
+              </div>
+            `
+
+            // Remove the old marker and create a new one with the AQI data
+            marker.remove()
+
+            // Create a new marker with the AQI data
+            finalMarker = new mapboxgl.Marker({
+              element: createCustomMarker(type, finalAqiData),
+              draggable: false,
+            })
+              .setLngLat(finalLngLat)
+              .setPopup(popup)
+              .addTo(mapRef.current!)
+
+            // Update the marker reference
+            airQualityRef.current.delete(tempId)
+            airQualityRef.current.set(id, finalMarker)
+
+            // Attach event listeners when the popup opens, similar to how it's done for existing markers
+            popup.on('open', () => {
+              const editButton = document.getElementById(`edit-pin-${id}`)
+              const deleteButton = document.getElementById(`delete-pin-${id}`)
+              const trendingIcon = document.getElementById(
+                `trending-icon-${id}`,
+              )
+
+              if (editButton && deleteButton) {
+                // Bind event listeners
+                editButton.addEventListener('click', () =>
+                  handleEditPin(id, type, popupContent),
+                )
+                deleteButton.addEventListener(
+                  'click',
+                  async () => await handleRemovePin(id, type),
+                )
+              }
+
+              // Add event listener for trending icon if it exists
+              if (trendingIcon) {
+                trendingIcon.addEventListener('click', () => {
+                  if (
+                    finalAqiData?.value === null ||
+                    finalAqiData?.value === undefined
+                  ) {
+                    alert('No AQI data available for trends')
+                  } else {
+                    alert(
+                      `Showing AQI trends for the last 24 hours. Current value: ${finalAqiData?.value ?? 'unknown'}`,
+                    )
+                  }
+                })
+              }
+            })
+            break
           default:
-            pinRef.current.delete(tempId);
-            pinRef.current.set(id, marker);
+            pinRef.current.delete(tempId)
+            pinRef.current.set(id, marker)
         }
-    
-        // Replace confirm button with delete and edit buttons
-        popupContent.innerHTML = `
-          <p id="popup-address-${id}">${document.getElementById(`popup-address-${tempId}`)!.innerText}</p>
-          <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
-          <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
-        `;
-    
-        document.getElementById(`delete-pin-${id}`)?.addEventListener("click", async () => {
-          await handleRemovePin(id, type);
-        });
-    
-        document.getElementById(`edit-pin-${id}`)?.addEventListener("click", () => handleEditPin(id, type, popupContent));
-    
-        setIsAddingPin(false); // Re-enable MapDrop buttons after confirmation
-      });
-    };
-    
 
-    // Function to remove a pin from the map
-    const handleRemovePin = async (id: string, type: string) => {
-      console.log(id, type);
-      let marker: mapboxgl.Marker | undefined;
-    
-      switch (type) {
-        case "roadblock":
-          marker = roadblockRef.current.get(id);
-          roadblockRef.current.delete(id);
-          break;
-        case "fireHydrant":
-          marker = fireHydrantRef.current.get(id);
-          fireHydrantRef.current.delete(id);
-          break;
-        case "airQuality":
-          marker = airQualityRef.current.get(id);
-          airQualityRef.current.delete(id);
-          break;
-        default:
-          marker = pinRef.current.get(id);
-          pinRef.current.delete(id);
-      }
-    
-      if (marker) {
-        marker.remove();
-        // Also delete from backend
-        await fetch(`/api/map/${id}`, { method: 'DELETE' });
-      }
-    };
+        // For non-air quality markers, update the popup content
+        if (type !== 'airQuality') {
+          // Replace confirm button with delete and edit buttons
+          popupContent.innerHTML = `
+            <p id="popup-address-${id}">${document.getElementById(`popup-address-${tempId}`)!.innerText}</p>
+            <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+            <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+          `
 
-    // Function to handle editing a pin's description
-    const handleEditPin = (id: string, type: string, popupContent: HTMLDivElement) => {
-      const descriptionElement = document.getElementById(`popup-address-${id}`);
-      if (!descriptionElement) return console.error("Description element not found");
+          // Attach event listeners when popup opens for non-air quality markers
+          popup.on('open', () => {
+            const editButton = document.getElementById(`edit-pin-${id}`)
+            const deleteButton = document.getElementById(`delete-pin-${id}`)
 
-      const currentDescription = descriptionElement.innerText;
+            if (editButton && deleteButton) {
+              editButton.addEventListener('click', () =>
+                handleEditPin(id, type, popupContent),
+              )
+              deleteButton.addEventListener(
+                'click',
+                async () => await handleRemovePin(id, type),
+              )
+            }
+          })
+        }
 
-      // Replace text with input field
-      popupContent.innerHTML = `
+        setIsAddingPin(false) // Re-enable MapDrop buttons after confirmation
+      })
+  }
+
+  // Function to remove a pin from the map
+  const handleRemovePin = async (id: string, type: string) => {
+    console.log(id, type)
+    let marker: mapboxgl.Marker | undefined
+
+    switch (type) {
+      case 'roadblock':
+        marker = roadblockRef.current.get(id)
+        roadblockRef.current.delete(id)
+        break
+      case 'fireHydrant':
+        marker = fireHydrantRef.current.get(id)
+        fireHydrantRef.current.delete(id)
+        break
+      case 'airQuality':
+        marker = airQualityRef.current.get(id)
+        airQualityRef.current.delete(id)
+        break
+      default:
+        marker = pinRef.current.get(id)
+        pinRef.current.delete(id)
+    }
+
+    if (marker) {
+      marker.remove()
+      // Also delete from backend
+      await fetch(`/api/map/${id}`, { method: 'DELETE' })
+    }
+  }
+
+  // Function to handle editing a pin's description
+  const handleEditPin = (
+    id: string,
+    type: string,
+    popupContent: HTMLDivElement,
+  ) => {
+    const descriptionElement = document.getElementById(`popup-address-${id}`)
+    if (!descriptionElement)
+      return console.error('Description element not found')
+
+    const currentDescription = descriptionElement.innerText
+
+    // Replace text with input field
+    popupContent.innerHTML = `
         <input id="edit-description-${id}" type="text" value="${currentDescription}" style="width: 90%; padding: 5px; margin-top: 5px;" />
         <button id="save-edit-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Save</button>
-      `;
+      `
 
-      // Add event listener for saving the edit
-      document.getElementById(`save-edit-${id}`)?.addEventListener("click", async () => {
-        const newDescription = (document.getElementById(`edit-description-${id}`) as HTMLInputElement).value;
+    // Add event listener for saving the edit
+    document
+      .getElementById(`save-edit-${id}`)
+      ?.addEventListener('click', async () => {
+        const newDescription = (
+          document.getElementById(`edit-description-${id}`) as HTMLInputElement
+        ).value
 
         // Send update request to backend
         const updateResponse = await fetch(`/api/map/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ description: newDescription }),
-        });
+        })
 
         if (!updateResponse.ok) {
-          console.error('Failed to update pin description');
-          return;
+          console.error('Failed to update pin description')
+          return
         }
 
         // Restore popup with updated description
@@ -495,232 +763,249 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
           <p id="popup-address-${id}">${newDescription}</p>
           <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
           <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
-        `;
+        `
 
         // Reattach event listeners
-        document.getElementById(`delete-pin-${id}`)?.addEventListener("click", async () => {
-          await handleRemovePin(id, type);
-        });
+        document
+          .getElementById(`delete-pin-${id}`)
+          ?.addEventListener('click', async () => {
+            await handleRemovePin(id, type)
+          })
 
-        document.getElementById(`edit-pin-${id}`)?.addEventListener("click", () => handleEditPin(id, type, popupContent));
-      });
-    };
-
-    
-    
-// -------------------------------- map drop items features end --------------------------------
-
-
-
-
-// -------------------------------- reach 911 features start --------------------------------
-
-    // Function to update the address using Mapbox's Geocoding API based on longitude and latitude
-    const updateAddressFromCoordinates = async (lng: number, lat: number) => {
-        try {
-            const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
-            );
-            const data = await response.json();
-            if (data.features && data.features.length > 0) {
-            const address = data.features[0].place_name;
-            dispatch(updateIncident({
-                ...incident,
-                address: address,
-            }));
-            }
-        } catch (error) {
-            console.error('Error fetching address:', error);
-        }
-    };
-
-    // When incident.address changes (from external updates), update the marker position
-    useEffect(() => {
-        if (mapRef.current && markerRef.current && incident.address && incident.address !== '') {
-        if (!(markerRef.current as any)._isDragging) {
-            fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(incident.address)}.json?access_token=${mapboxgl.accessToken}`
-            )
-            .then(response => response.json())
-            .then(data => {
-                if (data.features && data.features.length > 0) {
-                const [lng, lat] = data.features[0].center;
-                markerRef.current!.setLngLat([lng, lat]);
-                mapRef.current!.flyTo({
-                    center: [lng, lat],
-                    zoom: 14,
-                });
-                }
-            })
-            .catch(error => {
-                console.error('Error geocoding address:', error);
-            });
-        }
-        }
-    }, [incident.address]);
-
-// -------------------------------- reach 911 features end --------------------------------
-
-
-
-
-// -------------------------------- wildfire features start --------------------------------
-
-const draw = new MapboxDraw({
-  displayControlsDefault: false,
-  controls: {
-    polygon: true,
-    trash: true
-  },
-  defaultMode: 'draw_polygon'
-});
-
-const createArea = (e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] }) => {
-  console.log("current event: ", e);
-  const data = draw.getAll();
-  if (data.features.length > 0 && mapRef.current) {
-    
-    const areaId: string = e.features[0]?.id?.toString() || '';
-    if (areaId == '') return;
-    console.log("all coordinates: ", data.features);
-    const geometry = e.features[0].geometry as Geometry & { coordinates: any };
-    const coordinates = geometry.coordinates;
-    let areaIndex = -1;
-    data.features.find((feature, index) => {
-      if (feature.id === areaId) {
-      console.log('Matched feature index:', index);
-      areaIndex = index;
-      return true;
-      }
-      return false;
-    });
-    const areaName: string = 'Area ' + areaId;
-
-    // Add properties to the feature
-    if (areaIndex >= 0){
-      data.features[areaIndex].properties = {
-        areaId: areaId,
-        name: areaName
-      };
-    }
-    
-    console.log('Polygon coordinates:', coordinates);
-    console.log('Area ID:', areaId);
-    console.log('Area Name:', areaName);
-    console.log("bbox: ", geometry.coordinates);
-
-    const centerCoord: [number, number] = coordinates[0].reduce(
-      (acc: [number, number], coord: [number, number]) => {
-        acc[0] += coord[0];
-        acc[1] += coord[1];
-        return acc;
-      },
-        [0, 0]
-    ).map((sum: number) => sum / coordinates[0].length) as [number, number];
-    console.log("coord:  ", centerCoord);
-    createPopup(areaId, centerCoord, areaName);
+        document
+          .getElementById(`edit-pin-${id}`)
+          ?.addEventListener('click', () =>
+            handleEditPin(id, type, popupContent),
+          )
+      })
   }
-};
 
-const createPopup = (areaId: string, centerCoord: [number, number], areaName: string) => {
+  // -------------------------------- map drop items features end --------------------------------
 
-  const popupContent = document.createElement("div");
+  // -------------------------------- reach 911 features start --------------------------------
+
+  // Function to update the address using Mapbox's Geocoding API based on longitude and latitude
+  const updateAddressFromCoordinates = async (lng: number, lat: number) => {
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`,
+      )
+      const data = await response.json()
+      if (data.features && data.features.length > 0) {
+        const address = data.features[0].place_name
+        dispatch(
+          updateIncident({
+            ...incident,
+            address: address,
+          }),
+        )
+      }
+    } catch (error) {
+      console.error('Error fetching address:', error)
+    }
+  }
+
+  // When incident.address changes (from external updates), update the marker position
+  useEffect(() => {
+    if (
+      mapRef.current &&
+      markerRef.current &&
+      incident.address &&
+      incident.address !== ''
+    ) {
+      if (!(markerRef.current as any)._isDragging) {
+        fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(incident.address)}.json?access_token=${mapboxgl.accessToken}`,
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.features && data.features.length > 0) {
+              const [lng, lat] = data.features[0].center
+              markerRef.current!.setLngLat([lng, lat])
+              mapRef.current!.flyTo({
+                center: [lng, lat],
+                zoom: 14,
+              })
+            }
+          })
+          .catch((error) => {
+            console.error('Error geocoding address:', error)
+          })
+      }
+    }
+  }, [incident.address])
+
+  // -------------------------------- reach 911 features end --------------------------------
+
+  // -------------------------------- wildfire features start --------------------------------
+
+  const draw = new MapboxDraw({
+    displayControlsDefault: false,
+    controls: {
+      polygon: true,
+      trash: true,
+    },
+    defaultMode: 'draw_polygon',
+  })
+
+  const createArea = (
+    e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
+  ) => {
+    console.log('current event: ', e)
+    const data = draw.getAll()
+    if (data.features.length > 0 && mapRef.current) {
+      const areaId: string = e.features[0]?.id?.toString() || ''
+      if (areaId == '') return
+      console.log('all coordinates: ', data.features)
+      const geometry = e.features[0].geometry as Geometry & { coordinates: any }
+      const coordinates = geometry.coordinates
+      let areaIndex = -1
+      data.features.find((feature, index) => {
+        if (feature.id === areaId) {
+          console.log('Matched feature index:', index)
+          areaIndex = index
+          return true
+        }
+        return false
+      })
+      const areaName: string = 'Area ' + areaId
+
+      // Add properties to the feature
+      if (areaIndex >= 0) {
+        data.features[areaIndex].properties = {
+          areaId: areaId,
+          name: areaName,
+        }
+      }
+
+      console.log('Polygon coordinates:', coordinates)
+      console.log('Area ID:', areaId)
+      console.log('Area Name:', areaName)
+      console.log('bbox: ', geometry.coordinates)
+
+      const centerCoord: [number, number] = coordinates[0]
+        .reduce(
+          (acc: [number, number], coord: [number, number]) => {
+            acc[0] += coord[0]
+            acc[1] += coord[1]
+            return acc
+          },
+          [0, 0],
+        )
+        .map((sum: number) => sum / coordinates[0].length) as [number, number]
+      console.log('coord:  ', centerCoord)
+      createPopup(areaId, centerCoord, areaName)
+    }
+  }
+
+  const createPopup = (
+    areaId: string,
+    centerCoord: [number, number],
+    areaName: string,
+  ) => {
+    const popupContent = document.createElement('div')
     popupContent.innerHTML = `
       <span id="area-name-display-${areaId}" style="cursor: pointer;">${areaName || 'Area ' + areaId}</span>
       <input id="area-name-input-${areaId}" type="text" value="${areaName || 'Area ' + areaId}" style="display: none; width: 90%; padding: 5px; margin-top: 5px;" />
-    `;
+    `
 
-  const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, className: 'transparent-popup' })
+    const popup = new mapboxgl.Popup({
+      offset: 25,
+      closeButton: false,
+      className: 'transparent-popup',
+    })
       .setLngLat(centerCoord)
       .setDOMContent(popupContent)
-      .addTo(mapRef.current!);
+      .addTo(mapRef.current!)
 
-    const nameDisplay = document.getElementById(`area-name-display-${areaId}`);
-    const nameInput = document.getElementById(`area-name-input-${areaId}`) as HTMLInputElement;
+    const nameDisplay = document.getElementById(`area-name-display-${areaId}`)
+    const nameInput = document.getElementById(
+      `area-name-input-${areaId}`,
+    ) as HTMLInputElement
 
-    nameDisplay?.addEventListener("click", () => {
-      nameDisplay.style.display = "none";
-      nameInput.style.display = "block";
-      nameInput.focus();
-    });
+    nameDisplay?.addEventListener('click', () => {
+      nameDisplay.style.display = 'none'
+      nameInput.style.display = 'block'
+      nameInput.focus()
+    })
 
-    nameInput?.addEventListener("blur", () => {
-      const newName = nameInput.value;
+    nameInput?.addEventListener('blur', () => {
+      const newName = nameInput.value
       if (nameDisplay) {
-        nameDisplay.innerText = newName || 'Area ' + areaId;
-        nameDisplay.style.display = "block";
+        nameDisplay.innerText = newName || 'Area ' + areaId
+        nameDisplay.style.display = 'block'
       }
-      nameInput.style.display = "none";
-    });
-    popupRef.current.set(areaId, popup);
-}
+      nameInput.style.display = 'none'
+    })
+    popupRef.current.set(areaId, popup)
+  }
 
-const deletePopup = (areaId: string) => {
+  const deletePopup = (areaId: string) => {
+    popupRef.current.get(areaId)?.remove()
+    popupRef.current.delete(areaId)
+  }
 
-  popupRef.current.get(areaId)?.remove();
-  popupRef.current.delete(areaId);
-}
+  const deleteArea = (
+    e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
+  ) => {
+    const data = draw.getAll()
+    // TODO: delete the area from the database
+    // delete the popup as well
+    const areaId: string = e.features[0]?.id?.toString() || ''
+    if (areaId == '') return
+    deletePopup(areaId)
+  }
 
-const deleteArea = (e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] }) => {
-  const data = draw.getAll();
-  // TODO: delete the area from the database
-  // delete the popup as well
-  const areaId: string = e.features[0]?.id?.toString() || '';
-  if (areaId == '') return;
-  deletePopup(areaId);
-};
+  const updateArea = (
+    e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
+  ) => {
+    // const data = draw.getAll();
+    // TODO: update name of the area
+  }
 
-const updateArea = (e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] }) => {
-  // const data = draw.getAll();
-  // TODO: update name of the area
+  const addDrawControls = () => {
+    if (!mapRef.current) return
 
-  
-};
+    mapRef.current.addControl(draw)
 
-const addDrawControls = () => {
-  if (!mapRef.current) return;
+    mapRef.current.on('draw.create', createArea)
+    mapRef.current.on('draw.delete', deleteArea)
+    mapRef.current.on('draw.update', updateArea)
+  }
 
-  mapRef.current.addControl(draw);
+  const removeDrawControls = () => {
+    if (!mapRef.current) return
 
-  mapRef.current.on('draw.create', createArea);
-  mapRef.current.on('draw.delete', deleteArea);
-  mapRef.current.on('draw.update', updateArea);
-};
+    mapRef.current.removeControl(draw)
 
-const removeDrawControls = () => {
-  if (!mapRef.current) return;
+    mapRef.current.off('draw.create', createArea)
+    mapRef.current.off('draw.delete', deleteArea)
+    mapRef.current.off('draw.update', updateArea)
+  }
 
-  mapRef.current.removeControl(draw);
+  useEffect(() => {
+    eventEmitter.on('area_util', () => {
+      if (areaRef.current) {
+        removeDrawControls()
+      } else {
+        addDrawControls()
+      }
+      areaRef.current = !areaRef.current
+    })
 
-  mapRef.current.off('draw.create', createArea);
-  mapRef.current.off('draw.delete', deleteArea);
-  mapRef.current.off('draw.update', updateArea);
-};
-
-useEffect(() => {
-  eventEmitter.on('area_util', () => {
-    if (areaRef.current) {
-      removeDrawControls();
-    } else {
-      addDrawControls();
+    return () => {
+      eventEmitter.removeAllListeners('area_util')
     }
-    areaRef.current = !areaRef.current;
-  });
+  }, [])
 
-  return () => {
-    eventEmitter.removeAllListeners('area_util');
-  };
-}, []);
+  // -------------------------------- wildfire features end --------------------------------
 
-// -------------------------------- wildfire features end --------------------------------
-
-    
   // If there is a map error, display a fallback UI
   if (mapError) {
     return (
-      <Box 
-        sx={{ 
-          width: '100%', 
+      <Box
+        sx={{
+          width: '100%',
           height: '100%',
           minHeight: '400px',
           display: 'flex',
@@ -733,10 +1018,13 @@ useEffect(() => {
           backgroundColor: '#f5f5f5',
           maxWidth: '100%',
           boxSizing: 'border-box',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
-        <Alert severity="warning" sx={{ mb: 2, width: '100%', boxSizing: 'border-box' }}>
+        <Alert
+          severity="warning"
+          sx={{ mb: 2, width: '100%', boxSizing: 'border-box' }}
+        >
           {mapError}
         </Alert>
         <LocationOnIcon color="error" sx={{ fontSize: 60, mb: 2 }} />
@@ -744,47 +1032,50 @@ useEffect(() => {
           Please enter your address in the field above.
         </Typography>
       </Box>
-    );
+    )
   }
 
   return (
-    <div style={{ 
-      position: 'relative', 
-      width: '100%', 
-      height: '100%',
-      maxWidth: '100%',
-      overflow: 'hidden',
-      boxSizing: 'border-box'
-    }}>
-      <div 
-        ref={mapContainerRef} 
-        style={{ 
-          width: '100%', 
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div
+        ref={mapContainerRef}
+        style={{
+          width: '100%',
           height: '100%',
           minHeight: '400px',
           borderRadius: '8px',
           overflow: 'hidden',
           maxWidth: '100%',
-          boxSizing: 'border-box'
-        }} 
+          boxSizing: 'border-box',
+        }}
       />
       {isMapPage && (
         <MapDrop
-          onDropPin={() => handleAddPin("pin")}
-          onDropRoadblock={() => handleAddPin("roadblock")}
-          onDropFireHydrant={() => handleAddPin("fireHydrant")}
-          onDropAirQuality={() => handleAddPin("airQuality")}
+          onDropPin={() => handleAddPin('pin')}
+          onDropRoadblock={() => handleAddPin('roadblock')}
+          onDropFireHydrant={() => handleAddPin('fireHydrant')}
+          onDropAirQuality={() => handleAddPin('airQuality')}
         />
       )}
       {!isMapLoaded && <MapLoading />}
     </div>
-  );
-};
+  )
+}
 
-export default Mapbox;
+export default Mapbox
 export const getMapboxToken = () => {
   if (!mapboxgl.accessToken) {
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA';
+    mapboxgl.accessToken =
+      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA'
   }
-  return mapboxgl.accessToken;
-};
+  return mapboxgl.accessToken
+}
