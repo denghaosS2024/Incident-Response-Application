@@ -34,7 +34,9 @@ export const Channel: FunctionComponent<IChannelProps> = ({
   isSettingButton = false,
   selectedChannelId
 }) => {
-
+  // Get current username to check if it's their 911 channel
+  const currentUsername = localStorage.getItem('username');
+  const displayName = name === `I${currentUsername}_911` ? '911 Call' : name;
   const handleClick = () => {
     if (onClick) {
       onClick(_id);
@@ -54,7 +56,7 @@ export const Channel: FunctionComponent<IChannelProps> = ({
         backgroundColor: isSelected ? 'gray' : '#1976d2',
         color: 'white'
       }} onClick={handleClick}>
-      <ListItemText>{name}</ListItemText>
+      <ListItemText>{displayName}</ListItemText>
       {isSettingButton &&
         <IconButton edge="end" size="large">
           <Arrow />

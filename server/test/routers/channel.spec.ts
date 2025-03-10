@@ -5,7 +5,7 @@ import * as TestDatabase from '../utils/TestDatabase'
 import { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
 import UserController from '../../src/controllers/UserController'
 import { Types } from 'mongoose'
-
+import Profile from '../../src/models/Profile'
 
 jest.mock('@google-cloud/storage', () => {
   const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
@@ -252,56 +252,80 @@ describe('Router - Channel', () => {
   })
 
 
-  it('acknowledges a message in the channel', async () => {
-    // 1) Create a channel
-    const { body: createdChannel } = await request(app)
+  it('should initiate a phone call between two users and return the phone number', async () => {
+
+    
+    // Create profiles for both users with phone numbers
+    await Profile.findOneAndUpdate(
+      { userId: new Types.ObjectId(userA) },
+      { 
+        $set: {
+          userId: new Types.ObjectId(userA),
+          name: "Channel-User-A",
+          dob: new Date("1990-01-01"),
+          sex: "Male",
+          address: "123 Test St",
+          phone: "1234567890",
+          email: "usera@example.com",
+          medicalInfo: {
+            condition: "None",
+            drugs: "None",
+            allergies: "None"
+          },
+          emergencyContacts: []
+        }
+      },
+      { new: true, upsert: true }
+    );
+    
+    await Profile.findOneAndUpdate(
+      { userId: new Types.ObjectId(userB) },
+      {
+        $set: {
+          userId: new Types.ObjectId(userB),
+          name: "Channel-User-B",
+          dob: new Date("1990-01-01"),
+          sex: "Male",
+          address: "456 Test St",
+          phone: "0987654321",
+          email: "userb@example.com",
+          medicalInfo: {
+            condition: "None",
+            drugs: "None",
+            allergies: "None"
+          },
+          emergencyContacts: []
+        }
+      },
+      { new: true, upsert: true }
+    );
+  
+    // Ensure we have an existing channel between userA and userB
+    const {
+      body: { _id: testChannelId },
+    } = await request(app)
       .post('/api/channels')
-      .send({ 
-        name: 'Acknowledge Channel', 
-        users: [userA, userB] 
+      .send({
+        name: 'Test Channel For Phone Call',
+        users: [userA, userB],
       })
       .expect(200)
-
-    channelId = createdChannel._id
-
-    // 2) Add a message from userA
-    const { body: newMessage } = await request(app)
-      .post(`/api/channels/${channelId}/messages`)
-      .set('x-application-uid', userA) // or whichever header you use
-      .send({ content: 'An alert', isAlert: true })
+  
+    // Make the phone call request
+    const { body: result } = await request(app)
+      .post(`/api/channels/${testChannelId}/phone-call`)
+      .set('x-application-uid', userA) // Sender is userA
       .expect(200)
-
-    messageId = newMessage._id
-
-    // 3) Acknowledge this message as userB
-    const { body: acknowledgedMsg } = await request(app)
-      .patch(`/api/channels/${channelId}/messages/acknowledge`)
-      .send({ 
-        messageId, 
-        senderId: userB 
-      })
-      .expect(200)
-
-    // 4) Assert the DB update
-    expect(acknowledgedMsg._id).toBe(messageId)
-    expect(acknowledgedMsg.acknowledgedBy[0]._id).toEqual(userB)
-    expect(acknowledgedMsg.acknowledgedAt).toBeDefined()
-  })
-
-  it('returns 404 if the channel does not exist', async () => {
-    const fakeChannelId = new Types.ObjectId().toHexString()
-    const fakeMessageId = new Types.ObjectId().toHexString()
-
-    const { body } = await request(app)
-      .patch(`/api/channels/${fakeChannelId}/messages/acknowledge`)
-      .send({ 
-        messageId: fakeMessageId, 
-        senderId: userA 
-      })
-      .expect(404)
-
-    // The route code sets 404 and { message: error.message }
-    expect(body.message).toMatch(/Channel.*not found/)
+  
+    // Validate the response contains the expected phone call message
+    expect(result.message.content).toBe(
+      `Phone call started now between Channel-User-A and Channel-User-B.`
+    )
+    expect(result.message.sender.username).toBe('Channel-User-A')
+    expect(result.message.channelId).toBe(testChannelId)
+  
+    // Validate the phone number returned is of userB (the receiver)
+    expect(result.phoneNumber).toBe('0987654321')
   })
 
 

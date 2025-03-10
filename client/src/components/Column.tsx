@@ -29,9 +29,19 @@ const Container = styled.div`
     border: 1px solid gray;
 `;
 
+const StickyHeader = styled.div`
+    position: sticky;
+    top: 0;
+    background-color: #f4f5f7; // Match container background
+    padding-top: 20px; // This keeps the space even when scrolling
+    z-index: 10;
+`;
+
 const Title = styled.h3`
+    margin: 0;
     padding: 8px;
-    background-color: pink;
+    background-color: #0288d1;
+    color: white;
     text-align: center;
 `;
 
@@ -41,24 +51,24 @@ const TaskList = styled.div<{ isDraggingOver: boolean }>`
     background-color: ${({ isDraggingOver }) => (isDraggingOver ? "#d3d3d3" : "#f4f5f7")};
     flex-grow: 1;
     min-height: 100px;
+    margin: 5px 0;
 `;
 
 const PermanentCard = styled.div`
     border-radius: 10px;
-    box-shadow: 5px 5px 5px 2px grey;
     padding: 10px;
-    color: #000;
-    margin-bottom: 8px;
-    background-color: #eaf4fc;
+    color: white;
+    margin: 5px 0;
+    background-color: #0288d1;
     text-align: center;
     font-weight: bold;
 `;
 const GroupCard = styled.div`
   border-radius: 10px;
-  box-shadow: 3px 3px 5px grey;
   padding: 8px;
   margin: 5px 0;
-  background-color: lightgreen;
+  background-color: #2e7d32;
+  color: white;
   text-align: center;
   font-weight: bold;
   cursor: pointer;
@@ -78,15 +88,18 @@ const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClic
 
     return (
         <Container className="column">
+            <StickyHeader>
             <Title
                 style={{
-                    backgroundColor: "lightblue",
+                    backgroundColor: "#0288d1",
+                    color: "white",
                     position: "sticky",
                     top: "0",
                 }}
             >
                 {title}
             </Title>
+            </StickyHeader>
             {subtitle && <p style={{ textAlign: "center", fontWeight: "bold" }}>{subtitle}</p>}
             <Droppable droppableId={id}>
                 {(provided, snapshot) => (

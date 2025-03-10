@@ -1,7 +1,7 @@
 import IChannel from '../../models/Channel';
 import { useState, useEffect } from 'react';
 import GroupListBlock from './GroupListBlock';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import request from '../../utils/request';
 import SocketClient from '../../utils/Socket';
 
@@ -54,11 +54,15 @@ const GroupDirectory: React.FC = () => {
             borderRadius: '8px',
             padding: '1rem',
             mx: 'auto',
-            backgroundColor: "#fef9e7",
         }}>
-            <h1>Group Directory</h1>
+            <Typography
+            variant="h3"
+            sx={{ mb: 2 }}
+            >
+            Group Directory
+            </Typography>
             <GroupListBlock
-                headerName="Group I am managing"
+                headerName="Groups I am managing"
                 id="managing"
                 groups={myManagingChannels}
             />
