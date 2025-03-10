@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { Types } from 'mongoose';
 
 import WildfireAreaController from '../controllers/WildfireAreaController';
 /**
