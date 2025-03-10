@@ -876,41 +876,71 @@ const Mapbox: React.FC<MapboxProps> = ({
           areaId: areaId,
           name: areaName,
         }
+      } else {
+        return
       }
 
-      console.log('Polygon coordinates:', coordinates)
-      console.log('Area ID:', areaId)
-      console.log('Area Name:', areaName)
-      console.log('bbox: ', geometry.coordinates)
+      const formattedCoordinates = coordinates.map((coord: any) =>
+        coord.map((point: any) => [point[0], point[1]]),
+      )
 
-      const centerCoord: [number, number] = coordinates[0]
-        .reduce(
-          (acc: [number, number], coord: [number, number]) => {
-            acc[0] += coord[0]
-            acc[1] += coord[1]
-            return acc
-          },
-          [0, 0],
-        )
-        .map((sum: number) => sum / coordinates[0].length) as [number, number]
-      console.log('coord:  ', centerCoord)
-      createPopup(areaId, centerCoord, areaName)
+      const bodyJson = JSON.stringify({
+        name: areaName,
+        coordinates: coordinates[0],
+        areaId: areaId,
+      })
+      console.log('POST:   ', bodyJson)
+
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfireAreas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: bodyJson,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Successfully posted WildfireArea:', data)
+        })
+        .catch((error) => {
+          console.error('Error posting WildfireArea:', error)
+        })
+
+      // save to backend
+
+      // console.log('Polygon coordinates:', coordinates)
+      // console.log('Area ID:', areaId)
+      // console.log('Area Name:', areaName)
+      // console.log('bbox: ', geometry.coordinates)
+
+      // console.log('coord:  ', centerCoord)
+      createPopup({ areaId, coordinates: coordinates[0], name: areaName })
     }
   }
 
-  const createPopup = (
-    areaId: string,
-    centerCoord: [number, number],
-    areaName: string,
-  ) => {
+  const createPopup = (wildfireArea: WildfireArea) => {
+    const areaId = wildfireArea.areaId
+    const coordinates = wildfireArea.coordinates
+    const areaName = wildfireArea.name
     const popupContent = document.createElement('div')
     popupContent.innerHTML = `
       <span id="area-name-display-${areaId}" style="cursor: pointer;">${areaName || 'Area ' + areaId}</span>
       <input id="area-name-input-${areaId}" type="text" value="${areaName || 'Area ' + areaId}" style="display: none; width: 90%; padding: 5px; margin-top: 5px;" />
     `
+    const centerCoord = coordinates
+      .reduce(
+        (acc, coord) => {
+          acc[0] += coord[0]
+          acc[1] += coord[1]
+          return acc
+        },
+        [0, 0],
+      )
+      .map((sum: number) => sum / coordinates.length) as [number, number]
 
+    console.log('CenterCoord: ', centerCoord)
     const popup = new mapboxgl.Popup({
-      offset: 25,
+      offset: 0,
       closeButton: false,
       className: 'transparent-popup',
     })
@@ -945,6 +975,13 @@ const Mapbox: React.FC<MapboxProps> = ({
     popupRef.current.delete(areaId)
   }
 
+  const deleteAllPopups = () => {
+    popupRef.current.forEach((_, areaId) => {
+      deletePopup(areaId)
+    })
+    popupRef.current.clear()
+  }
+
   const deleteArea = (
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
@@ -953,7 +990,20 @@ const Mapbox: React.FC<MapboxProps> = ({
     // delete the popup as well
     const areaId: string = e.features[0]?.id?.toString() || ''
     if (areaId == '') return
-    deletePopup(areaId)
+
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfireAreas/${areaId}`, {
+      method: 'DELETE',
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to delete wildfire area')
+        }
+        console.log('Successfully deleted WildfireArea:', areaId)
+        deletePopup(areaId)
+      })
+      .catch((error) => {
+        console.error('Error deleting WildfireArea:', error)
+      })
   }
 
   const updateArea = (
@@ -971,6 +1021,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     mapRef.current.on('draw.create', createArea)
     mapRef.current.on('draw.delete', deleteArea)
     mapRef.current.on('draw.update', updateArea)
+    displayAllArea()
   }
 
   const removeDrawControls = () => {
@@ -981,6 +1032,55 @@ const Mapbox: React.FC<MapboxProps> = ({
     mapRef.current.off('draw.create', createArea)
     mapRef.current.off('draw.delete', deleteArea)
     mapRef.current.off('draw.update', updateArea)
+    // remove all names
+    deleteAllPopups()
+  }
+
+  const displayAllArea = () => {
+    const fetchWildfireAreas = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/api/wildfireAreas`,
+        )
+        const data = await response.json()
+        setCurrArea(data)
+        data.forEach((wildfireArea: WildfireArea) => {
+          drawArea(wildfireArea)
+        })
+      } catch (error) {
+        console.error('Error fetching wildfire areas:', error)
+      }
+    }
+
+    fetchWildfireAreas()
+  }
+
+  const drawArea = (wildfireArea: WildfireArea) => {
+    const newPolygon = draw.add({
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [wildfireArea.coordinates],
+      },
+      id: wildfireArea.areaId,
+      properties: {
+        areaId: wildfireArea.areaId,
+        name: wildfireArea.name,
+      },
+    })
+    createPopup(wildfireArea)
+  }
+
+  const removeArea = () => {
+    const data = draw.getAll()
+    if (data.features.length > 0) {
+      data.features.forEach((feature) => {
+        if (feature.id) {
+          draw.delete(feature.id.toString())
+        }
+      })
+    }
+    deleteAllPopups()
   }
 
   useEffect(() => {
