@@ -1,21 +1,19 @@
 import {
     Box,
     TextField,
-    Typography,
-    Paper,
-} from '@mui/material'
-import styles from '../../styles/Reach911Page.module.css'
-import MapLayer from '../Map/MapLayer';
+    Typography
+} from '@mui/material';
+import styles from '../../styles/Reach911Page.module.css';
 import Map from '../Map/Mapbox';
 
-import React from 'react'
-import IIncident from '../../models/Incident';
-import { RootState } from '../../utils/types';
+import { AddressAutofill } from '@mapbox/search-js-react';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../app/store';
 import { updateIncident } from '../../features/incidentSlice';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import { AddressAutofill } from '@mapbox/search-js-react';
+import IIncident from '../../models/Incident';
+import { RootState } from '../../utils/types';
 
 const Reach911Step1 = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -46,7 +44,8 @@ const Reach911Step1 = () => {
                         maxWidth: "900px"
                     }}>
                         <form>
-                            <AddressAutofill accessToken="pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA">
+                            <AddressAutofill accessToken='pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+>
                                 <TextField
                                     fullWidth
                                     id="outlined-basic"
