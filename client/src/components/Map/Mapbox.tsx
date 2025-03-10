@@ -181,6 +181,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
           <p id="popup-address-${item._id}">${item.description}</p>
           <button id="edit-pin-${item._id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
           <button id="delete-pin-${item._id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+          <button id="navigate-pin-${item._id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
         `;
   
         const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
@@ -213,9 +214,10 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
         popup.on('open', () => {
           const editButton = document.getElementById(`edit-pin-${item._id}`);
           const deleteButton = document.getElementById(`delete-pin-${item._id}`);
+          const navigateButton = document.getElementById(`navigate-pin-${item._id}`);
           const popupContainer = document.getElementById(`popup-container-${item._id}`) as HTMLDivElement;
 
-          if (!editButton || !deleteButton || !popupContainer) {
+          if (!editButton || !deleteButton || !navigateButton || !popupContainer) {
             console.warn(`Popup elements not found for pin ID: ${item._id}`);
             return;
           }
@@ -228,6 +230,14 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
           deleteButton.addEventListener("click", async () => {
             await handleRemovePin(item._id, item.type);
           });
+
+          navigateButton.addEventListener("click", () => {
+            if (mapRef.current) {
+              navigateToMarker(mapRef.current, item.longitude, item.latitude);
+            } else {
+              console.error("Map reference is not available.");
+            }
+          });
         });
       });
     } catch (error) {
@@ -235,7 +245,84 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
     }
   };
   
-  
+
+const accessToken = 'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA';
+
+const navigateToMarker = async (map: mapboxgl.Map | null, lng: number, lat: number) => {
+  console.log("-1")
+  if (!map) {
+    console.error("Map instance is not available.");
+    return;
+  }
+  console.log("0")
+  // Get user's current location
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      console.log("1")
+      const userLng = position.coords.longitude;
+      const userLat = position.coords.latitude;
+
+      // Fetch route from Mapbox Directions API
+      const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${lng},${lat}?geometries=geojson&access_token=${accessToken}`;
+
+      try {
+        console.log("2")
+        const response = await fetch(routeUrl);
+        const data = await response.json();
+
+        if (!data.routes || data.routes.length === 0) {
+          console.error("No route found.");
+          return;
+        }
+
+        const route = data.routes[0].geometry;
+
+        // Remove previous route if it exists
+        if (map.getSource("route")) {
+          map.removeLayer("route");
+          map.removeSource("route");
+        }
+
+        // Add new route
+        map.addSource("route", {
+          type: "geojson",
+          data: {
+            type: "Feature",
+            properties: {},
+            geometry: route,
+          },
+        });
+
+        map.addLayer({
+          id: "route",
+          type: "line",
+          source: "route",
+          layout: {
+            "line-join": "round",
+            "line-cap": "round",
+          },
+          paint: {
+            "line-color": "#007aff", // Blue color for the route
+            "line-width": 4,
+          },
+        });
+        console.log("3")
+        // Fit map to route bounds
+        const bounds = new mapboxgl.LngLatBounds();
+        route.coordinates.forEach((coord: [number, number]) => bounds.extend(coord));
+
+        map.fitBounds(bounds, { padding: 50 });
+
+      } catch (error) {
+        console.error("Error fetching directions:", error);
+      }
+    },
+    (error) => {
+      console.error("Error getting user location:", error);
+    }
+  );
+};
+
   
 
 // -------------------------------- helper function end --------------------------------
@@ -403,6 +490,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
           <p id="popup-address-${id}">${document.getElementById(`popup-address-${tempId}`)!.innerText}</p>
           <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
           <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+          <button id="navigate-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
         `;
     
         document.getElementById(`delete-pin-${id}`)?.addEventListener("click", async () => {
@@ -480,6 +568,7 @@ const Mapbox: React.FC<MapboxProps> = ({ showMarker = true, disableGeolocation =
           <p id="popup-address-${id}">${newDescription}</p>
           <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
           <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+          <button id="navigate-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
         `;
 
         // Reattach event listeners
