@@ -39,10 +39,12 @@ const Reach911Step2: React.FC = () => {
             overflow: 'hidden',
             px: 2,
             pb: 1,
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            mt: '10px',
+            p: '10px'
         }}>
-            <Box sx={{ pt: 1 }}>
-                <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'bold', mb: 0.5, fontSize: '0.95rem' }}>
+            <Box>
+                <Typography variant="h6" align="center" sx={{ mb: 0.5 }}>
                     What type of emergency are you experiencing?
                 </Typography>
             </Box>
@@ -60,9 +62,10 @@ const Reach911Step2: React.FC = () => {
                 <Card 
                     elevation={isSelected(IncidentType.Fire) ? 4 : 1}
                     sx={{ 
-                        border: isSelected(IncidentType.Fire) ? '2px solid #f44336' : '1px solid #e0e0e0',
+                        border: isSelected(IncidentType.Fire) ? '1.5px solid #f44336' : '1.5px solid #dddddd',
                         transition: 'all 0.3s ease',
-                        maxHeight: '28%'
+                        maxHeight: '28%',
+                        boxShadow: 'none'
                     }}
                 >
                     <CardActionArea 
@@ -82,10 +85,10 @@ const Reach911Step2: React.FC = () => {
                                     mb: 0.25
                                 }} 
                             />
-                            <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'medium', fontSize: '0.95rem', lineHeight: 1.2 }}>
+                            <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'medium', fontSize: '1rem', lineHeight: 1.2 }}>
                                 Fire
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" align="center" sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
+                            <Typography variant="caption" color="text.secondary" align="center" sx={{ fontSize: '0.85rem', lineHeight: 1.2 }}>
                                 Report a fire emergency
                             </Typography>
                         </Box>
@@ -96,9 +99,10 @@ const Reach911Step2: React.FC = () => {
                 <Card 
                     elevation={isSelected(IncidentType.Medical) ? 4 : 1}
                     sx={{ 
-                        border: isSelected(IncidentType.Medical) ? '2px solid #2196f3' : '1px solid #e0e0e0',
+                        border: isSelected(IncidentType.Medical) ? '1.5px solid #2196f3' : '1.5px solid #dddddd',
                         transition: 'all 0.3s ease',
-                        maxHeight: '28%'
+                        maxHeight: '28%',
+                        boxShadow: 'none'
                     }}
                 >
                     <CardActionArea 
@@ -118,10 +122,10 @@ const Reach911Step2: React.FC = () => {
                                     mb: 0.25
                                 }} 
                             />
-                            <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'medium', fontSize: '0.95rem', lineHeight: 1.2 }}>
+                            <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'medium', fontSize: '1rem', lineHeight: 1.2 }}>
                                 Medical
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" align="center" sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
+                            <Typography variant="caption" color="text.secondary" align="center" sx={{ fontSize: '0.85rem', lineHeight: 1.2 }}>
                                 Report a medical emergency
                             </Typography>
                         </Box>
@@ -132,9 +136,10 @@ const Reach911Step2: React.FC = () => {
                 <Card 
                     elevation={isSelected(IncidentType.Police) ? 4 : 1}
                     sx={{ 
-                        border: isSelected(IncidentType.Police) ? '2px solid #4caf50' : '1px solid #e0e0e0',
+                        border: isSelected(IncidentType.Police) ? '1.5px solid #4caf50' : '1.5px solid #dddddd',
                         transition: 'all 0.3s ease',
-                        maxHeight: '28%'
+                        maxHeight: '28%',
+                        boxShadow: 'none',
                     }}
                 >
                     <CardActionArea 
@@ -154,10 +159,10 @@ const Reach911Step2: React.FC = () => {
                                     mb: 0.25
                                 }} 
                             />
-                            <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'medium', fontSize: '0.95rem', lineHeight: 1.2 }}>
+                            <Typography variant="subtitle1" align="center" sx={{ fontWeight: 'medium', fontSize: '1rem', lineHeight: 1.2 }}>
                                 Police
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" align="center" sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
+                            <Typography variant="caption" color="text.secondary" align="center" sx={{ fontSize: '0.85rem', lineHeight: 1.2 }}>
                                 Report a police emergency
                             </Typography>
                         </Box>
@@ -166,7 +171,7 @@ const Reach911Step2: React.FC = () => {
             </Box>
             
             {incident.type !== IncidentType.Unset && (
-                <Typography variant="body2" align="center" sx={{ fontSize: '0.8rem', lineHeight: 1.2 }}>
+                <Typography variant="body2" align="center" sx={{ fontWeight: 'bold', fontSize: '1rem', lineHeight: 1.2, p: '10px' }}>
                     You've selected: {incident.type === IncidentType.Fire 
                         ? 'Fire' 
                         : incident.type === IncidentType.Medical 
