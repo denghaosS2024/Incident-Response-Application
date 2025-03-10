@@ -669,12 +669,21 @@ const Mapbox: React.FC<MapboxProps> = ({
             <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
           `
 
-          // Attach event listeners when popup opens for non-air quality markers
-          popup.on('open', () => {
+          // Create a new popup with the updated content
+          const updatedPopup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(
+            popupContent,
+          )
+
+          // Replace the marker's popup
+          marker.setPopup(updatedPopup)
+
+          // Attach event listeners when the popup opens, like we did for air quality markers
+          updatedPopup.on('open', () => {
             const editButton = document.getElementById(`edit-pin-${id}`)
             const deleteButton = document.getElementById(`delete-pin-${id}`)
 
             if (editButton && deleteButton) {
+              // Bind event listeners
               editButton.addEventListener('click', () =>
                 handleEditPin(id, type, popupContent),
               )
