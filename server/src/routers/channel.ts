@@ -754,6 +754,47 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+  /**
+   * @swagger
+   * /api/channels/{id}/messages/acknowledge:
+   *   patch:
+   *     summary: Acknowledge a message in a channel.
+   *     tags: [Channels]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the channel.
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - senderId
+   *               - messageId
+   *             properties:
+   *               senderId:
+   *                 type: string
+   *                 description: The ID of the user acknowledging the message.
+   *               messageId:
+   *                 type: string
+   *                 description: The ID of the message to acknowledge.
+   *     responses:
+   *       200:
+   *         description: The updated message object.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Message'
+   *       404:
+   *         description: Sender, message, or channel not found.
+   */
   .patch('/:id/messages/acknowledge', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const { senderId, messageId } = request.body
