@@ -1491,13 +1491,19 @@
   resolved "https://registry.npmjs.org/@emotion/weak-memoize/-/weak-memoize-0.3.1.tgz"
   integrity sha512-EsBwpc7hBUJWAsNPBmJy4hxWx12v6bshQsldrVmjxJoc3isbxhOrF2IcCpaXxfvq03NwkI7sbsOLXbYuqF/8Ww==
 
+"@esbuild/linux-x64@0.18.20":
 "@esbuild/darwin-arm64@0.18.20":
   version "0.18.20"
+  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.18.20.tgz"
+  integrity sha512-UYqiqemphJcNsFEskc73jQ7B9jgwjWrSayxawS6UVFZGWrAAtkzjxSqnoclCXxWtfwLdzU+vTpcNYhpn43uP1w==
   resolved "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.18.20.tgz"
   integrity sha512-bxRHW5kHU38zS2lPTPOyuyTm+S+eobPUnTNkdJEfAddYgEcll4xkT8DB9d2008DtTbl7uJag2HuE5NZAZgnNEA==
 
+"@esbuild/linux-x64@0.25.0":
 "@esbuild/darwin-arm64@0.25.0":
   version "0.25.0"
+  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.25.0.tgz"
+  integrity sha512-9yl91rHw/cpwMCNytUDxwj2XjFpxML0y9HAOH9pNVQDpQrBxHy01Dx+vaMu0N1CKa/RzBD2hB4u//nfc+Sd3Cw==
   resolved "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.25.0.tgz"
   integrity sha512-mVwdUb5SRkPayVadIOI78K7aAnPamoeFR2bT5nszFUZ9P8UpK4ratOdYbZZXYSqPKMHfS1wdHCJk1P1EZpRdvw==
 
@@ -2094,10 +2100,33 @@
     is-plain-obj "^1.1.0"
     xtend "^4.0.1"
 
+"@mapbox/geojson-area@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.npmjs.org/@mapbox/geojson-area/-/geojson-area-0.2.2.tgz"
+  integrity sha512-bBqqFn1kIbLBfn7Yq1PzzwVkPYQr9lVUeT8Dhd0NL5n76PBuXzOcuLV7GOSbEB1ia8qWxH4COCvFpziEu/yReA==
+  dependencies:
+    wgs84 "0.0.0"
+
+"@mapbox/geojson-normalize@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.npmjs.org/@mapbox/geojson-normalize/-/geojson-normalize-0.0.1.tgz"
+  integrity sha512-82V7YHcle8lhgIGqEWwtXYN5cy0QM/OHq3ypGhQTbvHR57DF0vMHMjjVSQKFfVXBe/yWCBZTyOuzvK7DFFnx5Q==
+
 "@mapbox/jsonlint-lines-primitives@^2.0.2":
   version "2.0.2"
   resolved "https://registry.npmjs.org/@mapbox/jsonlint-lines-primitives/-/jsonlint-lines-primitives-2.0.2.tgz"
   integrity sha512-rY0o9A5ECsTQRVhv7tL/OyDpGAoUB4tTvLiW1DSzQGq4bvTPhNw1VpSNjDJc5GFZ2XuyOtSWSVN05qOtcD71qQ==
+
+"@mapbox/mapbox-gl-draw@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.npmjs.org/@mapbox/mapbox-gl-draw/-/mapbox-gl-draw-1.5.0.tgz"
+  integrity sha512-uchQbTa8wiv6GWWTbxW1g5b8H6VySz4t91SmduNH6jjWinPze7cjcmsPUEzhySXsYpYr2/50gRJLZz3bx7O88A==
+  dependencies:
+    "@mapbox/geojson-area" "^0.2.2"
+    "@mapbox/geojson-normalize" "^0.0.1"
+    "@mapbox/point-geometry" "^1.1.0"
+    fast-deep-equal "^3.1.3"
+    nanoid "^5.0.9"
 
 "@mapbox/mapbox-gl-geocoder@^5.0.3":
   version "5.0.3"
@@ -2142,6 +2171,11 @@
   version "0.1.0"
   resolved "https://registry.npmjs.org/@mapbox/point-geometry/-/point-geometry-0.1.0.tgz"
   integrity sha512-6j56HdLTwWGO0fJPlrZtdU/B13q8Uwmo18Ck2GnGgN9PCFyKTZ3UbXeEdRFh18i9XQ92eH2VdtpJHpBD3aripQ==
+
+"@mapbox/point-geometry@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/@mapbox/point-geometry/-/point-geometry-1.1.0.tgz"
+  integrity sha512-YGcBz1cg4ATXDCM/71L9xveh4dynfGmcLDqufR+nQQy3fKwsAZsWd/x4621/6uJaeB9mwOHE6hPeDgXz9uViUQ==
 
 "@mapbox/polyline@^1.0.0":
   version "1.2.1"
@@ -4233,6 +4267,14 @@
   version "4.14.202"
   resolved "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.202.tgz"
   integrity sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ==
+
+"@types/mapbox__mapbox-gl-draw@^1.4.8":
+  version "1.4.8"
+  resolved "https://registry.npmjs.org/@types/mapbox__mapbox-gl-draw/-/mapbox__mapbox-gl-draw-1.4.8.tgz"
+  integrity sha512-700zPikQXfFMB2vtkJdXSROiqS5F19guf6QdYqvlgCdaMxGmdlLITRq6/zFpzfVQDrgpWex5M8vLtbwjZfup8g==
+  dependencies:
+    "@types/geojson" "*"
+    mapbox-gl "*"
 
 "@types/mapbox__mapbox-gl-geocoder@^5.0.0":
   version "5.0.0"
@@ -10702,7 +10744,7 @@ map-or-similar@^1.5.0:
   resolved "https://registry.npmjs.org/map-or-similar/-/map-or-similar-1.5.0.tgz"
   integrity sha512-0aF7ZmVon1igznGI4VS30yugpduQW3y3GkcgGJOp7d8x8QrizhigUxjI/m2UojsXXto+jLAH3KSz+xOJTiORjg==
 
-mapbox-gl@^3.10.0, mapbox-gl@>=2.7.0:
+mapbox-gl@*, mapbox-gl@^3.10.0, mapbox-gl@>=2.7.0:
   version "3.10.0"
   resolved "https://registry.npmjs.org/mapbox-gl/-/mapbox-gl-3.10.0.tgz"
   integrity sha512-YnQxjlthuv/tidcxGYU2C8nRDVXMlAHa3qFhuOJeX4AfRP72OMRBf9ApL+M+k5VWcAXi2fcNOUVgphknjLumjA==
@@ -11028,6 +11070,11 @@ nanoid@^3.1.31, nanoid@^3.3.7:
   version "3.3.7"
   resolved "https://registry.npmjs.org/nanoid/-/nanoid-3.3.7.tgz"
   integrity sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==
+
+nanoid@^5.0.9:
+  version "5.1.2"
+  resolved "https://registry.npmjs.org/nanoid/-/nanoid-5.1.2.tgz"
+  integrity sha512-b+CiXQCNMUGe0Ri64S9SXFcP9hogjAJ2Rd6GdVxhPLRm7mhGaM7VgOvCAJ1ZshfHbqVDI3uqTI5C8/GaKuLI7g==
 
 natural-compare-lite@^1.4.0:
   version "1.4.0"
@@ -15592,6 +15639,11 @@ websocket-extensions@>=0.1.1:
   version "0.1.4"
   resolved "https://registry.npmjs.org/websocket-extensions/-/websocket-extensions-0.1.4.tgz"
   integrity sha512-OqedPIGOfsDlo31UNwYbCFMSaO9m9G/0faIHj5/dZFDMFqPTcx6UwqyOy3COEaEOg/9VsGIpdqn62W5KhoKSpg==
+
+wgs84@0.0.0:
+  version "0.0.0"
+  resolved "https://registry.npmjs.org/wgs84/-/wgs84-0.0.0.tgz"
+  integrity sha512-ANHlY4Rb5kHw40D0NJ6moaVfOCMrp9Gpd1R/AIQYg2ko4/jzcJ+TVXYYF6kXJqQwITvEZP4yEthjM7U6rYlljQ==
 
 whatwg-encoding@^1.0.5:
   version "1.0.5"

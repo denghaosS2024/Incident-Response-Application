@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react'
 import styles from '../styles/Reach911Page.module.css'
 import Button from '@mui/material/Button';
 
-import Step3Form from '../components/Reach911/Reach911Step3Form';
 import Reach911Step1 from '../components/Reach911/Reach911Step1';
 import Reach911Step2 from '../components/Reach911/Reach911Step2';
+import Reach911Step3 from '../components/Reach911/Reach911Step3Form';
 import Reach911Step4 from '../components/Reach911/Reach911Step4';
 import Reach911Step5 from '../components/Reach911/Reach911Step5';
 
@@ -15,7 +15,6 @@ import IIncident from '../models/Incident';
 import { updateIncident } from '../features/incidentSlice';
 import { AppDispatch } from '../app/store';
 import { useLocation } from 'react-router-dom';
-import request, { IRequestError } from '../utils/request';
 
 
 const Reach911Page: React.FC = () => {
@@ -46,24 +45,24 @@ const Reach911Page: React.FC = () => {
 
     // If autoPopulateData is true and incidentId is provided, fetch incident details and update Redux state.
     // autoPopulateData will be true when this page is navigated from the incidentsPage to view further incident details
-    useEffect(() => {
-        const fetchIncidentAndPopulate = async (id: string) => {
-            try {
-                const data = await request(`/api/incidents?incidentId=${id}`);
-                if (Array.isArray(data) && data.length > 0) {
-                    const fetchedIncident = data[0];
-                    dispatch(updateIncident(fetchedIncident));
-                } else {
-                    console.error("No incident found for incidentId:", id);
-                }
-            } catch (err) {
-                console.error("Error fetching incident details:", err);
-            }
-        };
-        if (autoPopulateData && incidentId) {
-            fetchIncidentAndPopulate(incidentId);
-        }
-    }, [autoPopulateData, incidentId, dispatch]);
+    // useEffect(() => {
+    //     const fetchIncidentAndPopulate = async (id: string) => {
+    //         try {
+    //             const data = await request(`/api/incidents?incidentId=${id}`);
+    //             if (Array.isArray(data) && data.length > 0) {
+    //                 const fetchedIncident = data[0];
+    //                 dispatch(updateIncident(fetchedIncident));
+    //             } else {
+    //                 console.error("No incident found for incidentId:", id);
+    //             }
+    //         } catch (err) {
+    //             console.error("Error fetching incident details:", err);
+    //         }
+    //     };
+    //     if (autoPopulateData && incidentId) {
+    //         fetchIncidentAndPopulate(incidentId);
+    //     }
+    // }, [autoPopulateData, incidentId, dispatch]);
 
     // Save step to localStorage whenever it changes
     useEffect(() => {
@@ -73,10 +72,8 @@ const Reach911Page: React.FC = () => {
     const contents = [
         <Reach911Step1 />,
         <Reach911Step2 />,
-        <Step3Form />,
-        <Reach911Step4 
-            isCreatedByFirstResponder={isCreatedByFirstResponder} 
-        />,
+        <Reach911Step3 isCreatedByFirstResponder={isCreatedByFirstResponder} />,
+        <Reach911Step4 isCreatedByFirstResponder={isCreatedByFirstResponder} />,
     ];
 
     const isResponder = role === 'Fire' || role === 'Police' || role === 'Dispatch';
@@ -158,14 +155,82 @@ const Reach911Page: React.FC = () => {
         }
     }
 
+    const updateIncidentCall = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const uid = localStorage.getItem('uid');
+    
+            if (!token || !uid) {
+                setError('Authentication error: Missing token or UID.');
+                console.error('Authentication error: Missing token or UID.');
+                return;
+            }
+
+            const cleanedIncident = { ...incident };
+            if (!cleanedIncident._id) delete (cleanedIncident as any)._id;
+            if (!cleanedIncident.incidentCallGroup) delete (cleanedIncident as any).incidentCallGroup;
+    
+            const requestBody = {
+                ...cleanedIncident,
+                incidentId : incidentId,
+            };
+    
+            const url = `${process.env.REACT_APP_BACKEND_URL}/api/incidents/update`;
+            const options = {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-application-token': token,
+                    'x-application-uid': uid,
+                },
+                body: JSON.stringify(requestBody),
+            };
+    
+            const response = await fetch(url, options);
+    
+            if (response.status !== 204) {
+                throw new Error(`Unexpected response status: ${response.status}`);
+            }
+    
+            console.log('Incident successfully updated.');
+            window.alert("Incident updated successfully");
+            
+        } catch (error) {
+            console.error('Error updating incident:', error);
+    
+            if (error && typeof error === 'object' && 'message' in error) {
+                const errorMessage = String(error.message);
+                console.error('Error details:', errorMessage);
+                setError(errorMessage);
+            } else {
+                setError('An unknown error occurred');
+            }
+        }
+    };
+    
+
     const handleNextStep = (): void => {
-        if (activeStep === contents.length - 2) {
-            submitIncident();
+        const hasStep5 = contents.length === 5;
+    
+        if (activeStep === 3 && hasStep5) {
+            if (isCreatedByFirstResponder === true) {
+                updateIncidentCall();
+            }
+    
+            setActiveStep(activeStep + 1);
+            setError(null);
+        } else if (activeStep === contents.length - 2) {
+            if (isCreatedByFirstResponder === true) {
+                updateIncidentCall();
+            } else {
+                submitIncident();
+            }
         } else if (activeStep < contents.length - 1) {
             setActiveStep(activeStep + 1);
             setError(null);
         }
     };
+    
 
     // Allow navigation to any step in the stepper
     const handleStepChange = (step: number): void => {

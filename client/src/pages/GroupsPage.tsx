@@ -61,7 +61,7 @@ const Groups: React.FC = () => {
         isUpdate = true;
       }
 
-      await request('/api/channels/groups', {
+      await request('/api/channels', {
         method: 'POST',
         body: JSON.stringify({
           _id: isUpdate ? groupId : undefined,
