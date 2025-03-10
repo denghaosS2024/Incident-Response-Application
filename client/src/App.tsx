@@ -288,7 +288,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   // Add Organization Chart tab for Dispatch, Police, and Fire roles
   const hasOrgChartTab = orderedTabs.some((tab) => tab.key === 'organization')
 
-  if (!hasOrgChartTab && ['Dispatch', 'Police', 'Fire'].includes(role)) {
+  if (!hasOrgChartTab && ['Administrator'].includes(role)) {
     orderedTabs.push({
       prefix: '/organization',
       key: 'organization',
