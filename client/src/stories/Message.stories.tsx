@@ -57,7 +57,7 @@ export const AudioMessage: Story = {
     message: { 
       sender: { username: 'Jane Doe' },
       timestamp: '5 minutes ago',
-      content: 'https://storage.googleapis.com/sem-video-bucket/uploads/sample-voice.webcam',
+      content: 'https://storage.googleapis.com/sem-video-bucket/voice_messages/sample-voice.webcam',
     },
   },
 }
