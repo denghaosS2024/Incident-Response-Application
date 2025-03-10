@@ -714,7 +714,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         marker.setDraggable(false) // Disable dragging
 
         // Send request to backend to create a real pin entry
-        const createPinResponse = await fetch('/api/map', {
+        const createPinResponse = await request('/api/map', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -948,7 +948,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     if (marker) {
       marker.remove()
       // Also delete from backend
-      await fetch(`/api/map/${id}`, { method: 'DELETE' })
+      await request(`/api/map/${id}`, { method: 'DELETE' })
     }
   }
 
@@ -979,7 +979,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         ).value
 
         // Send update request to backend
-        const updateResponse = await fetch(`/api/map/${id}`, {
+        const updateResponse = await request(`/api/map/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ description: newDescription }),
