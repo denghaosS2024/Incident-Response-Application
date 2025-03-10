@@ -36,6 +36,7 @@ const Template: Story = (args) => {
       setUsers={setUsers}
       onGroupClick={(c) => {setGroupName(c.name)}}  // just a random func to make eslint happy
       triggerResetBoard={triggerResetBoard}
+      canDrag={true}
       {...args}
     />
   );

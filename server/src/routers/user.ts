@@ -1,10 +1,10 @@
 // UserRouter handles operations related to users, such as registration and listing.
 // It interacts with the User model and manages user authentication.
 
-import { Router } from 'express'
+import { Router } from 'express';
 
-import UserController from '../controllers/UserController'
-import ROLES from '../utils/Roles'
+import UserController from '../controllers/UserController';
+import ROLES from '../utils/Roles';
 
 export default Router()
   /**
@@ -45,3 +45,43 @@ export default Router()
     const users = await UserController.listUsers()
     response.send(users)
   })
+
+  /**
+   * Get user's last known location
+   * @route GET /api/users/:id/location
+   * @param {string} request.params.id - The ID of the user
+   * @returns {Object} An object containing latitude and longitude
+   * @throws {400} If the user is not found
+   */
+  .get('/:id/location', async (request, response) => {
+    const { id } = request.params;
+    try {
+      const location = await UserController.getUserLastLocation(id);
+      response.send(location);
+    } catch (e) {
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
+    }
+  })
+  
+  /**
+   * Update user's last known location
+   * @route PATCH /api/users/:id/location
+   * @param {string} request.params.id - The ID of the user
+   * @param {number} request.body.latitude - The new latitude
+   * @param {number} request.body.longitude - The new longitude
+   * @returns {Object} The updated user object
+   * @throws {400} If the user is not found or update fails
+   */
+  .patch('/:id/location', async (request, response) => {
+    const { id } = request.params;
+    const { latitude, longitude } = request.body;
+    
+    try {
+      const updatedUser = await UserController.updateUserLastLocation(id, latitude, longitude);
+      response.send(updatedUser);
+    } catch (e) {
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
+    }
+  });

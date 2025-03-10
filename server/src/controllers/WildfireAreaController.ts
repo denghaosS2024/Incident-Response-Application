@@ -1,5 +1,6 @@
 // import WildfireArea, { IWildfireArea } from '../models/WildfireArea';
 import WildfireArea from '../models/WildfireArea'
+import UserConnections from '../utils/UserConnections'
 
 class WildfireAreaController {
   /**
@@ -24,9 +25,13 @@ class WildfireAreaController {
     })
 
     await newWildfireArea.save()
-
-    // TODO: Use Socket.IO to notify everyone with the new wildfire area
-    return wildfireArea
+    const areaJson = {
+      areaId: newWildfireArea.areaId,
+      coordinates: newWildfireArea.coordinates,
+      name: newWildfireArea.name,
+    }
+    UserConnections.broadcast('map-area-update', areaJson)
+    return areaJson
   }
 
   /**
@@ -57,6 +62,12 @@ class WildfireAreaController {
     if (wildfireArea) {
       wildfireArea.name = newName
       await wildfireArea.save()
+      const newWildfireArea = {
+        areaId,
+        coordinates: wildfireArea.coordinates,
+        name: newName,
+      }
+      UserConnections.broadcast('map-area-update', newWildfireArea)
       return wildfireArea
     }
 
@@ -95,6 +106,7 @@ class WildfireAreaController {
 
     if (wildfireArea) {
       await wildfireArea.deleteOne()
+      UserConnections.broadcast('map-area-delete', areaId)
       return { message: `WildfireArea "${areaId}" has been deleted` }
     }
 

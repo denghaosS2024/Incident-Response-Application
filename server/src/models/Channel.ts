@@ -8,8 +8,10 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose'
 import AutoPopulate from 'mongoose-autopopulate'
 
-import { IUser } from './User'
+import User, { IUser } from './User'
 import { IMessage } from './Message'
+import UserController from "../controllers/UserController";
+import SystemGroupConfigs from "../utils/SystemDefinedGroups";
 
 export const PUBLIC_CHANNEL_NAME = 'Public'
 
@@ -34,6 +36,7 @@ export interface IChannleModel extends Model<IChannel> {
   getGroupById: (id: Types.ObjectId) => Promise<IChannel>
   getGroupByUser: (userId: Types.ObjectId) => Promise<IChannel[]>
   getGroupOwnedByUser: (userId: Types.ObjectId) => Promise<IChannel[]>
+  ensureSystemDefinedGroup: () => Promise<void>
 }
 
 /**
@@ -95,7 +98,7 @@ ChannelSchema.statics.getGroupById = async (id: Types.ObjectId) => {
 
 /**
  * Static method to get a group owned by a user
- * Ignore the public channel when getting a group
+ * Including system defined groups
  * Default to get all groups
  * @param userId - The ID of the user
  * @param checkClosed - Optional. If true, returns groups based on the "closed"  field. Otherwise, returns all groups.
@@ -103,15 +106,15 @@ ChannelSchema.statics.getGroupById = async (id: Types.ObjectId) => {
  */
 ChannelSchema.statics.getGroupOwnedByUser = async (userId: Types.ObjectId, checkClosed: boolean = false, closed: boolean = false) => {
   if (checkClosed) {
-    return Channel.find({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME }, closed: closed }).exec()
+    return Channel.find({ owner: userId, closed: closed }).exec()
   } else {
-    return Channel.find({ owner: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+    return Channel.find({ owner: userId }).exec()
   }
 }
 
 /**
  * Static method to get a group by a user
- * Ignore the public channel when getting a group
+ * Including system defined groups
  * Default to get all groups
  * @param userId - The ID of the user
  * @param checkClosed - Optional. If true, returns groups based on the "closed"  field. Otherwise, returns all groups.
@@ -119,9 +122,38 @@ ChannelSchema.statics.getGroupOwnedByUser = async (userId: Types.ObjectId, check
  */
 ChannelSchema.statics.getGroupByUser = async (userId: Types.ObjectId, checkClosed: boolean = false, closed: boolean = false) => {
   if (checkClosed) {
-    return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME }, closed: closed }).exec()
+    return Channel.find({ users: userId, closed: closed }).exec()
   } else {
-    return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+    return Channel.find({ users: userId }).exec()
+  }
+}
+
+ChannelSchema.statics.ensureSystemDefinedGroup = async () => {
+  const systemUser = await UserController.findUserByUsername('System');
+  if (!systemUser) {
+    console.log('[ensureSystemDefinedGroup] systemUser not found. Cannot create system defined groups.')
+    return
+  }
+
+  for (const config of SystemGroupConfigs) {
+    const channel = await Channel.findOne({ name: config.name }).exec()
+    if (!channel) {
+      const users = await User.find({
+        role: { $in: config.participantRole }
+      }).exec();
+
+      await new Channel({
+        name: config.name,
+        users: users,
+        description: config.description,
+        owner: systemUser,
+        closed: false,
+      }).save()
+
+      console.log(`[ensureSystemDefinedGroup] System Group ${config.name} created! (user count: ${users.length})`)
+    } else {
+      console.log(`[ensureSystemDefinedGroup] System Group ${config.name} already exists!`)
+    }
   }
 }
 

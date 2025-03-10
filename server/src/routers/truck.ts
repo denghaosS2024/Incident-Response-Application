@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import TruckController from '../controllers/TruckController';
 
 const truckRouter = Router();
@@ -121,6 +121,52 @@ truckRouter.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const removedTruck = await TruckController.removeTruckById(id);
     res.json({ message: 'Truck deleted', truck: removedTruck });
+  } catch (err) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/trucks/cities:
+ *   put:
+ *     summary: Update the assigned city for a truck
+ *     description: Assigns or removes a truck from a city.
+ *     tags:
+ *       - Trucks
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - truckName
+ *               - cityName
+ *             properties:
+ *               truckName:
+ *                 type: string
+ *                 example: "Fire Truck 1"
+ *               cityName:
+ *                 type: string
+ *                 example: "San Francisco"
+ *                 description: Name of the city to assign. Pass `null` to remove truck from a city.
+ *     responses:
+ *       200:
+ *         description: Truck updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Truck"
+ *       400:
+ *         description: Bad request. Missing or invalid parameters.
+ */
+truckRouter.put('/cities', async (req: Request, res: Response) => {
+  try {
+    const { truckName, cityName } = req.body;
+    const updatedTruck = await TruckController.updateTruckCity(truckName, cityName);
+    res.json(updatedTruck);
   } catch (err) {
     const error = err as Error;
     res.status(400).json({ error: error.message });

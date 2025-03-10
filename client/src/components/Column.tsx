@@ -15,6 +15,7 @@ interface ColumnProps {
     groups?: any[];
     onGroupClick?: (groupId: string) => void;
     selectedGroupId?: string | null;
+    canDrag?: boolean;
 }
 
 
@@ -74,7 +75,7 @@ const GroupCard = styled.div`
   cursor: pointer;
 `;
 
-const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClick }) => {
+const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClick, canDrag }) => {
     const owner = localStorage.getItem('uid') || ''
     const [groups, setGroups] = useState<{ _id: string; name: string }[]>([]);
 
@@ -128,7 +129,7 @@ const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClic
 
                         {/* Contacts badge */}
                         {tasks.map((task, index) => (
-                            <Card key={task._id} index={index} task={task} />
+                            <Card key={task._id} index={index} task={task} canDrag={canDrag} />
                         ))}
                         {provided.placeholder}
                     </TaskList>

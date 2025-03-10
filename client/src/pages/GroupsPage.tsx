@@ -1,44 +1,24 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import AddGroupForm from '../components/AddGroupForm'
 import request, { IRequestError } from '../utils/request'
 import IChannel from '../models/Channel'
 import { IAddGroupFormProps } from '@/components/AddGroupForm'
 import AlertSnackbar from '../components/common/AlertSnackbar'
 import style from '../styles/GroupPage.module.css'
-import { RootState } from "@/utils/types";
-import { useSelector } from "react-redux";
-import SocketClient from '../utils/Socket';
+import SocketClient from '../utils/Socket'
 
 //Pages
 import GroupDirectory from '../components/GroupDir/GroupDirectory'
 import { Container } from '@mui/material'
-import IUser from '@/models/User'
 
 const Groups: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | ''>('')
-  const [selectedUsers, setSelectedUsers] = useState<IUser[]>([]);
   const [currentGroup, setCurrentGroup] = useState<IChannel | null>(null);
+  const uid = localStorage.getItem('uid') || ''
 
-  const { contacts, loading, error } = useSelector((state: RootState) => state.contactState);
-  const owner = localStorage.getItem('uid') || ''
-  const [todo, setTodo] = useState<IUser[]>([]);
-  const [done, setDone] = useState<IUser[]>([]);
-
-  const resetBoard = () => {
-    const filteredContacts = contacts.filter(contact => contact._id !== owner); // Remove the logged-in user
-    setTodo(filteredContacts); // Reset todo to the filtered contacts
-    setDone([]); // Clear done array
-    setCurrentGroup(null);
-  };
-
-  useEffect(() => {
-    if (contacts.length > 0) {
-      resetBoard();
-    }
-  }, [contacts]);
-
+  // create or update channel
   const newGroup: IAddGroupFormProps['createChannel'] = async ({
     name,
     description,
@@ -135,14 +115,45 @@ const Groups: React.FC = () => {
     }
   }
 
+  const removeCurrentUserFromGroup: IAddGroupFormProps['removeCurrentUserFromGroup'] = async () => {
+    setErrorMessage('')
+
+    if (currentGroup) {
+      const originalUsers = currentGroup.users
+        ? currentGroup.users.map(user => typeof user === 'object' ? user._id : user)
+        : [];
+      const usersWithoutCurrent = originalUsers.filter(userId => userId !== uid)
+
+      try {
+        await request('/api/channels', {
+          method: 'PUT',
+          body: JSON.stringify({
+            _id: currentGroup._id,
+            name: currentGroup.name,
+            description: currentGroup.description,
+            users: usersWithoutCurrent,
+            owner: currentGroup.owner._id,
+            closed: currentGroup.closed,
+          }),
+        })
+      } catch (e) {
+        const error = e as IRequestError
+        setErrorMessage(`Error: ${error.message}`)
+      }
+
+      setSuccessMessage('You are removed from the selected group.')
+      setOpenSnackbar(true)
+    }
+  }
+
 
   return (
     <Container>
       <div className={style.centeredForm}>
-        <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup}
-          selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
-          setSelectedUsers={setSelectedUsers}
-          resetBoard={resetBoard}
+        <AddGroupForm
+          createChannel={newGroup}
+          deleteChannel={deleteGroup}
+          removeCurrentUserFromGroup={removeCurrentUserFromGroup}
           currentGroup={currentGroup}
           setCurrentGroup={setCurrentGroup} />
       </div>

@@ -210,7 +210,7 @@ const Reach911Page: React.FC = () => {
       }
 
       console.log('Incident successfully updated.')
-      window.alert('Incident updated successfully')
+      // window.alert('Incident updated successfully')
     } catch (error) {
       console.error('Error updating incident:', error)
 
@@ -228,14 +228,20 @@ const Reach911Page: React.FC = () => {
     const hasStep5 = contents.length === 5
 
     if (activeStep === 3 && hasStep5) {
-      if (isCreatedByFirstResponder === true) {
+      if (
+        isCreatedByFirstResponder === true ||
+        (autoPopulateData === true && readOnly === false)
+      ) {
         updateIncidentCall()
       }
 
       setActiveStep(activeStep + 1)
       setError(null)
     } else if (activeStep === contents.length - 2) {
-      if (isCreatedByFirstResponder === true) {
+      if (
+        isCreatedByFirstResponder === true ||
+        (autoPopulateData === true && readOnly === false)
+      ) {
         updateIncidentCall()
       } else {
         submitIncident()

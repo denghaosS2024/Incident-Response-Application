@@ -17,13 +17,15 @@ import { AppDispatch } from '@/app/store'
 import { RootState } from '@/utils/types'
 import { useDispatch, useSelector } from 'react-redux'
 import { loadContacts } from '../../features/contactSlice'
+import IChannel from '../../models/Channel'
 import IUser from '../../models/User'
 import styles from '../../styles/MapLayer.module.css'
+import request from '../../utils/request'
 import getRoleIcon from '../common/RoleIcon'
 
 const MapLayer: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(3)
-  const [isVisible, setIsVisible] = useState<boolean>(true)
+  const [isVisible, setIsVisible] = useState<boolean>(false)
   const [navbarHeight, setNavbarHeight] = useState<number>(56)
   const [tabbarHeight, setTabbarHeight] = useState<number>(48)
   const [isFullPage, setIsFullPage] = useState<boolean>(false)
@@ -34,6 +36,14 @@ const MapLayer: React.FC = () => {
   const [activeContact, setActiveContact] = useState<Record<string, boolean>>(
     {},
   )
+  const [activeGroup, setActiveGroup] = useState<Record<string, boolean>>({})
+
+  // State for storing groups
+  const [myManagingGroups, setMyManagingGroups] = useState<IChannel[]>([])
+  const [myParticipatingGroups, setMyParticipatingGroups] = useState<
+    IChannel[]
+  >([])
+  const [groupsLoading, setGroupsLoading] = useState<boolean>(true)
 
   const [activeMainButtons, setActiveMainButtons] = useState({
     group: false,
@@ -58,11 +68,25 @@ const MapLayer: React.FC = () => {
     roleKey = 'Nurse'
   } else if (normalizedRole.includes('fire')) {
     roleKey = 'Fire'
+  } else if (normalizedRole.includes('police')) {
+    roleKey = 'Police'
   }
 
   const roleUtilMapping: Record<string, string[]> = {
     Citizen: ['Areas', 'Hospitals', 'Pins', 'Pollution'],
     Fire: [
+      'Areas',
+      'Blocks',
+      'Cars',
+      'Hospitals',
+      'Hydrants',
+      'Incidents',
+      'Pins',
+      'Pollution',
+      'SAR',
+      'Trucks',
+    ],
+    Police: [
       'Areas',
       'Blocks',
       'Cars',
@@ -106,6 +130,40 @@ const MapLayer: React.FC = () => {
     dispatch(loadContacts())
   }, [dispatch])
 
+  // Fetch groups
+  useEffect(() => {
+    const fetchGroups = async () => {
+      setGroupsLoading(true)
+      try {
+        const owner = localStorage.getItem('uid') || ''
+
+        // Fetch groups the user is participating in
+        const myGroups = await request(`/api/channels/groups/${owner}`, {
+          method: 'GET',
+        }).catch((error) => {
+          console.error('Error fetching groups:', error)
+          return []
+        })
+
+        // Filter active groups the user is participating in
+        const activeGroups = myGroups.filter((group: IChannel) => !group.closed)
+        setMyParticipatingGroups(activeGroups)
+
+        // Filter groups the user is managing (owner of)
+        const ownedGroups = myGroups.filter(
+          (group: IChannel) => group.owner?._id === owner && !group.closed,
+        )
+        setMyManagingGroups(ownedGroups)
+      } catch (error) {
+        console.error('Error fetching groups:', error)
+      } finally {
+        setGroupsLoading(false)
+      }
+    }
+
+    fetchGroups()
+  }, [])
+
   useEffect(() => {
     const handleSelectUtil = (select: boolean) => {
       if (select) {
@@ -133,8 +191,13 @@ const MapLayer: React.FC = () => {
           ...prev,
           util: visible,
         }))
+
+        // Open util dropdown if any of the util layers drops down a marker
+        if (visible) {
+          setSelectedIndex(1)
+        }
       } else {
-        // For individual util layers (like Pins, Blocks, Hydrants)
+        // Update visibility of util layers when toggled from the map
         setActiveUtil((prev) => ({
           ...prev,
           [layer]: visible,
@@ -147,6 +210,11 @@ const MapLayer: React.FC = () => {
     return () => {
       eventEmitter.removeListener('selectUtil', handleSelectUtil)
     }
+  }, [])
+
+  // Auto-emit "you" clicked event on component mount
+  useEffect(() => {
+    eventEmitter.emit('you_button_clicked', true)
   }, [])
 
   const handleListItemClick = (
@@ -166,6 +234,20 @@ const MapLayer: React.FC = () => {
       ...prev,
       [userId]: !prev[userId],
     }))
+  }
+
+  // toggle visibility of group dropdown items
+  const handleGroupItemClick = (groupId: string) => {
+    setActiveGroup((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }))
+    handleGroupSelected(groupId)
+  }
+
+  // TODO: handle group selected future implementation
+  const handleGroupSelected = (groupId: string) => {
+    console.log(`Group selected: ${groupId}`)
   }
 
   // toggle visibility of util dropdown items
@@ -227,10 +309,64 @@ const MapLayer: React.FC = () => {
   const handleMainButtonClick = (
     button: 'group' | 'util' | 'contacts' | 'you',
   ) => {
-    setActiveMainButtons((prev) => ({
-      ...prev,
-      [button]: !prev[button],
-    }))
+    setActiveMainButtons((prev) => {
+      const newState = {
+        ...prev,
+        [button]: !prev[button],
+      }
+
+      // Emit you button clicked event
+      // new state is true if the button is clicked and false otherwise
+      if (button === 'you') {
+        eventEmitter.emit('you_button_clicked', newState.you)
+      }
+
+      return newState
+    })
+
+    if (button === 'group') {
+      if (selectedIndex === 0) {
+        setSelectedIndex(null)
+      } else {
+        setSelectedIndex(0)
+      }
+    } else if (button === 'contacts') {
+      if (selectedIndex === 2) {
+        setSelectedIndex(null)
+      } else {
+        setSelectedIndex(2)
+      }
+    } else if (button === 'util') {
+      if (selectedIndex === 1) {
+        setSelectedIndex(null)
+      } else {
+        setSelectedIndex(1)
+      }
+    }
+  }
+
+  const renderGroupItems = (groups: IChannel[]) => {
+    if (groups.length === 0) return null
+
+    return (
+      <>
+        {groups.map((group) => (
+          <ListItemButton
+            dense
+            key={group._id}
+            onClick={() => handleGroupItemClick(group._id)}
+            sx={{
+              backgroundColor: activeGroup[group._id]
+                ? '#F0F5FB'
+                : 'transparent',
+              fontSize: '0.875rem',
+            }}
+          >
+            <ListItemText primary={group.name} sx={{ fontSize: '0.875rem' }} />
+          </ListItemButton>
+        ))}
+      </>
+    )
   }
 
   return (
@@ -243,8 +379,13 @@ const MapLayer: React.FC = () => {
           {/* Group */}
           <ListItemButton
             dense
-            onClick={(e) => handleListItemClick(e, 0)}
-            sx={getButtonStyle(0)}
+            onClick={() => handleMainButtonClick('group')}
+            sx={{
+              backgroundColor:
+                selectedIndex === 0 || activeMainButtons.group
+                  ? '#F0F5FB'
+                  : 'transparent',
+            }}
           >
             <ListItemIcon sx={{ minWidth: '32px', mr: 1 }}>
               <GroupIcon fontSize="small" />
@@ -255,14 +396,61 @@ const MapLayer: React.FC = () => {
             />
           </ListItemButton>
 
+          {/* Inline group dropdown showing groups */}
+          {selectedIndex === 0 && (
+            <Box
+              sx={{
+                mt: 0,
+                ml: 0,
+                maxHeight: 120,
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '4px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  borderRadius: '2px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'transparent',
+                },
+              }}
+            >
+              <List dense>
+                {groupsLoading ? (
+                  <ListItemButton>
+                    <ListItemText
+                      primary="Loading..."
+                      sx={{ fontSize: '0.875rem' }}
+                    />
+                  </ListItemButton>
+                ) : myManagingGroups.length === 0 &&
+                  myParticipatingGroups.length === 0 ? (
+                  <ListItemButton>
+                    <ListItemText
+                      primary="No groups"
+                      sx={{ fontSize: '0.875rem' }}
+                    />
+                  </ListItemButton>
+                ) : (
+                  <>
+                    {renderGroupItems(myManagingGroups)}
+                    {renderGroupItems(myParticipatingGroups)}
+                  </>
+                )}
+              </List>
+            </Box>
+          )}
+
           {/* Util */}
           <ListItemButton
             dense
             onClick={() => handleMainButtonClick('util')}
             sx={{
-              backgroundColor: activeMainButtons.util
-                ? '#F0F5FB'
-                : 'transparent',
+              backgroundColor:
+                selectedIndex === 1 || activeMainButtons.util
+                  ? '#F0F5FB'
+                  : 'transparent',
             }}
           >
             <ListItemIcon sx={{ minWidth: '32px', mr: 1 }}>

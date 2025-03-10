@@ -26,4 +26,26 @@ airQualityRouter.get("/", async (req: Request, res: Response) => {
     }
 });
 
+airQualityRouter.post("/", async (req: Request, res: Response) => {
+    const { locationId, latitude, longitude, air_quality, timeStamp } = req.body;
+    try {
+        const result = await AirQualityController.addAirQuality(locationId, latitude, longitude, air_quality, timeStamp);
+        return res.json(result);
+    } catch (err) {
+        const error = err as Error;
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+airQualityRouter.delete("/", async (req: Request, res: Response) => {
+    const { locationId } = req.body;
+    try {
+        const result = await AirQualityController.deleteAirQuality(locationId);
+        return res.json(result);
+    } catch (err) {
+        const error = err as Error;
+        return res.status(500).json({ error: error.message });
+    }
+});
+
 export default airQualityRouter;

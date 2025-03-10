@@ -56,6 +56,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     '/reach911': '911 Call',
     '/incidents': 'Incidents',
     '/organization': 'Organization',
+    '/map': 'Map',
   }
 
   const roleTitles: Record<string, string> = {
@@ -69,7 +70,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
   let title = pageTitles[pathname] || 'Incident Response'
 
   // If user is Fire or Police and path is /reach911, override title to "Incidents"
-  if (pathname === '/reach911' && (role === 'Fire' || role === 'Police' || role === 'Dispatch')) {
+  if (
+    pathname === '/reach911' &&
+    (role === 'Fire' || role === 'Police' || role === 'Dispatch')
+  ) {
     title = 'Incidents'
   }
 
@@ -78,6 +82,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
   }
   if (pathname.startsWith('/profile')) {
     title = 'Profile'
+  }
+
+  if (pathname.startsWith('/map')) {
+    title = 'Map'
   }
 
   if (pathname === '/') {
@@ -97,9 +105,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
     localStorage.removeItem('token')
     localStorage.removeItem('uid')
     localStorage.removeItem('incidentState')
-    localStorage.removeItem('911Step');
-    localStorage.removeItem('username');
-    localStorage.removeItem('role');
+    localStorage.removeItem('911Step')
+    localStorage.removeItem('username')
+    localStorage.removeItem('role')
     navigate('/login')
   }
 
@@ -108,7 +116,20 @@ const NavigationBar: FunctionComponent<IProps> = ({
   }
 
   const navigateToOrganization = () => {
-    navigate('/organization')
+    // Get the user's role from localStorage
+    const userRole = localStorage.getItem('role') || ''
+
+    // Use the same role-based logic as in App.tsx
+    if (['Dispatch', 'Police', 'Fire'].includes(userRole)) {
+      // Responders see the ViewOrganization component
+      navigate('/organization/view')
+    } else {
+      // Administrators see the Organization component
+      navigate('/organization')
+    }
+
+    // Close the menu after navigation
+    closeMenu()
   }
 
   return (
@@ -138,7 +159,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
           </IconButton>
         )}
         <Menu open={openMenu} anchorEl={menuAnchor} onClose={closeMenu}>
-          {(role === 'Dispatch' || role === 'Police' || role === 'Fire' || role === 'Administrator') && (
+          {(role === 'Dispatch' ||
+            role === 'Police' ||
+            role === 'Fire' ||
+            role === 'Administrator') && (
             <MenuItem onClick={navigateToOrganization}>Organization</MenuItem>
           )}
           <MenuItem onClick={profile}>profile</MenuItem>

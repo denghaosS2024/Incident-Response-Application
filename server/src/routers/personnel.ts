@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Request, Response, Router } from "express";
 import PersonnelController from "../controllers/PersonnelController";
 
 const personnelRouter = Router();
@@ -25,7 +25,7 @@ const personnelRouter = Router();
  */
 personnelRouter.get("/", async (_req: Request, res: Response) => {
   try {
-    const personnel = await PersonnelController.getAllPersonnel();
+    const personnel = await PersonnelController.getAllAvailablePersonnel();
     res.json(personnel);
   } catch (err) {
     const error = err as Error;
@@ -35,10 +35,10 @@ personnelRouter.get("/", async (_req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/personnel:
- *   post:
- *     summary: Add new personnel
- *     description: Creates a new Firefighter or Police Officer.
+ * /api/personnel/cities:
+ *   put:
+ *     summary: Update the assigned city for a personnel
+ *     description: Assigns or removes a personnel from a city.
  *     tags:
  *       - Personnel
  *     requestBody:
@@ -47,67 +47,127 @@ personnelRouter.get("/", async (_req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - username
+ *               - cityName
  *             properties:
- *               name:
+ *               username:
  *                 type: string
- *                 example: "John Doe"
- *               role:
+ *                 example: "john_doe"
+ *               cityName:
  *                 type: string
- *                 enum: ["Firefighter", "Police Officer"]
+ *                 example: "San Francisco"
+ *                 description: Name of the city to assign. Pass `null` to remove personnel from a city.
  *     responses:
- *       201:
- *         description: Personnel created successfully.
+ *       200:
+ *         description: Personnel updated successfully.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Personnel"
  *       400:
- *         description: Bad request, missing fields.
+ *         description: Bad request. Missing or invalid parameters.
+ *       404:
+ *         description: Personnel or city not found.
+ *       500:
+ *         description: Server error while updating personnel.
  */
-personnelRouter.post("/", async (req: Request, res: Response) => {
-    try {
-      const { name, role } = req.body;
-      if (!name || !role) {
-        return res.status(400).json({ error: "Name and role are required" });
-      }
-      const newPersonnel = await PersonnelController.createPersonnel(name, role);
-      return res.status(201).json(newPersonnel);
-    } catch (err) {
-      const error = err as Error;
-      return res.status(400).json({ error: error.message });
-    }
-  });
+personnelRouter.put("/cities", async (req: Request, res: Response) => {
+  try {
+    const { username, cityName } = req.body;
+    console.log('username:', username);
+    console.log('cityName:', cityName);
+    const updatedPersonnel = await PersonnelController.updatePersonnelCity(username, cityName);
+    res.status(200).json(updatedPersonnel);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+});
 
 /**
  * @swagger
- * /api/personnel/{id}:
- *   delete:
- *     summary: Remove personnel
- *     description: Deletes a Firefighter or Police Officer by ID.
+ * /api/personnel/vehicles:
+ *   put:
+ *     summary: Update the assigned vehicle for a personnel
+ *     description: Assigns or removes a vehicle from a personnel.
  *     tags:
  *       - Personnel
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID of the personnel to delete
- *         schema:
- *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - personnelName
+ *               - vehicleName
+ *             properties:
+ *               personnelName:
+ *                 type: string
+ *                 example: "john_doe"
+ *               vehicleName:
+ *                 type: string
+ *                 example: "Car123"
+ *                 description: Name of the vehicle to assign. Pass `null` to remove vehicle from a personnel.
  *     responses:
  *       200:
- *         description: Personnel deleted successfully.
- *       400:
- *         description: Invalid personnel ID or personnel not found.
+ *         description: Vehicle updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Personnel"
  */
-personnelRouter.delete("/:id", async (req: Request, res: Response) => {
+personnelRouter.put("/vehicles", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const removedPersonnel = await PersonnelController.removePersonnelById(id);
-    res.json({ message: "Personnel deleted", personnel: removedPersonnel });
+    const { personnelName, vehicleName } = req.body;
+    const updatedPersonnel = await PersonnelController.selectVehicleForPersonnel(personnelName, vehicleName);
+    res.status(200).json(updatedPersonnel);
   } catch (err) {
     const error = err as Error;
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
-});
+})
+
+/**
+ * @swagger
+ * /api/personnel/vehicles/release:
+ *   put:
+ *     summary: Release a vehicle from a personnel
+ *     description: Removes a vehicle assignment from a personnel.
+ *     tags:
+ *       - Personnel
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - personnelName
+ *               - vehicleName
+ *             properties:
+ *               personnelName:
+ *                 type: string
+ *                 example: "john_doe"
+ *               vehicleName:
+ *                 type: string
+ *                 example: "Car123"
+ *     responses:
+ *       200:
+ *         description: Vehicle released successfully.
+ */
+personnelRouter.put("/vehicles/release", async (req: Request, res: Response) => {
+  try {
+    const { personnelName, vehicleName } = req.body;
+    const updatedPersonnel = await PersonnelController.releaseVehicleFromPersonnel(personnelName, vehicleName);
+    res.status(200).json(updatedPersonnel);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+}
+);
+
 
 export default personnelRouter;

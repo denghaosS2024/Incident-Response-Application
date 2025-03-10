@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import CarController from '../controllers/CarController';
 
 const carRouter = Router();
@@ -121,6 +121,59 @@ carRouter.delete("/:id", async (req: Request, res: Response) => {
     const { id } = req.params;
     const removedCar = await CarController.removeCarById(id);
     res.json({ message: "Car deleted", car: removedCar });
+  } catch (err) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/cars/cities:
+ *   put:
+ *     summary: Update the assigned city for a car
+ *     description: Assigns or removes a car from a city.
+ *     tags:
+ *       - Cars
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - carName
+ *               - cityName
+ *             properties:
+ *               carName:
+ *                 type: string
+ *                 example: "Car123"
+ *               cityName:
+ *                 type: string
+ *                 example: "San Francisco"
+ *                 description: Name of the city to assign. Pass `null` to remove car from a city.
+ *     responses:
+ *       200:
+ *         description: Car updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Car"
+ *       400:
+ *         description: Bad request. Missing or invalid parameters.
+ *
+ *       404:
+ *         description: Car or city not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
+ */ 
+carRouter.put("/cities", async (req: Request, res: Response) => {
+  try {
+    const { carName, cityName } = req.body;
+    const updatedCar = await CarController.updateCarCity(carName, cityName);
+    res.status(200).json(updatedCar);
   } catch (err) {
     const error = err as Error;
     res.status(400).json({ error: error.message });

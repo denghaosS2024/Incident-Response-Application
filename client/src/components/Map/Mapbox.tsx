@@ -18,6 +18,8 @@ import { AppDispatch } from '../../app/store'
 import { updateIncident } from '../../features/incidentSlice'
 import IIncident from '../../models/Incident'
 import eventEmitter from '../../utils/eventEmitter'
+import request from '../../utils/request'
+import SocketClient from '../../utils/Socket'
 import { RootState, WildfireArea } from '../../utils/types'
 import MapDrop from './MapDrop'
 import MapLoading from './MapLoading'
@@ -30,35 +32,9 @@ interface MapboxProps {
 // Define interface for AQI data
 interface AQIData {
   value: number | null
-  level: 'no data' | 'good' | 'moderate' | 'poor' | 'hazardous'
+  level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous'
   color: string
-}
-
-// Mock function to fetch AQI data
-const fetchAQIData = async (lng: number, lat: number): Promise<AQIData> => {
-  try {
-    // In a real implementation, this would be an actual API call
-    // For now, we'll simulate a random AQI value
-    // const response = await fetch(`/api/aqi?lng=${lng}&lat=${lat}`);
-    // const data = await response.json();
-
-    // Mock random AQI value for demonstration purposes
-    const mockValue = Math.floor(Math.random() * 400)
-
-    // Determine AQI level and color based on value
-    if (mockValue < 50) {
-      return { value: mockValue, level: 'good', color: '#00e400' } // Green
-    } else if (mockValue < 100) {
-      return { value: mockValue, level: 'moderate', color: '#ff7e00' } // Orange
-    } else if (mockValue < 300) {
-      return { value: mockValue, level: 'poor', color: '#ff0000' } // Red
-    } else {
-      return { value: mockValue, level: 'hazardous', color: '#8f3f97' } // Dark purple
-    }
-  } catch (error) {
-    console.error('Error fetching AQI data:', error)
-    return { value: null, level: 'no data', color: '#000000' } // Black for no data
-  }
+  timeStamp?: number
 }
 
 const Mapbox: React.FC<MapboxProps> = ({
@@ -79,6 +55,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [pinsVisible, setPinsVisible] = useState(true)
   const [roadblocksVisible, setRoadblocksVisible] = useState(true)
   const [fireHydrantsVisible, setFireHydrantsVisible] = useState(true)
+  const [userLocationVisible, setUserLocationVisible] = useState(true)
+  const geoLocateRef = useRef<mapboxgl.GeolocateControl | null>(null)
 
   // refs for areaClick
   const areaRef = useRef<boolean>(false)
@@ -90,6 +68,12 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [isMapLoaded, setIsMapLoaded] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
   const [isMapPage, setIsMapPage] = useState<boolean>(false)
+
+  // state to track default areas
+  const [areaNum, setAreaNum] = useState<number>(0)
+
+  // State for the route calculation loading
+  const [isNaviLoaded, setIsNaviLoaded] = useState(false)
 
   const dispatch = useDispatch<AppDispatch>()
   const incident: IIncident = useSelector(
@@ -186,7 +170,7 @@ const Mapbox: React.FC<MapboxProps> = ({
 
         // Trigger geolocation if the map was initialized with default coordinates
         if (initialZoom == 1 && !disableGeolocation) {
-          geolocateControl!.trigger()
+          geoLocateRef.current!.trigger()
         }
       })
       // Handle map errors
@@ -195,15 +179,15 @@ const Mapbox: React.FC<MapboxProps> = ({
         setMapError('Failed to load map')
       })
       // Add geolocate control to allow tracking the user's location (only if not disabled)
-      let geolocateControl: mapboxgl.GeolocateControl | null = null
+      // let geolocateControl: mapboxgl.GeolocateControl | null = null
       if (!disableGeolocation) {
-        geolocateControl = new mapboxgl.GeolocateControl({
+        geoLocateRef.current = new mapboxgl.GeolocateControl({
           positionOptions: { enableHighAccuracy: true },
           trackUserLocation: true,
         })
-        mapRef.current.addControl(geolocateControl)
+        mapRef.current.addControl(geoLocateRef.current)
         // Update marker position when geolocation is triggered
-        geolocateControl.on('geolocate', (e: any) => {
+        geoLocateRef.current.on('geolocate', (e: any) => {
           const { longitude, latitude } = e.coords
           if (markerRef.current && showMarker) {
             markerRef.current.setLngLat([longitude, latitude])
@@ -226,7 +210,6 @@ const Mapbox: React.FC<MapboxProps> = ({
     markerElement.style.display = 'flex'
     markerElement.style.alignItems = 'center'
     markerElement.style.justifyContent = 'center'
-    markerElement.style.position = 'relative' // Added for absolute positioning of AQI value
 
     // Choose the correct Material UI icon
     let iconComponent
@@ -299,8 +282,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   // fetch and render markers from backend
   const fetchAndRenderMarkers = async () => {
     try {
-      const response = await fetch('/api/map') // Fetch all markers from backend
-      const data = await response.json()
+      const response = await request('/api/map') // Fetch all markers from backend
+      const data = await response
 
       if (!mapRef.current) return
 
@@ -337,6 +320,7 @@ const Mapbox: React.FC<MapboxProps> = ({
               <div style="display: flex; justify-content: space-between;">
                 <button id="edit-pin-${_id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
                 <button id="delete-pin-${_id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+                <button id="navigate-pin-${item._id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
               </div>
             </div>
           `
@@ -346,6 +330,7 @@ const Mapbox: React.FC<MapboxProps> = ({
             <p id="popup-address-${_id}">${description}</p>
             <button id="edit-pin-${_id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
             <button id="delete-pin-${_id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+            <button id="navigate-pin-${item._id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
           `
         }
 
@@ -384,13 +369,19 @@ const Mapbox: React.FC<MapboxProps> = ({
         popup.on('open', () => {
           const editButton = document.getElementById(`edit-pin-${_id}`)
           const deleteButton = document.getElementById(`delete-pin-${_id}`)
+          const navigateButton = document.getElementById(`navigate-pin-${_id}`)
           const popupContainer = document.getElementById(
             `popup-container-${_id}`,
           ) as HTMLDivElement
 
           const trendingIcon = document.getElementById(`trending-icon-${_id}`)
 
-          if (!editButton || !deleteButton || !popupContainer) {
+          if (
+            !editButton ||
+            !deleteButton ||
+            !navigateButton ||
+            !popupContainer
+          ) {
             console.warn(`Popup elements not found for pin ID: ${_id}`)
             return
           }
@@ -402,6 +393,20 @@ const Mapbox: React.FC<MapboxProps> = ({
 
           deleteButton.addEventListener('click', async () => {
             await handleRemovePin(_id, type)
+          })
+
+          navigateButton.addEventListener('click', () => {
+            if (mapRef.current) {
+              setIsNaviLoaded(true)
+              navigateToMarker(
+                mapRef.current,
+                item.longitude,
+                item.latitude,
+                () => setIsNaviLoaded(false),
+              )
+            } else {
+              console.error('Map reference is not available.')
+            }
           })
 
           // Add event listener for trending icon if it exists
@@ -424,13 +429,154 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
   }
 
+  const accessToken =
+    'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+
+  const navigateToMarker = async (
+    map: mapboxgl.Map | null,
+    lng: number,
+    lat: number,
+    stopLoading: () => void, // ✅ Pass function instead of state setter
+  ) => {
+    if (!map) {
+      console.error('Map instance is not available.')
+      stopLoading() // ✅ Ensure loading is stopped if there's an error
+      return
+    }
+
+    console.log('Loading started')
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const userLng = position.coords.longitude
+        const userLat = position.coords.latitude
+
+        const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${lng},${lat}?alternatives=true&geometries=geojson&language=en&overview=full&steps=true&access_token=${accessToken}`
+        try {
+          const query = await fetch(
+            routeUrl,
+
+            { method: 'GET' },
+          )
+
+          const json = await query.json()
+          const data = json.routes[0]
+          const route = data.geometry
+
+          if (map.getSource('route')) {
+            map.removeLayer('route')
+            map.removeSource('route')
+          }
+
+          map.addSource('route', {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              properties: {},
+              geometry: route,
+            },
+          })
+
+          map.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round',
+            },
+            paint: {
+              'line-color': '#007aff',
+              'line-width': 4,
+            },
+          })
+
+          const bounds = new mapboxgl.LngLatBounds()
+          route.coordinates.forEach((coord: [number, number]) =>
+            bounds.extend(coord),
+          )
+
+          map.fitBounds(bounds, { padding: 50 })
+        } catch (error) {
+          console.error('Error fetching directions:', error)
+        } finally {
+          console.log('Loading stopped')
+          stopLoading() // ✅ Ensure loading stops after fetching
+        }
+      },
+      (error) => {
+        console.error('Error getting user location:', error)
+        stopLoading()
+      },
+    )
+  }
+
+  // Function to fetch AQI data
+  const fetchAQIData = async (lng: number, lat: number): Promise<AQIData> => {
+    try {
+      // Get AQI data from the backend
+      const response = await fetch(
+        `/api/airQuality?latitude=${lat}&longitude=${lng}`,
+      )
+      const data = await response.json()
+      const { air_quality } = data
+
+      // Determine AQI level and color based on value
+      const aqiLevel = aqiToLevel(air_quality)
+      const aqiColor = aqiLevelToColor(aqiLevel)
+      return {
+        value: air_quality,
+        level: aqiLevel,
+        color: aqiColor,
+        timeStamp: data.timeStamp,
+      }
+    } catch (error) {
+      console.error('Error fetching AQI data:', error)
+      return { value: null, level: 'Unknown', color: '#000000' } // Black for no data
+    }
+  }
+
+  // Funtion to Convert US EPA AQI to AQI level
+  // Unknown when no data is available; Good (<50); Moderate (50-100); Poor (101-300); Hazardous (>300)
+  const aqiToLevel = (
+    aqi: number | string,
+  ): 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous' => {
+    if (typeof aqi === 'number') {
+      if (aqi < 50) return 'Good'
+      if (aqi <= 100) return 'Moderate'
+      if (aqi <= 300) return 'Poor'
+      return 'Hazardous'
+    } else {
+      return 'Unknown'
+    }
+  }
+
+  // Function to convert AQI level to color
+  // Black for Unknown air quality; Green for Good (<50); Orange for Moderate (50-100); Red for Poor (101-300); Dark Purple for Hazardous (>300)
+  const aqiLevelToColor = (
+    level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous',
+  ): string => {
+    switch (level) {
+      case 'Good':
+        return '#00e400' // Green
+      case 'Moderate':
+        return '#ff7e00' // Orange
+      case 'Poor':
+        return '#ff0000' // Red
+      case 'Hazardous':
+        return '#8f3f97' // Dark purple
+      default:
+        return '#000000' // Black
+    }
+  }
+
   // -------------------------------- helper function end --------------------------------
 
   // -------------------------------- map init start --------------------------------
 
   useEffect(() => {
     mapboxgl.accessToken =
-      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA'
+      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
 
     // If geolocation is available, get the user's current position
     if ('geolocation' in navigator) {
@@ -443,12 +589,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           initializeMap(longitude, latitude, 1)
         },
         (error) => {
-          console.error('Geolocation error:', error)
-          setMapError(
-            'Could not access your location. Please enter your address manually.',
-          )
-          // Use default coordinates if geolocation fails
-          initializeMap(-74.5, 40, 14)
+          initializeMap(-122.05964, 37.410271, 14)
         },
       )
     } else {
@@ -610,6 +751,19 @@ const Mapbox: React.FC<MapboxProps> = ({
             // For air quality markers, now we fetch the AQI data
             finalLngLat = marker.getLngLat()
             finalAqiData = await fetchAQIData(finalLngLat.lng, finalLngLat.lat)
+            // Store the AQI data of the marker to the backend
+            // const { locationId, latitude, longitude, air_quality, timeStamp } = req.body;
+            await fetch('/api/airQuality', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                locationId: id,
+                latitude: finalLngLat.lat,
+                longitude: finalLngLat.lng,
+                air_quality: finalAqiData.value,
+                timeStamp: finalAqiData?.timeStamp ?? Date.now(),
+              }),
+            })
 
             // Create specialized popup content for confirmed air quality marker
             popupContent.innerHTML = `
@@ -629,6 +783,7 @@ const Mapbox: React.FC<MapboxProps> = ({
                 <div style="display: flex; justify-content: space-between;">
                   <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
                   <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+                  <button id="navigate-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
                 </div>
               </div>
             `
@@ -653,11 +808,14 @@ const Mapbox: React.FC<MapboxProps> = ({
             popup.on('open', () => {
               const editButton = document.getElementById(`edit-pin-${id}`)
               const deleteButton = document.getElementById(`delete-pin-${id}`)
+              const navigateButton = document.getElementById(
+                `navigate-pin-${id}`,
+              )
               const trendingIcon = document.getElementById(
                 `trending-icon-${id}`,
               )
 
-              if (editButton && deleteButton) {
+              if (editButton && deleteButton && navigateButton) {
                 // Bind event listeners
                 editButton.addEventListener('click', () =>
                   handleEditPin(id, type, popupContent),
@@ -666,6 +824,19 @@ const Mapbox: React.FC<MapboxProps> = ({
                   'click',
                   async () => await handleRemovePin(id, type),
                 )
+                navigateButton.addEventListener('click', () => {
+                  if (mapRef.current) {
+                    setIsNaviLoaded(true)
+                    navigateToMarker(
+                      mapRef.current,
+                      marker.getLngLat().lng,
+                      marker.getLngLat().lat,
+                      () => setIsNaviLoaded(false),
+                    )
+                  } else {
+                    console.error('Map reference is not available.')
+                  }
+                })
               }
 
               // Add event listener for trending icon if it exists
@@ -697,6 +868,7 @@ const Mapbox: React.FC<MapboxProps> = ({
             <p id="popup-address-${id}">${document.getElementById(`popup-address-${tempId}`)!.innerText}</p>
             <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
             <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+            <button id="navigate-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
           `
 
           // Create a new popup with the updated content
@@ -711,8 +883,9 @@ const Mapbox: React.FC<MapboxProps> = ({
           updatedPopup.on('open', () => {
             const editButton = document.getElementById(`edit-pin-${id}`)
             const deleteButton = document.getElementById(`delete-pin-${id}`)
+            const navigateButton = document.getElementById(`navigate-pin-${id}`)
 
-            if (editButton && deleteButton) {
+            if (editButton && deleteButton && navigateButton) {
               // Bind event listeners
               editButton.addEventListener('click', () =>
                 handleEditPin(id, type, popupContent),
@@ -721,6 +894,19 @@ const Mapbox: React.FC<MapboxProps> = ({
                 'click',
                 async () => await handleRemovePin(id, type),
               )
+              navigateButton.addEventListener('click', () => {
+                if (mapRef.current) {
+                  setIsNaviLoaded(true)
+                  navigateToMarker(
+                    mapRef.current,
+                    marker.getLngLat().lng,
+                    marker.getLngLat().lat,
+                    () => setIsNaviLoaded(false),
+                  )
+                } else {
+                  console.error('Map reference is not available.')
+                }
+              })
             }
           })
         }
@@ -746,6 +932,11 @@ const Mapbox: React.FC<MapboxProps> = ({
       case 'airQuality':
         marker = airQualityRef.current.get(id)
         airQualityRef.current.delete(id)
+        await fetch(`/api/airQuality/`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ locationId: id }),
+        })
         break
       default:
         marker = pinRef.current.get(id)
@@ -802,6 +993,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           <p id="popup-address-${id}">${newDescription}</p>
           <button id="edit-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
           <button id="delete-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+          <button id="navigate-pin-${id}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
         `
 
         // Reattach event listeners
@@ -905,11 +1097,36 @@ const Mapbox: React.FC<MapboxProps> = ({
       })
     }
 
+    const toggleUserLocation = () => {
+      if (!mapRef.current) return
+
+      setUserLocationVisible((prev) => {
+        const newState = !prev
+
+        const userLocationMarker = document.querySelector(
+          '.mapboxgl-user-location-dot',
+        ) as HTMLElement | null
+        const userLocationAccuracy = document.querySelector(
+          '.mapboxgl-user-location-accuracy-circle',
+        ) as HTMLElement | null
+        if (userLocationMarker && userLocationAccuracy) {
+          userLocationMarker.style.visibility = newState ? 'visible' : 'hidden'
+          userLocationAccuracy.style.visibility = newState
+            ? 'visible'
+            : 'hidden'
+        }
+
+        return newState
+      })
+    }
+
+    eventEmitter.on('you_button_clicked', toggleUserLocation)
     eventEmitter.on('toggle_pin', togglePins)
     eventEmitter.on('toggle_roadblock', toggleRoadblocks)
     eventEmitter.on('toggle_fireHydrant', toggleFireHydrants)
 
     return () => {
+      eventEmitter.removeListener('you_button_clicked', toggleUserLocation)
       eventEmitter.removeListener('toggle_pin', togglePins)
       eventEmitter.removeListener('toggle_roadblock', toggleRoadblocks)
       eventEmitter.removeListener('toggle_fireHydrant', toggleFireHydrants)
@@ -979,18 +1196,90 @@ const Mapbox: React.FC<MapboxProps> = ({
       polygon: true,
       trash: true,
     },
-    defaultMode: 'draw_polygon',
+    defaultMode: 'simple_select',
+    styles: [
+      // line stroke
+      {
+        id: 'gl-draw-line',
+        type: 'line',
+        filter: ['all', ['==', '$type', 'LineString']],
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round',
+        },
+        paint: {
+          'line-color': '#D20C0C',
+          'line-dasharray': [0.2, 2],
+          'line-width': 2,
+        },
+      },
+      // polygon fill
+      {
+        id: 'gl-draw-polygon-fill',
+        type: 'fill',
+        filter: ['all', ['==', '$type', 'Polygon']],
+        paint: {
+          'fill-color': 'transparent',
+          'fill-outline-color': '#D20C0C',
+          'fill-opacity': 0,
+        },
+      },
+      // polygon mid points
+      {
+        id: 'gl-draw-polygon-midpoint',
+        type: 'circle',
+        filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'midpoint']],
+        paint: {
+          'circle-radius': 3,
+          'circle-color': '#fbb03b',
+        },
+      },
+      // polygon outline stroke
+      // This doesn't style the first edge of the polygon, which uses the line stroke styling instead
+      {
+        id: 'gl-draw-polygon-stroke-active',
+        type: 'line',
+        filter: ['all', ['==', '$type', 'Polygon']],
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round',
+        },
+        paint: {
+          'line-color': '#D20C0C',
+          'line-dasharray': [0.2, 2],
+          'line-width': 2,
+        },
+      },
+      // vertex point halos
+      {
+        id: 'gl-draw-polygon-and-line-vertex-halo-active',
+        type: 'circle',
+        filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],
+        paint: {
+          'circle-radius': 5,
+          'circle-color': '#FFF',
+        },
+      },
+      // vertex points
+      {
+        id: 'gl-draw-polygon-and-line-vertex-active',
+        type: 'circle',
+        filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],
+        paint: {
+          'circle-radius': 3,
+          'circle-color': '#D20C0C',
+        },
+      },
+    ],
   })
 
   const createArea = (
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
-    console.log('current event: ', e)
     const data = draw.getAll()
     if (data.features.length > 0 && mapRef.current) {
       const areaId: string = e.features[0]?.id?.toString() || ''
       if (areaId == '') return
-      console.log('all coordinates: ', data.features)
       const geometry = e.features[0].geometry as Geometry & { coordinates: any }
       const coordinates = geometry.coordinates
       let areaIndex = -1
@@ -1002,7 +1291,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         }
         return false
       })
-      const areaName: string = 'Area ' + areaId
+      const areaName: string = generateDefaultName()
 
       // Add properties to the feature
       if (areaIndex >= 0) {
@@ -1014,40 +1303,25 @@ const Mapbox: React.FC<MapboxProps> = ({
         return
       }
 
-      const formattedCoordinates = coordinates.map((coord: any) =>
-        coord.map((point: any) => [point[0], point[1]]),
-      )
-
       const bodyJson = JSON.stringify({
         name: areaName,
         coordinates: coordinates[0],
         areaId: areaId,
       })
-      console.log('POST:   ', bodyJson)
 
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`, {
+      request('/api/wildfire/areas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: bodyJson,
       })
-        .then((response) => response.json())
         .then((data) => {
           console.log('Successfully posted WildfireArea:', data)
         })
         .catch((error) => {
           console.error('Error posting WildfireArea:', error)
         })
-
-      // save to backend
-
-      // console.log('Polygon coordinates:', coordinates)
-      // console.log('Area ID:', areaId)
-      // console.log('Area Name:', areaName)
-      // console.log('bbox: ', geometry.coordinates)
-
-      // console.log('coord:  ', centerCoord)
       createPopup({ areaId, coordinates: coordinates[0], name: areaName })
     }
   }
@@ -1056,10 +1330,19 @@ const Mapbox: React.FC<MapboxProps> = ({
     const areaId = wildfireArea.areaId
     const coordinates = wildfireArea.coordinates
     const areaName = wildfireArea.name
+
+    if (popupRef.current.has(areaId)) {
+      const nameDisplay = document.getElementById(`area-name-display-${areaId}`)
+      if (nameDisplay) {
+        nameDisplay.innerText = areaName || ''
+      }
+    }
+
     const popupContent = document.createElement('div')
     popupContent.innerHTML = `
-      <span id="area-name-display-${areaId}" style="cursor: pointer;">${areaName || 'Area ' + areaId}</span>
-      <input id="area-name-input-${areaId}" type="text" value="${areaName || 'Area ' + areaId}" style="display: none; width: 90%; padding: 5px; margin-top: 5px;" />
+      <span id="area-name-display-${areaId}" style="cursor: pointer;">${areaName}</span>
+      <input id="area-name-input-${areaId}" type="text" value="${areaName}" style="display: none; width: 70%; padding: 5px; margin-top: 5px;" />
+      <button id="area-name-checkbox-${areaId}" style="display: none; margin-left: 5px;">Save</button>
     `
     const centerCoord = coordinates
       .reduce(
@@ -1071,35 +1354,67 @@ const Mapbox: React.FC<MapboxProps> = ({
         [0, 0],
       )
       .map((sum: number) => sum / coordinates.length) as [number, number]
-
-    console.log('CenterCoord: ', centerCoord)
     const popup = new mapboxgl.Popup({
-      offset: 0,
+      offset: -25,
       closeButton: false,
       className: 'transparent-popup',
     })
       .setLngLat(centerCoord)
       .setDOMContent(popupContent)
       .addTo(mapRef.current!)
+    const style = document.createElement('style')
+    style.innerHTML = `
+    .transparent-popup .mapboxgl-popup-content {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+    .transparent-popup .mapboxgl-popup-tip {
+        display: none;
+    }
+`
+    document.head.appendChild(style)
 
     const nameDisplay = document.getElementById(`area-name-display-${areaId}`)
     const nameInput = document.getElementById(
       `area-name-input-${areaId}`,
     ) as HTMLInputElement
+    const nameCheckbox = document.getElementById(
+      `area-name-checkbox-${areaId}`,
+    ) as HTMLInputElement
 
     nameDisplay?.addEventListener('click', () => {
       nameDisplay.style.display = 'none'
       nameInput.style.display = 'block'
+      nameCheckbox.style.display = 'block'
       nameInput.focus()
     })
 
-    nameInput?.addEventListener('blur', () => {
+    nameCheckbox?.addEventListener('click', () => {
+      const previousName = nameDisplay?.innerText || ''
       const newName = nameInput.value
+
       if (nameDisplay) {
-        nameDisplay.innerText = newName || 'Area ' + areaId
+        if (newName != previousName) {
+          nameDisplay.innerText = newName || previousName
+          request('/api/wildfire/areas', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ...wildfireArea, name: newName }),
+          })
+            .then((data) => {
+              console.log('Successfully updated WildfireArea name:', data)
+            })
+            .catch((error) => {
+              console.error('Error updating WildfireArea name:', error)
+            })
+        }
         nameDisplay.style.display = 'block'
       }
       nameInput.style.display = 'none'
+      nameCheckbox.style.display = 'none'
     })
     popupRef.current.set(areaId, popup)
   }
@@ -1125,16 +1440,10 @@ const Mapbox: React.FC<MapboxProps> = ({
     const areaId: string = e.features[0]?.id?.toString() || ''
     if (areaId == '') return
 
-    fetch(
-      `${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas?areaId=${areaId}`,
-      {
-        method: 'DELETE',
-      },
-    )
+    request(`/api/wildfire/areas?areaId=${areaId}`, {
+      method: 'DELETE',
+    })
       .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to delete wildfire area')
-        }
         console.log('Successfully deleted WildfireArea:', areaId)
         deletePopup(areaId)
       })
@@ -1176,10 +1485,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   const displayAllArea = () => {
     const fetchWildfireAreas = async () => {
       try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`,
-        )
-        const data = await response.json()
+        const response = await request('/api/wildfire/areas')
+        const data = await response
         setCurrArea(data)
         data.forEach((wildfireArea: WildfireArea) => {
           drawArea(wildfireArea)
@@ -1193,18 +1500,22 @@ const Mapbox: React.FC<MapboxProps> = ({
   }
 
   const drawArea = (wildfireArea: WildfireArea) => {
-    const newPolygon = draw.add({
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [wildfireArea.coordinates],
-      },
-      id: wildfireArea.areaId,
-      properties: {
-        areaId: wildfireArea.areaId,
-        name: wildfireArea.name,
-      },
-    })
+    const existingPolygon = draw.get(wildfireArea.areaId)
+    if (!existingPolygon) {
+      const newPolygon = draw.add({
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [wildfireArea.coordinates],
+        },
+        id: wildfireArea.areaId,
+        properties: {
+          areaId: wildfireArea.areaId,
+          name: wildfireArea.name,
+        },
+      })
+    }
+
     createPopup(wildfireArea)
   }
 
@@ -1220,7 +1531,148 @@ const Mapbox: React.FC<MapboxProps> = ({
     deleteAllPopups()
   }
 
+  const removeAreaById = (areaId: string) => {
+    draw.delete(areaId)
+    deletePopup(areaId)
+  }
+
+  const generateDefaultName = () => {
+    const newAreaNum = areaNum + 1
+    setAreaNum(newAreaNum)
+    return `Area ${newAreaNum}`
+  }
+
+  // Function to update an air quality marker when new data is received
+  const updateAirQualityMarker = (
+    locationId: string,
+    newAqi: number,
+    timestamp: number,
+  ) => {
+    // Find the marker in our reference
+    const marker = airQualityRef.current.get(locationId)
+    if (!marker) {
+      console.log(`No air quality marker found for locationId: ${locationId}`)
+      return
+    }
+
+    // Create new AQI data object
+    const aqiLevel = aqiToLevel(newAqi)
+    const aqiColor = aqiLevelToColor(aqiLevel)
+    const aqiData = {
+      value: newAqi,
+      level: aqiLevel,
+      color: aqiColor,
+      timeStamp: timestamp,
+    }
+
+    // Update marker appearance
+    const newElement = createCustomMarker('airQuality', aqiData)
+    marker.getElement().innerHTML = newElement.innerHTML
+
+    // Update the popup content
+    const popup = marker.getPopup()
+    if (!popup) return
+
+    const popupElement = popup.getElement()
+
+    if (popupElement && popup.isOpen()) {
+      // Only update content if popup is currently open
+      const popupContent = document.createElement('div')
+
+      // Safely get the address element and its text content
+      const addressElement = popupElement.querySelector(
+        `#popup-address-${locationId}`,
+      )
+      const addressText = addressElement?.textContent || ''
+
+      popupContent.innerHTML = `
+        <div style="min-width: 200px;">
+          <div style="background-color: #f0f0f0; padding: 8px; margin-bottom: 8px;">
+            <p style="margin: 0;">US EPA PM2.5 AQI is now ${newAqi}</p>
+            <p style="margin: 0; font-size: 0.8em;">Updated: ${new Date(timestamp * 1000).toLocaleString()}</p>
+          </div>
+          <div style="background-color: ${aqiColor}; color: white; padding: 8px; margin-bottom: 8px;">
+            <p style="margin: 0 0 5px 0;">Air quality is ${aqiLevel}</p>
+            <p style="margin: 0 0 5px 0;">Measurement quality is high</p>
+            <p style="margin: 0 0 5px 0;">Evolution over the last 24 hours:</p>
+            <div id="trending-icon-${locationId}" style="cursor: pointer;">
+              ${ReactDOMServer.renderToString(<TrendingUpIcon style={{ color: 'white' }} />)}
+            </div>
+          </div>
+          ${addressText ? `<p id="popup-address-${locationId}">${addressText}</p>` : ''}
+          <div style="display: flex; justify-content: space-between;">
+            <button id="edit-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
+            <button id="delete-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
+            <button id="navigate-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
+          </div>
+        </div>
+      `
+
+      // Replace popup content
+      popup.setDOMContent(popupContent)
+
+      // Reattach event listeners
+      const editButton = document.getElementById(`edit-pin-${locationId}`)
+      const deleteButton = document.getElementById(`delete-pin-${locationId}`)
+      const navigateButton = document.getElementById(
+        `navigate-pin-${locationId}`,
+      )
+      const trendingIcon = document.getElementById(
+        `trending-icon-${locationId}`,
+      )
+
+      if (editButton && deleteButton && navigateButton) {
+        editButton.addEventListener('click', () =>
+          handleEditPin(locationId, 'airQuality', popupContent),
+        )
+
+        deleteButton.addEventListener(
+          'click',
+          async () => await handleRemovePin(locationId, 'airQuality'),
+        )
+
+        navigateButton.addEventListener('click', () => {
+          if (mapRef.current) {
+            setIsNaviLoaded(true)
+            navigateToMarker(
+              mapRef.current,
+              marker.getLngLat().lng,
+              marker.getLngLat().lat,
+              () => setIsNaviLoaded(false),
+            )
+          }
+        })
+      }
+
+      if (trendingIcon) {
+        trendingIcon.addEventListener('click', () => {
+          alert(
+            `Showing AQI trends for the last 24 hours. Current value: ${newAqi}`,
+          )
+        })
+      }
+    }
+
+    console.log(
+      `Updated air quality marker ${locationId} with new AQI: ${newAqi}`,
+    )
+  }
+
   useEffect(() => {
+    const socket = SocketClient
+    socket.connect()
+    socket.on('map-area-update', (wildfireArea) => {
+      console.log('socket 1: ', wildfireArea)
+      drawArea(wildfireArea)
+    })
+    socket.on('map-area-delete', (areaId) => {
+      console.log('socket 2: ', areaId)
+      removeAreaById(areaId)
+    })
+    // Add air quality update listener
+    socket.on('airQualityUpdate', (data) => {
+      updateAirQualityMarker(data.locationId, data.air_quality, data.timestamp)
+    })
     eventEmitter.on('area_util', () => {
       if (areaRef.current) {
         removeDrawControls()
@@ -1232,6 +1684,9 @@ const Mapbox: React.FC<MapboxProps> = ({
 
     return () => {
       eventEmitter.removeAllListeners('area_util')
+      socket.off('map-area-update')
+      socket.off('map-area-delete') // Clean up the listener
+      socket.off('airQualityUpdate') // Clean up the listener
     }
   }, [])
 
@@ -1303,7 +1758,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           onDropAirQuality={() => handleAddPin('airQuality')}
         />
       )}
-      {!isMapLoaded && <MapLoading />}
+      {(!isMapLoaded || isNaviLoaded) && <MapLoading />}
     </div>
   )
 }

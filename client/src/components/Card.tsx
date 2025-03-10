@@ -52,11 +52,12 @@ const placeholder = { undefined }
 interface CardProps {
     task: IUser;
     index: number;
+    canDrag?: boolean;
 }
 
-const Card: React.FC<CardProps> = ({ task, index }) => {
+const Card: React.FC<CardProps> = ({ task, index, canDrag }) => {
     return (
-        <Draggable draggableId={`${task._id}`} key={task._id} index={index}>
+        <Draggable draggableId={`${task._id}`} key={task._id} index={index} isDragDisabled={!canDrag}>
             {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
                 <Container
                     {...provided.draggableProps}
