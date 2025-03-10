@@ -10,13 +10,11 @@ import IChannel from "@/models/Channel";
 
 export default function Board({
     setUsers,
-    setGroupName, 
-    setDescription, 
+    onGroupClick,
     resetBoard,
 }: {
     setUsers: (users: string[]) => void;
-    setGroupName: (name: string) => void; // Declare setGroupName as a prop
-    setDescription: (description: string) => void; // Declare setDescription as a prop
+    onGroupClick: (group: IChannel) => void;  // handle parent component on click logic
     resetBoard: () => void;
 }) {
     const [done, setDone] = useState<IUser[]>([]);
@@ -101,9 +99,8 @@ export default function Board({
     const handleGroupClick = (groupId: string) => {
         const group = groups.find(group => group._id === groupId); // Find the selected group
         if (group) {
+            onGroupClick(group);
 
-            setGroupName(group.name); // Update group name
-            setDescription(group.description || ''); // Update group description
             const groupUsers = group.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
                 .filter(Boolean) as IUser[]; // Filter out undefined values
