@@ -30,7 +30,7 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   const isFile = message.content.startsWith(fileUrlPrefix)
 
   const audioUrlPrefix =
-    'https://storage.googleapis.com/sem-video-bucket/voice-messages/'
+    'https://storage.googleapis.com/sem-video-bucket/voice_messages'
   const isAudio = message.content.startsWith(audioUrlPrefix)
 
   const isAlert = message.isAlert
