@@ -35,6 +35,7 @@ interface AQIData {
   level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous'
   color: string
   timeStamp?: number
+  measurementQuality?: string
 }
 
 const Mapbox: React.FC<MapboxProps> = ({
@@ -311,7 +312,7 @@ const Mapbox: React.FC<MapboxProps> = ({
               </div>
               <div style="background-color: ${aqiData?.color}; color: white; padding: 8px; margin-bottom: 8px;">
                 <p style="margin: 0 0 5px 0;">Air quality is ${aqiData?.level ?? 'no data'}</p>
-                <p style="margin: 0 0 5px 0;">Measurement quality is high</p>
+                <p style="margin: 0 0 5px 0;">Measurement quality is ${aqiData?.measurementQuality ?? 'no data'}</p>
                 <p style="margin: 0 0 5px 0;">Evolution over the last 24 hours:</p>
                 <div id="trending-icon-${_id}" style="cursor: pointer;">
                   ${ReactDOMServer.renderToString(<TrendingUpIcon style={{ color: 'white' }} />)}
@@ -522,6 +523,10 @@ const Mapbox: React.FC<MapboxProps> = ({
       const data = await response.json()
       const { air_quality } = data
 
+      const response1 = await fetch(`/api/airQuality/MeasurementQuality?latitude=${lat}&longitude=${lng}`)
+      const data1 = await response1.json()
+      const { measurement_quality } = data1
+
       // Determine AQI level and color based on value
       const aqiLevel = aqiToLevel(air_quality)
       const aqiColor = aqiLevelToColor(aqiLevel)
@@ -529,6 +534,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         value: air_quality,
         level: aqiLevel,
         color: aqiColor,
+        measurementQuality: measurement_quality,
         timeStamp: data.timeStamp,
       }
     } catch (error) {
@@ -769,7 +775,7 @@ const Mapbox: React.FC<MapboxProps> = ({
                 </div>
                 <div style="background-color: ${finalAqiData?.color}; color: white; padding: 8px; margin-bottom: 8px;">
                   <p style="margin: 0 0 5px 0;">Air quality is ${finalAqiData?.level ?? 'no data'}</p>
-                  <p style="margin: 0 0 5px 0;">Measurement quality is high</p>
+                  <p style="margin: 0 0 5px 0;">Measurement quality is ${finalAqiData?.measurementQuality ?? 'no data'}</p>
                   <p style="margin: 0 0 5px 0;">Evolution over the last 24 hours:</p>
                   <div id="trending-icon-${id}" style="cursor: pointer;">
                     ${ReactDOMServer.renderToString(<TrendingUpIcon style={{ color: 'white' }} />)}
@@ -1556,10 +1562,12 @@ const Mapbox: React.FC<MapboxProps> = ({
   }
 
   // Function to update an air quality marker when new data is received
-  const updateAirQualityMarker = (
+  const updateAirQualityMarker = async (
     locationId: string,
     newAqi: number,
     timestamp: number,
+    latitude: number,
+    longitude: number,
   ) => {
     // Find the marker in our reference
     const marker = airQualityRef.current.get(locationId)
@@ -1571,12 +1579,15 @@ const Mapbox: React.FC<MapboxProps> = ({
     // Create new AQI data object
     const aqiLevel = aqiToLevel(newAqi)
     const aqiColor = aqiLevelToColor(aqiLevel)
+    const response = await fetch(`/api/airQuality/MeasurementQuality?latitude=${latitude}&longitude=${longitude}`)
+    const data = await response.json()
     const aqiData = {
       value: newAqi,
       level: aqiLevel,
       color: aqiColor,
       timeStamp: timestamp,
-    }
+      measurementQuality: data.measurement_quality
+    } as AQIData
 
     // Update marker appearance
     const newElement = createCustomMarker('airQuality', aqiData)
@@ -1606,7 +1617,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           </div>
           <div style="background-color: ${aqiColor}; color: white; padding: 8px; margin-bottom: 8px;">
             <p style="margin: 0 0 5px 0;">Air quality is ${aqiLevel}</p>
-            <p style="margin: 0 0 5px 0;">Measurement quality is high</p>
+            <p style="margin: 0 0 5px 0;">Measurement quality is ${aqiData?.measurementQuality ?? 'no data'}</p>
             <p style="margin: 0 0 5px 0;">Evolution over the last 24 hours:</p>
             <div id="trending-icon-${locationId}" style="cursor: pointer;">
               ${ReactDOMServer.renderToString(<TrendingUpIcon style={{ color: 'white' }} />)}
@@ -1676,7 +1687,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     socket.connect()
     // Add air quality update listener
     socket.on('airQualityUpdate', (data) => {
-      updateAirQualityMarker(data.locationId, data.air_quality, data.timestamp)
+      updateAirQualityMarker(data.locationId, data.air_quality, data.timestamp, data.latitude, data.longitude)
     })
     eventEmitter.on('area_util', () => {
       if (areaRef.current) {

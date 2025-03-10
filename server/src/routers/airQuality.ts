@@ -64,4 +64,27 @@ airQualityRouter.delete("/", async (req: Request, res: Response) => {
     }
 });
 
+airQualityRouter.get("/MeasurementQuality", async (req: Request, res: Response) => {
+    try {
+        const { latitude, longitude } = req.query;
+
+        if (!latitude || !longitude) {
+            return res.status(400).json({ error: 'Latitude and longitude are required' });
+        }
+
+        const lat = parseFloat(latitude as string);
+        const lon = parseFloat(longitude as string);
+
+        if (isNaN(lat) || isNaN(lon)) {
+            return res.status(400).json({ error: 'Invalid latitude or longitude' });
+        }
+
+        const result = await AirQualityController.getMeasurementQuality(lat, lon);
+        return res.json(result);
+    } catch (err) {
+        const error = err as Error;
+        return res.status(500).json({ error: error.message });
+    }
+
+})
 export default airQualityRouter;

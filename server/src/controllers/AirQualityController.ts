@@ -62,7 +62,9 @@ class AirQualityController {
                     this.notifyAirQualityUpdate(
                         locationId, 
                         airQualityData.air_quality, 
-                        currentTime
+                        currentTime,
+                        latitude,
+                        longitude
                     );
                     
                     console.log(`Updated air quality for ${locationId}: ${airQualityData.air_quality}`);
@@ -77,12 +79,14 @@ class AirQualityController {
     }
 
     // Notify clients of air quality update via Socket.io
-    private notifyAirQualityUpdate(locationId: string, air_quality: number, timestamp: number) {
+    private notifyAirQualityUpdate(locationId: string, air_quality: number, timestamp: number, latitude?: number, longitude?: number) {
         if (this.io) {
             this.io.emit('airQualityUpdate', {
                 locationId,
                 air_quality,
                 timestamp,
+                latitude,
+                longitude,
             });
             console.log(`Emitted air quality update for ${locationId} via Socket.io`);
         }
@@ -216,7 +220,7 @@ class AirQualityController {
             await existingLocation.save();
             
             // Notify clients via Socket.io
-            this.notifyAirQualityUpdate(locationId, air_quality, timeStamp);
+            this.notifyAirQualityUpdate(locationId, air_quality, timeStamp, latitude, longitude);
             
             // Start periodic updates for this location
             this.startPeriodicUpdates(locationId, latitude, longitude);
@@ -235,7 +239,7 @@ class AirQualityController {
         await newLocation.save();
         
         // Notify clients via Socket.io
-        this.notifyAirQualityUpdate(locationId, air_quality, timeStamp);
+        this.notifyAirQualityUpdate(locationId, air_quality, timeStamp, latitude, longitude);
         
         // Start periodic updates for this new location
         this.startPeriodicUpdates(locationId, latitude, longitude);
@@ -267,6 +271,91 @@ class AirQualityController {
             console.log(`Stopped updates for location ${locationId}`);
         }
         this.updateIntervals.clear();
+    }
+
+    // Function calculate Measurement Quality 
+    // Measurement Quality is High if the measurement is based on 3 sensors within a 2-mile radius
+    // Measurement Quality is Medium if the closest sensor is within a 2-to-5-mile radius
+    // Measurement Quality is Low if the closest sensor is within a 5-to-10-mile radius
+    // Measurement Quality is NA if the Air Quality is unknown
+    async getMeasurementQuality(latitude: number, longitude: number): Promise<{ measurement_quality: "High" | "Medium" | "Low" | "NA", message: string }> {
+        // Ensure API key is defined
+        if (!PURPLEAIR_API_KEY) {
+            throw new Error('PurpleAir API key is not defined');
+        }
+
+        // Get bounding box for 10-mile radius
+        const { nw, se } = getBoundingBox(latitude, longitude);
+
+        // Build query parameters (pm2.5_atm outdoor sensors data, cf1 indoor sensors data)
+        const params = new URLSearchParams({
+            fields: 'latitude, longitude, pm2.5_atm',
+            location_type: location_type.toString(), // Outdoor sensors only
+            nwlng: nw.lon.toString(),
+            nwlat: nw.lat.toString(),
+            selng: se.lon.toString(),
+            selat: se.lat.toString(),
+        });
+
+        // Make API request to PurpleAir using fetch
+        const response = await fetch(`${PURPLEAIR_API_URL}?${params}`, {
+            headers: { 'X-API-Key': PURPLEAIR_API_KEY }
+        });
+
+        // console.log(response);
+
+        if (!response.ok) {
+            throw new Error(`PurpleAir API returned status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // console.log(data);
+        // fields: [ 'sensor_index', 'latitude', 'longitude', 'pm2.5_atm' ]
+        const sensors = data.data;
+
+        if (!sensors || sensors.length === 0) {
+            return { measurement_quality: 'NA', message: 'No sensors found within 10 miles' };
+        }
+
+        // Map sensors with distance from target location
+        const sensorsWithDistance = sensors.map(sensor => {
+            const [, sensorLat, sensorLon,] = sensor;
+            const distance = calculateDistance(latitude, longitude, sensorLat, sensorLon);
+            return { latitude: sensorLat, longitude: sensorLon, distance };
+        });
+
+        // Filter sensors within 10 miles
+        const nearbySensors = sensorsWithDistance.filter(sensor => sensor.distance <= 10);
+        if (nearbySensors.length === 0) {
+            return { measurement_quality: 'NA', message: 'No sensors within 10 miles after filtering' };
+        }
+
+        // Sort by distance and take the 3 nearest
+        const sortedSensors = nearbySensors.sort((a, b) => a.distance - b.distance);
+        const nearestSensors = sortedSensors.slice(0, Math.min(3, sortedSensors.length));
+
+        // Determine measurement quality based on sensor distance
+        if (nearestSensors.length === 3 && nearestSensors.every(sensor => sensor.distance <= 2)) {
+            return { 
+                measurement_quality: 'High', 
+                message: 'Based on 3 sensors within 2-mile radius' 
+            };
+        } else if (nearestSensors.length > 0 && nearestSensors[0].distance <= 5 && nearestSensors[0].distance > 2) {
+            return { 
+                measurement_quality: 'Medium', 
+                message: 'Closest sensor within 2-to-5-mile radius' 
+            };
+        } else if (nearestSensors.length > 0 && nearestSensors[0].distance <= 10 && nearestSensors[0].distance > 5) {
+            return { 
+                measurement_quality: 'Low', 
+                message: 'Closest sensor within 5-to-10-mile radius' 
+            };
+        } else {
+            return { 
+                measurement_quality: 'NA', 
+                message: 'No suitable sensors found for quality assessment' 
+            };
+        }
     }
 }
 
