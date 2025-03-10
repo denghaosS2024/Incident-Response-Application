@@ -48,8 +48,7 @@ const Reach911Page: React.FC = () => {
     }
   }, [dispatch])
 
-  // If autoPopulateData is true and incidentId is provided, fetch incident details and update Redux state.
-  // autoPopulateData will be true when this page is navigated from the incidentsPage to view further incident details
+  // If the user is first responder and viewing an incident
   useEffect(() => {
     const fetchIncidentAndPopulate = async (id: string) => {
       try {
@@ -64,6 +63,11 @@ const Reach911Page: React.FC = () => {
         console.error('Error fetching incident details:', err)
       }
     }
+    console.log(
+      'Incident Id are autoPopulateData values are:{},{}',
+      incidentId,
+      autoPopulateData,
+    )
     if (autoPopulateData && incidentId) {
       fetchIncidentAndPopulate(incidentId)
     }
@@ -175,6 +179,14 @@ const Reach911Page: React.FC = () => {
       if (!cleanedIncident.incidentCallGroup)
         delete (cleanedIncident as any).incidentCallGroup
 
+      if (!cleanedIncident.openingDate)
+        delete (cleanedIncident as any).openingDate
+      if (!cleanedIncident.incidentState)
+        delete (cleanedIncident as any).incidentState
+      if (!cleanedIncident.owner) delete (cleanedIncident as any).owner
+      if (!cleanedIncident.commander) delete (cleanedIncident as any).commander
+      if (!cleanedIncident.caller) delete (cleanedIncident as any).caller
+
       const requestBody = {
         ...cleanedIncident,
         incidentId: incidentId,
@@ -198,7 +210,7 @@ const Reach911Page: React.FC = () => {
       }
 
       console.log('Incident successfully updated.')
-      window.alert('Incident updated successfully')
+      // window.alert('Incident updated successfully')
     } catch (error) {
       console.error('Error updating incident:', error)
 
@@ -216,14 +228,20 @@ const Reach911Page: React.FC = () => {
     const hasStep5 = contents.length === 5
 
     if (activeStep === 3 && hasStep5) {
-      if (isCreatedByFirstResponder === true) {
+      if (
+        isCreatedByFirstResponder === true ||
+        (autoPopulateData === true && readOnly === false)
+      ) {
         updateIncidentCall()
       }
 
       setActiveStep(activeStep + 1)
       setError(null)
     } else if (activeStep === contents.length - 2) {
-      if (isCreatedByFirstResponder === true) {
+      if (
+        isCreatedByFirstResponder === true ||
+        (autoPopulateData === true && readOnly === false)
+      ) {
         updateIncidentCall()
       } else {
         submitIncident()

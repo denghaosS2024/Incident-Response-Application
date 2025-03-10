@@ -29,6 +29,10 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
     'https://storage.googleapis.com/sem-video-bucket/uploads/'
   const isFile = message.content.startsWith(fileUrlPrefix)
 
+  const audioUrlPrefix =
+    'https://storage.googleapis.com/sem-video-bucket/voice-messages/'
+  const isAudio = message.content.startsWith(audioUrlPrefix)
+
   const isAlert = message.isAlert
   const senderId = message.sender._id
   const [text, bgColor, textColor] = message.content.split('-')
@@ -70,7 +74,12 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
           alt="Sent image" 
           style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', marginTop: '8px' }} 
         />
-      ) : isFile ? (
+      )  : isAudio ? (
+        <audio controls style={{ width: '100%', marginTop: '8px' }}>
+          <source src={message.content} type="audio/webm" />
+          Your browser does not support the audio element.
+        </audio>
+      ): isFile ? (
         <a
           href={message.content}
           download

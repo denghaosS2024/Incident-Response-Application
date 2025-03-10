@@ -82,34 +82,59 @@ function IncidentsPage() {
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 
+  // Sort incidents by opening date function
+  const sortByOpeningDate = (incidents: IncidentData[]) =>
+    incidents.sort(
+      (a, b) =>
+        new Date(a.openingDate).getTime() - new Date(b.openingDate).getTime(),
+    )
+
   // Group incidents for display based on role
   let incidentGroups: { [key: string]: IncidentData[] } = {}
   if (role === 'Fire' || role === 'Police') {
+    const filteredByAssigned = filteredData.filter(
+      (incident) => incident.incidentState === 'Assigned',
+    )
+    const priorityOrder: Record<string, number> = {
+      E: 1,
+      One: 2,
+      Two: 3,
+      Three: 4,
+    }
+
+    const sortByPriorityOnly = (incidents: IncidentData[]) =>
+      incidents.sort((a, b) => {
+        const priorityA = priorityOrder[a.priority] || 99
+        const priorityB = priorityOrder[b.priority] || 99
+        return priorityA - priorityB
+      })
+
     incidentGroups = {
-      'My Incident': filteredData.filter(
+      'My Incident': filteredByAssigned.filter(
         (incident) => incident.commander === userId,
       ),
-      'Other Open Incidents': filteredData.filter(
-        (incident) =>
-          incident.commander !== userId && incident.incidentState !== 'Closed',
+      'Other Open Incidents': sortByPriorityOnly(
+        filteredByAssigned.filter((incident) => incident.commander !== userId),
       ),
-      'Closed Incidents': filteredData.filter(
-        (incident) => incident.incidentState === 'Closed',
+      'Closed Incidents': sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === 'Closed'),
       ),
     }
   } else {
     incidentGroups = {
-      Waiting: filteredData.filter(
-        (incident) => incident.incidentState === 'Waiting',
+      Waiting: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === 'Waiting'),
       ),
-      Triage: filteredData.filter(
-        (incident) => incident.incidentState === 'Triage',
+      Triage: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === 'Triage'),
       ),
-      Assigned: filteredData.filter(
-        (incident) => incident.incidentState === 'Assigned',
+      Assigned: sortByOpeningDate(
+        filteredData.filter(
+          (incident) => incident.incidentState === 'Assigned',
+        ),
       ),
-      Closed: filteredData.filter(
-        (incident) => incident.incidentState === 'Closed',
+      Closed: sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === 'Closed'),
       ),
     }
   }
@@ -127,7 +152,15 @@ function IncidentsPage() {
           ? userIncidents.length + 1
           : 1
       } catch (error: any) {
-        if (error.status !== 404) throw error
+        if (
+          error &&
+          error.message &&
+          error.message.includes('Unexpected end of JSON input')
+        ) {
+          incidentCount = 1
+        } else {
+          throw error
+        }
       }
       const incidentId = `I${username}${incidentCount}`
       const newIncident = {
@@ -203,7 +236,15 @@ function IncidentsPage() {
                     {incident.incidentId}
                   </Typography>
                   <Typography variant="body2" sx={{ flex: 1 }}>
-                    {incident.openingDate}
+                    {new Date(incident.openingDate).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                      hour12: false,
+                    })}
                   </Typography>
                 </Box>
                 <Box
@@ -217,7 +258,16 @@ function IncidentsPage() {
                   <Typography variant="body2" sx={{ marginRight: 1 }}>
                     {incident.type}
                   </Typography>
-                  <Typography variant="body2">{incident.priority}</Typography>
+                  <Typography variant="body2">
+                    {(() => {
+                      const priorityMap: Record<string, string> = {
+                        One: '1',
+                        Two: '2',
+                        Three: '3',
+                      }
+                      return priorityMap[incident.priority] || incident.priority // Default to original value if not found
+                    })()}
+                  </Typography>
                 </Box>
                 <IconButton
                   edge="end"

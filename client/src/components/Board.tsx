@@ -12,10 +12,12 @@ export default function Board({
     setUsers,
     onGroupClick,
     triggerResetBoard,
+    canDrag,
 }: {
     setUsers: (users: string[]) => void;
     onGroupClick: (group: IChannel) => void;  // handle parent component on click logic
     triggerResetBoard: number;
+    canDrag: boolean;
 }) {
     const [done, setDone] = useState<IUser[]>([]);
     const dispatch = useDispatch<AppDispatch>();
@@ -138,8 +140,8 @@ export default function Board({
                 {error && <p>Error: {error}</p>}
                 {!loading && !error && (
                     <>
-                        <Column title="Drag and Drop Participants" tasks={todo} id="1" groups={groups} onGroupClick={handleGroupClick} />
-                        <Column title="This Group" subtitle="You" tasks={done} id="2" />
+                        <Column title="Drag and Drop Participants" tasks={todo} id="1" groups={groups} onGroupClick={handleGroupClick} canDrag={canDrag} />
+                        <Column title="This Group" subtitle="You" tasks={done} id="2" canDrag={canDrag} />
                     </>
                 )}
             </div>
