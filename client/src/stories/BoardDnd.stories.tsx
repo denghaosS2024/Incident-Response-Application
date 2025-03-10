@@ -22,6 +22,7 @@ const Template: Story = (args) => {
   const [users, setUsers] = useState<string[]>([]);
   const [groupName, setGroupName] = useState("");
   const [description, setDescription] = useState("");
+  const [triggerResetBoard, setTriggerResetBoard] = useState(0);
 
   // Define the mock resetBoardState function
   const resetBoardState = () => {
@@ -34,7 +35,7 @@ const Template: Story = (args) => {
     <Board
       setUsers={setUsers}
       onGroupClick={(c) => {setGroupName(c.name)}}  // just a random func to make eslint happy
-      resetBoard={resetBoardState}  // Pass the mock function here
+      triggerResetBoard={triggerResetBoard}
       {...args}
     />
   );
