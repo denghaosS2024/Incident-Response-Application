@@ -19,10 +19,6 @@ const Groups: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<IUser[]>([]);
   const [currentGroup, setCurrentGroup] = useState<IChannel | null>(null);
 
-  const resetBoard = () => {
-    setCurrentGroup(null);
-  };
-
   // create or update channel
   const newGroup: IAddGroupFormProps['createChannel'] = async ({
     name,
@@ -127,7 +123,6 @@ const Groups: React.FC = () => {
         <AddGroupForm createChannel={newGroup} deleteChannel={deleteGroup}
           selectedUsers={selectedUsers.map(user => user._id)} // Extract _id and pass it as string[]
           setSelectedUsers={setSelectedUsers}
-          resetBoard={resetBoard}
           currentGroup={currentGroup}
           setCurrentGroup={setCurrentGroup} />
       </div>

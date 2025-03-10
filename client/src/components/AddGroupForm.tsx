@@ -48,7 +48,6 @@ export interface IAddGroupFormProps {
   selectedUsers: string[]; // Accept users from "This Group"
   setSelectedUsers: (users: IUser[]) => void; // Add the setSelectedUsers function here
   deleteChannel: (channelName: string) => void
-  resetBoard: () => void; // Define resetBoard function prop
   currentGroup: IChannel | null;
   setCurrentGroup: (group: IChannel | null) => void;
 }
@@ -97,12 +96,14 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
         closed,
       })
       resetForm()
-      channelProps.resetBoard();
-
     }
   }
 
   const resetForm = () => {
+    // set state in parent
+    channelProps.setCurrentGroup(null)
+
+    // set state in itself
     setNameError('')
     setGroupName('')
     setDescription('')
