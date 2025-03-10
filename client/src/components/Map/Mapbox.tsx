@@ -18,6 +18,7 @@ import { AppDispatch } from '../../app/store'
 import { updateIncident } from '../../features/incidentSlice'
 import IIncident from '../../models/Incident'
 import eventEmitter from '../../utils/eventEmitter'
+import SocketClient from '../../utils/Socket'
 import { RootState, WildfireArea } from '../../utils/types'
 import MapDrop from './MapDrop'
 import MapLoading from './MapLoading'
@@ -90,6 +91,9 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [isMapLoaded, setIsMapLoaded] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
   const [isMapPage, setIsMapPage] = useState<boolean>(false)
+
+  // state to track default areas
+  const [areaNum, setAreaNum] = useState<number>(0)
 
   const dispatch = useDispatch<AppDispatch>()
   const incident: IIncident = useSelector(
@@ -979,18 +983,90 @@ const Mapbox: React.FC<MapboxProps> = ({
       polygon: true,
       trash: true,
     },
-    defaultMode: 'draw_polygon',
+    defaultMode: 'simple_select',
+    styles: [
+      // line stroke
+      {
+        id: 'gl-draw-line',
+        type: 'line',
+        filter: ['all', ['==', '$type', 'LineString']],
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round',
+        },
+        paint: {
+          'line-color': '#D20C0C',
+          'line-dasharray': [0.2, 2],
+          'line-width': 2,
+        },
+      },
+      // polygon fill
+      {
+        id: 'gl-draw-polygon-fill',
+        type: 'fill',
+        filter: ['all', ['==', '$type', 'Polygon']],
+        paint: {
+          'fill-color': 'transparent',
+          'fill-outline-color': '#D20C0C',
+          'fill-opacity': 0,
+        },
+      },
+      // polygon mid points
+      {
+        id: 'gl-draw-polygon-midpoint',
+        type: 'circle',
+        filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'midpoint']],
+        paint: {
+          'circle-radius': 3,
+          'circle-color': '#fbb03b',
+        },
+      },
+      // polygon outline stroke
+      // This doesn't style the first edge of the polygon, which uses the line stroke styling instead
+      {
+        id: 'gl-draw-polygon-stroke-active',
+        type: 'line',
+        filter: ['all', ['==', '$type', 'Polygon']],
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round',
+        },
+        paint: {
+          'line-color': '#D20C0C',
+          'line-dasharray': [0.2, 2],
+          'line-width': 2,
+        },
+      },
+      // vertex point halos
+      {
+        id: 'gl-draw-polygon-and-line-vertex-halo-active',
+        type: 'circle',
+        filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],
+        paint: {
+          'circle-radius': 5,
+          'circle-color': '#FFF',
+        },
+      },
+      // vertex points
+      {
+        id: 'gl-draw-polygon-and-line-vertex-active',
+        type: 'circle',
+        filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],
+        paint: {
+          'circle-radius': 3,
+          'circle-color': '#D20C0C',
+        },
+      },
+    ],
   })
 
   const createArea = (
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
-    console.log('current event: ', e)
     const data = draw.getAll()
     if (data.features.length > 0 && mapRef.current) {
       const areaId: string = e.features[0]?.id?.toString() || ''
       if (areaId == '') return
-      console.log('all coordinates: ', data.features)
       const geometry = e.features[0].geometry as Geometry & { coordinates: any }
       const coordinates = geometry.coordinates
       let areaIndex = -1
@@ -1002,7 +1078,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         }
         return false
       })
-      const areaName: string = 'Area ' + areaId
+      const areaName: string = generateDefaultName()
 
       // Add properties to the feature
       if (areaIndex >= 0) {
@@ -1014,16 +1090,11 @@ const Mapbox: React.FC<MapboxProps> = ({
         return
       }
 
-      const formattedCoordinates = coordinates.map((coord: any) =>
-        coord.map((point: any) => [point[0], point[1]]),
-      )
-
       const bodyJson = JSON.stringify({
         name: areaName,
         coordinates: coordinates[0],
         areaId: areaId,
       })
-      console.log('POST:   ', bodyJson)
 
       fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`, {
         method: 'POST',
@@ -1039,15 +1110,6 @@ const Mapbox: React.FC<MapboxProps> = ({
         .catch((error) => {
           console.error('Error posting WildfireArea:', error)
         })
-
-      // save to backend
-
-      // console.log('Polygon coordinates:', coordinates)
-      // console.log('Area ID:', areaId)
-      // console.log('Area Name:', areaName)
-      // console.log('bbox: ', geometry.coordinates)
-
-      // console.log('coord:  ', centerCoord)
       createPopup({ areaId, coordinates: coordinates[0], name: areaName })
     }
   }
@@ -1056,10 +1118,19 @@ const Mapbox: React.FC<MapboxProps> = ({
     const areaId = wildfireArea.areaId
     const coordinates = wildfireArea.coordinates
     const areaName = wildfireArea.name
+
+    if (popupRef.current.has(areaId)) {
+      const nameDisplay = document.getElementById(`area-name-display-${areaId}`)
+      if (nameDisplay) {
+        nameDisplay.innerText = areaName || ''
+      }
+    }
+
     const popupContent = document.createElement('div')
     popupContent.innerHTML = `
-      <span id="area-name-display-${areaId}" style="cursor: pointer;">${areaName || 'Area ' + areaId}</span>
-      <input id="area-name-input-${areaId}" type="text" value="${areaName || 'Area ' + areaId}" style="display: none; width: 90%; padding: 5px; margin-top: 5px;" />
+      <span id="area-name-display-${areaId}" style="cursor: pointer;">${areaName}</span>
+      <input id="area-name-input-${areaId}" type="text" value="${areaName}" style="display: none; width: 70%; padding: 5px; margin-top: 5px;" />
+      <button id="area-name-checkbox-${areaId}" style="display: none; margin-left: 5px;">Save</button>
     `
     const centerCoord = coordinates
       .reduce(
@@ -1071,35 +1142,68 @@ const Mapbox: React.FC<MapboxProps> = ({
         [0, 0],
       )
       .map((sum: number) => sum / coordinates.length) as [number, number]
-
-    console.log('CenterCoord: ', centerCoord)
     const popup = new mapboxgl.Popup({
-      offset: 0,
+      offset: -25,
       closeButton: false,
       className: 'transparent-popup',
     })
       .setLngLat(centerCoord)
       .setDOMContent(popupContent)
       .addTo(mapRef.current!)
+    const style = document.createElement('style')
+    style.innerHTML = `
+    .transparent-popup .mapboxgl-popup-content {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+    .transparent-popup .mapboxgl-popup-tip {
+        display: none;
+    }
+`
+    document.head.appendChild(style)
 
     const nameDisplay = document.getElementById(`area-name-display-${areaId}`)
     const nameInput = document.getElementById(
       `area-name-input-${areaId}`,
     ) as HTMLInputElement
+    const nameCheckbox = document.getElementById(
+      `area-name-checkbox-${areaId}`,
+    ) as HTMLInputElement
 
     nameDisplay?.addEventListener('click', () => {
       nameDisplay.style.display = 'none'
       nameInput.style.display = 'block'
+      nameCheckbox.style.display = 'block'
       nameInput.focus()
     })
 
-    nameInput?.addEventListener('blur', () => {
+    nameCheckbox?.addEventListener('click', () => {
+      const previousName = nameDisplay?.innerText || ''
       const newName = nameInput.value
+
       if (nameDisplay) {
-        nameDisplay.innerText = newName || 'Area ' + areaId
+        if (newName != previousName) {
+          nameDisplay.innerText = newName || previousName
+          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/wildfire/areas`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ...wildfireArea, name: newName }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log('Successfully updated WildfireArea name:', data)
+            })
+            .catch((error) => {
+              console.error('Error updating WildfireArea name:', error)
+            })
+        }
         nameDisplay.style.display = 'block'
       }
       nameInput.style.display = 'none'
+      nameCheckbox.style.display = 'none'
     })
     popupRef.current.set(areaId, popup)
   }
@@ -1193,18 +1297,22 @@ const Mapbox: React.FC<MapboxProps> = ({
   }
 
   const drawArea = (wildfireArea: WildfireArea) => {
-    const newPolygon = draw.add({
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [wildfireArea.coordinates],
-      },
-      id: wildfireArea.areaId,
-      properties: {
-        areaId: wildfireArea.areaId,
-        name: wildfireArea.name,
-      },
-    })
+    const existingPolygon = draw.get(wildfireArea.areaId)
+    if (!existingPolygon) {
+      const newPolygon = draw.add({
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [wildfireArea.coordinates],
+        },
+        id: wildfireArea.areaId,
+        properties: {
+          areaId: wildfireArea.areaId,
+          name: wildfireArea.name,
+        },
+      })
+    }
+
     createPopup(wildfireArea)
   }
 
@@ -1220,7 +1328,37 @@ const Mapbox: React.FC<MapboxProps> = ({
     deleteAllPopups()
   }
 
+  const removeAreaById = (areaId: string) => {
+    draw.delete(areaId)
+    deletePopup(areaId)
+  }
+
+  const generateDefaultName = () => {
+    const newAreaNum = areaNum + 1
+    setAreaNum(newAreaNum)
+    return `Area ${newAreaNum}`
+  }
+
   useEffect(() => {
+    // temp code
+    const waitForMapToLoad = () => {
+      if (mapRef.current && mapRef.current.isStyleLoaded()) {
+        addDrawControls()
+      } else {
+        setTimeout(waitForMapToLoad, 100)
+      }
+    }
+
+    const socket = SocketClient
+    socket.connect()
+    socket.on('map-area-update', (wildfireArea) => {
+      drawArea(wildfireArea)
+    })
+    socket.on('map-area-delete', (areaId) => {
+      removeAreaById(areaId)
+    })
+
+    waitForMapToLoad()
     eventEmitter.on('area_util', () => {
       if (areaRef.current) {
         removeDrawControls()
@@ -1232,6 +1370,7 @@ const Mapbox: React.FC<MapboxProps> = ({
 
     return () => {
       eventEmitter.removeAllListeners('area_util')
+      socket.off('updataGroups')
     }
   }, [])
 
