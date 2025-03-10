@@ -6,6 +6,8 @@ import { addMessage } from '../features/messageSlice'
 import request from '../utils/request'
 import AlertPanel from './AlertPanel'
 import SocketClient from '../utils/Socket'
+import IMessage from '@/models/Message'
+import { AppDispatch } from '@/app/store'
 
 interface MessageAlertOptionsProps {
     channelId: string
@@ -19,6 +21,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
     currentUserRole,
   }) => {
     const socket = SocketClient
+    const dispatch = useDispatch<AppDispatch>()
     // const [maydayOpen, setMaydayOpen] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     // TODO: Implement the logic to check if the current user is the incident commander or first responder
@@ -29,7 +32,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
     // hardcode for test purpose
     let isIncidentCommander = false
-    if (currentUserId === '67cb7f30340c8e8937d2a913') {
+    if (currentUserId === '67ce465482bd0210e349ef33' || currentUserId === '67ce74f1e36ac4f372e8b576') {
       isIncidentCommander = true;
     }
     // const isFirstResponder = true;
@@ -45,7 +48,8 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
       const users = await request(`/api/users`, {
         method: 'GET',
       });
-      const responders = users.filter((user: any) => user._id !== currentUserId && (user.role === 'Fire' || user.role === 'Police'));
+      // const responders = users.filter((user: any) => user._id !== currentUserId && (user.role === 'Fire' || user.role === 'Police'));
+      const responders = users.filter((user: any) => user._id !== currentUserId && user.role === currentUserRole);
       setResponders(responders.map((responder: any) => responder._id));
 
       console.log('Responders:', responders);
@@ -53,9 +57,10 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
     // Fetch the resopnder if commander
     useEffect(() => {
-      if (isIncidentCommander) {
-        handleFetchResponders();
-      }
+      // if (isIncidentCommander) {
+      //   handleFetchResponders();
+      // }
+      handleFetchResponders();
     }, [isIncidentCommander]);
 
 
@@ -86,7 +91,21 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
       socket.emit('send-mayday', { senderId: currentUserId });
       console.log('Mayday sent');
     };
-
+    
+    const sendAlert = async () => {
+      const message = await request(`/api/channels/${channelId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({
+          content: "MAYDAY-red-black",
+          isAlert: true,
+          responders: responders,
+          acknowledgedBy: [],
+          acknowledgeAt: [],
+        }),
+      })
+  
+      dispatch(addMessage(message))
+    }
     // const handleDoubleClick = () => {
     //   console.log('Double clicked');
     //   setMaydayOpen(false);
@@ -142,7 +161,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
         </Popover>
 
         {(!isIncidentCommander && (currentUserRole === "Fire" || currentUserRole === "Police")) && (
-          <IconButton color="primary" onClick={handleMayday}>
+          <IconButton color="primary" onClick={sendAlert}>
             <Warning />
           </IconButton>
         )}

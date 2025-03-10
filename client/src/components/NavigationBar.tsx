@@ -68,7 +68,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   let title = pageTitles[pathname] || 'Incident Response'
 
-// If user is Fire or Police and path is /reach911, override title to "Incidents"
+  // If user is Fire or Police and path is /reach911, override title to "Incidents"
   if (pathname === '/reach911' && (role === 'Fire' || role === 'Police' || role === 'Dispatch')) {
     title = 'Incidents'
   }
@@ -76,7 +76,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
   if (pathname.startsWith('/messages/') && name) {
     title = `${name} Messages`
   }
-  if (pathname.startsWith('/profile') ) {
+  if (pathname.startsWith('/profile')) {
     title = 'Profile'
   }
 
@@ -102,8 +102,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     localStorage.removeItem('role');
     navigate('/login')
   }
+
   const profile = () => {
     navigate('/profile')
+  }
+
+  const navigateToOrganization = () => {
+    navigate('/organization')
   }
 
   return (
@@ -133,7 +138,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
           </IconButton>
         )}
         <Menu open={openMenu} anchorEl={menuAnchor} onClose={closeMenu}>
-           <MenuItem onClick={profile}>profile</MenuItem>
+          {(role === 'Dispatch' || role === 'Police' || role === 'Fire') && (
+            <MenuItem onClick={navigateToOrganization}>Organization</MenuItem>
+          )}
+          <MenuItem onClick={profile}>profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
         </Menu>
       </Toolbar>

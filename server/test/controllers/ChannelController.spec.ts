@@ -235,6 +235,22 @@ describe('Channel controller', () => {
     expect(fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
   })
 
+  it('should return uploadUrl and fileUrl for an existing channel for image upload', async () => {
+    // Create a channel in the DB
+    const testChannel = await ChannelController.create({
+      name: 'Test Channel For Image Upload',
+      userIds: [userA._id],
+    });
+  
+    // Call getImageUploadUrl
+    const { uploadUrl, fileUrl } = await ChannelController.getImageUploadUrl(testChannel._id);
+  
+    // Assert that the values match mock
+    expect(uploadUrl).toBe('mock-signed-url');
+    expect(fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//);
+    expect(fileUrl).toContain('.png');
+  });
+
   it('should return uploadUrl and fileUrl for an existing channel for file upload', async () => {
     // Create a channel in the DB
     const testChannel = await ChannelController.create({
@@ -273,6 +289,28 @@ describe('Channel controller', () => {
     const result = await ChannelController.getVideoUploadUrl(testChannel._id)
     expect(result).toEqual({ error: 'Error generating signed URL' })
   })
+
+  it('should handle error if GCS getSignedUrl call fails for image upload', async () => {
+    // Create a channel in the DB
+    const testChannel = await ChannelController.create({
+      name: 'test',
+      userIds: [userA._id],
+    });
+  
+    // Force the mock to throw an error on getSignedUrl
+    const { Storage } = require('@google-cloud/storage');
+    Storage.mockImplementation(() => ({
+      bucket: () => ({
+        file: () => ({
+          getSignedUrl: jest.fn().mockRejectedValue(new Error('GCS Error')),
+        }),
+      }),
+    }));
+  
+    // Expect function to return an error object instead of throwing an error
+    const result = await ChannelController.getImageUploadUrl(testChannel._id);
+    expect(result).toEqual({ error: 'Error generating signed URL' });
+  });
 
   it('can acknowledge a message and notify other users', async () => {
     // Create a channel with both users
