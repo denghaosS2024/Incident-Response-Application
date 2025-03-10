@@ -1,9 +1,9 @@
-import IChannel from '../../models/Channel';
-import { useState, useEffect } from 'react';
-import GroupListBlock from './GroupListBlock';
 import { Box, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
+import IChannel from '../../models/Channel';
 import request from '../../utils/request';
 import SocketClient from '../../utils/Socket';
+import GroupListBlock from './GroupListBlock';
 
 
 
@@ -21,9 +21,11 @@ const GroupDirectory: React.FC = () => {
                 console.error("Error fetching groups:", error);
                 return []
             });
+     
             const activeGroups = myGroups.filter((group: IChannel) => !group.closed);
             setMyParticipatingChannels(activeGroups);
-            const ownedGroups = myGroups.filter((group: IChannel) => group.owner._id === owner && !group.closed);
+            
+            const ownedGroups = myGroups.filter((group: IChannel) => group.owner?._id === owner && !group.closed);
             setMyManagingChannels(ownedGroups);
 
             const allClosedGroups = await request(`/api/channels/groups/closed`, {
