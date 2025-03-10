@@ -80,6 +80,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [pinsVisible, setPinsVisible] = useState(true)
   const [roadblocksVisible, setRoadblocksVisible] = useState(true)
   const [fireHydrantsVisible, setFireHydrantsVisible] = useState(true)
+  const [userLocationVisible, setUserLocationVisible] = useState(true);
+  const geoLocateRef = useRef<mapboxgl.GeolocateControl | null>(null);
 
   // refs for areaClick
   const areaRef = useRef<boolean>(false)
@@ -194,7 +196,7 @@ const Mapbox: React.FC<MapboxProps> = ({
 
         // Trigger geolocation if the map was initialized with default coordinates
         if (initialZoom == 1 && !disableGeolocation) {
-          geolocateControl!.trigger()
+          geoLocateRef.current!.trigger()
         }
       })
       // Handle map errors
@@ -203,15 +205,15 @@ const Mapbox: React.FC<MapboxProps> = ({
         setMapError('Failed to load map')
       })
       // Add geolocate control to allow tracking the user's location (only if not disabled)
-      let geolocateControl: mapboxgl.GeolocateControl | null = null
+      // let geolocateControl: mapboxgl.GeolocateControl | null = null
       if (!disableGeolocation) {
-        geolocateControl = new mapboxgl.GeolocateControl({
+        geoLocateRef.current = new mapboxgl.GeolocateControl({
           positionOptions: { enableHighAccuracy: true },
           trackUserLocation: true,
         })
-        mapRef.current.addControl(geolocateControl)
+        mapRef.current.addControl(geoLocateRef.current)
         // Update marker position when geolocation is triggered
-        geolocateControl.on('geolocate', (e: any) => {
+        geoLocateRef.current.on('geolocate', (e: any) => {
           const { longitude, latitude } = e.coords
           if (markerRef.current && showMarker) {
             markerRef.current.setLngLat([longitude, latitude])
@@ -1033,11 +1035,30 @@ const navigateToMarker = async (
       })
     }
 
+    const toggleUserLocation = () => {
+      if (!mapRef.current) return;
+    
+      setUserLocationVisible((prev) => {
+        const newState = !prev;
+    
+        const userLocationMarker = document.querySelector(".mapboxgl-user-location-dot") as HTMLElement | null;
+        const userLocationAccuracy = document.querySelector(".mapboxgl-user-location-accuracy-circle") as HTMLElement | null;
+        if (userLocationMarker && userLocationAccuracy) {
+          userLocationMarker.style.visibility = newState ? "visible" : "hidden";
+          userLocationAccuracy.style.visibility = newState ? "visible" : "hidden";
+        }
+    
+        return newState;
+      });
+    };
+
+    eventEmitter.on('you_button_clicked', toggleUserLocation)
     eventEmitter.on('toggle_pin', togglePins)
     eventEmitter.on('toggle_roadblock', toggleRoadblocks)
     eventEmitter.on('toggle_fireHydrant', toggleFireHydrants)
 
     return () => {
+      eventEmitter.removeListener('you_button_clicked', toggleUserLocation)
       eventEmitter.removeListener('toggle_pin', togglePins)
       eventEmitter.removeListener('toggle_roadblock', toggleRoadblocks)
       eventEmitter.removeListener('toggle_fireHydrant', toggleFireHydrants)
