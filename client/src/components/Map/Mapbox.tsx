@@ -978,11 +978,6 @@ const Mapbox: React.FC<MapboxProps> = ({
           body: JSON.stringify({ description: newDescription }),
         })
 
-        if (!updateResponse.ok) {
-          console.error('Failed to update pin description')
-          return
-        }
-
         // Restore popup with updated description
         popupContent.innerHTML = `
           <p id="popup-address-${id}">${newDescription}</p>
