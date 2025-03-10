@@ -684,43 +684,68 @@ export default Router()
   })
 
   /**
-   * @swagger
-   * /api/channels/{id}/file-upload-url:
-   *   get:
-   *     summary: Get a signed URL for uploading a file to a channel.
-   *     tags: [Channels]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: header
-   *         name: x-application-uid
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: The ID of the user uploading the file.
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: The ID of the channel.
-   *     responses:
-   *       200:
-   *         description: The signed URL for uploading the file.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 uploadUrl:
-   *                   type: string
-   *                   description: The signed URL for uploading the file.
-   *                 fileUrl:
-   *                   type: string
-   *                   description: The URL to access the uploaded file.
-   *       404:
-   *         description: Sender or channel not found.
-   */
+ * @swagger
+ * /api/channels/{id}/file-upload-url:
+ *   post:
+ *     summary: Post a signed URL for uploading a file to a channel.
+ *     tags: [Channels]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: x-application-uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user uploading the file.
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the channel.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fileName
+ *               - fileType
+ *               - fileExtension
+ *             properties:
+ *               fileName:
+ *                 type: string
+ *                 description: The name of the file being uploaded.
+ *                 example: "document"
+ *               fileType:
+ *                 type: string
+ *                 description: The MIME type of the file.
+ *                 example: "application/pdf"
+ *               fileExtension:
+ *                 type: string
+ *                 description: The file extension.
+ *                 example: ".pdf"
+ *     responses:
+ *       200:
+ *         description: The signed URL for uploading the file.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 uploadUrl:
+ *                   type: string
+ *                   description: The signed URL for uploading the file.
+ *                 fileUrl:
+ *                   type: string
+ *                   description: The URL to access the uploaded file.
+ *       400:
+ *         description: Bad request if parameters are missing.
+ *       404:
+ *         description: Sender or channel not found.
+ */
   .post('/:id/file-upload-url', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const fileName = request.body.fileName
