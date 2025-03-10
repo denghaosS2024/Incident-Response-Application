@@ -7,14 +7,14 @@
 
 import SocketIO from 'socket.io'
 
+import { ROLES } from './utils/Roles'
 import * as Token from './utils/Token'
 import UserConnections from './utils/UserConnections'
-import { ROLES } from './utils/Roles';
 
 interface ILoginMessage {
-  token: string;
-  uid: string;
-  role: ROLES;
+  token: string
+  uid: string
+  role: ROLES
 }
 
 class Socket {
@@ -23,8 +23,8 @@ class Socket {
    * @param server - The Socket.IO server instance
    */
   setup = (server: SocketIO.Server) => {
-    UserConnections.initializeIO(server);
-    
+    UserConnections.initializeIO(server)
+
     server.on('connection', (socket: SocketIO.Socket) => {
       // Handle user login
       socket.on('login', (message: ILoginMessage) => {
@@ -42,20 +42,29 @@ class Socket {
         } else {
           console.error(`Invalid login message from ${message.uid}`)
           socket.disconnect()
-        } socket.broadcast.emit('user-status-changed', { uid: message.uid })
+        }
+        socket.broadcast.emit('user-status-changed', { uid: message.uid })
       })
 
       socket.on('send-mayday', (data) => {
-        socket.broadcast.emit('send-mayday', data);
-      });
+        socket.broadcast.emit('send-mayday', data)
+      })
 
       socket.on('acknowledge-alert', (data) => {
-        socket.broadcast.emit('acknowledge-alert', data);
-      });
+        socket.broadcast.emit('acknowledge-alert', data)
+      })
 
       socket.on('group-member-added', (data) => {
-        socket.broadcast.emit('group-member-added', data);
-      });
+        socket.broadcast.emit('group-member-added', data)
+      })
+
+      socket.on('map-area-update', (data) => {
+        socket.broadcast.emit('map-area-update', data)
+      })
+
+      socket.on('map-area-delete', (data) => {
+        socket.broadcast.emit('map-area-delete', data)
+      })
 
       // Handle user disconnection
       socket.on('disconnect', () => {

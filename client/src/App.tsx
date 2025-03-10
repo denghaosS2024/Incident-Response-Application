@@ -417,6 +417,8 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       socket.off('user-status-changed')
       socket.off('group-member-added')
       socket.off('new-incident-created')
+      socket.off('map-area-update')
+      socket.off('map-area-delete')
       socket.close()
     }
   }, [role, dispatch])
