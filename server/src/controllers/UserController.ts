@@ -6,7 +6,7 @@ import User, { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
 import * as Token from '../utils/Token'
 import UserConnections from '../utils/UserConnections'
-import SystemGroupConfigs from "../utils/SystemDefinedGroup";
+import SystemGroupConfigs from "../utils/SystemDefinedGroups";
 
 class UserController {
   /**

@@ -11,7 +11,7 @@ import AutoPopulate from 'mongoose-autopopulate'
 import User, { IUser } from './User'
 import { IMessage } from './Message'
 import UserController from "../controllers/UserController";
-import SystemGroupConfigs from "../utils/SystemDefinedGroup";
+import SystemGroupConfigs from "../utils/SystemDefinedGroups";
 
 export const PUBLIC_CHANNEL_NAME = 'Public'
 
