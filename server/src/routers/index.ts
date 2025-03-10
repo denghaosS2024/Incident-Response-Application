@@ -6,27 +6,29 @@
  * and mounts them on the main router.
  */
 
-import { Router } from "express";
+import { Router } from 'express'
 
-import user from "./user";
-import login from "./login";
-import channel from "./channel";
-import incident from "./incident";
-import map from "./map";
-import carRouter from "./car";
-import truckRouter from "./truck";
-import cityRouter from "./city";
-import profileRouter from "./profile";
-import personnelRouter from "./personnel";  
+import carRouter from './car'
+import channel from './channel'
+import cityRouter from './city'
+import incident from './incident'
+import login from './login'
+import map from './map'
+import personnelRouter from './personnel'
+import profileRouter from './profile'
+import truckRouter from './truck'
+import user from './user'
+import wildfireAreaRouter from './WildfireArea'
 
 export default Router()
-  .use("/users", user)
-  .use("/login", login)
-  .use("/channels", channel)
-  .use("/incidents", incident)
-  .use("/map", map)
-  .use("/cars", carRouter)
-  .use("/trucks", truckRouter)
-  .use("/cities", cityRouter)
-  .use("/personnel", personnelRouter) 
-  .use("/profiles", profileRouter);
+  .use('/users', user)
+  .use('/login', login)
+  .use('/channels', channel)
+  .use('/incidents', incident)
+  .use('/map', map)
+  .use('/cars', carRouter)
+  .use('/trucks', truckRouter)
+  .use('/cities', cityRouter)
+  .use('/personnel', personnelRouter)
+  .use('/profiles', profileRouter)
+  .use('/wildfire', wildfireAreaRouter)

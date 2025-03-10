@@ -20,5 +20,10 @@ db
 
 sem-project-s25.json
 
+# Nobody should be committing these files
+# They are just merge nightmares rather than actually making people's lives easier
+# Especially when targeting x86_64 and aarch64 at the same time
 **/pnpm-lock.yaml
 **/node_modules
+**/package-lock.json
+**/yarn.lock

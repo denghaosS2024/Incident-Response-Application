@@ -1,63 +1,101 @@
 // import WildfireArea, { IWildfireArea } from '../models/WildfireArea';
-import WildfireArea from '../models/WildfireArea';
+import { v4 as uuidv4 } from 'uuid'
+import WildfireArea from '../models/WildfireArea'
 
 class WildfireAreaController {
   /**
    * add a new wildfire area
-   * @param areaId - The id for the new wildfire area
-   * @param coordinates - The password for the new user
-   * @param name - The phone number for the new user
+   * @param coordinates - The coordinates for the new wildfire area
+   * @param name - The name for the new wildfire area (Must be unique)
    * @returns The newly created wildfireArea object
-   * @throws Error if the username already exists
+   * @throws Error if the name already exists
    */
-  async add(
-    areaId: string,
-    coordinates: [number, number][],
-    name?: string,
-  ) {
-    // Check if the wildfire area already exists
-    let wildfireArea = await WildfireArea.findOne({ areaId }).exec();
-
+  async add(coordinates: [number, number][], name?: string) {
+    //Check if the name is already taken
+    const wildfireArea = await WildfireArea.findOne({ name }).exec()
     if (wildfireArea) {
-      throw new Error(`WildfireArea "${areaId}" already exists`);
-    } else {
-      // Create and save new wildfire area
-      wildfireArea = await new WildfireArea({
-        areaId,
-        coordinates,
-        name,
-      }).save();
+      throw new Error(`WildfireArea "${name}" already exists`)
     }
 
-    // NOTE: socket io notify everyone with the new wildfire area
+    const newWildfireArea = new WildfireArea({
+      areaId: uuidv4(),
+      coordinates,
+      name,
+    })
+
+    await newWildfireArea.save()
+
+    // TODO: Use Socket.IO to notify everyone with the new wildfire area
     return wildfireArea
   }
 
   /**
+   * Find a wildfire area by its ID
+   * @param areaId - The ID of the wildfire area to find
+   * @returns The wildfire area object
+   * @throws Error if the wildfire area does not exist
+   */
+  async findById(areaId: string) {
+    const target = await WildfireArea.findOne({ areaId })
+
+    if (target === null || target === undefined) {
+      throw new Error(`WildfireArea by ID "${areaId}" does not exist`)
+    }
+
+    return target
+  }
+
+  /**
    * Update wildfire area name property
-   * @param name - The new name of the wildfire area 
+   * @param name - The new name of the wildfire area
    * @returns An object containing the authentication token, user ID, and role
    * @throws Error if the user doesn't exist or the password is incorrect
    */
   async update(areaId: string, newName: string) {
-    const wildfireArea = await WildfireArea.findOne({ areaId });
+    const wildfireArea = await WildfireArea.findOne({ areaId })
 
     if (wildfireArea) {
-      wildfireArea.name = newName;
-      await wildfireArea.save();
-      return wildfireArea;
+      wildfireArea.name = newName
+      await wildfireArea.save()
+      return wildfireArea
     }
 
     throw new Error(`WildfireArea "${areaId}" does not exist`)
   }
 
-
-  async delete(areaId: string) {
-    const wildfireArea = await WildfireArea.findOne({ areaId });
+  /**
+   * Update wildfire area containment level
+   * @param areaId - The id of the wildfire area
+   * @param containmentLevel - The new containment level of the wildfire area in range 0-1
+   * @returns The updated wildfire area object
+   * @throws Error if the wildfire area does not exist
+   */
+  async updateContainmentLevel(areaId: string, containmentLevel: number) {
+    const wildfireArea = await WildfireArea.findOne({ areaId })
 
     if (wildfireArea) {
-      await wildfireArea.deleteOne();
-      return { message: `WildfireArea "${areaId}" has been deleted` };
+      wildfireArea.containment = containmentLevel
+      // Update last updated time (timestamp)
+      wildfireArea.last_updated = new Date()
+      await wildfireArea.save()
+      return wildfireArea
+    }
+
+    throw new Error(`WildfireArea "${areaId}" does not exist`)
+  }
+
+  /**
+   * Delete a wildfire area
+   * @param areaId - The id of the wildfire area
+   * @returns A message indicating the wildfire area has been deleted
+   * @throws Error if the wildfire area does not exist
+   */
+  async delete(areaId: string) {
+    const wildfireArea = await WildfireArea.findOne({ areaId })
+
+    if (wildfireArea) {
+      await wildfireArea.deleteOne()
+      return { message: `WildfireArea "${areaId}" has been deleted` }
     }
 
     throw new Error(`WildfireArea "${areaId}" does not exist`)
@@ -70,7 +108,7 @@ class WildfireAreaController {
   async listWildfireAreas() {
     const wildfireAreas = await WildfireArea.find().exec()
     return wildfireAreas.map((wildfireArea) => ({
-      ...(wildfireArea.toJSON())
+      ...wildfireArea.toJSON(),
     }))
   }
 }
