@@ -75,6 +75,11 @@ const Mapbox: React.FC<MapboxProps> = ({
   const fireHydrantRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const airQualityRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
 
+  // Visibility states for the map layers
+  const [pinsVisible, setPinsVisible] = useState(true)
+  const [roadblocksVisible, setRoadblocksVisible] = useState(true)
+  const [fireHydrantsVisible, setFireHydrantsVisible] = useState(true)
+
   // refs for areaClick
   const areaRef = useRef<boolean>(false)
 
@@ -116,6 +121,29 @@ const Mapbox: React.FC<MapboxProps> = ({
 
   // -------------------------------- helper function start --------------------------------
 
+  // Function to update the util layer visibility based on the markers present on the map
+  const checkForUtilMarkers = () => {
+    const hasPins = pinRef.current.size > 0
+    const hasRoadblocks = roadblockRef.current.size > 0
+    const hasHydrants = fireHydrantRef.current.size > 0
+
+    if (hasPins || hasRoadblocks || hasHydrants) {
+      // Emit event to mark the main Util button as active
+      eventEmitter.emit('selectUtil', { layer: 'Util', visible: true })
+
+      // Emit events for each util type that exists
+      if (hasPins) {
+        eventEmitter.emit('selectUtil', { layer: 'Pins', visible: true })
+      }
+      if (hasRoadblocks) {
+        eventEmitter.emit('selectUtil', { layer: 'Blocks', visible: true })
+      }
+      if (hasHydrants) {
+        eventEmitter.emit('selectUtil', { layer: 'Hydrants', visible: true })
+      }
+    }
+  }
+
   // Function to initialize the map using the given longitude and latitude.
   // This function is called once regardless of geolocation success or failure.
   const initializeMap = (lng: number, lat: number, initialZoom: number) => {
@@ -135,7 +163,9 @@ const Mapbox: React.FC<MapboxProps> = ({
       mapRef.current.on('load', () => {
         // Add a draggable marker at the current location
         mapRef.current!.setProjection({ name: 'globe' })
-        fetchAndRenderMarkers()
+        fetchAndRenderMarkers().then(() => {
+          checkForUtilMarkers()
+        })
 
         // If showMarker is true, add a draggable marker
         if (showMarker) {
@@ -790,6 +820,101 @@ const Mapbox: React.FC<MapboxProps> = ({
   }
 
   // -------------------------------- map drop items features end --------------------------------
+
+  // -------------------------------- map layer toggle start --------------------------------
+  useEffect(() => {
+    // Toggle pins visibility at the component level
+    const togglePins = () => {
+      if (!mapRef.current) return
+      setPinsVisible((prev) => {
+        const newState = !prev
+
+        pinRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          // This is to handle the popup visibility
+          // If the popup is open and the pins are hidden, close the popup
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Pins',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
+    const toggleRoadblocks = () => {
+      if (!mapRef.current) return
+      setRoadblocksVisible((prev) => {
+        const newState = !prev
+
+        roadblockRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Blocks',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
+    const toggleFireHydrants = () => {
+      if (!mapRef.current) return
+      setFireHydrantsVisible((prev) => {
+        const newState = !prev
+
+        fireHydrantRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Hydrants',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
+    eventEmitter.on('toggle_pin', togglePins)
+    eventEmitter.on('toggle_roadblock', toggleRoadblocks)
+    eventEmitter.on('toggle_fireHydrant', toggleFireHydrants)
+
+    return () => {
+      eventEmitter.removeListener('toggle_pin', togglePins)
+      eventEmitter.removeListener('toggle_roadblock', toggleRoadblocks)
+      eventEmitter.removeListener('toggle_fireHydrant', toggleFireHydrants)
+    }
+  }, [])
 
   // -------------------------------- reach 911 features start --------------------------------
 
