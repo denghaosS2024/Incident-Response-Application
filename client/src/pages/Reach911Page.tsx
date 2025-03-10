@@ -48,8 +48,7 @@ const Reach911Page: React.FC = () => {
     }
   }, [dispatch])
 
-  // If autoPopulateData is true and incidentId is provided, fetch incident details and update Redux state.
-  // autoPopulateData will be true when this page is navigated from the incidentsPage to view further incident details
+  // If the user is first responder and viewing an incident
   useEffect(() => {
     const fetchIncidentAndPopulate = async (id: string) => {
       try {
@@ -64,6 +63,11 @@ const Reach911Page: React.FC = () => {
         console.error('Error fetching incident details:', err)
       }
     }
+    console.log(
+      'Incident Id are autoPopulateData values are:{},{}',
+      incidentId,
+      autoPopulateData,
+    )
     if (autoPopulateData && incidentId) {
       fetchIncidentAndPopulate(incidentId)
     }
@@ -174,6 +178,14 @@ const Reach911Page: React.FC = () => {
       if (!cleanedIncident._id) delete (cleanedIncident as any)._id
       if (!cleanedIncident.incidentCallGroup)
         delete (cleanedIncident as any).incidentCallGroup
+
+      if (!cleanedIncident.openingDate)
+        delete (cleanedIncident as any).openingDate
+      if (!cleanedIncident.incidentState)
+        delete (cleanedIncident as any).incidentState
+      if (!cleanedIncident.owner) delete (cleanedIncident as any).owner
+      if (!cleanedIncident.commander) delete (cleanedIncident as any).commander
+      if (!cleanedIncident.caller) delete (cleanedIncident as any).caller
 
       const requestBody = {
         ...cleanedIncident,
