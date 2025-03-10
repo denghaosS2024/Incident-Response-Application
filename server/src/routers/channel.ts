@@ -570,13 +570,56 @@ export default Router()
     }
   })
   /**
-   * Make a phone call in a channel
-   * @route POST /api/channels/:id/phone-call
-   * @param {string} request.params.id - The ID of the channel
-   * @returns {string, string} The message indicating the call is being made and phone number to call
-   * @throws {404} If the channel is not found
-   */
-
+ * @swagger
+ * /api/channels/{id}/phone-call:
+ *  post:
+ *    summary: Make a phone call in a channel.
+ *    tags: [Channels]
+ *    security:
+ *      - bearerAuth: []
+ *    parameters:
+ *      - in: header
+ *        name: x-application-uid
+ *        required: true
+ *        schema:
+ *        type: string
+ *        description: The ID of the user making the phone call.
+ *     - in: path
+ *        name: id
+ *        required: true
+ *        schema:
+ *        type: string
+ *        description: The ID of the channel.
+ *     responses:
+ *        200:
+ *            description: The phone number to call.
+ *            content:
+ *              application/json:
+ *                schema:
+ *                  type: object
+ *                  properties:
+ *                  phoneNumber:
+ *                  type: string
+ *            description: The phone number to call.
+ *        404:
+ *            description: Sender or channel not found.
+ */ 
+.post('/:id/phone-call', async (request, response) => {    
+  const senderId = new Types.ObjectId(      
+    request.headers['x-application-uid'] as string,    
+  )    
+  const channelId = new Types.ObjectId(request.params.id)    
+  try {      
+    const result = await ChannelController.makePhoneCall(        
+      channelId,        
+      senderId,      
+    )      
+    response.send(result)    
+  } catch (e) {      
+    const error = e as Error      
+    response.status(404).send({ message: error.message })    
+  }
+})
   /**
    * @swagger
    * /api/channels/{id}/video-upload-url:
