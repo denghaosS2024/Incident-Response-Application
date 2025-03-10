@@ -44,7 +44,7 @@ class AirQualityController {
         const sensors = data.data;
 
         if (!sensors || sensors.length === 0) {
-            return { air_quality: 'unknown', message: 'No sensors found within 10 miles' };
+            return { air_quality: 'Unknown', message: 'No sensors found within 10 miles' };
         }
 
         // Map sensors with distance from target location

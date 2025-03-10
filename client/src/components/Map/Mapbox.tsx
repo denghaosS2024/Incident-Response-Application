@@ -31,35 +31,8 @@ interface MapboxProps {
 // Define interface for AQI data
 interface AQIData {
   value: number | null
-  level: 'no data' | 'good' | 'moderate' | 'poor' | 'hazardous'
+  level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous'
   color: string
-}
-
-// Mock function to fetch AQI data
-const fetchAQIData = async (lng: number, lat: number): Promise<AQIData> => {
-  try {
-    // In a real implementation, this would be an actual API call
-    // For now, we'll simulate a random AQI value
-    // const response = await fetch(`/api/aqi?lng=${lng}&lat=${lat}`);
-    // const data = await response.json();
-
-    // Mock random AQI value for demonstration purposes
-    const mockValue = Math.floor(Math.random() * 400)
-
-    // Determine AQI level and color based on value
-    if (mockValue < 50) {
-      return { value: mockValue, level: 'good', color: '#00e400' } // Green
-    } else if (mockValue < 100) {
-      return { value: mockValue, level: 'moderate', color: '#ff7e00' } // Orange
-    } else if (mockValue < 300) {
-      return { value: mockValue, level: 'poor', color: '#ff0000' } // Red
-    } else {
-      return { value: mockValue, level: 'hazardous', color: '#8f3f97' } // Dark purple
-    }
-  } catch (error) {
-    console.error('Error fetching AQI data:', error)
-    return { value: null, level: 'no data', color: '#000000' } // Black for no data
-  }
 }
 
 const Mapbox: React.FC<MapboxProps> = ({
@@ -528,6 +501,53 @@ const navigateToMarker = async (
   );
 };
 
+  // Mock function to fetch AQI data
+  const fetchAQIData = async (lng: number, lat: number): Promise<AQIData> => {
+    try {
+      // Get AQI data from the backend
+      const response = await fetch(`/api/airQuality?latitude=${lat}&longitude=${lng}`);
+      const data = await response.json();
+      const { air_quality } = data;
+
+      // Determine AQI level and color based on value
+      const aqiLevel = aqiToLevel(air_quality);
+      const aqiColor = aqiLevelToColor(aqiLevel);
+      return { value: air_quality, level: aqiLevel, color: aqiColor };
+    } catch (error) {
+      console.error('Error fetching AQI data:', error)
+      return { value: null, level: 'Unknown', color: '#000000' } // Black for no data
+    }
+  }
+
+  // Funtion to Convert US EPA AQI to AQI level
+  // Unknown when no data is available; Good (<50); Moderate (50-100); Poor (101-300); Hazardous (>300)
+  const aqiToLevel = (aqi: number | string): 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous' => {
+    if(typeof aqi === 'number') {
+      if (aqi < 50) return 'Good';
+      if (aqi <= 100) return 'Moderate';
+      if (aqi <= 300) return 'Poor';
+      return 'Hazardous';
+    } else {
+      return 'Unknown';
+    }
+  }
+
+  // Function to convert AQI level to color
+  // Black for Unknown air quality; Green for Good (<50); Orange for Moderate (50-100); Red for Poor (101-300); Dark Purple for Hazardous (>300)
+  const aqiLevelToColor = (level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous'): string => {
+    switch (level) {
+      case 'Good':
+        return '#00e400'; // Green
+      case 'Moderate':
+        return '#ff7e00'; // Orange
+      case 'Poor':
+        return '#ff0000'; // Red
+      case 'Hazardous':
+        return '#8f3f97'; // Dark purple
+      default:
+        return '#000000'; // Black
+    }
+  }
 
   // -------------------------------- helper function end --------------------------------
 
