@@ -166,4 +166,11 @@ describe('Incident Controller', () => {
     const updatedIncident = await IncidentController.updateIncident(updateData)
     expect(updatedIncident).toBeNull()
   })
+
+  it('should return database error if get all incidents fails', async () => {
+    jest.spyOn(Incident, 'find').mockRejectedValue(new Error('Database error'))
+    await expect(IncidentController.getAllIncidents()).rejects.toThrow(
+      'Database error',
+    )
+  })
 })
