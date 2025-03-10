@@ -32,7 +32,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
     // hardcode for test purpose
     let isIncidentCommander = false
-    if (currentUserId === '67cf2ea7882f62d18e656388' || currentUserId === '67cf29fba2deacf6b964a599') {
+    if (currentUserId === '67cf2ea7882f62d18e656388' || currentUserId === '67cf427215bcff53008820e3') {
       isIncidentCommander = true;
     }
     // const isFirstResponder = true;
