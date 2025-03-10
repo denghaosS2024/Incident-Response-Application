@@ -787,6 +787,56 @@ export default Router()
     }
   })
 
+  /**
+ * @swagger
+ * /api/channels/{id}/voice-upload-url:
+ *   post:
+ *     summary: Post a signed URL for uploading a voice message to a channel.
+ *     tags: [Channels]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: x-application-uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user uploading the file.
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the channel.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fileName
+ *             properties:
+ *               fileName:
+ *                 type: string
+ *                 description: The name of the voice recording being uploaded.
+ *                 example: "recording"
+ *     responses:
+ *       200:
+ *         description: The signed URL for uploading the file.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 uploadUrl:
+ *                   type: string
+ *                   description: The signed URL for uploading the file.
+ *       400:
+ *         description: Bad request if parameters are missing.
+ *       404:
+ *         description: Sender or channel not found.
+ */
   .post('/:id/voice-upload-url', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
     const fileName = request.body.fileName
