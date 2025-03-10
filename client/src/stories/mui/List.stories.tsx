@@ -1,86 +1,105 @@
-import { Meta, StoryObj } from '@storybook/react'
-import { List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
-import { PermContactCalendar as Contact, Message } from '@mui/icons-material'
+import { Meta, StoryObj } from '@storybook/react';
+import { Box, ListItemText } from '@mui/material';
+import { Message, PermContactCalendar as Contact, Groups, LocationOn, PriorityHigh as ExclamationIcon } from '@mui/icons-material';
 
 const meta: Meta = {
   title: 'Material UI/List',
-  component: List,
+  component: Box,
   tags: ['autodocs'],
   argTypes: {
-    dense: {
-      control: 'boolean',
-      description:
-        'If true, compact vertical padding will be applied to the list items.',
+    text: {
+      control: 'text',
+      description: 'The text displayed inside the box.',
     },
-    disablePadding: {
+    icon: {
+      control: 'radio',
+      options: ['message', 'contact', 'groups', 'location', 'incident'],
+      mapping: {
+        message: <Message />,
+        contact: <Contact />,
+        groups: <Groups />,
+        location: <LocationOn />,
+        incident: <ExclamationIcon />,
+      },
+      description: 'The icon displayed inside the box.',
+    },
+    isEmergency: {
       control: 'boolean',
-      description:
-        'If true, the left and right padding is removed from the list.',
+      description: 'If true, the background color is red (for emergency items like 911).',
     },
   },
-}
+};
 
-export default meta
-type Story = StoryObj<typeof meta>
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-const items = [
-  {
+const Template = ({ text = 'Default', icon = <Message />, isEmergency = false }: Partial<{ text: string; icon: JSX.Element; isEmergency: boolean }>) => (
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '10px 10px',
+      border: '1.5px solid #ddd',
+      borderRadius: '8px',
+      backgroundColor: isEmergency ? '#ff0000' : '#fff',
+      width: '250px',
+      '&:hover': { backgroundColor: isEmergency ? '#e60000' : '#f0f0f0' },
+    }}
+  >
+    <ListItemText
+      sx={{
+        flex: 1,
+        textAlign: 'center',
+        color: isEmergency ? '#fff' : 'inherit',
+      }}
+      primary={text}
+    />
+    <Box sx={{ ml: 'auto', pr: 1 }}>{icon}</Box>
+  </Box>
+);
+
+export const MessageBox: Story = {
+  args: {
     text: 'Messages',
     icon: <Message />,
+    isEmergency: false,
   },
-  {
+  render: (args) => <Template {...args} />, 
+};
+
+export const ContactBox: Story = {
+  args: {
     text: 'Contacts',
     icon: <Contact />,
+    isEmergency: false,
   },
-]
+  render: (args) => <Template {...args} />,
+};
 
-export const DefaultList: Story = {
+export const GroupsBox: Story = {
   args: {
-    dense: false,
-    disablePadding: false,
+    text: 'Groups',
+    icon: <Groups />,
+    isEmergency: false,
   },
-  render: (args) => (
-    <List {...args}>
-      {items.map((item, index) => (
-        <ListItem key={index}>
-          <ListItemIcon>{item.icon}</ListItemIcon>
-          <ListItemText primary={item.text} />
-        </ListItem>
-      ))}
-    </List>
-  ),
-}
+  render: (args) => <Template {...args} />,
+};
 
-export const DenseList: Story = {
+export const MapBox: Story = {
   args: {
-    dense: true,
-    disablePadding: false,
+    text: 'Map',
+    icon: <LocationOn />,
+    isEmergency: false,
   },
-  render: (args) => (
-    <List {...args}>
-      {items.map((item, index) => (
-        <ListItem key={index}>
-          <ListItemIcon>{item.icon}</ListItemIcon>
-          <ListItemText primary={item.text} />
-        </ListItem>
-      ))}
-    </List>
-  ),
-}
+  render: (args) => <Template {...args} />,
+};
 
-export const NoPaddingList: Story = {
+export const EmergencyBox: Story = {
   args: {
-    dense: false,
-    disablePadding: true,
+    text: '911',
+    icon: <ExclamationIcon />,
+    isEmergency: true,
   },
-  render: (args) => (
-    <List {...args}>
-      {items.map((item, index) => (
-        <ListItem key={index}>
-          <ListItemText primary={item.text} />
-          <ListItemIcon>{item.icon}</ListItemIcon>
-        </ListItem>
-      ))}
-    </List>
-  ),
-}
+  render: (args) => <Template {...args} />,
+};

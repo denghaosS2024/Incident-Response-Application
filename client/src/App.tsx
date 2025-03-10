@@ -2,8 +2,9 @@
 import { StyledEngineProvider } from '@mui/material/styles';
 import { Home, Message, PermContactCalendar, AccessAlarm, LocationOn, FmdBadRounded } from '@mui/icons-material';
 import Groups2Icon from '@mui/icons-material/Groups2';
-import { LocalPolice as PoliceIcon, LocalFireDepartment as FirefighterIcon, LocalHospital as NurseIcon, Report } from '@mui/icons-material';
+import { LocalPolice as PoliceIcon, LocalFireDepartment as FirefighterIcon, LocalHospital as NurseIcon, Report, Hotel as BedIcon, } from '@mui/icons-material';
 import { Box, Modal, Typography, keyframes } from '@mui/material'
+import FmdBadRoundedIcon from '@mui/icons-material/FmdBadRounded';
 // React and Redux
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -93,21 +94,63 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
   const [hasNewIncident, setHasNewIncident] = useState<boolean>(false);
   const [showIncidentAlert, setShowIncidentAlert] = useState<boolean>(false);
   const [incidentAlertMessage, setIncidentAlertMessage] = useState<string>('');
+  const [selectedTab, setSelectedTab] = useState<string | null>('home');
 
+  const roleTabs: Record<string, Link> = {
+    Citizen: { prefix: '/', key: 'home', icon: <Home />, to: '/' },
+    Administrator: { prefix: '/', key: 'home', icon: <Home />, to: '/' },
+    Dispatch: { prefix: '/', key: 'home', icon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, to: '/' },
+    Police: { prefix: '/', key: 'home', icon: <PoliceIcon />, to: '/' },
+    Fire: { prefix: '/', key: 'home', icon: <FirefighterIcon />, to: '/' },
+    Nurse: { prefix: '/', key: 'home', icon: <NurseIcon />, to: '/' },
+  };
 
-  const tabLinks: Array<Link> = [
-    { prefix: '/', key: 'home', icon: <Home />, to: '/' },
+  const homeTab = {
+    prefix: '/',
+    key: 'home',
+    icon: role === 'Dispatch' ? (
+      selectedTab === 'home' ? (
+        <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />
+      ) : (
+        <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />
+      )
+    ) : (
+      roleTabs[role]?.icon || <Home />
+    ),
+    to: '/',
+    onClick: () => setSelectedTab('home'),
+  };
+
+  const additionalTabs: Link[] = [
+    ...(role === 'Citizen' || role == 'Administrator'
+      ? [
+
+        {
+          prefix: '/reach911',
+          key: 'reach911',
+          icon: selectedTab === 'reach911' ? (
+            <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />
+          ) : (
+            <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />
+          ),
+          to: '/reach911',
+          onClick: () => setSelectedTab('reach911'),
+        },
+      ]
+      : []),
+
+  ];
+
+  const orderedTabs: Link[] = [
+    homeTab,
     {
       prefix: '/messages',
       key: 'msg',
-      icon: hasUnreadMessages ? (
-        <Message style={{ color: 'red' }} />
-      ) : (
-        <Message />
-      ),
+      icon: hasUnreadMessages ? <Message style={{ color: 'red' }} /> : <Message />,
       to: '/messages',
       onClick: () => {
-        dispatch(clearAllAlerts())
+        dispatch(clearAllAlerts());
+        setSelectedTab('msg');
       },
     },
     {
@@ -115,63 +158,35 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       key: 'contact',
       icon: <PermContactCalendar />,
       to: '/contacts',
+      onClick: () => setSelectedTab('contact'),
     },
     {
       prefix: '/groups',
       key: 'groups',
-      icon: hasGroupNotification ? (
-        <Groups2Icon style={{ color: 'red' }} />
-      ) : (
-        <Groups2Icon />
-      ),
+      icon: hasGroupNotification ? <Groups2Icon style={{ color: 'red' }} /> : <Groups2Icon />,
       to: '/groups',
       onClick: () => {
         setHasGroupNotification(false);
-      }
-    },
-    {
-      prefix: '/reach911',
-      key: 'reach911',
-      icon: <img src="/911-icon.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
-      selectedIcon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />,
-      to: '/reach911',
+        setSelectedTab('groups');
+      },
     },
     {
       prefix: '/map',
       key: 'map',
       icon: <LocationOn />,
       to: '/map',
+      onClick: () => setSelectedTab('map'),
     },
-    {
-      prefix: '/police',
-      key: 'ploice',
-      icon: <PoliceIcon />,
-      to: '/police',
-    },
-    {
-      prefix: '/firefighter',
-      key: 'firefighter',
-      icon: <FirefighterIcon />,
-      to: '/firefighter',
-    },
-    {
-      prefix: '/nurse',
-      key: 'nurse',
-      icon: <NurseIcon />,
-      to: '/nurse',
-    },
-  ]
-  const roleTabs: Record<string, Link> = {
-    Dispatch: { prefix: '/', key: '911', icon: <img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, to: '/' },
-    Police: { prefix: '/', key: 'police', icon: <PoliceIcon />, to: '/' },
-    Fire: { prefix: '/', key: 'fire', icon: <FirefighterIcon />, to: '/' },
-    Nurse: { prefix: '/', key: 'nurse', icon: <NurseIcon />, to: '/' },
-  };
-  const homeTab = roleTabs[role] || { prefix: '/', key: 'home', icon: <Home />, to: '/' };
-  const orderedTabs = [
-    homeTab,
-    ...tabLinks.filter((link) => link.key !== 'home'),
+    ...additionalTabs,
   ];
+  useEffect(() => {
+    const path = window.location.pathname;
+    const matchingTab = orderedTabs.find(tab => tab.to === path);
+
+    if (matchingTab) {
+      setSelectedTab(matchingTab.key);
+    }
+  }, [window.location.pathname]);
 
   const useFlashAnimation = (bgColor: string) => {
     return useMemo(
@@ -183,19 +198,17 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       [bgColor],
     )
   }
-
   const flash = useFlashAnimation(bgColor)
 
-  // TODO: Does Admmin see everything? If so, we need to include admin here
-  const firstResponderRoleList = ['Dispatch', 'Police', 'Fire']
-  if (firstResponderRoleList.includes(role)) {
+  const hasIncidentTab = orderedTabs.some(tab => tab.key === 'incidents');
+
+  if (!hasIncidentTab && ['Dispatch', 'Police', 'Fire'].includes(role)) {
     orderedTabs.push({
       prefix: '/incidents',
       key: 'incidents',
-      // make icon different to alert when new incident created
       icon: hasNewIncident ? (
         <Box position="relative">
-          <Report sx={{color: 'error.main'}}/>
+          <FmdBadRoundedIcon sx={{ color: 'error.main' }} />
           <Box
             sx={{
               position: 'absolute',
@@ -205,16 +218,28 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
               height: 12,
               borderRadius: '50%',
               backgroundColor: 'error.main',
-              animation: `${flash} 1s infinite`
             }}
           />
         </Box>
       ) : (
-        <Report />
+        <FmdBadRoundedIcon />
       ),
       to: '/incidents',
-      onClick: () => setHasNewIncident(false),
-    })
+      onClick: () => {
+        setHasNewIncident(false);
+        setSelectedTab('incidents');
+      }
+    });
+  }
+  if (role == 'Nurse') {
+    orderedTabs.push({
+      prefix: '/patients',
+      key: 'patients',
+      icon: <BedIcon />,
+      //TODO:change the router when implementing patients page
+      to: '/patients',
+      onClick: () => setSelectedTab('patients'),
+    });
   }
 
   const [maydayOpen, setMaydayOpen] = useState<boolean>(false)
@@ -232,19 +257,19 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       if (!senderId || !currentAlertMessageId || !currentChannelId) return;
 
       dispatch(
-        acknowledgeMessage({ 
-          messageId: currentAlertMessageId, 
-          senderId, 
+        acknowledgeMessage({
+          messageId: currentAlertMessageId,
+          senderId,
           channelId: currentChannelId,
         })
       ).unwrap()
-      .then((updatedMessage) => {
-        console.log('Acknowledgment updated:', updatedMessage);
-      })
-      .catch((error) => {
-        console.error('Error acknowledging alert:', error);
-      });
-      
+        .then((updatedMessage) => {
+          console.log('Acknowledgment updated:', updatedMessage);
+        })
+        .catch((error) => {
+          console.error('Error acknowledging alert:', error);
+        });
+
     }
     lastTap.current = now
   }
@@ -259,7 +284,7 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
 
     const socket = SocketClient
     socket.connect();
-    
+
     socket.on('connect', () => {
       console.log('Socket connected successfully');
       console.log('Current role:', role);
