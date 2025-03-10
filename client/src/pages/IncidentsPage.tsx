@@ -89,17 +89,33 @@ function IncidentsPage() {
   // Group incidents for display based on role
   let incidentGroups: { [key: string]: IncidentData[] } = {}
   if (role === 'Fire' || role === 'Police') {
+    const filteredByAssigned = filteredData.filter(
+      (incident) => incident.incidentState === 'Assigned',
+    )
+    const priorityOrder: Record<string, number> = {
+      E: 1,
+      One: 2,
+      Two: 3,
+      Three: 4,
+    };
+  
+    const sortByPriorityOnly = (incidents: IncidentData[]) =>
+      incidents.sort((a, b) => {
+        const priorityA = priorityOrder[a.priority] || 99; 
+        const priorityB = priorityOrder[b.priority] || 99;
+        return priorityA - priorityB; 
+      });
+
     incidentGroups = {
-      'My Incident': filteredData.filter(
+      'My Incident': filteredByAssigned.filter(
         (incident) => incident.commander === userId,
       ),
-      'Other Open Incidents': filteredData.filter(
-        (incident) =>
-          incident.commander !== userId && incident.incidentState !== 'Closed',
+      'Other Open Incidents': sortByPriorityOnly(
+        filteredByAssigned.filter((incident) => incident.commander !== userId)
       ),
-      'Closed Incidents': filteredData.filter(
-        (incident) => incident.incidentState === 'Closed',
-      ),
+      'Closed Incidents': sortByOpeningDate(
+        filteredData.filter((incident) => incident.incidentState === 'Closed',
+      ))
     }
   } else {
     incidentGroups = {

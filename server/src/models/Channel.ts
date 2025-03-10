@@ -8,8 +8,10 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose'
 import AutoPopulate from 'mongoose-autopopulate'
 
-import { IUser } from './User'
+import User, { IUser } from './User'
 import { IMessage } from './Message'
+import UserController from "../controllers/UserController";
+import SystemGroupConfigs from "../utils/SystemDefinedGroup";
 
 export const PUBLIC_CHANNEL_NAME = 'Public'
 
@@ -34,6 +36,7 @@ export interface IChannleModel extends Model<IChannel> {
   getGroupById: (id: Types.ObjectId) => Promise<IChannel>
   getGroupByUser: (userId: Types.ObjectId) => Promise<IChannel[]>
   getGroupOwnedByUser: (userId: Types.ObjectId) => Promise<IChannel[]>
+  ensureSystemDefinedGroup: () => Promise<void>
 }
 
 /**
@@ -122,6 +125,35 @@ ChannelSchema.statics.getGroupByUser = async (userId: Types.ObjectId, checkClose
     return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME }, closed: closed }).exec()
   } else {
     return Channel.find({ users: userId, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+  }
+}
+
+ChannelSchema.statics.ensureSystemDefinedGroup = async () => {
+  const systemUser = await UserController.findUserByUsername('System');
+  if (!systemUser) {
+    console.log('[ensureSystemDefinedGroup] systemUser not found. Cannot create system defined groups.')
+    return
+  }
+
+  for (const config of SystemGroupConfigs) {
+    const channel = await Channel.findOne({ name: config.name }).exec()
+    if (!channel) {
+      const users = await User.find({
+        role: { $in: config.participantRole }
+      }).exec();
+
+      await new Channel({
+        name: config.name,
+        users: users,
+        description: config.description,
+        owner: systemUser,
+        closed: false,
+      }).save()
+
+      console.log(`[ensureSystemDefinedGroup] System Group ${config.name} created! (user count: ${users.length})`)
+    } else {
+      console.log(`[ensureSystemDefinedGroup] System Group ${config.name} already exists!`)
+    }
   }
 }
 

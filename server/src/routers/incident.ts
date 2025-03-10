@@ -266,7 +266,17 @@ export default Router()
    *               items:
    *                 $ref: '#/components/schemas/Incident'
    *       404:
-   *         description: No incidents found.
+   *         description: No incidents found for the given incident Id.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: No incidents found
+   *       204:
+   *         description: No incidents found as there are no incidents.
    *         content:
    *           application/json:
    *             schema:
@@ -299,12 +309,16 @@ export default Router()
         result = await IncidentController.getIncidentByIncidentId(
           incidentId as string,
         )
+        if (!result || result.length === 0) {
+          response.status(404).json({ message: 'No incidents found' })
+          return
+        }
       } else {
         result = await IncidentController.getAllIncidents()
       }
 
       if (!result || result.length === 0) {
-        response.status(404).json({ message: 'No incidents found' })
+        response.status(204).json({ message: 'No incidents found' })
         return
       }
 

@@ -15,7 +15,7 @@ import map from "./map";
 import user from "./user";
 
 // This router does not exist in this codebase
-//import airQuality from "./airQuality";
+import airQuality from "./airQuality";
 import carRouter from "./car";
 import cityRouter from "./city";
 import personnelRouter from "./personnel";
@@ -30,7 +30,7 @@ export default Router()
   .use("/channels", channel)
   .use("/incidents", incident)
   .use("/map", map)
-  //.use("/airQuality", airQuality)
+  .use("/airQuality", airQuality)
   .use("/cars", carRouter)
   .use("/trucks", truckRouter)
   .use("/cities", cityRouter)
