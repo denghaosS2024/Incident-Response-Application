@@ -223,7 +223,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               label="Closed"
             />
           </Box>}
-          <Board setUsers={setUsers} onGroupClick={handleGroupClickInBoard} triggerResetBoard={triggerResetBoard}/>
+          <Board setUsers={setUsers} onGroupClick={handleGroupClickInBoard} triggerResetBoard={triggerResetBoard} canDrag={allowEdit} />
           <Box display="flex" justifyContent="center" mt={2}>
             {allowRemoveSelf && <Button
               variant="contained"
