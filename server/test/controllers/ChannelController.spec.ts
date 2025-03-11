@@ -13,6 +13,7 @@ import { IUser } from '../../src/models/User'
 import { ROLES } from '../../src/utils/Roles'
 import UserConnections from '../../src/utils/UserConnections'
 import * as TestDatabase from '../utils/TestDatabase'
+import SystemGroupConfigs from "../../src/utils/SystemDefinedGroups";
 
 jest.mock('@google-cloud/storage', () => {
   const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
@@ -36,9 +37,9 @@ describe('Channel controller', () => {
   beforeAll(async () => {
     TestDatabase.connect()
 
-    userA = await UserController.register('Channel-User-A', 'password-A')
-    userB = await UserController.register('Channel-User-B', 'password-B')
-    userC = await UserController.register('Channel-User-C', 'password-C')
+    userA = await UserController.register('Channel-User-A', 'password-A', ROLES.CITIZEN)
+    userB = await UserController.register('Channel-User-B', 'password-B', ROLES.CITIZEN)
+    userC = await UserController.register('Channel-User-C', 'password-C', ROLES.CITIZEN)
 
     const profileData = {
       userId: userB._id,
@@ -55,11 +56,11 @@ describe('Channel controller', () => {
       },
       emergencyContacts: []
     };
-    
+
     // Create/update profile directly using findOneAndUpdate
     profileB = await Profile.findOneAndUpdate(
-      { userId: userB._id }, 
-      { $set: profileData }, 
+      { userId: userB._id },
+      { $set: profileData },
       { new: true, upsert: true }
     ).exec();
   })
@@ -104,20 +105,22 @@ describe('Channel controller', () => {
   it('can list all existing channels', async () => {
     const result = await ChannelController.list()
 
-    expect(result.length).toBe(2)
+    expect(result.length).toBe(1 + SystemGroupConfigs.length)  // 1 channel created in previous test + all system groups
     expect(result[0].name).toEqual('Public')
-    expect(result[0].users.length).toBe(3)
+    expect(result[0].users.length).toBe(4)  // 1 System user + 3 users created in the test suite
     // hide messages when listing all channels
     expect(result[0].messages?.length).toBe(0)
-    expect(result[1].name).toEqual('Test Channel')
-    expect(result[1].users.length).toBe(2)
-    expect(result[1].messages?.length).toBe(0)
+
+    const testChannelIndex = SystemGroupConfigs.length;
+    expect(result[testChannelIndex].name).toEqual('Test Channel')
+    expect(result[testChannelIndex].users.length).toBe(2)
+    expect(result[testChannelIndex].messages?.length).toBe(0)
   })
 
   it('can list channels which a user joined', async () => {
     const result = await ChannelController.list(userC._id)
 
-    expect(result.length).toBe(1)
+    expect(result.length).toBe(2)  // Public and Citizens as userC is ROLES.CITIZEN
     expect(result[0].name).toEqual('Public')
   })
 
@@ -242,10 +245,10 @@ describe('Channel controller', () => {
       name: 'Test Channel For Image Upload',
       userIds: [userA._id],
     });
-  
+
     // Call getImageUploadUrl
     const { uploadUrl, fileUrl } = await ChannelController.getImageUploadUrl(testChannel._id);
-  
+
     // Assert that the values match mock
     expect(uploadUrl).toBe('mock-signed-url');
     expect(fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//);
@@ -303,7 +306,7 @@ describe('Channel controller', () => {
         }),
       }),
     }))
-    
+
     const result = await ChannelController.getVideoUploadUrl(testChannel._id)
     expect(result).toEqual({ error: 'Error generating signed URL' })
   })
@@ -314,7 +317,7 @@ describe('Channel controller', () => {
       name: 'test',
       userIds: [userA._id],
     });
-  
+
     // Force the mock to throw an error on getSignedUrl
     const { Storage } = require('@google-cloud/storage');
     Storage.mockImplementation(() => ({
@@ -324,7 +327,7 @@ describe('Channel controller', () => {
         }),
       }),
     }));
-  
+
     // Expect function to return an error object instead of throwing an error
     const result = await ChannelController.getImageUploadUrl(testChannel._id);
     expect(result).toEqual({ error: 'Error generating signed URL' });
@@ -367,23 +370,23 @@ describe('Channel controller', () => {
     // Mock socket connections for notifications
     const socketA = mock<SocketIO.Socket>();
     const socketB = mock<SocketIO.Socket>();
-  
+
     UserConnections.addUserConnection(userA.id, socketA, ROLES.CITIZEN);
     UserConnections.addUserConnection(userB.id, socketB, ROLES.CITIZEN);
-  
+
     // Create a direct message channel between userA and userB
     const privateChannel = await ChannelController.create({
       name: 'Private Channel',
       userIds: [userA._id, userB._id],
     });
-  
+
     const result = await ChannelController.makePhoneCall(privateChannel._id, userA._id);
-  
+
     expect(result.message.content).toBe(`Phone call started now between ${userA.username} and ${userB.username}.`);
     expect(result.message.sender._id).toEqual(userA._id);
     expect(result.message.channelId).toEqual(privateChannel._id);
     expect(result.phoneNumber).toBe(profileB.phone);
-  
+
     expect(socketB.emit).toHaveBeenCalledWith('new-message', result.message);
   })
 
@@ -393,25 +396,25 @@ it('can get closed groups', async () => {
     userIds: [userA._id],
     closed: true
   });
-  
+
   // Create an open channel to verify it's not included in results
   const openChannel = await ChannelController.create({
     name: 'Open Channel',
     userIds: [userA._id],
     closed: false
   });
-  
+
   // Call the method being tested
   const closedGroups = await ChannelController.getClosedGroups();
-  
+
   // Verify closed channel is included
   const hasClosedChannel = closedGroups.some(ch => ch.name === 'A Closed Channel');
   expect(hasClosedChannel).toBe(true);
-  
+
   // Verify open channel is not included
   const hasOpenChannel = closedGroups.some(ch => ch.name === 'Open Channel');
   expect(hasOpenChannel).toBe(false);
-  
+
   // Clean up test data
   await ChannelController.delete(closedChannel1.name);
   await ChannelController.delete(openChannel.name);
@@ -424,42 +427,42 @@ it('can get closed groups sorted by name', async () => {
     userIds: [userA._id],
     closed: true
   });
-  
+
   // Create second closed channel with A name (should appear first in sorted results)
   const closedChannel2 = await ChannelController.create({
     name: 'A Closed Channel',
     userIds: [userA._id],
     closed: true
   });
-  
+
   // Create an open channel to verify it's not included in results
   const openChannel = await ChannelController.create({
     name: 'Open Channel',
     userIds: [userA._id],
     closed: false
   });
-  
-  
+
+
   // Call the method being tested
   const closedGroups = await ChannelController.getClosedGroups();
-  
+
   // Since there might be other closed channels from previous tests,
   // we'll verify our two channels exist in the results rather than exact count
   const hasChannel1 = closedGroups.some(ch => ch.name === 'Z Closed Channel');
   const hasChannel2 = closedGroups.some(ch => ch.name === 'A Closed Channel');
-  
+
   expect(hasChannel1).toBe(true);
   expect(hasChannel2).toBe(true);
-  
+
   // Verify sorting works (A channel should come before Z channel)
   const channel1Index = closedGroups.findIndex(ch => ch.name === 'Z Closed Channel');
   const channel2Index = closedGroups.findIndex(ch => ch.name === 'A Closed Channel');
   expect(channel2Index).toBeLessThan(channel1Index);
-  
+
   // Verify open channel is not included
   const hasOpenChannel = closedGroups.some(ch => ch.name === 'Open Channel');
   expect(hasOpenChannel).toBe(false);
-  
+
   // Clean up test data
   await ChannelController.delete(closedChannel1.name);
   await ChannelController.delete(closedChannel2.name);
@@ -500,7 +503,7 @@ it('can get closed groups sorted by name', async () => {
     // Verify the socket broadcasts the event with unchanged data
     expect(socket.broadcast.emit).toHaveBeenCalledWith('group-member-added', testData);
     expect(socket.broadcast.emit).toHaveBeenCalledTimes(1);
-    
+
     // Verify the data passed to broadcast.emit is the same as our test data
     const broadcastArgs = socket.broadcast.emit.mock.calls[0];
     expect(broadcastArgs[0]).toBe('group-member-added');
@@ -510,30 +513,30 @@ it('can get closed groups sorted by name', async () => {
   it('can add a user to an existing channel', async () => {
     // Ensure the channel exists before updating
     expect(channel).toBeDefined();
-  
+
     // Add userC to the channel
     const updatedChannel = await ChannelController.updateChannel({
       _id: channel._id,
       name: channel.name,
       userIds: [...channel.users.map((u) => u._id), userC._id], // Add userC
     });
-  
+
     // Ensure the channel has the correct number of users
     expect(updatedChannel.users.length).toBe(3);
     expect(updatedChannel.users.some((u) => u._id.equals(userC._id))).toBe(true);
   });
-  
+
   it('can remove a user from an existing channel', async () => {
     // Ensure the channel exists before updating
     expect(channel).toBeDefined();
-  
+
     // Remove userB from the channel
     const updatedChannel = await ChannelController.updateChannel({
       _id: channel._id,
       name: channel.name,
       userIds: channel.users.filter((u) => !u._id.equals(userB._id)).map((u) => u._id), // Remove userB
     });
-  
+
     // Ensure the channel has the correct number of users
     expect(updatedChannel.users.length).toBe(1);
     expect(updatedChannel.users.some((u) => u._id.equals(userB._id))).toBe(false);
