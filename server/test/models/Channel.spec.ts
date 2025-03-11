@@ -1,27 +1,21 @@
-import Channel, { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
+import Channel from '../../src/models/Channel'
 import * as TestDatabase from '../utils/TestDatabase'
+import SystemGroupConfigs from "../../src/utils/SystemDefinedGroups";
 
 describe('Channel model', () => {
   beforeAll(TestDatabase.connect)
 
-  it('will create the public channel since it does not exist', async () => {
-    // prove that there is no channel
-    expect(await Channel.find().exec()).toEqual([])
-
-    const publicChannel = await Channel.getPublicChannel()
+  it('will get all system defined groups', async () => {
     const channels = await Channel.find().exec()
-
-    expect(channels.length).toBe(1)
-    expect(channels[0].id).toBe(publicChannel.id)
-    expect(publicChannel.name).toBe(PUBLIC_CHANNEL_NAME)
+    expect(channels.length).toBe(SystemGroupConfigs.length)
+    for (let i = 0; i < channels.length; i++) {
+      expect(channels[i].name).toBe(SystemGroupConfigs[i].name)
+      expect(channels[i].description).toBe(SystemGroupConfigs[i].description)
+    }
   })
 
   it('will return the existing public channel', async () => {
     const channels = await Channel.find().exec()
-
-    // prove that there is already a public channel
-    expect(channels.length).toBe(8)
-
     const publicChannel = await Channel.getPublicChannel()
 
     // prove that no new channels are created
