@@ -61,53 +61,78 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({ cit
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={2}>
+            {/* Fire Department Section */}
             <Grid item xs={12} md={6}>
               <Card sx={{ mb: 2 }}>
                 <CardHeader title="Fire Department" avatar={<Avatar sx={{ bgcolor: 'error.main' }}><FireExtinguisher /></Avatar>} sx={{ backgroundColor: 'error.light', color: 'error.contrastText' }} />
                 <CardContent>
                   <Typography variant="h6">Personnel</Typography>
-                  <List>
-                    {data.personnel.filter(p => p.role === 'Fire').map(person => (
-                      <ListItem key={person._id}>
-                        <ListItemAvatar><Avatar sx={{ bgcolor: 'error.main' }}><FireExtinguisher /></Avatar></ListItemAvatar>
-                        <ListItemText primary={`${person.name}${person.assignedTruck ? ` ( ${person.assignedTruck} - ${format(new Date(person.assignedVehicleTimestamp!), 'MM.dd h:mma')} )` : ''}`} />
-                      </ListItem>
-                    ))}
-                  </List>
-                  <Typography variant="h6">Trucks</Typography>
-                  <List>
-                    {data.trucks.map(truck => (
-                      <ListItem key={truck._id}>
-                        <FireExtinguisher color="error" sx={{ mr: 1 }} />
-                        <Typography>{truck.name}</Typography>
-                      </ListItem>
-                    ))}
-                  </List>
+                  {data.personnel.filter(p => p.role === 'Fire').length > 0 ? (
+                    <List>
+                      {data.personnel.filter(p => p.role === 'Fire').map(person => (
+                        <ListItem key={person._id}>
+                          <ListItemAvatar><Avatar sx={{ bgcolor: 'error.main' }}><FireExtinguisher /></Avatar></ListItemAvatar>
+                          <ListItemText
+                            primary={`${person.name}${person.assignedTruck ? ` ( ${person.assignedTruck} - ${person.assignedVehicleTimestamp ? format(new Date(person.assignedVehicleTimestamp), 'MM.dd h:mma') : 'N/A'} )` : ''}`}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography color="text.secondary">No fire personnel assigned.</Typography>
+                  )}
+
+                  <Typography variant="h6" sx={{ mt: 2 }}>Trucks</Typography>
+                  {data.trucks.length > 0 ? (
+                    <List>
+                      {data.trucks.map(truck => (
+                        <ListItem key={truck._id}>
+                          <FireExtinguisher color="error" sx={{ mr: 1 }} />
+                          <Typography>{truck.name}</Typography>
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography color="text.secondary">No fire trucks available.</Typography>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
+
+            {/* Police Department Section */}
             <Grid item xs={12} md={6}>
               <Card sx={{ mb: 2 }}>
                 <CardHeader title="Police Department" avatar={<Avatar sx={{ bgcolor: 'primary.main' }}><LocalPolice /></Avatar>} sx={{ backgroundColor: 'primary.light', color: 'primary.contrastText' }} />
                 <CardContent>
                   <Typography variant="h6">Personnel</Typography>
-                  <List>
-                    {data.personnel.filter(p => p.role === 'Police').map(person => (
-                      <ListItem key={person._id}>
-                        <ListItemAvatar><Avatar sx={{ bgcolor: 'primary.main' }}><LocalPolice /></Avatar></ListItemAvatar>
-                        <ListItemText primary={`${person.name}${person.assignedCar ? ` ( ${person.assignedCar} - ${format(new Date(person.assignedVehicleTimestamp!), 'MM.dd h:mma')} )` : ''}`} />
-                      </ListItem>
-                    ))}
-                  </List>
-                  <Typography variant="h6">Cars</Typography>
-                  <List>
-                    {data.cars.map(car => (
-                      <ListItem key={car._id}>
-                        <DirectionsCar color="primary" sx={{ mr: 1 }} />
-                        <Typography>{car.name}</Typography>
-                      </ListItem>
-                    ))}
-                  </List>
+                  {data.personnel.filter(p => p.role === 'Police').length > 0 ? (
+                    <List>
+                      {data.personnel.filter(p => p.role === 'Police').map(person => (
+                        <ListItem key={person._id}>
+                          <ListItemAvatar><Avatar sx={{ bgcolor: 'primary.main' }}><LocalPolice /></Avatar></ListItemAvatar>
+                          <ListItemText
+                            primary={`${person.name}${person.assignedCar ? ` ( ${person.assignedCar} - ${person.assignedVehicleTimestamp ? format(new Date(person.assignedVehicleTimestamp), 'MM.dd h:mma') : 'N/A'} )` : ''}`}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography color="text.secondary">No police personnel assigned.</Typography>
+                  )}
+
+                  <Typography variant="h6" sx={{ mt: 2 }}>Cars</Typography>
+                  {data.cars.length > 0 ? (
+                    <List>
+                      {data.cars.map(car => (
+                        <ListItem key={car._id}>
+                          <DirectionsCar color="primary" sx={{ mr: 1 }} />
+                          <Typography>{car.name}</Typography>
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography color="text.secondary">No police cars available.</Typography>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
