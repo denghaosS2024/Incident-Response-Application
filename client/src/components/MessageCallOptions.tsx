@@ -8,11 +8,13 @@ import request from '../utils/request'
 interface MessageCallOptionsProps {
   channelId: string
   currentUserId: string
+  onError: (message: string) => void 
 }
 
 const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   channelId,
   currentUserId,
+  onError,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false)
@@ -63,10 +65,11 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
       if (phoneNumber) {
         window.location.href = `tel:${phoneNumber}`;
       } else {
-        alert('Failed to retrieve phone number.');
+        onError("The user you are calling hasn't set up their profile with a phone number.");
       }
       dispatch(addMessage(response.message));
     } catch (error) {
+      onError("The user you are calling hasn't set up their profile. Phone calls are not available.");
       console.error('Failed to make phone call:', error)
     }
     handleMenuClose();

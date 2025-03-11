@@ -1,5 +1,5 @@
 import { Grid, Box } from '@mui/material';
-import React from 'react';
+import React, { useState } from 'react';
 import MessageInput from '../MessageInput';
 import MessageList from '../MessageList';
 import MessageCallOptions from '../MessageCallOptions';
@@ -8,6 +8,7 @@ import VoiceRecorder from '../VoiceRecorder';
 import MessageAlertOptions from '../MessageAlertOptions';
 import IMessage from '@/models/Message';
 import styles from '../../styles/ChatBox.module.css';
+import AlertSnackbar from '../common/AlertSnackbar'
 
 interface ChatBoxProps {
     channelId: string
@@ -26,6 +27,21 @@ const ChatBox: React.FC<ChatBoxProps> = ({
     isLoading,
     onSendMessage
 }) => {
+    // State for the snackbar
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+
+    // Function to handle errors from MessageCallOptions
+    const handleCallError = (message: string) => {
+        setSnackbarMessage(message);
+        setOpenSnackbar(true);
+    };
+
+    // Function to close the snackbar
+    const handleSnackbarClose = () => {
+        setOpenSnackbar(false);
+    };
+
     return (
         <Grid className={styles.root} container direction="column">
             <Grid className={styles.list} item>
@@ -42,6 +58,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
                         <MessageCallOptions
                             channelId={channelId}
                             currentUserId={currentUserId}
+                            onError={handleCallError}
                         />
                         <VoiceRecorder 
                             channelId={channelId}
@@ -61,6 +78,13 @@ const ChatBox: React.FC<ChatBoxProps> = ({
                     </Box>
                 </Box>
             </Grid>
+
+            <AlertSnackbar
+                open={openSnackbar}
+                onClose={() => setOpenSnackbar(false)}
+                message={snackbarMessage}
+                severity={'error'}
+            />
         </Grid>
     )
 }

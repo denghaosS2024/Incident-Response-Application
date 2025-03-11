@@ -15,7 +15,11 @@ import { updateIncident } from '../../features/incidentSlice';
 import IIncident from '../../models/Incident';
 import { RootState } from '../../utils/types';
 
-const Reach911Step1 = () => {
+interface Reach911Step1Props {
+    autoPopulateData?: boolean;
+  }
+
+const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData }) => {
     const dispatch = useDispatch<AppDispatch>();
     const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident)
     const address = incident.address
@@ -112,7 +116,7 @@ const Reach911Step1 = () => {
                         padding: 0,
                     }}
                     >
-                        <Map showMarker={true} disableGeolocation={true}/>
+                        <Map autoPopulateData showMarker={true} disableGeolocation={true}/>
                     </div>
                 </div>
             </Box>
