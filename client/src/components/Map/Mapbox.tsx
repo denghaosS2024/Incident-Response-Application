@@ -27,6 +27,7 @@ import MapLoading from './MapLoading'
 interface MapboxProps {
   showMarker?: boolean
   disableGeolocation?: boolean // New prop to disable geolocation
+  autoPopulateData?: boolean
 }
 
 // Define interface for AQI data
@@ -41,6 +42,7 @@ interface AQIData {
 const Mapbox: React.FC<MapboxProps> = ({
   showMarker = true,
   disableGeolocation = false,
+  autoPopulateData
 }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -1146,12 +1148,14 @@ const Mapbox: React.FC<MapboxProps> = ({
       const data = await response.json()
       if (data.features && data.features.length > 0) {
         const address = data.features[0].place_name
-        dispatch(
-          updateIncident({
-            ...incident,
-            address: address,
-          }),
-        )
+        if (!autoPopulateData) {
+          dispatch(
+            updateIncident({
+              ...incident,
+              address: address,
+            }),
+          )
+        }
       }
     } catch (error) {
       console.error('Error fetching address:', error)
