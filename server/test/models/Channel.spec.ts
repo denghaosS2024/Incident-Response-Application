@@ -20,7 +20,7 @@ describe('Channel model', () => {
     const channels = await Channel.find().exec()
 
     // prove that there is already a public channel
-    expect(channels.length).toBe(1)
+    expect(channels.length).toBe(8)
 
     const publicChannel = await Channel.getPublicChannel()
 

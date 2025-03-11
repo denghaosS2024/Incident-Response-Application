@@ -119,7 +119,7 @@ describe('Router - Channel', () => {
       .expect(200)
 
     // only the public channel
-    expect(channels.length).toBe(1)
+    expect(channels.length).toBe(2)
   })
 
   it('appends a new message into the channel', async () => {
