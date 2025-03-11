@@ -1,5 +1,5 @@
-import * as TestDatabase from '../utils/TestDatabase'
 import Channel, { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
+import * as TestDatabase from '../utils/TestDatabase'
 
 describe('Channel model', () => {
   beforeAll(TestDatabase.connect)
