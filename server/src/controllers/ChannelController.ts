@@ -79,10 +79,10 @@ class ChannelController {
       }).exec()
     } else {
       exists = await Channel.findOne({
-        //users,
+        users,
         name: channel.name,
         //description: channel.description || '',
-        //owner: owner,
+        owner: owner,
         //closed: channel.closed || false,
       }).exec()
     }
@@ -95,6 +95,10 @@ class ChannelController {
     } else {
       // Create a new channel if it doesn't exist
       console.log('Creating new channel...')
+      exists = await Channel.findOne({name: channel.name}).exec()
+      if(exists){
+        throw new Error('Channel should have unique name.')
+      }
       const newChannel = await new Channel({
         name: channel.name,
         users,
