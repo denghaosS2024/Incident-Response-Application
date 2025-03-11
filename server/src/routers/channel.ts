@@ -412,7 +412,8 @@ export default Router()
   .get('/groups/:userId', async (request, response) => {
     const userId = new Types.ObjectId(request.params.userId)
     try {
-      const groups = await ChannelController.getUserGroups(userId)
+      let groups = await ChannelController.getUserGroups(userId)
+      groups = groups.filter(group => group.name !== "PrivateContact")
       response.status(200).json(groups)
     } catch (e) {
       const error = e as Error
