@@ -17,7 +17,7 @@ class ProfileController {
      * Create or update profile by userId
      * If profile already exists, update it. Otherwise, create a new profile
      */
-    upsertProfile = async (userId: Types.ObjectId, profileData: IProfile) => {
+    upsertProfile = async (userId: Types.ObjectId, profileData: Partial<IProfile>) => {
         const profile = await Profile.findOneAndUpdate(
             { userId }, 
             { $set: profileData }, 
