@@ -1,11 +1,11 @@
 import request from 'supertest'
 
-import app from '../../src/app'
-import * as TestDatabase from '../utils/TestDatabase'
-import { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
-import UserController from '../../src/controllers/UserController'
 import { Types } from 'mongoose'
+import app from '../../src/app'
+import UserController from '../../src/controllers/UserController'
+import { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
 import Profile from '../../src/models/Profile'
+import * as TestDatabase from '../utils/TestDatabase'
 
 jest.mock('@google-cloud/storage', () => {
   const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
@@ -356,6 +356,48 @@ describe('Router - Channel', () => {
     expect(result.phoneNumber).toBe('0987654321')
   })
 
+  it('updates a channel to add a user', async () => {
+    // Ensure the channel exists before updating
+    expect(channelId).toBeDefined();
+  
+    // Send a PUT request to update the channel by adding userC
+    const { body: updatedChannel } = await request(app)
+      .put('/api/channels')
+      .send({
+        _id: channelId, // Existing channel ID
+        name: 'Test Channel 1', // Keep the name unchanged
+        users: [userA, userB, userC], // Add userC
+      })
+      .expect(200);
+  
+    // Verify the response
+    expect(updatedChannel).toBeDefined();
+    expect(updatedChannel._id).toBe(channelId);
+    expect(updatedChannel.users.length).toBe(3); // UserC should be added
+    expect(updatedChannel.users.some((u) => u._id === userC)).toBe(true);
+  });
 
+  it('updates a channel to remove a user', async () => {
+    // Ensure the channel exists before updating
+    expect(channelId).toBeDefined();
+  
+    // Send a PUT request to update the channel by removing userB
+    const { body: updatedChannel } = await request(app)
+      .put('/api/channels')
+      .send({
+        _id: channelId, // Existing channel ID
+        name: 'Test Channel 1', // Keep the name unchanged
+        users: [userA], // Remove userB by only keeping userA
+      })
+      .expect(200);
+  
+    // Verify the response
+    expect(updatedChannel).toBeDefined();
+    expect(updatedChannel._id).toBe(channelId);
+    expect(updatedChannel.users.length).toBe(1); // Only 1 user should remain
+    expect(updatedChannel.users.some((u) => u._id === userB)).toBe(false);
+  });
+  
+  
   afterAll(TestDatabase.close)
 })
