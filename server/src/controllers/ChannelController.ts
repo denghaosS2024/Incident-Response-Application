@@ -79,10 +79,10 @@ class ChannelController {
       }).exec()
     } else {
       exists = await Channel.findOne({
-        users,
+        //users,
         name: channel.name,
         //description: channel.description || '',
-        owner: owner,
+        //owner: owner,
         //closed: channel.closed || false,
       }).exec()
     }
