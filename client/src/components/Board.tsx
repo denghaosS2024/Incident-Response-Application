@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { AppDispatch } from "@/app/store";
+import IChannel from "@/models/Channel";
+import IUser from '@/models/User';
+import { RootState } from "@/utils/types";
+import { useEffect, useState } from "react";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import Column from "./Column";
 import { useDispatch, useSelector } from "react-redux";
 import { loadContacts } from "../features/contactSlice";
-import { AppDispatch } from "@/app/store";
-import { RootState } from "@/utils/types";
-import IUser from '@/models/User'
-import IChannel from "@/models/Channel";
-import request from '../utils/request'
+import request from '../utils/request';
+import SocketClient from '../utils/Socket';
+import Column from "./Column";
+
 
 export default function Board({
     setUsers,
@@ -62,6 +64,32 @@ export default function Board({
           .catch((error) => console.error("Error fetching groups:", error));
     }, []);
 
+    const [forceUpdate, setForceUpdate] = useState(0);
+
+    const fetchGroups = () => {
+        request('/api/channels', { method: 'GET' })
+            .then((data) => {
+                console.log("Fetched groups:", data);
+                setGroups([...data]);
+                setForceUpdate(prev => prev + 1); // Trigger UI refresh
+            })
+            .catch((error) => console.error("Error fetching groups:", error));
+    };
+    
+
+    useEffect(() => {
+        const socket = SocketClient
+
+        socket.on("updateGroups", () => {
+            fetchGroups();
+        });
+    
+        return () => {
+            socket.off("updateGroups");
+        };
+    }, []);
+    
+    
     const handleDragEnd = (result: DropResult) => {
         const { destination, source, draggableId } = result;
         if (!destination || source.droppableId === destination.droppableId) return;
@@ -123,12 +151,8 @@ export default function Board({
         }
     };
 
-
-
-
-
     return (
-        <DragDropContext onDragEnd={handleDragEnd}>
+         <DragDropContext onDragEnd={handleDragEnd} key={forceUpdate}>
             <div
                 style={{
                     display: "flex",
