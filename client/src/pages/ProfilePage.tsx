@@ -1,6 +1,8 @@
-import { IEmergencyContact } from "@/models/Profile";
-import { Button, Grid, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
+
+import { IEmergencyContact } from "@/models/Profile";
+import Autocomplete from "@mui/lab/Autocomplete";
+import { Button, FormControlLabel, Grid, Radio, RadioGroup, TextField, Typography } from "@mui/material";
 import AlertSnackbar from "../components/common/AlertSnackbar";
 import { getMapboxToken } from "../components/Map/Mapbox";
 import EmergencyContactField from "../components/Profile/EmergencyContactField";
@@ -26,10 +28,8 @@ export default function ProfilePage() {
     drugs: "",
     allergies: "",
   });
-
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
-
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "warning" | "info">("info");
@@ -48,9 +48,26 @@ export default function ProfilePage() {
   const handleMedicalInfoChange = (field: string, value: string) => {
     setMedicalInfo((prev) => ({ ...prev, [field]: value }));
   };
-
   const handleEmergencyContactChange = (newContacts: IEmergencyContact[]) => {
     setEmergencyContacts(newContacts);
+  };
+  const handleAddressInputChange = async (event: React.SyntheticEvent<Element, Event>, value: string) => {
+    if (value.length < 3) return;
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?` +
+        `access_token=${mapboxToken}&autocomplete=true&limit=5&country=us&proximity=-98.5795,39.8283`
+      );
+      const data = await response.json();
+
+      if (data.features) {
+        const places = data.features.map((feature: any) => feature.place_name);
+        setAddressOptions(places);
+      }
+    } catch (error) {
+      console.error("Error fetching address suggestions:", error);
+    }
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,34 +82,38 @@ export default function ProfilePage() {
     if (value.length < 7) {
       setPhoneError("Phone number is too short.");
       return false;
-    }
-    if (value.length > 15) {
+  }
+  if (value.length > 15) {
       setPhoneError("Phone number is too long.");
       return false;
-    }
-    if (!value.startsWith("+")) {
+  }
+  if (!value.startsWith("+")) {
       setPhoneError("Include country code (e.g., +1 for US).");
       return false;
-    }
-    if (!phoneRegex.test(value)) {
+  }
+  if (!phoneRegex.test(value)) {
       setPhoneError("Only numbers are allowed (no spaces or symbols).");
       return false;
-    }
-
-    setPhoneError("");
-    return true;
+  }
+  
+  setPhoneError("");
+  return true;
   };
 
   const isFormValid = () => {
     return (
       emailRegex.test(email) &&
       phoneRegex.test(phone)
+      // emergencyContacts.every(contact => 
+      //   contact.name.trim() !== "" &&
+      //   emailRegex.test(contact.email) &&
+      //   phoneRegex.test(contact.phone)
+      // )
     );
   };
 
   const handleSave = async () => {
     if (!currentUserId) return;
-    
     if (!isFormValid()) {
       setSnackbarMessage("Please check the email/phone format.");
       setSnackbarSeverity("error");
@@ -127,6 +148,7 @@ export default function ProfilePage() {
       setSnackbarOpen(true);
     }
   };
+
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -167,34 +189,66 @@ export default function ProfilePage() {
     fetchProfileData();
   }, [currentUserId]);
 
+
+
+
   return (
     <div style={{ padding: "2rem", maxWidth: "600px", margin: "auto" }}>
       <h1> Personal Information</h1>
       <ProfileField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
 
       <Grid container spacing={2} alignItems="center">
-        <Grid item xs={3}>
-          <Typography variant="body1">Date of Birth:</Typography>
-        </Grid>
-        <Grid item xs={8} >
-          <input 
-            type="date" 
-            id="birthday" 
-            name="birthday" 
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            style={{
-              width: "100%", 
-              padding: "8px",
-              fontSize: "16px",
-              backgroundColor: "#f0f0f0", 
-              border: "1px solid #ccc",
-              borderRadius: "4px", 
-              outline: "none", 
-            }}
-          />
-        </Grid>
+      <Grid item xs={3}>
+        <Typography variant="body1">Date of Birth:</Typography>
       </Grid>
+      <Grid item xs={8} >
+        <input 
+          type="date" 
+          id="birthday" 
+          name="birthday" 
+          value={dob}
+          onChange={(e) => setDob(e.target.value)}
+          style={{
+            width: "100%", 
+            padding: "8px",
+            fontSize: "16px",
+            backgroundColor: "#f0f0f0", 
+            border: "1px solid #ccc",
+            borderRadius: "4px", 
+            outline: "none", 
+          }}
+        />
+      </Grid>
+    </Grid>
+
+    <Grid container spacing={2} alignItems="center" style={{ marginTop: "8px" }}>
+      <Grid item xs={2}>
+        <Typography variant="body1">Sex:</Typography>
+      </Grid>
+      <Grid item xs={10}>
+        <RadioGroup row value={sex} onChange={handleSexChange} style={{ display: "flex", gap: "4px" }}>
+          <FormControlLabel value="Female" control={<Radio size="small" />} label="Female" sx={{ marginRight: "4px" }} />
+          <FormControlLabel value="Male" control={<Radio size="small" />} label="Male" sx={{ marginRight: "4px" }} />
+          <FormControlLabel value="Other" control={<Radio size="small" />} label="Other" />
+        </RadioGroup>
+      </Grid>
+    </Grid>
+
+    <Autocomplete
+        freeSolo
+        options={addressOptions}
+        onInputChange={handleAddressInputChange}
+        onChange={(event, newValue) => setAddress(newValue || "")}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Address"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+          />
+        )}
+      />
 
       <ProfileField label="Phone" value={phone} onChange={handlePhoneChange} error={!!phoneError} helperText={phoneError} />
       <ProfileField label="Email" value={email} onChange={handleEmailChange} error={!!emailError} helperText={emailError} />
@@ -213,13 +267,7 @@ export default function ProfilePage() {
           </Button>
         </Grid>
       </Grid>
-
-      <AlertSnackbar 
-        open={snackbarOpen}
-        message={snackbarMessage}
-        severity={snackbarSeverity}
-        onClose={handleSnackbarClose}
-      />
+      <AlertSnackbar open={snackbarOpen} message={snackbarMessage} severity={snackbarSeverity} onClose={handleSnackbarClose} autoHideDuration={1350}/>
     </div>
   );
 }
