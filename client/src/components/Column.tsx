@@ -88,7 +88,8 @@ const Column: React.FC<ColumnProps> = ({ title, subtitle, tasks, id, onGroupClic
             .then((data) => {
               // remove groups without current user
               data = data.filter((channel: IChannel) => {
-                return channel.users.some(user => user._id === owner);
+                return channel.users.some(user => user._id === owner && 
+                    channel.name !== "PrivateContact");
               })
               setGroups(data);
             })

@@ -41,12 +41,12 @@ const Contacts: React.FC = () => {
     // Create a new channel with the clicked user
     const channel = (await request('/api/channels', {
       method: 'POST',
-      body: JSON.stringify({ name: username, users: [userId, localStorage.getItem('uid')] }),
+      body: JSON.stringify({ name: "PrivateContact", users: [userId, localStorage.getItem('uid')] }),
     })) as IChannel
 
     const userOnOtherEnd = channel.users.filter((u) => u._id === userId)
-    // const name = userOnOtherEnd[0].username
-    const name = username
+    const name = userOnOtherEnd[0].username
+    //const name = username
 
     navigate(`/messages/${channel._id}?name=${name}`)
   }

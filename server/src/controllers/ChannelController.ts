@@ -72,13 +72,20 @@ class ChannelController {
     }
 
     // Check if the channel already exists
-    const exists = await Channel.findOne({
-      users,
-      name: channel.name,
-      description: channel.description || '',
-      owner: owner,
-      closed: channel.closed || false,
-    }).exec()
+    let exists : IChannel | null
+    if (channel.name === "PrivateContact") {
+      exists = await Channel.findOne({
+        users,
+      }).exec()
+    } else {
+      exists = await Channel.findOne({
+        users,
+        name: channel.name,
+        //description: channel.description || '',
+        owner: owner,
+        //closed: channel.closed || false,
+      }).exec()
+    }
 
     if (exists) {
       console.log('Channel already exists',

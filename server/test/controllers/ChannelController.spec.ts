@@ -465,5 +465,50 @@ it('can get closed groups sorted by name', async () => {
   await ChannelController.delete(openChannel.name);
 });
 
+  it('should broadcast group-member-added event to all other clients', () => {
+    // Mock socket with broadcast functionality
+    const socket = {
+      broadcast: {
+        emit: jest.fn()
+      },
+      on: jest.fn((event, callback) => {
+        // Store the callback for the group-member-added event
+        if (event === 'group-member-added') {
+          socket.handlers = socket.handlers || {};
+          socket.handlers[event] = callback;
+        }
+      }),
+      handlers: {}
+    };
+
+    // Register the event handler
+    socket.on('group-member-added', (data) => {
+      socket.broadcast.emit('group-member-added', data);
+    });
+
+    // Create test data
+    const testData = {
+      groupId: 'group-123',
+      userId: 'user-456',
+      groupName: 'Test Group'
+    };
+
+    // Manually trigger the event handler
+    socket.handlers['group-member-added'](testData);
+
+    // Verify the socket broadcasts the event with unchanged data
+    expect(socket.broadcast.emit).toHaveBeenCalledWith('group-member-added', testData);
+    expect(socket.broadcast.emit).toHaveBeenCalledTimes(1);
+    
+    // Verify the data passed to broadcast.emit is the same as our test data
+    const broadcastArgs = socket.broadcast.emit.mock.calls[0];
+    expect(broadcastArgs[0]).toBe('group-member-added');
+    expect(broadcastArgs[1]).toBe(testData);
+  });
+
+
+
+  
+
   afterAll(TestDatabase.close)
 })

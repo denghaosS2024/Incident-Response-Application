@@ -43,7 +43,7 @@ export interface IChannleModel extends Model<IChannel> {
  * Channel Schema
  */
 const ChannelSchema = new Schema({
-  name: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
   description: { type: String },
   owner: {
     type: Schema.Types.ObjectId,
