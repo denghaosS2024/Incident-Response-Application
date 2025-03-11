@@ -6,6 +6,7 @@ import UserController from '../../src/controllers/UserController'
 import { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
 import Profile from '../../src/models/Profile'
 import * as TestDatabase from '../utils/TestDatabase'
+import ROLES from "../../src/utils/Roles"
 
 jest.mock('@google-cloud/storage', () => {
   const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
@@ -29,13 +30,13 @@ describe('Router - Channel', () => {
     TestDatabase.connect()
 
     userA = (
-      await UserController.register('Channel-User-A', 'password-A')
+      await UserController.register('Channel-User-A', 'password-A', ROLES.CITIZEN)
     )._id.toHexString()
     userB = (
-      await UserController.register('Channel-User-B', 'password-B')
+      await UserController.register('Channel-User-B', 'password-B', ROLES.CITIZEN)
     )._id.toHexString()
     userC = (
-      await UserController.register('Channel-User-C', 'password-C')
+      await UserController.register('Channel-User-C', 'password-C', ROLES.CITIZEN)
     )._id.toHexString()
   })
 
@@ -118,7 +119,7 @@ describe('Router - Channel', () => {
       .get(`/api/channels?user=${userC}`)
       .expect(200)
 
-    // only the public channel
+    // Public and Citizens as userC is ROLES.CITIZEN
     expect(channels.length).toBe(2)
   })
 
@@ -192,7 +193,7 @@ describe('Router - Channel', () => {
         users: [userA],
       })
       .expect(200)
-    
+
     // 2) Call the new GET route
     const { body } = await request(app)
       .get(`/api/channels/${_id}/video-upload-url`)
@@ -217,7 +218,7 @@ describe('Router - Channel', () => {
         users: [userA],
       })
       .expect(200)
-    
+
     // GET image url
     const { body } = await request(app)
       .get(`/api/channels/${_id}/image-upload-url`)
@@ -256,7 +257,7 @@ describe('Router - Channel', () => {
         users: [userA],
       })
       .expect(200)
-    
+
     // Post necessary file information to get url
     const { body } = await request(app)
       .post(`/api/channels/${_id}/file-upload-url`)
@@ -286,7 +287,7 @@ describe('Router - Channel', () => {
         users: [userA],
       })
       .expect(200)
-    
+
     // Post necessary file information to get url
     const { body } = await request(app)
       .post(`/api/channels/${_id}/voice-upload-url`)
@@ -307,11 +308,11 @@ describe('Router - Channel', () => {
 
   it('should initiate a phone call between two users and return the phone number', async () => {
 
-    
+
     // Create profiles for both users with phone numbers
     await Profile.findOneAndUpdate(
       { userId: new Types.ObjectId(userA) },
-      { 
+      {
         $set: {
           userId: new Types.ObjectId(userA),
           name: "Channel-User-A",
@@ -330,7 +331,7 @@ describe('Router - Channel', () => {
       },
       { new: true, upsert: true }
     );
-    
+
     await Profile.findOneAndUpdate(
       { userId: new Types.ObjectId(userB) },
       {
@@ -352,7 +353,7 @@ describe('Router - Channel', () => {
       },
       { new: true, upsert: true }
     );
-  
+
     // Ensure we have an existing channel between userA and userB
     const {
       body: { _id: testChannelId },
@@ -363,20 +364,20 @@ describe('Router - Channel', () => {
         users: [userA, userB],
       })
       .expect(200)
-  
+
     // Make the phone call request
     const { body: result } = await request(app)
       .post(`/api/channels/${testChannelId}/phone-call`)
       .set('x-application-uid', userA) // Sender is userA
       .expect(200)
-  
+
     // Validate the response contains the expected phone call message
     expect(result.message.content).toBe(
       `Phone call started now between Channel-User-A and Channel-User-B.`
     )
     expect(result.message.sender.username).toBe('Channel-User-A')
     expect(result.message.channelId).toBe(testChannelId)
-  
+
     // Validate the phone number returned is of userB (the receiver)
     expect(result.phoneNumber).toBe('0987654321')
   })
@@ -384,7 +385,7 @@ describe('Router - Channel', () => {
   it('updates a channel to add a user', async () => {
     // Ensure the channel exists before updating
     expect(channelId).toBeDefined();
-  
+
     // Send a PUT request to update the channel by adding userC
     const { body: updatedChannel } = await request(app)
       .put('/api/channels')
@@ -394,7 +395,7 @@ describe('Router - Channel', () => {
         users: [userA, userB, userC], // Add userC
       })
       .expect(200);
-  
+
     // Verify the response
     expect(updatedChannel).toBeDefined();
     expect(updatedChannel._id).toBe(channelId);
@@ -405,7 +406,7 @@ describe('Router - Channel', () => {
   it('updates a channel to remove a user', async () => {
     // Ensure the channel exists before updating
     expect(channelId).toBeDefined();
-  
+
     // Send a PUT request to update the channel by removing userB
     const { body: updatedChannel } = await request(app)
       .put('/api/channels')
@@ -415,14 +416,14 @@ describe('Router - Channel', () => {
         users: [userA], // Remove userB by only keeping userA
       })
       .expect(200);
-  
+
     // Verify the response
     expect(updatedChannel).toBeDefined();
     expect(updatedChannel._id).toBe(channelId);
     expect(updatedChannel.users.length).toBe(1); // Only 1 user should remain
     expect(updatedChannel.users.some((u) => u._id === userB)).toBe(false);
   });
-  
-  
+
+
   afterAll(TestDatabase.close)
 })
