@@ -207,6 +207,31 @@ describe('Router - Channel', () => {
     expect(body.fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
   })
 
+  it('returns a valid video upload URL for an existing channel', async () => {
+    const {
+      body: { _id },
+    } = await request(app)
+      .post('/api/channels')
+      .send({
+        name: 'Test Channel For Upload Image',
+        users: [userA],
+      })
+      .expect(200)
+    
+    // GET image url
+    const { body } = await request(app)
+      .get(`/api/channels/${_id}/image-upload-url`)
+      .expect(200)
+
+    // Return uploadUrl and fileUrl
+    expect(body).toHaveProperty('uploadUrl')
+    expect(body).toHaveProperty('fileUrl')
+    // We mocked the getSignedUrl to return "mock-signed-url"
+    expect(body.uploadUrl).toBe('mock-signed-url')
+    // And fileUrl typically starts with https://storage.googleapis.com/
+    expect(body.fileUrl).toMatch(/^https:\/\/storage\.googleapis\.com\//)
+  })
+
   it('returns 404 if the channel does not exist', async () => {
     // Provide a random ID that won’t match any existing channel
     const fakeId = '64f0413bd1fd8a7a6e8a1f21'
