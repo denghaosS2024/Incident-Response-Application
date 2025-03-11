@@ -22,10 +22,10 @@ const GroupDirectory: React.FC = () => {
                 return []
             });
      
-            const activeGroups = myGroups.filter((group: IChannel) => !group.closed);
+            const activeGroups = myGroups.filter((group: IChannel) => !group.closed).sort((a: IChannel, b: IChannel) => a.name.localeCompare(b.name));
             setMyParticipatingChannels(activeGroups);
             
-            const ownedGroups = myGroups.filter((group: IChannel) => group.owner?._id === owner && !group.closed);
+            const ownedGroups = myGroups.filter((group: IChannel) => group.owner?._id === owner && !group.closed).sort((a: IChannel, b: IChannel) => a.name.localeCompare(b.name));
             setMyManagingChannels(ownedGroups);
 
             const allClosedGroups = await request(`/api/channels/groups/closed`, {
@@ -34,7 +34,7 @@ const GroupDirectory: React.FC = () => {
                 console.error("Error fetching closed groups:", error);
                 return [];
             });
-            setMyclosedChannels(allClosedGroups);
+            setMyclosedChannels(allClosedGroups.sort((a: IChannel, b: IChannel) => a.name.localeCompare(b.name)));
         } catch (error) {
             console.error("Error fetching groups:", error);
         }
