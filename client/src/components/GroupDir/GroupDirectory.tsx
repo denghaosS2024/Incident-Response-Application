@@ -45,7 +45,7 @@ const GroupDirectory: React.FC = () => {
         socket.connect();
         socket.on("updateGroups", fetchGroups)
         return () => {
-            socket.off("updataGroups")
+            socket.off("updateGroups")
         }
 
     }, []);
