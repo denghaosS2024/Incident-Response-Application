@@ -265,6 +265,7 @@ export default Router()
       response.send(channel);
     } catch (e) {
       const error = e as Error
+      console.log(error)
       response.status(400).send({ message: error.message })
     }
   })

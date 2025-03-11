@@ -95,8 +95,9 @@ class ChannelController {
     } else {
       // Create a new channel if it doesn't exist
       console.log('Creating new channel...')
+      console.log(channel.name)
       exists = await Channel.findOne({name: channel.name}).exec()
-      if(exists){
+      if(exists && channel.name != "PrivateContact"){
         throw new Error('Channel should have unique name.')
       }
       const newChannel = await new Channel({
