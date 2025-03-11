@@ -466,7 +466,6 @@ it('can get closed groups sorted by name', async () => {
   await ChannelController.delete(openChannel.name);
 });
 
-<<<<<<< Updated upstream
   it('should broadcast group-member-added event to all other clients', () => {
     // Mock socket with broadcast functionality
     const socket = {
@@ -508,45 +507,37 @@ it('can get closed groups sorted by name', async () => {
     expect(broadcastArgs[1]).toBe(testData);
   });
 
-
-
+  it('can add a user to an existing channel', async () => {
+    // Ensure the channel exists before updating
+    expect(channel).toBeDefined();
   
-
-=======
-
-it('can add a user to an existing channel', async () => {
-  // Ensure the channel exists before updating
-  expect(channel).toBeDefined();
-
-  // Add userC to the channel
-  const updatedChannel = await ChannelController.updateChannel({
-    _id: channel._id,
-    name: channel.name,
-    userIds: [...channel.users.map((u) => u._id), userC._id], // Add userC
+    // Add userC to the channel
+    const updatedChannel = await ChannelController.updateChannel({
+      _id: channel._id,
+      name: channel.name,
+      userIds: [...channel.users.map((u) => u._id), userC._id], // Add userC
+    });
+  
+    // Ensure the channel has the correct number of users
+    expect(updatedChannel.users.length).toBe(3);
+    expect(updatedChannel.users.some((u) => u._id.equals(userC._id))).toBe(true);
+  });
+  
+  it('can remove a user from an existing channel', async () => {
+    // Ensure the channel exists before updating
+    expect(channel).toBeDefined();
+  
+    // Remove userB from the channel
+    const updatedChannel = await ChannelController.updateChannel({
+      _id: channel._id,
+      name: channel.name,
+      userIds: channel.users.filter((u) => !u._id.equals(userB._id)).map((u) => u._id), // Remove userB
+    });
+  
+    // Ensure the channel has the correct number of users
+    expect(updatedChannel.users.length).toBe(1);
+    expect(updatedChannel.users.some((u) => u._id.equals(userB._id))).toBe(false);
   });
 
-  // Ensure the channel has the correct number of users
-  expect(updatedChannel.users.length).toBe(3);
-  expect(updatedChannel.users.some((u) => u._id.equals(userC._id))).toBe(true);
-});
-
-it('can remove a user from an existing channel', async () => {
-  // Ensure the channel exists before updating
-  expect(channel).toBeDefined();
-
-  // Remove userB from the channel
-  const updatedChannel = await ChannelController.updateChannel({
-    _id: channel._id,
-    name: channel.name,
-    userIds: channel.users.filter((u) => !u._id.equals(userB._id)).map((u) => u._id), // Remove userB
-  });
-
-  // Ensure the channel has the correct number of users
-  expect(updatedChannel.users.length).toBe(1);
-  expect(updatedChannel.users.some((u) => u._id.equals(userB._id))).toBe(false);
-});
-
-
->>>>>>> Stashed changes
   afterAll(TestDatabase.close)
 })
