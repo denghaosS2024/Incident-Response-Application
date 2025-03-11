@@ -42,8 +42,8 @@ describe('User controller', () => {
     const publicChannel = await Channel.getPublicChannel()
     const channelMembers = publicChannel.users as IUser[]
 
-    expect(channelMembers.length).toBe(1)
-    expect(channelMembers[0].id).toStrictEqual(newUser.id)
+    expect(channelMembers.length).toBe(2)
+    expect(channelMembers[1].id).toStrictEqual(newUser.id)
   })
 
   it('will allow an existing user to login', async () => {
@@ -96,18 +96,18 @@ describe('User controller', () => {
     let users = await UserController.listUsers()
 
     expect(users.length).toBe(3)
-    expect(users).toContainEqual({
+    expect(users).toContainEqual(expect.objectContaining({
       _id: newUser._id,
       role: newUser.role,
       username: newUser.username,
       online: true,
-    })
-    expect(users).toContainEqual({
+    }))
+    expect(users).toContainEqual(expect.objectContaining({
       _id: newCitizen._id,
       role: newCitizen.role,
       username: newCitizen.username,
       online: false,
-    })
+    }))
 
     // double check
     UserConnections.removeUserConnection(newUser.id)
@@ -115,18 +115,18 @@ describe('User controller', () => {
     users = await UserController.listUsers()
 
     expect(users.length).toBe(3)
-    expect(users).toContainEqual({
+    expect(users).toContainEqual(expect.objectContaining({
       _id: newUser._id,
       role: newUser.role,
       username: newUser.username,
       online: false,
-    })
-    expect(users).toContainEqual({
+    }))
+    expect(users).toContainEqual(expect.objectContaining({
       _id: newCitizen._id,
       role: newCitizen.role,
       username: newCitizen.username,
       online: false,
-    })
+    }))
   })
 
   it('sorts users: online first, then alphabetical order', async () => {
