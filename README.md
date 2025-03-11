@@ -1,4 +1,5 @@
 [![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=18111852)
+
 # SEM Incident Response App
 
 ## 🚀 Quick Start with Docker
@@ -46,10 +47,12 @@ Check for package.json in `/client` and `/server` to check additional libraries 
 ## Docker Development Guide
 
 ### Prerequisites
+
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 2. Ensure Docker Desktop is running before starting the application
 
 ### Docker Commands for Daily Use
+
 - `docker compose up --build` - Build and start all containers (use for first time setup or after changes)
 - `docker compose up` - Start existing containers without rebuilding (daily development)
 - `docker compose down` - Stop and remove all containers
@@ -57,6 +60,7 @@ Check for package.json in `/client` and `/server` to check additional libraries 
 - `docker compose ps` - List running containers and their status
 
 ### Docker Tips
+
 - Use Docker Desktop to:
   - Monitor container status
   - View container logs
@@ -68,17 +72,21 @@ Check for package.json in `/client` and `/server` to check additional libraries 
 ### When to Use Each Command
 
 #### First Time & Major Changes
+
 ```bash
 # Full rebuild and start
 docker compose up --build
 ```
+
 Use this when:
+
 - Setting up the project for the first time
 - After changing Dockerfiles or docker-compose.yml
 - After adding/updating dependencies
 - If you're experiencing strange issues
 
 #### Daily Development
+
 ```bash
 # Start existing containers
 docker compose up
@@ -86,11 +94,14 @@ docker compose up
 # Start in detached mode (run in background)
 docker compose up -d
 ```
+
 Use this when:
+
 - Starting your work day
 - No configuration changes were made
 
 #### Stopping Work
+
 ```bash
 # Stop and remove containers
 docker compose down
@@ -100,6 +111,7 @@ docker compose down -v
 ```
 
 #### Viewing Logs
+
 ```bash
 # Watch all logs
 docker compose logs -f
@@ -110,17 +122,21 @@ docker compose logs -f server
 ```
 
 ### Troubleshooting Docker
+
 1. If containers won't start:
+
    ```bash
    docker compose down
    docker compose up --build
    ```
 
 2. If changes aren't reflecting:
+
    - Ensure your files are being properly mounted
    - Check logs: `docker compose logs -f`
 
 3. For dependency issues:
+
    ```bash
    # Stop and remove everything
    docker compose down
@@ -198,22 +214,23 @@ docker compose logs -f server
 cd client
 npm run storybook
 ```
+
 Storybook will be running on `http://localhost:6006`
 
 6. **Run Tests**:
-  - All test suits
-    ```
-    npm run test
-    ```
-  - Individual test suit, eg `channel.spec.ts`
-    ```
-    npx jest server/test/routers/channel.spec.ts
-    ```
+
+- All test suits
+  ```
+  npm run test
+  ```
+- Individual test suit, eg `channel.spec.ts`
+  ```
+  npx jest server/test/routers/channel.spec.ts
+  ```
 
 ## Notes:
 
 - When installing packages for `client` or `server` without Docker, make sure you are using correct node version and in the correct directory
-
 
 ## Attribution
 

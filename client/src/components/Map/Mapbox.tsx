@@ -42,7 +42,7 @@ interface AQIData {
 const Mapbox: React.FC<MapboxProps> = ({
   showMarker = true,
   disableGeolocation = false,
-  autoPopulateData
+  autoPopulateData,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -525,7 +525,9 @@ const Mapbox: React.FC<MapboxProps> = ({
       const data = await response.json()
       const { air_quality } = data
 
-      const response1 = await fetch(`/api/airQuality/MeasurementQuality?latitude=${lat}&longitude=${lng}`)
+      const response1 = await fetch(
+        `/api/airQuality/MeasurementQuality?latitude=${lat}&longitude=${lng}`,
+      )
       const data1 = await response1.json()
       const { measurement_quality } = data1
 
@@ -1367,6 +1369,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     const popup = new mapboxgl.Popup({
       offset: -25,
       closeButton: false,
+      closeOnClick: false,
       className: 'transparent-popup',
     })
       .setLngLat(centerCoord)
@@ -1583,14 +1586,16 @@ const Mapbox: React.FC<MapboxProps> = ({
     // Create new AQI data object
     const aqiLevel = aqiToLevel(newAqi)
     const aqiColor = aqiLevelToColor(aqiLevel)
-    const response = await fetch(`/api/airQuality/MeasurementQuality?latitude=${latitude}&longitude=${longitude}`)
+    const response = await fetch(
+      `/api/airQuality/MeasurementQuality?latitude=${latitude}&longitude=${longitude}`,
+    )
     const data = await response.json()
     const aqiData = {
       value: newAqi,
       level: aqiLevel,
       color: aqiColor,
       timeStamp: timestamp,
-      measurementQuality: data.measurement_quality
+      measurementQuality: data.measurement_quality,
     } as AQIData
 
     // Update marker appearance
@@ -1691,7 +1696,13 @@ const Mapbox: React.FC<MapboxProps> = ({
     socket.connect()
     // Add air quality update listener
     socket.on('airQualityUpdate', (data) => {
-      updateAirQualityMarker(data.locationId, data.air_quality, data.timestamp, data.latitude, data.longitude)
+      updateAirQualityMarker(
+        data.locationId,
+        data.air_quality,
+        data.timestamp,
+        data.latitude,
+        data.longitude,
+      )
     })
     eventEmitter.on('area_util', () => {
       if (areaRef.current) {
