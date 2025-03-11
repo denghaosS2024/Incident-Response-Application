@@ -8,11 +8,11 @@ import Channel, {
   PUBLIC_CHANNEL_NAME,
 } from '../../src/models/Channel'
 import Message from '../../src/models/Message'
+import Profile, { IProfile } from '../../src/models/Profile'
 import { IUser } from '../../src/models/User'
+import { ROLES } from '../../src/utils/Roles'
 import UserConnections from '../../src/utils/UserConnections'
 import * as TestDatabase from '../utils/TestDatabase'
-import { ROLES } from '../../src/utils/Roles'
-import Profile, { IProfile } from '../../src/models/Profile'
 
 jest.mock('@google-cloud/storage', () => {
   const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
@@ -186,6 +186,7 @@ describe('Channel controller', () => {
     const rawOwner = JSON.stringify(newChannel.owner)
     const owner = JSON.parse(rawOwner)
     expect(owner._id).toBe(userB._id.toString())
+    await ChannelController.delete('Test Channel 3');
   })
 
   it('can delete a channel by name', async () => {
@@ -386,6 +387,83 @@ describe('Channel controller', () => {
     expect(socketB.emit).toHaveBeenCalledWith('new-message', result.message);
   })
 
+it('can get closed groups', async () => {
+  const closedChannel1 = await ChannelController.create({
+    name: 'A Closed Channel',
+    userIds: [userA._id],
+    closed: true
+  });
+  
+  // Create an open channel to verify it's not included in results
+  const openChannel = await ChannelController.create({
+    name: 'Open Channel',
+    userIds: [userA._id],
+    closed: false
+  });
+  
+  // Call the method being tested
+  const closedGroups = await ChannelController.getClosedGroups();
+  
+  // Verify closed channel is included
+  const hasClosedChannel = closedGroups.some(ch => ch.name === 'A Closed Channel');
+  expect(hasClosedChannel).toBe(true);
+  
+  // Verify open channel is not included
+  const hasOpenChannel = closedGroups.some(ch => ch.name === 'Open Channel');
+  expect(hasOpenChannel).toBe(false);
+  
+  // Clean up test data
+  await ChannelController.delete(closedChannel1.name);
+  await ChannelController.delete(openChannel.name);
+});
+
+it('can get closed groups sorted by name', async () => {
+  // Create first closed channel with Z name (to test sorting)
+  const closedChannel1 = await ChannelController.create({
+    name: 'Z Closed Channel',
+    userIds: [userA._id],
+    closed: true
+  });
+  
+  // Create second closed channel with A name (should appear first in sorted results)
+  const closedChannel2 = await ChannelController.create({
+    name: 'A Closed Channel',
+    userIds: [userA._id],
+    closed: true
+  });
+  
+  // Create an open channel to verify it's not included in results
+  const openChannel = await ChannelController.create({
+    name: 'Open Channel',
+    userIds: [userA._id],
+    closed: false
+  });
+  
+  // Call the method being tested
+  const closedGroups = await ChannelController.getClosedGroups();
+  
+  // Since there might be other closed channels from previous tests,
+  // we'll verify our two channels exist in the results rather than exact count
+  const hasChannel1 = closedGroups.some(ch => ch.name === 'Z Closed Channel');
+  const hasChannel2 = closedGroups.some(ch => ch.name === 'A Closed Channel');
+  
+  expect(hasChannel1).toBe(true);
+  expect(hasChannel2).toBe(true);
+  
+  // Verify sorting works (A channel should come before Z channel)
+  const channel1Index = closedGroups.findIndex(ch => ch.name === 'Z Closed Channel');
+  const channel2Index = closedGroups.findIndex(ch => ch.name === 'A Closed Channel');
+  expect(channel2Index).toBeLessThan(channel1Index);
+  
+  // Verify open channel is not included
+  const hasOpenChannel = closedGroups.some(ch => ch.name === 'Open Channel');
+  expect(hasOpenChannel).toBe(false);
+  
+  // Clean up test data
+  await ChannelController.delete(closedChannel1.name);
+  await ChannelController.delete(closedChannel2.name);
+  await ChannelController.delete(openChannel.name);
+});
+
   afterAll(TestDatabase.close)
 })
-
