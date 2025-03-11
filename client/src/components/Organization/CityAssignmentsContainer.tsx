@@ -28,6 +28,7 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import React, { useEffect, useState } from 'react';
+import request from '../../utils/request';
 
 interface Vehicle {
   _id: string;
@@ -98,17 +99,13 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
    */
   const releaseVehicle = async (vehicleName: string) => {
     try {
-      const response = await fetch('/api/personnel/vehicles/release', {
+      await request('/api/personnel/vehicles/release', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           personnelName: currentUser,
           vehicleName,
         }),
       });
-      if (!response.ok) {
-        throw new Error('Failed to release vehicle');
-      }
       // After releasing, refresh
       refreshData();
       setSelectedVehicle(null);
@@ -122,17 +119,13 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
    */
   const assignVehicle = async (vehicleName: string) => {
     try {
-      const response = await fetch('/api/personnel/vehicles/', {
+      await request('/api/personnel/vehicles/', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           personnelName: currentUser,
           vehicleName,
         }),
       });
-      if (!response.ok) {
-        throw new Error('Failed to update vehicle assignment');
-      }
       // After assigning, refresh
       refreshData();
       setSelectedVehicle(vehicleName);
@@ -208,7 +201,8 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                               </Avatar>
                             </ListItemAvatar>
                             <ListItemText
-                              primary={`${person.name}${person.assignedTruck
+                              primary={
+                                `${person.name}${person.assignedTruck
                                   ? ` ( ${person.assignedTruck} - ${person.assignedVehicleTimestamp
                                     ? format(
                                       new Date(person.assignedVehicleTimestamp),
@@ -217,7 +211,8 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                                     : 'N/A'
                                   } )`
                                   : ''
-                                }`}
+                                }`
+                              }
                             />
                           </ListItem>
                         ))}
@@ -290,7 +285,8 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                               </Avatar>
                             </ListItemAvatar>
                             <ListItemText
-                              primary={`${person.name}${person.assignedCar
+                              primary={
+                                `${person.name}${person.assignedCar
                                   ? ` ( ${person.assignedCar} - ${person.assignedVehicleTimestamp
                                     ? format(
                                       new Date(person.assignedVehicleTimestamp),
@@ -299,7 +295,8 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                                     : 'N/A'
                                   } )`
                                   : ''
-                                }`}
+                                }`
+                              }
                             />
                           </ListItem>
                         ))}
