@@ -35,7 +35,7 @@ describe('Channel controller', () => {
   let profileB: IProfile
 
   beforeAll(async () => {
-    TestDatabase.connect()
+    await TestDatabase.connect()
 
     userA = await UserController.register('Channel-User-A', 'password-A', ROLES.CITIZEN)
     userB = await UserController.register('Channel-User-B', 'password-B', ROLES.CITIZEN)

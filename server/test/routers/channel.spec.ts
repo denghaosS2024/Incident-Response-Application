@@ -27,7 +27,7 @@ describe('Router - Channel', () => {
   let messageId: string
 
   beforeAll(async () => {
-    TestDatabase.connect()
+    await TestDatabase.connect()
 
     userA = (
       await UserController.register('Channel-User-A', 'password-A', ROLES.CITIZEN)
