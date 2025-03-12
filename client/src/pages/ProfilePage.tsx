@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
-
 import { IEmergencyContact } from "@/models/Profile";
 import Autocomplete from "@mui/lab/Autocomplete";
-import { Button, FormControlLabel, Grid, Radio, RadioGroup, TextField, Typography } from "@mui/material";
-import AlertSnackbar from "../components/common/AlertSnackbar";
+import { FormControlLabel, Grid, Radio, RadioGroup, TextField, Typography } from "@mui/material";
+import { debounce } from "lodash";
+import React, { useCallback, useEffect, useState } from "react";
 import { getMapboxToken } from "../components/Map/Mapbox";
 import EmergencyContactField from "../components/Profile/EmergencyContactField";
 import MedicalInfoField from "../components/Profile/MedicalInfoField";
@@ -70,6 +69,16 @@ export default function ProfilePage() {
     }
   };
 
+  // Store addresses for future use
+  const handleAddressSelect = (newAddress: string) => {
+    setAddress(newAddress);
+    const savedAddresses = JSON.parse(localStorage.getItem("savedAddresses") || "[]");
+    if (!savedAddresses.includes(newAddress)) {
+      savedAddresses.push(newAddress);
+      localStorage.setItem("savedAddresses", JSON.stringify(savedAddresses));
+    }
+  };
+
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
@@ -100,54 +109,21 @@ export default function ProfilePage() {
   return true;
   };
 
-  const isFormValid = () => {
-    return (
-      emailRegex.test(email) &&
-      phoneRegex.test(phone)
-      // emergencyContacts.every(contact => 
-      //   contact.name.trim() !== "" &&
-      //   emailRegex.test(contact.email) &&
-      //   phoneRegex.test(contact.phone)
-      // )
-    );
-  };
 
-  const handleSave = async () => {
-    if (!currentUserId) return;
-    if (!isFormValid()) {
-      setSnackbarMessage("Please check the email/phone format.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
-      return;
+  const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = new Date(e.target.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize time to prevent time-zone issues
+
+    if (selectedDate > today) {
+        setSnackbarMessage("Date of Birth cannot be in the future.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
     }
-      
-    const profileData = {
-      name,
-      dob,
-      sex,
-      address,
-      phone,
-      email,
-      emergencyContacts,
-      medicalInfo,
-    };
-  
-    try {
-      await request(`/api/profiles/${currentUserId}`, {
-        method: "PUT",
-        body: JSON.stringify(profileData),
-      });
-      
-      setSnackbarMessage("Profile saved successfully!");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error("Failed to save profile:", error);
-      setSnackbarMessage("Failed to save profile. Please try again.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
-    }
-  };
+
+    setDob(e.target.value);
+};
 
 
   useEffect(() => {
@@ -165,8 +141,6 @@ export default function ProfilePage() {
           emergencyContacts?: IEmergencyContact[]; 
           medicalInfo?: { condition?: string; drugs?: string; allergies?: string } 
         }>(`/api/profiles/${currentUserId}`);
-
-        console.log("fetchProfileDataing: profileData: ", profileData);
   
         setName(profileData.name || "");
         setDob(profileData.dob ? new Date(profileData.dob).toISOString().split("T")[0] : "");
@@ -180,6 +154,8 @@ export default function ProfilePage() {
           drugs: profileData.medicalInfo?.drugs ?? "",
           allergies: profileData.medicalInfo?.allergies ?? ""
         });
+
+        console.log("Fetched profile data:", profileData);
   
       } catch (error) {
         console.error("Failed to fetch profile data:", error);
@@ -188,6 +164,47 @@ export default function ProfilePage() {
   
     fetchProfileData();
   }, [currentUserId]);
+
+
+    // 🛠 Debounced handleSave to prevent excessive API calls
+    const debouncedHandleSave = useCallback(
+      debounce(async () => {
+        if (!currentUserId) return;
+  
+        const sanitizedEmail = emailRegex.test(email) ? email : "";
+        const sanitizedPhone = phoneRegex.test(phone) ? phone : "";
+        const sanitizedEmergencyContacts = emergencyContacts.map((contact) => ({
+          ...contact,
+          phone: phoneRegex.test(contact.phone) ? contact.phone : "",
+          email: emailRegex.test(contact.email) ? contact.email : "",
+        }));
+  
+        const profileData = { name, dob, sex, address, phone: sanitizedPhone, email: sanitizedEmail, emergencyContacts: sanitizedEmergencyContacts, medicalInfo };
+  
+        // console.log("🚀 Debounced saving profileData:", profileData);
+  
+        try {
+          await request(`/api/profiles/${currentUserId}`, { method: "PUT", body: JSON.stringify(profileData) });
+          // console.log("✅ Profile saved successfully!");
+        } catch (error) {
+          console.error("❌ Failed to save profile:", error);
+        }
+      }, 500),
+      [currentUserId, name, dob, sex, address, phone, email, emergencyContacts, medicalInfo]
+    );
+  
+
+    useEffect(() => {
+      debouncedHandleSave();
+    }, [name, dob, sex, address, phone, email, emergencyContacts, medicalInfo]);
+  
+    // 🚀 if user leave the page, save immediately
+    useEffect(() => {
+      return () => {
+        // console.log("🚀 Leaving Profile Page. Flushing save...");
+        debouncedHandleSave.flush();
+      };
+    }, []);
 
 
 
@@ -207,7 +224,7 @@ export default function ProfilePage() {
           id="birthday" 
           name="birthday" 
           value={dob}
-          onChange={(e) => setDob(e.target.value)}
+          onChange={handleDobChange}
           style={{
             width: "100%", 
             padding: "8px",
@@ -235,20 +252,22 @@ export default function ProfilePage() {
     </Grid>
 
     <Autocomplete
-        freeSolo
-        options={addressOptions}
-        onInputChange={handleAddressInputChange}
-        onChange={(event, newValue) => setAddress(newValue || "")}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Address"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-          />
-        )}
-      />
+      freeSolo
+      options={addressOptions}
+      onInputChange={handleAddressInputChange}
+      onChange={(event, newValue) => handleAddressSelect(newValue || "")}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="Address"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+      )}
+    />
 
       <ProfileField label="Phone" value={phone} onChange={handlePhoneChange} error={!!phoneError} helperText={phoneError} />
       <ProfileField label="Email" value={email} onChange={handleEmailChange} error={!!emailError} helperText={emailError} />
@@ -259,15 +278,7 @@ export default function ProfilePage() {
         contactList={emergencyContacts} 
         setContactList={handleEmergencyContactChange} 
       />
-
-      <Grid container spacing={2} style={{ marginTop: "16px" }}>
-        <Grid item xs={6}>
-          <Button variant="contained" color="primary" fullWidth onClick={handleSave}>
-            Save
-          </Button>
-        </Grid>
-      </Grid>
-      <AlertSnackbar open={snackbarOpen} message={snackbarMessage} severity={snackbarSeverity} onClose={handleSnackbarClose} autoHideDuration={1350}/>
+      {/* <AlertSnackbar open={snackbarOpen} message={snackbarMessage} severity={snackbarSeverity} onClose={handleSnackbarClose} autoHideDuration={1350}/> */}
     </div>
   );
 }

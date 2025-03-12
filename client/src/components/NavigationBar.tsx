@@ -165,7 +165,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
             role === 'Administrator') && (
             <MenuItem onClick={navigateToOrganization}>Organization</MenuItem>
           )}
-          <MenuItem onClick={profile}>profile</MenuItem>
+          <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
         </Menu>
       </Toolbar>

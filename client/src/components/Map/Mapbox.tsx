@@ -1798,7 +1798,7 @@ export default Mapbox
 export const getMapboxToken = () => {
   if (!mapboxgl.accessToken) {
     mapboxgl.accessToken =
-      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY2x1cW9qb3djMDBkNjJoa2NoMG1hbGsyNyJ9.nqTwoyg7Xf4v__5IwYzNDA'
+    'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
   }
   return mapboxgl.accessToken
 }

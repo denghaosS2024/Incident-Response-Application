@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { TextField, Grid, Card, CardContent, IconButton } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
 import { IEmergencyContact } from "@/models/Profile";
+import CloseIcon from "@mui/icons-material/Close";
+import { Card, CardContent, Grid, IconButton, TextField } from "@mui/material";
+import { useState } from "react";
 
 interface EmergencyContactFieldProps {  
     contactList: IEmergencyContact[];   
@@ -59,12 +59,36 @@ const ContactInfo = ({ index, phone, name, email, onDelete, onChange }: ContactI
     const [phoneError, setPhoneError] = useState("");
     const [emailError, setEmailError] = useState("");
     const [nameError, setNameError] = useState("");
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
 
-    const validatePhone = (phone: string) => {
-        if (!/^\d{10,15}$/.test(phone)) {
-            setPhoneError("Invalid phone number (10-15 digits required)");
+
+    // const validatePhone = (phone: string) => {
+    //     if (phone.length < 7) {
+    //       setPhoneError("Phone number is too short.");
+    //       return false;
+    //   }
+    //   if (phone.length > 15) {
+    //       setPhoneError("Phone number is too long.");
+    //       return false;
+    //   }
+    //   if (!phone.startsWith("+")) {
+    //       setPhoneError("Include country code (e.g., +1 for US).");
+    //       return false;
+    //   }
+    //   if (!phoneRegex.test(phone)) {
+    //       setPhoneError("Only numbers are allowed (no spaces or symbols).");
+    //       return false;
+    //   }
+      
+    //   setPhoneError("");
+    //   return true;
+    // };
+    
+    const validatePhone = (email: string) => {
+        if (!phoneRegex.test(email)) {
+            setEmailError("Invalid email format");
         } else {
-            setPhoneError("");
+            setEmailError("");
         }
     };
 
