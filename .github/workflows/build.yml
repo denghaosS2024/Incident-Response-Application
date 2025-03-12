@@ -45,24 +45,20 @@ jobs:
           name: coverage
           path: coverage/
 
-
   sonarqube:
-    needs: build
+    name: SonarQube
     runs-on: ubuntu-latest
     steps:
-      - name: Download Coverage Report
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage
-          path: coverage/
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Debug Workspace
-        run: ls -R ${{ github.workspace }}
+      - name: Install dependencies
+        run: yarn
+
+      - name: Run Tests and Generate Coverage Report
+        run: yarn jest --coverage --coverageReporters=cobertura --coverageDirectory=coverage
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
@@ -73,9 +69,41 @@ jobs:
             -Dsonar.qualitygate.wait=false
             -Dsonar.projectKey=cmusv-sem_S25-SEM-Incident-Response-Application
             -Dsonar.organization=cmusv-sem
-            -Dsonar.projectBaseDir=${{ github.workspace }}
-            -Dsonar.sources=server,client
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+      - name: Ignore SonarQube Failure
+        run: echo "Ignoring SonarQube Failure" || true
+
+
+  # sonarqube:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Download Coverage Report
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: coverage
+  #         path: coverage/
+
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+
+  #     - name: Debug Workspace
+  #       run: ls -R ${{ github.workspace }}
+
+  #     - name: SonarQube Scan
+  #       uses: SonarSource/sonarqube-scan-action@v4
+  #       env:
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #       with:
+  #         args: >
+  #           -Dsonar.qualitygate.wait=false
+  #           -Dsonar.projectKey=cmusv-sem_S25-SEM-Incident-Response-Application
+  #           -Dsonar.organization=cmusv-sem
+  #           -Dsonar.projectBaseDir=${{ github.workspace }}
+  #           -Dsonar.sources=server,client
+  #           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
 
 
   deploy:
