@@ -39,6 +39,8 @@ interface AQIData {
   measurementQuality?: string
 }
 
+const url_prefix = process.env.REACT_APP_BACKEND_URL;
+
 const Mapbox: React.FC<MapboxProps> = ({
   showMarker = true,
   disableGeolocation = false,
@@ -520,13 +522,13 @@ const Mapbox: React.FC<MapboxProps> = ({
     try {
       // Get AQI data from the backend
       const response = await fetch(
-        `/api/airQuality?latitude=${lat}&longitude=${lng}`,
+        `${url_prefix}/api/airQuality?latitude=${lat}&longitude=${lng}`,
       )
       const data = await response.json()
       const { air_quality } = data
 
       const response1 = await fetch(
-        `/api/airQuality/MeasurementQuality?latitude=${lat}&longitude=${lng}`,
+        `${url_prefix}/api/airQuality/MeasurementQuality?latitude=${lat}&longitude=${lng}`,
       )
       const data1 = await response1.json()
       const { measurement_quality } = data1
@@ -759,7 +761,7 @@ const Mapbox: React.FC<MapboxProps> = ({
             finalAqiData = await fetchAQIData(finalLngLat.lng, finalLngLat.lat)
             // Store the AQI data of the marker to the backend
             // const { locationId, latitude, longitude, air_quality, timeStamp } = req.body;
-            await fetch('/api/airQuality', {
+            await fetch(`${url_prefix}/api/airQuality`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -938,7 +940,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       case 'airQuality':
         marker = airQualityRef.current.get(id)
         airQualityRef.current.delete(id)
-        await fetch(`/api/airQuality/`, {
+        await fetch(`${url_prefix}/api/airQuality/`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ locationId: id }),
@@ -1587,7 +1589,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     const aqiLevel = aqiToLevel(newAqi)
     const aqiColor = aqiLevelToColor(aqiLevel)
     const response = await fetch(
-      `/api/airQuality/MeasurementQuality?latitude=${latitude}&longitude=${longitude}`,
+      `${url_prefix}/api/airQuality/MeasurementQuality?latitude=${latitude}&longitude=${longitude}`,
     )
     const data = await response.json()
     const aqiData = {
