@@ -57,7 +57,6 @@ const NavigationBar: FunctionComponent<IProps> = ({
     '/incidents': 'Incidents',
     '/organization': 'Organization',
     '/map': 'Map',
-    '/groups/new': 'Group',
   }
 
   const roleTitles: Record<string, string> = {
@@ -87,6 +86,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   if (pathname.startsWith('/map')) {
     title = 'Map'
+  }
+
+  if (pathname.startsWith('/groups')) {
+    title = 'Groups'
   }
 
   if (pathname === '/') {
