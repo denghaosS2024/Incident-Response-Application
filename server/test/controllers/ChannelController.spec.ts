@@ -11,9 +11,9 @@ import Message from '../../src/models/Message'
 import Profile, { IProfile } from '../../src/models/Profile'
 import { IUser } from '../../src/models/User'
 import { ROLES } from '../../src/utils/Roles'
+import SystemGroupConfigs from "../../src/utils/SystemDefinedGroups"
 import UserConnections from '../../src/utils/UserConnections'
 import * as TestDatabase from '../utils/TestDatabase'
-import SystemGroupConfigs from "../../src/utils/SystemDefinedGroups"
 
 jest.mock('@google-cloud/storage', () => {
   const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])

@@ -1,8 +1,8 @@
-import React, { useState } from "react";
 import { Meta, Story } from "@storybook/react";
-import Board from "../components/Board";
+import { useState } from "react";
 import { Provider } from "react-redux";
 import { store } from "../app/store";
+import Board from "../components/Board";
 
 export default {
   title: "Groups/BoardDnd",
@@ -34,7 +34,6 @@ const Template: Story = (args) => {
   return (
     <Board
       setUsers={setUsers}
-      triggerResetBoard={triggerResetBoard}
       canDrag={true}
       {...args}
     />

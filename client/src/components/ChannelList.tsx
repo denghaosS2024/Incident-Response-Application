@@ -1,21 +1,17 @@
 import { NavigateNext as Arrow } from '@mui/icons-material'
+import EditIcon from '@mui/icons-material/Edit'
 import {
-  colors,
+  Box,
   Divider,
   IconButton,
   Link,
   List,
-  ListItem,
-  ListItemSecondaryAction,
   ListItemText,
-  SxProps,
-  Box,
   Typography
 } from '@mui/material'
 import { Fragment, FunctionComponent } from 'react'
 import IChannel from '../models/Channel'
 import Loading from './common/Loading'
-import EditIcon from '@mui/icons-material/Edit'
 
 export interface IChannelProps {
   channel: IChannel,

@@ -13,12 +13,12 @@ import Column from "./Column";
 
 export default function Board({
     setUsers,
-    triggerResetBoard,
     canDrag,
+    currentGroup, // <-- Add currentGroup prop
 }: {
     setUsers: (users: string[]) => void;
-    triggerResetBoard: number;
     canDrag: boolean;
+    currentGroup?: IChannel | null; // <-- Make currentGroup optional
 }) {
     const [done, setDone] = useState<IUser[]>([]);
     const dispatch = useDispatch<AppDispatch>();
@@ -43,15 +43,6 @@ export default function Board({
     }, [done, setUsers]);
 
     useEffect(() => {
-        console.log('[Board] triggerResetBoard - reset contact list')
-        if (contacts.length > 0) {
-            const filteredContacts = contacts.filter(contact => contact._id !== owner); // Remove the logged-in user
-            setTodo(filteredContacts);
-            setDone([]);
-        }
-    }, [triggerResetBoard]);
-
-    useEffect(() => {
         // Fetch groups from API
         request('/api/channels', {
           method: 'GET',
@@ -62,6 +53,20 @@ export default function Board({
           .catch((error) => console.error("Error fetching groups:", error));
     }, []);
 
+    // Update the 'done' column with users from currentGroup if it's set
+    useEffect(() => {
+        if (currentGroup) {
+            const groupUsers = currentGroup.users
+                .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
+                .filter(Boolean) as IUser[]; // Filter out undefined values
+
+            // Filter out the logged-in user
+            const filteredGroupUsers = groupUsers.filter(user => user._id !== owner);
+
+            // Set the 'done' column with the group's users
+            setDone(filteredGroupUsers);
+        }
+    }, [currentGroup, contacts, owner]);
     const [forceUpdate, setForceUpdate] = useState(0);
 
     const fetchGroups = () => {
@@ -91,14 +96,21 @@ export default function Board({
     const handleDragEnd = (result: DropResult) => {
         const { destination, source, draggableId } = result;
         if (!destination || source.droppableId === destination.droppableId) return;
-
+    
+        if (draggableId.startsWith('group-')) {
+            // Handle group card drop
+            const groupId = draggableId.slice(6); // Extract group ID from the draggableId
+            handleGroupClick(groupId); // This will handle adding users of the group to the 'done' column
+            return;
+        }
+    
         const task = findItemById(String(draggableId), [...todo, ...done]); // Ensure ID is a string
-
         if (!task) return; // Prevent errors if the task is not found
-
+    
         deletePreviousState(source.droppableId, draggableId);
         setNewState(destination.droppableId, task);
     };
+    
 
 
     function deletePreviousState(sourceDroppableId: string, taskId: string) {
@@ -133,19 +145,23 @@ export default function Board({
             const groupUsers = group.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
                 .filter(Boolean) as IUser[]; // Filter out undefined values
-
+    
             // Create a new filtered array excluding the logged-in user
             const filteredGroupUsers = groupUsers.filter(user => user._id !== owner);
-
-            // Reset: Move all users from 'done' back to 'todo'
-            setTodo(prevTodo => [...prevTodo, ...done]);
-            setDone([]);
-
-            // Move the selected group's users to the 'done' column
+    
+            // Only move users from the selected group to the 'done' column
+            // Update the todo column with users who are not part of the group
             setTodo(prevTodo => prevTodo.filter(user => !filteredGroupUsers.some(groupUser => groupUser._id === user._id)));
-            setDone(filteredGroupUsers);
+    
+            // Only move the selected group's users to the 'done' column without affecting others in 'done'
+            setDone(prevDone => {
+                // Add only users from the group that are not already in 'done'
+                const newDoneUsers = filteredGroupUsers.filter(groupUser => !prevDone.some(doneUser => doneUser._id === groupUser._id));
+                return [...prevDone, ...newDoneUsers];
+            });
         }
     };
+    
 
     return (
          <DragDropContext onDragEnd={handleDragEnd} key={forceUpdate}>
@@ -162,8 +178,8 @@ export default function Board({
                 {error && <p>Error: {error}</p>}
                 {!loading && !error && (
                     <>
-                        <Column title="Drag and Drop Participants" tasks={todo} id="1" groups={groups} onGroupClick={handleGroupClick} canDrag={canDrag} />
-                        <Column title="This Group" subtitle="You" tasks={done} id="2" canDrag={canDrag} />
+                        <Column title="Drag and Drop Participants" tasks={todo} id="1" groups={groups} onGroupClick={handleGroupClick} canDrag={true} />
+                        <Column title="This Group" subtitle="You" tasks={done} id="2" canDrag={true} />
                     </>
                 )}
             </div>

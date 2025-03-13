@@ -1,4 +1,3 @@
-import React, { FunctionComponent, useState, useEffect } from 'react'
 import {
   Box,
   Button,
@@ -8,10 +7,11 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
+import React, { FunctionComponent, useEffect, useState } from 'react'
 import ConfirmationDialog from '../components/common/ConfirmationDialog'
-import Board from "./Board"
 import IChannel from '../models/Channel'
-import {isSystemGroup} from "../utils/SystemDefinedGroups"
+import { isSystemGroup } from "../utils/SystemDefinedGroups"
+import Board from "./Board"
 
 
 interface IFormData {
@@ -41,7 +41,6 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const [description, setDescription] = useState('')
 
   const [nameError, setNameError] = useState<string>('')
-  const [triggerResetBoard, setTriggerResetBoard] = useState(0)  // use a counter to notify child to update (bad approach)
   const [allowEdit, setAllowEdit] = useState(true)  // whether allow current user to edit selected channel (use this state to update UI)
   const [allowDelete, setAllowDelete] = useState(true)
   const [allowRemoveSelf, setAllowRemoveSelf] = useState(false)  // whether allow current user to remove herself from channel (use this state to update UI)
@@ -67,8 +66,6 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
     setAllowEdit((group == null) || isOwnerOfGroup)
     setAllowRemoveSelf((group != null) && !isOwnerOfGroup && !isSysGroup)
     setAllowDelete(isOwnerOfGroup)
-
-    setTriggerResetBoard(triggerResetBoard + 1)  // notify child to reset
   }
 
   useEffect(() => {
@@ -167,7 +164,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
             label="Closed"
           />
         </Box>}
-        <Board setUsers={setUsers} triggerResetBoard={triggerResetBoard} canDrag={allowEdit} />
+        <Board setUsers={setUsers} canDrag={allowEdit} currentGroup={channelProps.currentGroup}/>
         <Box display="flex" justifyContent="center" mt={2}>
           {allowRemoveSelf && <Button
             variant="contained"
