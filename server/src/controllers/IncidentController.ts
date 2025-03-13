@@ -153,10 +153,10 @@ class IncidentController {
      */
     async getAllIncidents(): Promise<IIncident[]> {
         try {
-            return Incident.find().exec();
+            return await Incident.find().exec();
         } catch (error) {
             // MongoDB error
-            throw new Error(`Error getting all incidents: ${error}`);
+            throw new Error(`Database Error: ${error}`);
         }
     }
 

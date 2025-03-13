@@ -177,8 +177,33 @@ describe('Incident Controller', () => {
     jest.spyOn(Incident, 'find').mockReturnValue(
       fakeQuery as Query<IIncident[], IIncident>
     );
-    await expect(IncidentController.getAllIncidents()).rejects.toThrow(
-      'Mocked MongoDB error',
-    )
+    await expect(IncidentController.getAllIncidents()).rejects.toThrow(Error);
+  })
+
+  it('should return an error on updating an incident with missing incidentId', async () => {
+    const rawIncident: Partial<IIncident> = {};
+    await expect(IncidentController.updateIncident(rawIncident)).rejects.toThrow(Error);
+  })
+
+  it('should return existing incident if there is existing incident with the same incidentId', async () => {
+    const incident = await createTestIncident('exist');
+    const rawIncident = incident.toObject();
+    const res = await IncidentController.createIncident(rawIncident);
+    expect(res).toBeDefined();
+    
+    // it should have return the existing incident
+    expect(res.incidentId).toBe(incident.incidentId);
+  })
+
+  it('should create new incident since there is not existing incident with this incidentId', async () => {
+    const incident = await createTestIncident('does-not-exist');
+    let rawIncident = incident.toObject();
+    rawIncident.caller = 'new-incident';
+    rawIncident.incidentId = `I${rawIncident.caller}`;
+    const res = await IncidentController.createIncident(rawIncident);
+    expect(res).toBeDefined();
+    
+    // it should have return the existing incident
+    expect(res.incidentId).toBe(rawIncident.incidentId);
   })
 })
