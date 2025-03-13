@@ -15,11 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   build:
     name: Build & Test
     runs-on: ubuntu-latest
@@ -39,15 +40,15 @@ jobs:
         run: ls -la ${{ github.workspace }}
 
       - name: Install dependencies
-        run: yarn
+        run: npm install
 
       - name: Lint
-        run: yarn lint
+        run: npm run lint
 
       - name: Run Tests and Generate Coverage Report
         run: |
           mkdir -p coverage  # Ensure the directory exists
-          yarn jest --coverage --coverageReporters=lcov --coverageDirectory=coverage
+          jest --coverage --coverageReporters=lcov --coverageDirectory=coverage
           ls -R coverage/
 
       - name: Upload Coverage Report
@@ -90,7 +91,7 @@ jobs:
 
 
   deploy:
-    # needs: sonarqube  # comment out to bypass previous stages
+    needs: build  # comment out to bypass previous stages
     name: Deploy Client & Server
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' # Only deploy on master branch
