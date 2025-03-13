@@ -32,7 +32,7 @@ const GroupListBlock: React.FC<GroupListBlockProps> = ({ headerName, id, groups 
                         <Box sx={{
                         width: '90%',
                         }}>
-                            <Channel channel={group} isSettingButton={id !== "closed"} />
+                            <Channel channel={group} isSettingButton={true} />
                         </Box>
                             </ListItem>
                     ))

@@ -29,6 +29,10 @@ const GroupInformationPage: React.FC = () => {
                 }
             } catch (error) {
                 console.error("Error fetching channel:", error);
+                setErrorMessage("Error fetching channel: " + channelId);
+                setOpenSnackbar(true);
+
+                setCurrentGroup(null);
             } finally {
                 setLoading(false);
             }
@@ -62,24 +66,40 @@ const GroupInformationPage: React.FC = () => {
           ? currentGroup.users.map(user => typeof user === 'object' ? user._id : user)
           : [];
 
-        await request('/api/channels', {
-          method: 'PUT',
-          body: JSON.stringify({
-            _id: groupId,
-            name, description, users, owner, closed
-          }),
-        })
+        try {
+          const updatedChannel = await request('/api/channels', {
+            method: 'PUT',
+            body: JSON.stringify({
+              _id: groupId,
+              name, description, users, owner, closed
+            }),
+          })
+          setCurrentGroup(updatedChannel)
+        } catch (error) {
+          setErrorMessage(`Failed to update group: ${name}`)
+          setOpenSnackbar(true)
+          setCurrentGroup(null)
+          return;
+        }
 
         isUpdate = true;
       } else {
         // Create new channel
-        await request('/api/channels', {
-          method: 'POST',
-          body: JSON.stringify({
-            _id: undefined,
-            name, description, users, owner, closed
-          }),
-        })
+        try {
+          const newChannel = await request('/api/channels', {
+            method: 'POST',
+            body: JSON.stringify({
+              _id: undefined,
+              name, description, users, owner, closed
+            }),
+          })
+          setCurrentGroup(newChannel)
+        } catch (error) {
+          setErrorMessage(`Failed to create new group: ${name}`)
+          setOpenSnackbar(true)
+          setCurrentGroup(null)
+          return;
+        }
       }
 
       if (isUpdate) {
@@ -171,13 +191,13 @@ const GroupInformationPage: React.FC = () => {
 
     return (
       <Container>
+        <h1>{(currentGroup) ? `Group: ${currentGroup.name}` : "New Group"}</h1>
         <div className={style.centeredForm}>
           <AddGroupForm
             createChannel={newGroup}
             deleteChannel={deleteGroup}
             removeCurrentUserFromGroup={removeCurrentUserFromGroup}
-            currentGroup={currentGroup}
-            setCurrentGroup={setCurrentGroup} />
+            currentGroup={currentGroup} />
         </div>
         <AlertSnackbar
           open={openSnackbar}

@@ -4,6 +4,6 @@ export const SystemGroupNames = [
   "Citizens", "Responders", "Dispatch", "Police", "Fire", "Nurses", "Medic", "Public"
 ]
 
-export const isSystemGroup = (channel: IChannel) => {
-  return SystemGroupNames.includes(channel.name)
+export const isSystemGroup = (channel: IChannel | null) => {
+  return (channel != null) && SystemGroupNames.includes(channel.name)
 }

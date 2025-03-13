@@ -13,12 +13,10 @@ import Column from "./Column";
 
 export default function Board({
     setUsers,
-    onGroupClick,
     triggerResetBoard,
     canDrag,
 }: {
     setUsers: (users: string[]) => void;
-    onGroupClick: (group: IChannel) => void;  // handle parent component on click logic
     triggerResetBoard: number;
     canDrag: boolean;
 }) {
@@ -75,7 +73,7 @@ export default function Board({
             })
             .catch((error) => console.error("Error fetching groups:", error));
     };
-    
+
 
     useEffect(() => {
         const socket = SocketClient
@@ -83,13 +81,13 @@ export default function Board({
         socket.on("updateGroups", () => {
             fetchGroups();
         });
-    
+
         return () => {
             socket.off("updateGroups");
         };
     }, []);
-    
-    
+
+
     const handleDragEnd = (result: DropResult) => {
         const { destination, source, draggableId } = result;
         if (!destination || source.droppableId === destination.droppableId) return;
@@ -132,8 +130,6 @@ export default function Board({
     const handleGroupClick = (groupId: string) => {
         const group = groups.find(group => group._id === groupId); // Find the selected group
         if (group) {
-            onGroupClick(group);
-
             const groupUsers = group.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
                 .filter(Boolean) as IUser[]; // Filter out undefined values

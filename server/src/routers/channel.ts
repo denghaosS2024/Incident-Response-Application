@@ -469,9 +469,8 @@ export default Router()
    * @throws {404} If the channel is not found
    */
   .get('/:id', async (request, response) => {
-    const channelId = new Types.ObjectId(request.params.id)
-
     try {
+      const channelId = new Types.ObjectId(request.params.id)  // will throw error for invalid id
       const channel = await ChannelController.getChannel(channelId)
       response.json(channel)
     } catch (e) {

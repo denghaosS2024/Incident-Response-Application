@@ -21,10 +21,10 @@ const GroupDirectory: React.FC = () => {
                 console.error("Error fetching groups:", error);
                 return []
             });
-     
+
             const activeGroups = myGroups.filter((group: IChannel) => !group.closed).sort((a: IChannel, b: IChannel) => a.name.localeCompare(b.name));
             setMyParticipatingChannels(activeGroups);
-            
+
             const ownedGroups = myGroups.filter((group: IChannel) => group.owner?._id === owner && !group.closed).sort((a: IChannel, b: IChannel) => a.name.localeCompare(b.name));
             setMyManagingChannels(ownedGroups);
 
@@ -69,7 +69,7 @@ const GroupDirectory: React.FC = () => {
                 groups={myManagingChannels}
             />
             <GroupListBlock
-                headerName="Group I am participating in"
+                headerName="Groups I am participating in"
                 id="participating"
                 groups={myParticipatingChannels}
             />
