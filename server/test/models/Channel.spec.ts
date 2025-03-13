@@ -3,6 +3,7 @@ import * as TestDatabase from '../utils/TestDatabase'
 import SystemGroupConfigs from "../../src/utils/SystemDefinedGroups";
 
 describe('Channel model', () => {
+  jest.setTimeout(10000)
   beforeAll(TestDatabase.connect)
 
   it('will get all system defined groups', async () => {

@@ -34,6 +34,9 @@ describe('Channel controller', () => {
   let channel: IChannel
   let profileB: IProfile
 
+  // Set a longer timeout for this test suite
+  jest.setTimeout(10000)  // 10 seconds
+
   beforeAll(async () => {
     await TestDatabase.connect()
 

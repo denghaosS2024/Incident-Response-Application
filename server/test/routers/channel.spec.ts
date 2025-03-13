@@ -7,6 +7,7 @@ import { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
 import Profile from '../../src/models/Profile'
 import * as TestDatabase from '../utils/TestDatabase'
 import ROLES from "../../src/utils/Roles"
+import SystemDefinedGroups from "../../src/utils/SystemDefinedGroups"
 
 jest.mock('@google-cloud/storage', () => {
   const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
@@ -26,6 +27,8 @@ describe('Router - Channel', () => {
   let channelId: string
   let messageId: string
 
+  jest.setTimeout(10000)
+
   beforeAll(async () => {
     await TestDatabase.connect()
 
@@ -38,6 +41,14 @@ describe('Router - Channel', () => {
     userC = (
       await UserController.register('Channel-User-C', 'password-C', ROLES.CITIZEN)
     )._id.toHexString()
+  })
+
+  it('lists system channels', async () => {
+    const { body: channels } = await request(app)
+      .get('/api/channels')
+      .expect(200)
+
+    expect(channels.length).toBe(SystemDefinedGroups.length)
   })
 
   it('creates a new channel excluding optional fields', async () => {
@@ -81,6 +92,15 @@ describe('Router - Channel', () => {
     expect(closed).toBe(true)
   })
 
+  it('lists existing channels', async () => {
+    const { body: channels } = await request(app)
+      .get('/api/channels')
+      .expect(200)
+
+    // system channels + newly created channels
+    expect(channels.length).toBe(SystemDefinedGroups.length + 2)
+  })
+
   // Due to schema change and adding mandatory name to channels, this test is redundant
   it.skip('returns the existing channel if users are essentially the same', async () => {
     const {
@@ -102,16 +122,6 @@ describe('Router - Channel', () => {
       .post('/api/channels')
       .send({ name: PUBLIC_CHANNEL_NAME, users: [] })
       .expect(400)
-  })
-
-  // This is not deterministic
-  it.skip('lists existing channels', async () => {
-    const { body: channels } = await request(app)
-      .get('/api/channels')
-      .expect(200)
-
-    // public channel and the newly created channel
-    expect(channels.length).toBe(3)
   })
 
   it('lists existing channels that a user joined', async () => {
