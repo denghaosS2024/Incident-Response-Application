@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import type { AppDispatch } from '@/app/store';
 import {
   Box,
-  Typography,
   CircularProgress,
-  Paper,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
-  Button,
+  Paper,
+  Select,
+  Typography
 } from '@mui/material';
-import request from '../../utils/request';
-import type IIncident from '../../models/Incident';
-import { IncidentPriority } from '../../models/Incident';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { updateIncident } from '../../features/incidentSlice';
-import type { AppDispatch } from '@/app/store';
+import type IIncident from '../../models/Incident';
+import { IncidentPriority } from '../../models/Incident';
+import request from '../../utils/request';
 
 interface Reach911Step5Props {
   incidentId?: string;
@@ -26,8 +25,6 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
   const [error, setError] = useState<string | null>(null);
   const [incidentData, setIncidentData] = useState<IIncident | null>(null);
   const [priority, setPriority] = useState<string>('E');
-  const [commander] = useState<string>('System');
-
   const dispatch = useDispatch<AppDispatch>();
 
   // Two-way mapping between UI and backend values for priority.
@@ -73,13 +70,14 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     fetchIncidentDetails();
   }, [incidentId, dispatch]);
 
-  // Handle submission: convert UI value to backend value, update the incident, and update Redux state
-  const handleSubmit = async () => {
+  // Function to handle priority change and save immediately
+  const handlePriorityChange = async (newPriority: string) => {
+    setPriority(newPriority); // Update UI state immediately
     if (!incidentData) return;
     try {
       setLoading(true);
       setError(null);
-      const convertedPriority = displayToBackend[priority] || IncidentPriority.Immediate;
+      const convertedPriority = displayToBackend[newPriority] || IncidentPriority.Immediate;
       const updatedIncident = {
         incidentId: incidentData.incidentId,
         priority: convertedPriority,
@@ -106,7 +104,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
       }
       
       dispatch(updateIncident({ ...incidentData, priority: convertedPriority, commander: incidentData.commander }));
-      alert("Incident updated successfully!");
+      // alert("Incident updated successfully!");
     } catch (err) {
       console.error("Error updating incident:", err);
       setError("Failed to update incident");
@@ -158,7 +156,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         <Typography variant="subtitle1" sx={{ mb: 1 }}>Incident Priority</Typography>
         <FormControl fullWidth>
           <InputLabel>Priority</InputLabel>
-          <Select value={priority} label="Priority" onChange={(e) => setPriority(e.target.value as string)}>
+          <Select value={priority} label="Priority" onChange={(e) => handlePriorityChange(e.target.value as string)}>
             <MenuItem value="E">E</MenuItem>
             <MenuItem value="1">1</MenuItem>
             <MenuItem value="2">2</MenuItem>
@@ -171,12 +169,6 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         <Typography variant="subtitle1" sx={{ mb: 1 }}>Who is on the Team?</Typography>
         <Typography>Owner: {incidentData.owner}</Typography>
         <Typography>Commander: {incidentData.commander}</Typography>
-      </Box>
-
-      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
-          Submit
-        </Button>
       </Box>
     </Paper>
   );
