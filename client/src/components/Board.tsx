@@ -53,20 +53,23 @@ export default function Board({
           .catch((error) => console.error("Error fetching groups:", error));
     }, []);
 
-    // Update the 'done' column with users from currentGroup if it's set
     useEffect(() => {
         if (currentGroup) {
             const groupUsers = currentGroup.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
                 .filter(Boolean) as IUser[]; // Filter out undefined values
-
+    
             // Filter out the logged-in user
             const filteredGroupUsers = groupUsers.filter(user => user._id !== owner);
-
+    
             // Set the 'done' column with the group's users
             setDone(filteredGroupUsers);
+    
+            // Remove the users from the 'todo' column
+            setTodo(prevTodo => prevTodo.filter(user => !filteredGroupUsers.some(groupUser => groupUser._id === user._id)));
         }
-    }, [currentGroup, contacts, owner]);
+    }, [currentGroup, contacts, owner]); // Re-run when currentGroup or contacts change
+    
     const [forceUpdate, setForceUpdate] = useState(0);
 
     const fetchGroups = () => {
