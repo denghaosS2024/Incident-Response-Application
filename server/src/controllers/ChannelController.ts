@@ -408,6 +408,7 @@ class ChannelController {
 
       return { uploadUrl, fileUrl }
     } catch (error) {
+      console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
     }
   }
@@ -449,6 +450,7 @@ class ChannelController {
 
       return { uploadUrl, fileUrl }
     } catch (error) {
+      console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
     }
   }
@@ -487,6 +489,7 @@ class ChannelController {
       const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`
       return { uploadUrl, fileUrl }
     } catch (error) {
+      console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
     }
   }
@@ -521,6 +524,7 @@ class ChannelController {
       const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`
       return { uploadUrl, fileUrl }
     } catch (error) {
+      console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
     }
   }
