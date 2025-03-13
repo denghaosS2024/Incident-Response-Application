@@ -95,7 +95,8 @@ const GroupInformationPage: React.FC = () => {
           })
           setCurrentGroup(newChannel)
         } catch (error) {
-          setErrorMessage(`Failed to create new group: ${name}`)
+          const err = error as IRequestError;
+          setErrorMessage(`Failed to create new group: ${err.message || 'Unknown error'}`)
           setOpenSnackbar(true)
           setCurrentGroup(null)
           return;

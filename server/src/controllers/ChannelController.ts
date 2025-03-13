@@ -5,7 +5,7 @@ import { FilterQuery, Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from '../models/Channel'
 import User from '../models/User'
-import Profile from '../models/Profile' 
+import Profile from '../models/Profile'
 import Message from '../models/Message'
 import UserConnections from '../utils/UserConnections';
 import { Storage } from '@google-cloud/storage'
@@ -55,7 +55,6 @@ class ChannelController {
     ownerId?: Types.ObjectId
     closed?: boolean
   }) => {
-    console.log("New channel:", channel.name)
     if (channel.name === PUBLIC_CHANNEL_NAME) {
       throw new Error('Channel name cannot be the public channel name')
     }
@@ -79,23 +78,13 @@ class ChannelController {
       }).exec()
     } else {
       exists = await Channel.findOne({
-        users,
         name: channel.name,
-        //description: channel.description || '',
-        owner: owner,
-        //closed: channel.closed || false,
       }).exec()
     }
 
     if (exists) {
-      console.log('Channel already exists',
-        exists
-      )
-      return exists
+      throw new Error('Channel already exists.')
     } else {
-      // Create a new channel if it doesn't exist
-      console.log('Creating new channel...')
-      console.log(channel.name)
       exists = await Channel.findOne({name: channel.name}).exec()
       if(exists && channel.name != "PrivateContact"){
         throw new Error('Channel should have unique name.')
@@ -419,7 +408,6 @@ class ChannelController {
 
       return { uploadUrl, fileUrl }
     } catch (error) {
-      console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
     }
   }
@@ -461,7 +449,6 @@ class ChannelController {
 
       return { uploadUrl, fileUrl }
     } catch (error) {
-      console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
     }
   }
@@ -500,7 +487,6 @@ class ChannelController {
       const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`
       return { uploadUrl, fileUrl }
     } catch (error) {
-      console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
     }
   }
@@ -535,7 +521,6 @@ class ChannelController {
       const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`
       return { uploadUrl, fileUrl }
     } catch (error) {
-      console.error('Error generating signed URL:', error)
       return { error: 'Error generating signed URL' }
     }
   }
@@ -545,7 +530,6 @@ class ChannelController {
       const groups = await Channel.getGroupByUser(userId)
       return groups
     } catch (error) {
-      console.error('Error getting groups:', error)
       throw error
     }
   }
@@ -555,7 +539,6 @@ class ChannelController {
       const channel = await Channel.getGroupById(channelId)
       return channel
     } catch (error) {
-      console.error('Error getting channel:', error)
       throw error
     }
   }
@@ -565,7 +548,6 @@ class ChannelController {
       const closedGroups = await Channel.find({ closed: true }).sort({ name: 1 });
       return closedGroups;
     } catch (error) {
-      console.error('Error getting closed groups:', error);
       throw error;
     }
   }
@@ -586,7 +568,6 @@ class ChannelController {
     ownerId?: Types.ObjectId
     closed?: boolean
   }) => {
-    console.log("Updating channel members:", channel._id.toString());
 
     // Find the channel by ID
     const existingChannel = await Channel.findById(channel._id).exec();
@@ -630,7 +611,6 @@ class ChannelController {
     // Save the updated channel
     const updatedChannel = await existingChannel.save();
     UserConnections.broadcast('updateGroups', {})
-    console.log("Channel updated successfully");
 
     return updatedChannel;
   }
@@ -678,7 +658,6 @@ class ChannelController {
 
       return message
     } catch (error) {
-      console.error('Error acknowledging message:', error)
       throw error
     }
   }
