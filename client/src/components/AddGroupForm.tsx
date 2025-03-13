@@ -62,7 +62,6 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
 
     const isSysGroup = isSystemGroup(group)
     const isOwnerOfGroup = (group != null) && (group.owner._id === owner)
-    // console.log(`[handleGroupClickInBoard] isSysGroup: ${isSysGroup}; isOwnerOfGroup: ${isOwnerOfGroup}`)
     setAllowEdit((group == null) || isOwnerOfGroup)
     setAllowRemoveSelf((group != null) && !isOwnerOfGroup && !isSysGroup)
     setAllowDelete(isOwnerOfGroup)
@@ -188,7 +187,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
             }}
             sx={{mt: 2, mx: 1}}
           >
-            {(channelProps.currentGroup == null) ? "Create" : "Edit"}
+            {(channelProps.currentGroup == null) ? "Create" : "Save"}
           </Button>}
           <Button
             component={Link}
