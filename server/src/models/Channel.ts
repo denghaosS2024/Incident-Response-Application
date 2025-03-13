@@ -93,7 +93,7 @@ ChannelSchema.statics.getPublicChannel = async () => {
  * Ignore the public channel when getting a group
  */
 ChannelSchema.statics.getGroupById = async (id: Types.ObjectId) => {
-  return Channel.findOne({ _id: id, name: { $ne: PUBLIC_CHANNEL_NAME } }).exec()
+  return Channel.findOne({ _id: id }).exec()
 }
 
 /**
