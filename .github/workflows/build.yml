@@ -48,7 +48,8 @@ jobs:
       - name: Run Tests and Generate Coverage Report
         run: |
           mkdir -p coverage  # Ensure the directory exists
-          jest --coverage --coverageReporters=lcov --coverageDirectory=coverage
+          npm run test
+          # yarn jest --coverage --coverageReporters=lcov --coverageDirectory=coverage
           ls -R coverage/
 
       - name: Upload Coverage Report
