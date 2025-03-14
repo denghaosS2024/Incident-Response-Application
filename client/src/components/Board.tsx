@@ -25,6 +25,7 @@ export default function Board({
     const { contacts, loading, error } = useSelector((state: RootState) => state.contactState);
     const [todo, setTodo] = useState<IUser[]>([]);
     const [groups, setGroups] = useState<any[]>([]); // Store the groups
+    const [colSubtitle, setColSubtitle] = useState<string>('')
     const owner = localStorage.getItem('uid') || ''
     useEffect(() => {
         // dispatch(loadMockContacts());
@@ -58,18 +59,21 @@ export default function Board({
             const groupUsers = currentGroup.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
                 .filter(Boolean) as IUser[]; // Filter out undefined values
-    
+
             // Filter out the logged-in user
             const filteredGroupUsers = groupUsers.filter(user => user._id !== owner);
-    
+
             // Set the 'done' column with the group's users
             setDone(filteredGroupUsers);
-    
+
             // Remove the users from the 'todo' column
             setTodo(prevTodo => prevTodo.filter(user => !filteredGroupUsers.some(groupUser => groupUser._id === user._id)));
+
+            const isParticipantOfGroup = currentGroup.users.some(user => user._id === owner)
+            setColSubtitle(isParticipantOfGroup ? 'You' : '')
         }
     }, [currentGroup, contacts, owner]); // Re-run when currentGroup or contacts change
-    
+
     const [forceUpdate, setForceUpdate] = useState(0);
 
     const fetchGroups = () => {
@@ -99,21 +103,21 @@ export default function Board({
     const handleDragEnd = (result: DropResult) => {
         const { destination, source, draggableId } = result;
         if (!destination || source.droppableId === destination.droppableId) return;
-    
+
         if (draggableId.startsWith('group-')) {
             // Handle group card drop
             const groupId = draggableId.slice(6); // Extract group ID from the draggableId
             handleGroupClick(groupId); // This will handle adding users of the group to the 'done' column
             return;
         }
-    
+
         const task = findItemById(String(draggableId), [...todo, ...done]); // Ensure ID is a string
         if (!task) return; // Prevent errors if the task is not found
-    
+
         deletePreviousState(source.droppableId, draggableId);
         setNewState(destination.droppableId, task);
     };
-    
+
 
 
     function deletePreviousState(sourceDroppableId: string, taskId: string) {
@@ -148,14 +152,14 @@ export default function Board({
             const groupUsers = group.users
                 .map((userId: IUser) => contacts.find(contact => contact._id === userId._id))
                 .filter(Boolean) as IUser[]; // Filter out undefined values
-    
+
             // Create a new filtered array excluding the logged-in user
             const filteredGroupUsers = groupUsers.filter(user => user._id !== owner);
-    
+
             // Only move users from the selected group to the 'done' column
             // Update the todo column with users who are not part of the group
             setTodo(prevTodo => prevTodo.filter(user => !filteredGroupUsers.some(groupUser => groupUser._id === user._id)));
-    
+
             // Only move the selected group's users to the 'done' column without affecting others in 'done'
             setDone(prevDone => {
                 // Add only users from the group that are not already in 'done'
@@ -164,7 +168,7 @@ export default function Board({
             });
         }
     };
-    
+
 
     return (
          <DragDropContext onDragEnd={handleDragEnd} key={forceUpdate}>
@@ -182,7 +186,7 @@ export default function Board({
                 {!loading && !error && (
                     <>
                         <Column title="Drag and Drop Participants" tasks={todo} id="1" groups={groups} onGroupClick={handleGroupClick} canDrag={true} />
-                        <Column title="This Group" subtitle="You" tasks={done} id="2" canDrag={true} />
+                        <Column title="This Group" subtitle={colSubtitle} tasks={done} id="2" canDrag={true} />
                     </>
                 )}
             </div>

@@ -62,8 +62,9 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
 
     const isSysGroup = isSystemGroup(group)
     const isOwnerOfGroup = (group != null) && (group.owner._id === owner)
+    const isParticipantOfGroup = (group != null) && group.users.some(user => user._id === owner)
     setAllowEdit((group == null) || isOwnerOfGroup)
-    setAllowRemoveSelf((group != null) && !isOwnerOfGroup && !isSysGroup)
+    setAllowRemoveSelf((group != null) && isParticipantOfGroup && !isOwnerOfGroup && !isSysGroup)
     setAllowDelete(isOwnerOfGroup)
   }
 
