@@ -11,7 +11,7 @@ services:
       - ./client:/app/client
       - /app/client/node_modules
     environment:
-      - REACT_APP_BACKEND_URL=http://localhost:3001
+      - VITE_BACKEND_URL=http://localhost:3001
       - WATCHPACK_POLLING=true
       - WDS_SOCKET_PORT=0
       - CHOKIDAR_USEPOLLING=true

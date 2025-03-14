@@ -39,7 +39,7 @@ interface AQIData {
   measurementQuality?: string
 }
 
-const url_prefix = process.env.REACT_APP_BACKEND_URL
+const url_prefix = import.meta.env.VITE__BACKEND_URL
 
 const Mapbox: React.FC<MapboxProps> = ({
   showMarker = true,

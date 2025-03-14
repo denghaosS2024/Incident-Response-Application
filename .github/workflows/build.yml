@@ -22,7 +22,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
-    name: Build & Test
+    name: B uild & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -57,7 +57,6 @@ jobs:
           name: coverage
           path: coverage/
 
-
   # sonarqube:
   #   needs: build
   #   runs-on: ubuntu-latest
@@ -89,9 +88,8 @@ jobs:
   #           -Dsonar.sources=server,client
   #           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
 
-
   deploy:
-    needs: build  # comment out to bypass previous stages
+    needs: build # comment out to bypass previous stages
     name: Deploy Client & Server
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' # Only deploy on master branch

@@ -115,7 +115,7 @@ const Reach911Page: React.FC = () => {
 
       // Construct the URL and options
       console.log('requestBody:', requestBody)
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/incidents/new`
+      const url = `${import.meta.env.VITE__BACKEND_URL}/api/incidents/new`
       const options = {
         method: 'POST',
         headers: {
@@ -192,7 +192,7 @@ const Reach911Page: React.FC = () => {
         incidentId: incidentId,
       }
 
-      const url = `${process.env.REACT_APP_BACKEND_URL}/api/incidents/update`
+      const url = `${import.meta.env.VITE__BACKEND_URL}/api/incidents/update`
       const options = {
         method: 'PUT',
         headers: {
