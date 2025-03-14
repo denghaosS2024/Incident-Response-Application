@@ -24,7 +24,7 @@ interface IFormData {
 
 export interface IAddGroupFormProps {
   createChannel: (data: IFormData) => void;
-  deleteChannel: (channelName: string) => void
+  deleteChannel: () => void
   removeCurrentUserFromGroup: () => void;
   currentGroup: IChannel | null;
 }
@@ -108,7 +108,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
 
   const handleDeleteChannel = () => {
     setOpenConfirmDialog(false)
-    channelProps.deleteChannel(name)
+    channelProps.deleteChannel()
   }
 
   const handleRemoveCurrentUserFromGroup = () => {

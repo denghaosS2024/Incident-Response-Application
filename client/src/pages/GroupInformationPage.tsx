@@ -134,15 +134,18 @@ const GroupInformationPage: React.FC = () => {
     }
     }
 
-  const deleteGroup: IAddGroupFormProps['deleteChannel'] = async (
-    name: string,
-  ) => {
+  const deleteGroup: IAddGroupFormProps['deleteChannel'] = async () => {
     setErrorMessage('')
+    if (!currentGroup) {
+      setErrorMessage('Failed to delete group: currentGroup is null')
+      setOpenSnackbar(true)
+      return
+    }
     try {
       // FIXME: should delete according to currentGroup._id instead of name
       await request('/api/channels', {
         method: 'DELETE',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: currentGroup.name }),
       })
       setSuccessMessage('Group deleted successfully!')
       setOpenSnackbar(true)
