@@ -82,6 +82,10 @@ class ChannelController {
       }).exec()
     }
 
+    if (channel.name === "PrivateContact" && exists) {
+      return exists
+    }
+
     if (exists) {
       throw new Error('Channel already exists.')
     } else {
