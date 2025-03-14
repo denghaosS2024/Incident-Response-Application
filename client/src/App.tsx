@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material'
 import FmdBadRoundedIcon from '@mui/icons-material/FmdBadRounded'
 import Groups2Icon from '@mui/icons-material/Groups2'
-import { Box, Modal, Typography, keyframes } from '@mui/material'
+import { Badge, Box, Modal, Typography, keyframes } from '@mui/material'
 import { StyledEngineProvider } from '@mui/material/styles'
 // React and Redux
 import React, { useEffect, useMemo, useRef, useState } from 'react'
@@ -193,7 +193,9 @@ const ProtectedRoute = ({ showBackButton, isSubPage }: IProps) => {
       prefix: '/messages',
       key: 'msg',
       icon: hasUnreadMessages ? (
-        <Message style={{ color: 'red' }} />
+        <Badge badgeContent="!" color="error">
+          <Message />
+        </Badge>
       ) : (
         <Message />
       ),
