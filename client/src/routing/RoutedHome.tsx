@@ -359,65 +359,66 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
 
   return (
     <>
-      isLoggedIn ? (
-      <>
-        <NavigationBar showMenu={true} showBackButton={showBackButton} />
-        <TabBar links={orderedTabs}></TabBar>
-        {!alertOpen && <Outlet />}
+      {isLoggedIn ? (
+        <>
+          <NavigationBar showMenu={true} showBackButton={showBackButton} />
+          <TabBar links={orderedTabs}></TabBar>
+          {!alertOpen && <Outlet />}
 
-        <Modal open={alertOpen}>
-          <Box
-            onClick={handleDoubleTapDismiss}
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100%',
-              animation: `${flash} 1s infinite`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pointerEvents: 'auto',
-              flexDirection: 'column',
-            }}
-          >
-            <Typography
-              variant="h2"
-              sx={{ color: textColor, fontWeight: 'bold', mb: 2 }}
+          <Modal open={alertOpen}>
+            <Box
+              onClick={handleDoubleTapDismiss}
+              sx={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100%',
+                animation: `${flash} 1s infinite`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'auto',
+                flexDirection: 'column',
+              }}
             >
-              {alertMessage}
-            </Typography>
-          </Box>
-        </Modal>
+              <Typography
+                variant="h2"
+                sx={{ color: textColor, fontWeight: 'bold', mb: 2 }}
+              >
+                {alertMessage}
+              </Typography>
+            </Box>
+          </Modal>
 
-        <Modal open={maydayOpen}>
-          <Box
-            onPointerDown={handleDoubleTapDismiss}
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              animation: `${flash} 1s infinite`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pointerEvents: 'auto',
-            }}
-          >
-            <Typography
-              variant="h2"
-              sx={{ color: 'black', fontWeight: 'bold', mb: 2 }}
+          <Modal open={maydayOpen}>
+            <Box
+              onPointerDown={handleDoubleTapDismiss}
+              sx={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                animation: `${flash} 1s infinite`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'auto',
+              }}
             >
-              MAYDAY
-            </Typography>
-          </Box>
-        </Modal>
-      </>
+              <Typography
+                variant="h2"
+                sx={{ color: 'black', fontWeight: 'bold', mb: 2 }}
+              >
+                MAYDAY
+              </Typography>
+            </Box>
+          </Modal>
+        </>
       ) : (
-      <Navigate to="/login" />)
+        <Navigate to="/login" />
+      )}
       <IrSnackbar />
     </>
   )
