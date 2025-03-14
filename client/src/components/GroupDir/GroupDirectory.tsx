@@ -28,13 +28,19 @@ const GroupDirectory: React.FC = () => {
             const ownedGroups = myGroups.filter((group: IChannel) => group.owner?._id === owner && !group.closed).sort((a: IChannel, b: IChannel) => a.name.localeCompare(b.name));
             setMyManagingChannels(ownedGroups);
 
-            const allClosedGroups = await request(`/api/channels/groups/closed`, {
+            let allClosedGroups = await request(`/api/channels/groups/closed`, {
                 method: 'GET',
             }).catch((error) => {
                 console.error("Error fetching closed groups:", error);
                 return [];
             });
-            setMyclosedChannels(allClosedGroups.sort((a: IChannel, b: IChannel) => a.name.localeCompare(b.name)));
+            allClosedGroups = allClosedGroups
+              .filter((channel: IChannel) => {
+                // keep only groups owned by current user
+                return channel.name !== "PrivateContact" && channel.owner._id === owner;
+              })
+              .sort((a: IChannel, b: IChannel) => a.name.localeCompare(b.name))
+            setMyclosedChannels(allClosedGroups);
         } catch (error) {
             console.error("Error fetching groups:", error);
         }
