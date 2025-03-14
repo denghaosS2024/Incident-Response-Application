@@ -149,6 +149,7 @@ const GroupInformationPage: React.FC = () => {
       })
       setSuccessMessage('Group deleted successfully!')
       setOpenSnackbar(true)
+      setCurrentGroup(null)
     } catch (e) {
       const error = e as IRequestError
       if (error.status >= 400 && error.status < 500) {
@@ -171,7 +172,7 @@ const GroupInformationPage: React.FC = () => {
       const usersWithoutCurrent = originalUsers.filter(userId => userId !== uid)
 
       try {
-        await request('/api/channels', {
+        const updatedChannel = await request('/api/channels', {
           method: 'PUT',
           body: JSON.stringify({
             _id: currentGroup._id,
@@ -182,13 +183,14 @@ const GroupInformationPage: React.FC = () => {
             closed: currentGroup.closed,
           }),
         })
+        setSuccessMessage('You are removed from the selected group.')
+        setOpenSnackbar(true)
+        setCurrentGroup(updatedChannel)
       } catch (e) {
         const error = e as IRequestError
         setErrorMessage(`Error: ${error.message}`)
+        setOpenSnackbar(true)
       }
-
-      setSuccessMessage('You are removed from the selected group.')
-      setOpenSnackbar(true)
     }
   }
 
