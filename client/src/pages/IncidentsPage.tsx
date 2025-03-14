@@ -12,8 +12,8 @@ import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import GenericListContainer from '../components/GenericListContainer'
-import { resetIncident } from '../features/incidentSlice'
 import { IncidentType } from '../models/Incident'
+import { resetIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
 
 interface IncidentData {

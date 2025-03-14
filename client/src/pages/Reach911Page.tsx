@@ -11,9 +11,9 @@ import Reach911Step5 from '../components/Reach911/Reach911Step5'
 
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
-import { AppDispatch } from '../app/store'
-import { updateIncident } from '../features/incidentSlice'
 import IIncident from '../models/Incident'
+import { updateIncident } from '../redux/incidentSlice'
+import { AppDispatch } from '../redux/store'
 import request from '../utils/request'
 import { RootState } from '../utils/types'
 
@@ -79,7 +79,7 @@ const Reach911Page: React.FC = () => {
   }, [activeStep])
 
   const contents = [
-    <Reach911Step1 autoPopulateData={autoPopulateData}/>,
+    <Reach911Step1 autoPopulateData={autoPopulateData} />,
     <Reach911Step2 />,
     <Reach911Step3 isCreatedByFirstResponder={isCreatedByFirstResponder} />,
     <Reach911Step4 isCreatedByFirstResponder={isCreatedByFirstResponder} />,

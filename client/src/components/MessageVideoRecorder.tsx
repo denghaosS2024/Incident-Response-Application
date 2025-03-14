@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react'
 import { Button } from '@mui/material'
+import React, { useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { addMessage } from '../features/messageSlice'
+import { addMessage } from '../redux/messageSlice'
 import request from '../utils/request'
 
 interface MessageVideoRecorderProps {
@@ -9,9 +9,9 @@ interface MessageVideoRecorderProps {
   currentUserId: string
 }
 
-const MessageVideoRecorder: React.FC<MessageVideoRecorderProps> = ({ 
+const MessageVideoRecorder: React.FC<MessageVideoRecorderProps> = ({
   channelId,
-  currentUserId
+  currentUserId,
 }) => {
   const [recording, setRecording] = useState<boolean>(false)
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
@@ -41,7 +41,7 @@ const MessageVideoRecorder: React.FC<MessageVideoRecorderProps> = ({
       const recorder = new MediaRecorder(stream, options)
 
       recorder.ondataavailable = (event: BlobEvent) => {
-        console.log('ondataavailable event data size:', event.data.size);
+        console.log('ondataavailable event data size:', event.data.size)
         if (event.data && event.data.size > 0) {
           // setRecordedChunks((prev) => [...prev, event.data])
           recordedChunksRef.current.push(event.data)
@@ -57,7 +57,7 @@ const MessageVideoRecorder: React.FC<MessageVideoRecorderProps> = ({
           // Step 1: Request a signed URL from your backend.
           const { uploadUrl, fileUrl } = await request(
             `/api/channels/${channelId}/video-upload-url`,
-            {method: 'GET'}
+            { method: 'GET' },
           )
 
           console.log('Uploading video to:', uploadUrl)
@@ -66,7 +66,7 @@ const MessageVideoRecorder: React.FC<MessageVideoRecorderProps> = ({
           const uploadResponse = await fetch(uploadUrl, {
             method: 'PUT',
             headers: {
-              'Content-Type': 'video/webm'
+              'Content-Type': 'video/webm',
             },
             body: blob,
           })
@@ -76,20 +76,17 @@ const MessageVideoRecorder: React.FC<MessageVideoRecorderProps> = ({
           }
 
           // Step 3: Use the fileUrl (which points to the stored video) to create a new message.
-          const message = await request(
-            `/api/channels/${channelId}/messages`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                content: fileUrl,  // Save the video URL in the message
-                isAlert: false,
-                // type: 'video'      // Optionally mark this message as a video type
-              }),
-            }
-          )
+          const message = await request(`/api/channels/${channelId}/messages`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              content: fileUrl, // Save the video URL in the message
+              isAlert: false,
+              // type: 'video'      // Optionally mark this message as a video type
+            }),
+          })
           dispatch(addMessage(message))
         } catch (error) {
           console.error('Error uploading video:', error)
@@ -125,7 +122,7 @@ const MessageVideoRecorder: React.FC<MessageVideoRecorderProps> = ({
         muted
         style={{ width: '100%', maxHeight: '300px', background: '#000' }}
       />
-      { !recording ? (
+      {!recording ? (
         <Button variant="contained" color="primary" onClick={startRecording}>
           Start Recording
         </Button>

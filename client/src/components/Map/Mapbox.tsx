@@ -14,9 +14,9 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch } from '../../app/store'
-import { updateIncident } from '../../features/incidentSlice'
 import IIncident from '../../models/Incident'
+import { updateIncident } from '../../redux/incidentSlice'
+import { AppDispatch } from '../../redux/store'
 import eventEmitter from '../../utils/eventEmitter'
 import request from '../../utils/request'
 import SocketClient from '../../utils/Socket'
@@ -39,7 +39,7 @@ interface AQIData {
   measurementQuality?: string
 }
 
-const url_prefix = process.env.REACT_APP_BACKEND_URL;
+const url_prefix = process.env.REACT_APP_BACKEND_URL
 
 const Mapbox: React.FC<MapboxProps> = ({
   showMarker = true,
@@ -1800,7 +1800,7 @@ export default Mapbox
 export const getMapboxToken = () => {
   if (!mapboxgl.accessToken) {
     mapboxgl.accessToken =
-    'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
   }
   return mapboxgl.accessToken
 }

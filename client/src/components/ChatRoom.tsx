@@ -1,12 +1,12 @@
-import { AppDispatch } from '@/app/store'
+import { AppDispatch } from '@/redux/store'
 import { RootState } from '@/utils/types'
 import { Box, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ChatBox from '../components/Chat/ChatBox'
-import { addMessage, loadMessages } from '../features/messageSlice'
 import IChannel, { resolveChannelName } from '../models/Channel'
+import { addMessage, loadMessages } from '../redux/messageSlice'
 import request from '../utils/request'
 
 interface ChatRoomProps {
