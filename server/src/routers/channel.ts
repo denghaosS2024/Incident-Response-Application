@@ -500,10 +500,10 @@ export default Router()
   })
   /**
    * @swagger
-   * /api/:id/messages:
+   * /api/:id:
    *   get:
-   *     summary: Get messages for a channel
-   *     description: Get messages for a specific channel
+   *     summary: Get channel by ID
+   *     description: Get channel by ID
    *     tags: [Channels]
    *     parameters:
    *       - in: path
@@ -514,13 +514,11 @@ export default Router()
    *           description: Channel ID
    *     responses:
    *       200:
-   *         description: Successfully retrieved messages for the channel
+   *         description: Channel retrieved successfully
    *         content:
    *           application/json:
    *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: '#/components/schemas/Message'
+   *               $ref: '#/components/schemas/Channel'
    *       404:
    *         description: Channel not found
    */

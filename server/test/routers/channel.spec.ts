@@ -5,9 +5,9 @@ import app from '../../src/app'
 import UserController from '../../src/controllers/UserController'
 import { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
 import Profile from '../../src/models/Profile'
-import * as TestDatabase from '../utils/TestDatabase'
 import ROLES from "../../src/utils/Roles"
 import SystemDefinedGroups from "../../src/utils/SystemDefinedGroups"
+import * as TestDatabase from '../utils/TestDatabase'
 
 jest.mock('@google-cloud/storage', () => {
   const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
@@ -433,7 +433,35 @@ describe('Router - Channel', () => {
     expect(updatedChannel.users.length).toBe(1); // Only 1 user should remain
     expect(updatedChannel.users.some((u) => u._id === userB)).toBe(false);
   });
-
-
+  
+  it('gets a channel by ID', async () => {
+    // Create a test channel first
+    const { body: createdChannel } = await request(app)
+      .post('/api/channels')
+      .send({
+        name: 'Test Channel for GET',
+        users: [userA],
+      })
+      .expect(200)
+  
+    // Test successful GET request
+    const { body: retrievedChannel } = await request(app)
+      .get(`/api/channels/${createdChannel._id}`)
+      .expect(200)
+  
+    // Verify the response matches the created channel
+    expect(retrievedChannel._id).toBe(createdChannel._id)
+    expect(retrievedChannel.name).toBe('Test Channel for GET')
+    expect(retrievedChannel.users.length).toBe(1)
+  
+    // Test 404 error for non-existent channel
+    const fakeId = new Types.ObjectId().toHexString()
+    const { body: errorResponse } = await request(app)
+      .get(`/api/channels/${fakeId}`)
+      .expect(404)
+  
+    expect(errorResponse.message).toMatch(/Channel.*not found/)
+  })
+  
   afterAll(TestDatabase.close)
 })
