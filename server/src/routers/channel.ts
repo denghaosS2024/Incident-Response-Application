@@ -421,30 +421,67 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+
   /**
-   * Redirect public channel messages to the appropriate endpoint
-   * @route POST /api/channels/public/messages
-   * @returns {308} Redirect to the public channel's messages endpoint
+   * @swagger
+   * /api/channels/public/messages:
+   *   get:
+   *     summary: Redirect to public channel messages
+   *     description: Redirect to the public channel's messages endpoint
+   *     tags: [Channels]
+   *     responses:
+   *       308:
+   *         description: Redirect to public channel messages
    */
-  .post('/public/messages', async (_, response) => {
+  .get('/public/messages', async (_, response) => {
     const publicChannel = await Channel.getPublicChannel()
     return response.redirect(308, `/api/channels/${publicChannel.id}/messages`)
   })
   /**
-   * Append a new message to a channel
-   * @route POST /api/channels/:id/messages
-   * @param {string} request.params.id - The ID of the channel
-   * @param {string} request.headers ['x-application-uid'] - The ID of the user sending the message
-   * @param {Object} request.body
-   * @param {string} request.body.content - The content of the message
-   * @returns {Object} The newly created message object
-   * @throws {404} If the sender or channel is not found
+   * @swagger
+   * /api/:id/messages:
+   * post:
+   *    summary: Append a message to a channel
+   *    description: Append a message to a channel
+   *    tags: [Channels]
+   *    parameters:
+   *      - in: path
+   *        name: id
+   *        required: true
+   *        schema:
+   *          type: string
+   *          description: Channel ID
+   *    requestBody:
+   *      required: true
+   *      content:
+   *        application/json:
+   *          schema:
+   *            type: object
+   *            properties:
+   *            content:
+   *              type: string
+   *            isAlert:
+   *              type: boolean
+   *            responders:
+   *              type: array
+   *              items:
+   *                type: string
+   *    responses:
+   *      200:
+   *        description: Message appended successfully
+   *        content:
+   *          application/json:
+   *            schema:
+   *              $ref: '#/components/schemas/Message'
+   *      404:
+   *        description: Channel not found
    */
   .post('/:id/messages', async (request, response) => {
     const senderId = new Types.ObjectId(
       request.headers['x-application-uid'] as string,
     )
     const { content, isAlert, responders } = request.body
+
     const channelId = new Types.ObjectId(request.params.id)
 
     try {
@@ -462,11 +499,30 @@ export default Router()
     }
   })
   /**
-   * Get channel information by ID
-   * @route GET /api/channels/{id}
-   * @param {string} request.params.id - The ID of the channel
-   * @returns {Object} The channel object
-   * @throws {404} If the channel is not found
+   * @swagger
+   * /api/:id/messages:
+   *   get:
+   *     summary: Get messages for a channel
+   *     description: Get messages for a specific channel
+   *     tags: [Channels]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           description: Channel ID
+   *     responses:
+   *       200:
+   *         description: Successfully retrieved messages for the channel
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Message'
+   *       404:
+   *         description: Channel not found
    */
   .get('/:id', async (request, response) => {
     try {
@@ -479,20 +535,45 @@ export default Router()
     }
   })
   /**
-   * Redirect public channel messages to the appropriate endpoint
-   * @route GET /api/channels/public/messages
-   * @returns {302} Redirect to the public channel's messages endpoint
+   * @swagger
+   * /api/public/messages:
+   *   get:
+   *     summary: Redirect to public channel messages
+   *     description: Redirect to the public channel's messages endpoint
+   *     tags: [Channels]
+   *     responses:
+   *       308:
+   *         description: Redirect to public channel messages
    */
   .get('/public/messages', async (_, response) => {
     const publicChannel = await Channel.getPublicChannel()
     return response.redirect(`/api/channels/${publicChannel.id}/messages`)
   })
   /**
-   * List messages in a channel
-   * @route GET /api/channels/:id/messages
-   * @param {string} request.params.id - The ID of the channel
-   * @returns {Array} An array of message objects for the specified channel
-   * @throws {404} If the channel is not found
+   * @swagger
+   * /api/:id/messages:
+   *   get:
+   *     summary: Get messages for a channel
+   *     description: Get messages for a specific channel
+   *     tags: [Channels]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           description: Channel ID
+   *     responses:
+   *       200:
+   *         description: Successfully retrieved messages for the channel
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Message'
+   *       404:
+   *         description: Channel not found
    */
   .get('/:id/messages', async (request, response) => {
     const { id: channelId } = request.params
