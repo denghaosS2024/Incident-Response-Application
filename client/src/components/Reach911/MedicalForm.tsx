@@ -69,6 +69,11 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     const { type, value, checked } = e.target as HTMLInputElement
     const newValue: string | boolean = type === 'checkbox' ? checked : value
 
+
+    if (field === 'age' && (Number.isNaN(Number(value)) || value.includes(' '))) {
+      return;
+    }
+
     dispatch(
       updateIncident({
         ...incident,
