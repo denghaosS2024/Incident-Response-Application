@@ -143,6 +143,16 @@ const Mapbox: React.FC<MapboxProps> = ({
       if (disableGeolocation) {
         initialZoom = 14
       }
+
+      // Clean up existing map instance if it exists
+      if (mapRef.current) {
+        try {
+          mapRef.current.remove()
+        } catch (err) {
+          console.error('Error cleaning up map:', err)
+        }
+      }
+
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: 'mapbox://styles/domoncassiu/cm7og9k1l005z01rdd6l78pdf',
@@ -169,14 +179,32 @@ const Mapbox: React.FC<MapboxProps> = ({
             const lngLat = markerRef.current!.getLngLat()
             updateAddressFromCoordinates(lngLat.lng, lngLat.lat)
           })
-          // Update address initially
-          updateAddressFromCoordinates(lng, lat)
+
+          // Update address and location initially if they're not already set
+          const hasLocation =
+            incident.location?.latitude && incident.location?.longitude
+          const hasAddress = incident.address && incident.address.trim() !== ''
+
+          // If we don't have a location or the location doesn't match our current coordinates,
+          // update from the coordinates (this ensures the pin and address stay in sync)
+          if (
+            !hasLocation ||
+            (hasLocation &&
+              (Math.abs(incident.location!.latitude - lat) > 0.0001 ||
+                Math.abs(incident.location!.longitude - lng) > 0.0001))
+          ) {
+            updateAddressFromCoordinates(lng, lat)
+          }
         }
         setIsMapLoaded(true)
 
         // Trigger geolocation if the map was initialized with default coordinates
         if (initialZoom == 1 && !disableGeolocation) {
-          geoLocateRef.current!.trigger()
+          try {
+            geoLocateRef.current!.trigger()
+          } catch (err) {
+            console.error('Error triggering geolocation:', err)
+          }
         }
       })
       // Handle map errors
@@ -190,6 +218,8 @@ const Mapbox: React.FC<MapboxProps> = ({
         geoLocateRef.current = new mapboxgl.GeolocateControl({
           positionOptions: { enableHighAccuracy: true },
           trackUserLocation: true,
+          showAccuracyCircle: true,
+          showUserLocation: true,
         })
         mapRef.current.addControl(geoLocateRef.current)
         // Update marker position when geolocation is triggered
@@ -199,6 +229,14 @@ const Mapbox: React.FC<MapboxProps> = ({
             markerRef.current.setLngLat([longitude, latitude])
             updateAddressFromCoordinates(longitude, latitude)
           }
+        })
+
+        // Add error handler for geolocation errors
+        geoLocateRef.current.on('error', (error: any) => {
+          console.error('Geolocation error:', error)
+          setMapError(
+            'Unable to get your location. Please enter your address manually.',
+          )
         })
       }
     } catch (error) {
@@ -591,36 +629,116 @@ const Mapbox: React.FC<MapboxProps> = ({
     mapboxgl.accessToken =
       'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
 
-    // If geolocation is available, get the user's current position
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords
-          setCurrentLat(latitude)
-          setCurrentLng(longitude)
-          // Initialize the map with the user's coordinates
-          initializeMap(longitude, latitude, 1)
-        },
-        (error) => {
-          initializeMap(-122.05964, 37.410271, 14)
-        },
+    // For main map page (/map), always prioritize geolocation
+    if (isMapPage) {
+      useGeolocationOrDefault()
+    }
+    // For other pages (like 911), use incident location if available
+    else if (incident.location?.latitude && incident.location?.longitude) {
+      const { latitude, longitude } = incident.location
+      setCurrentLat(latitude)
+      setCurrentLng(longitude)
+      initializeMap(longitude, latitude, 14)
+    }
+    // If we have an address but no location, geocode the address to get coordinates
+    else if (incident.address && incident.address.trim() !== '') {
+      fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(incident.address)}.json?access_token=${mapboxgl.accessToken}`,
       )
-    } else {
-      console.log('Geolocation is not supported by this browser.')
-      setMapError(
-        'Geolocation is not supported by your browser. Please enter your address manually.',
-      )
-      // Initialize with default coordinates if geolocation is not supported
-      initializeMap(-74.5, 40, 14)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.features && data.features.length > 0) {
+            const [lng, lat] = data.features[0].center
+            setCurrentLat(lat)
+            setCurrentLng(lng)
+            initializeMap(lng, lat, 14)
+
+            // Update incident with location coordinates from address
+            if (!autoPopulateData) {
+              dispatch(
+                updateIncident({
+                  ...incident,
+                  location: {
+                    latitude: lat,
+                    longitude: lng,
+                  },
+                }),
+              )
+            }
+          } else {
+            // If geocoding fails, fall back to geolocation or default
+            useGeolocationOrDefault()
+          }
+        })
+        .catch((error) => {
+          console.error('Error geocoding address:', error)
+          useGeolocationOrDefault()
+        })
+    }
+    // Otherwise, try to use geolocation
+    else {
+      useGeolocationOrDefault()
+    }
+
+    // Helper function to use geolocation or default coordinates
+    function useGeolocationOrDefault() {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords
+            setCurrentLat(latitude)
+            setCurrentLng(longitude)
+            // Initialize the map with the user's coordinates
+            initializeMap(longitude, latitude, 1)
+          },
+          (error) => {
+            initializeMap(-122.05964, 37.410271, 14)
+          },
+        )
+      } else {
+        console.log('Geolocation is not supported by this browser.')
+        setMapError(
+          'Geolocation is not supported by your browser. Please enter your address manually.',
+        )
+        // Initialize with default coordinates if geolocation is not supported
+        initializeMap(-74.5, 40, 14)
+      }
     }
 
     // Cleanup: remove the map instance on unmount
     return () => {
       if (mapRef.current) {
-        mapRef.current.remove()
+        try {
+          // First remove any markers to prevent the 'indoor' error
+          if (markerRef.current) {
+            markerRef.current.remove()
+          }
+
+          // Clear all marker references
+          pinRef.current.forEach((marker) => marker.remove())
+          roadblockRef.current.forEach((marker) => marker.remove())
+          fireHydrantRef.current.forEach((marker) => marker.remove())
+          airQualityRef.current.forEach((marker) => marker.remove())
+
+          pinRef.current.clear()
+          roadblockRef.current.clear()
+          fireHydrantRef.current.clear()
+          airQualityRef.current.clear()
+
+          // Remove the map itself
+          mapRef.current.remove()
+        } catch (err) {
+          console.error('Error during map cleanup:', err)
+        }
       }
     }
-  }, [showMarker, disableGeolocation])
+  }, [
+    showMarker,
+    disableGeolocation,
+    incident.location,
+    incident.address,
+    isMapPage,
+  ])
 
   // -------------------------------- map init end --------------------------------
 
@@ -1153,10 +1271,15 @@ const Mapbox: React.FC<MapboxProps> = ({
       if (data.features && data.features.length > 0) {
         const address = data.features[0].place_name
         if (!autoPopulateData) {
+          // Update both address and location together to ensure they stay in sync
           dispatch(
             updateIncident({
               ...incident,
               address: address,
+              location: {
+                latitude: lat,
+                longitude: lng,
+              },
             }),
           )
         }
@@ -1172,8 +1295,9 @@ const Mapbox: React.FC<MapboxProps> = ({
       mapRef.current &&
       markerRef.current &&
       incident.address &&
-      incident.address !== ''
+      incident.address.trim() !== ''
     ) {
+      // Only update marker if we're not currently dragging
       if (!(markerRef.current as any)._isDragging) {
         fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(incident.address)}.json?access_token=${mapboxgl.accessToken}`,
@@ -1187,6 +1311,19 @@ const Mapbox: React.FC<MapboxProps> = ({
                 center: [lng, lat],
                 zoom: 14,
               })
+
+              // Update incident with precise location coordinates
+              if (!autoPopulateData) {
+                dispatch(
+                  updateIncident({
+                    ...incident,
+                    location: {
+                      latitude: lat,
+                      longitude: lng,
+                    },
+                  }),
+                )
+              }
             }
           })
           .catch((error) => {
@@ -1194,7 +1331,57 @@ const Mapbox: React.FC<MapboxProps> = ({
           })
       }
     }
-  }, [incident.address])
+    // Handle empty address case gracefully - keep existing marker position
+  }, [incident.address, dispatch, autoPopulateData])
+
+  // Handle changes to location directly
+  useEffect(() => {
+    if (
+      mapRef.current &&
+      markerRef.current &&
+      incident.location?.latitude &&
+      incident.location?.longitude
+    ) {
+      const { latitude, longitude } = incident.location
+
+      // Update marker position when location changes directly (e.g., when restored after emptying address)
+      markerRef.current.setLngLat([longitude, latitude])
+
+      // Only fly to the location if address is empty (to avoid competing with address-based updates)
+      if (!incident.address || incident.address.trim() === '') {
+        mapRef.current.flyTo({
+          center: [longitude, latitude],
+          zoom: 14,
+        })
+      }
+
+      // If address is empty but we have coordinates, geocode to update the address
+      if (
+        (!incident.address || incident.address.trim() === '') &&
+        !autoPopulateData
+      ) {
+        fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`,
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.features && data.features.length > 0) {
+              const address = data.features[0].place_name
+              dispatch(
+                updateIncident({
+                  ...incident,
+                  address: address,
+                  // Don't update location again to avoid loop
+                }),
+              )
+            }
+          })
+          .catch((error) => {
+            console.error('Error reverse geocoding:', error)
+          })
+      }
+    }
+  }, [incident.location, dispatch, autoPopulateData])
 
   // -------------------------------- reach 911 features end --------------------------------
 
