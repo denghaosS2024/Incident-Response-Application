@@ -50,7 +50,6 @@ const FireForm: React.FC = () => {
       return;
     }
 
-    
       dispatch(
       updateIncident({
         ...incident,
