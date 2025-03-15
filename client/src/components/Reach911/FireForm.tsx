@@ -62,7 +62,6 @@ const FireForm: React.FC = () => {
 
     // Validate only the changed field
     validateField(field, value)
-    
   }
 
   const validateField = (field: string, value: string) => {
