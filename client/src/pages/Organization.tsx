@@ -50,9 +50,13 @@ const Organization: React.FC = () => {
   const [trucks, setTrucks] = useState<Truck[]>([])
   const [cities, setCities] = useState<City[]>([])
   const [personnel, setPersonnel] = useState<Personnel[]>([])
+
+  // The user input for new items
   const [newCar, setNewCar] = useState('')
   const [newTruck, setNewTruck] = useState('')
   const [newCity, setNewCity] = useState('')
+
+  // Trigger to refresh city containers after changes
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   // For responsive spacing/text
@@ -77,12 +81,11 @@ const Organization: React.FC = () => {
     }
   }
 
-  // On mount
   useEffect(() => {
     fetchAllData()
   }, [])
 
-  // Sorting for display
+  // Sort them by name for display
   const sortedCars = [...cars].sort((a, b) => a.name.localeCompare(b.name))
   const sortedTrucks = [...trucks].sort((a, b) => a.name.localeCompare(b.name))
   const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name))
@@ -93,12 +96,25 @@ const Organization: React.FC = () => {
   // -------------------
   //     ADD/REMOVE
   // -------------------
+
+  // Add a new Car (with uniqueness check)
   const addCar = async () => {
-    if (!newCar.trim()) return
+    const candidate = newCar.trim()
+    if (!candidate) return
+
+    // Check for duplicates
+    const alreadyExists = cars.some(
+      (c) => c.name.toLowerCase() === candidate.toLowerCase(),
+    )
+    if (alreadyExists) {
+      alert(`A car named "${candidate}" already exists!`)
+      return
+    }
+
     try {
       await request('/api/cars', {
         method: 'POST',
-        body: JSON.stringify({ name: newCar.trim() }),
+        body: JSON.stringify({ name: candidate }),
       })
       setNewCar('')
       await fetchAllData()
@@ -116,12 +132,24 @@ const Organization: React.FC = () => {
     }
   }
 
+  // Add a new Truck (with uniqueness check)
   const addTruck = async () => {
-    if (!newTruck.trim()) return
+    const candidate = newTruck.trim()
+    if (!candidate) return
+
+    // Check for duplicates
+    const alreadyExists = trucks.some(
+      (t) => t.name.toLowerCase() === candidate.toLowerCase(),
+    )
+    if (alreadyExists) {
+      alert(`A truck named "${candidate}" already exists!`)
+      return
+    }
+
     try {
       await request('/api/trucks', {
         method: 'POST',
-        body: JSON.stringify({ name: newTruck.trim() }),
+        body: JSON.stringify({ name: candidate }),
       })
       setNewTruck('')
       await fetchAllData()
@@ -139,12 +167,24 @@ const Organization: React.FC = () => {
     }
   }
 
+  // Add a new City (with uniqueness check)
   const addCity = async () => {
-    if (!newCity.trim()) return
+    const candidate = newCity.trim()
+    if (!candidate) return
+
+    // Check for duplicates
+    const alreadyExists = cities.some(
+      (ci) => ci.name.toLowerCase() === candidate.toLowerCase(),
+    )
+    if (alreadyExists) {
+      alert(`A city named "${candidate}" already exists!`)
+      return
+    }
+
     try {
       await request('/api/cities', {
         method: 'POST',
-        body: JSON.stringify({ name: newCity.trim() }),
+        body: JSON.stringify({ name: candidate }),
       })
       setNewCity('')
       await fetchAllData()
@@ -153,30 +193,31 @@ const Organization: React.FC = () => {
     }
   }
 
-  // Remove city only if empty
-  // const removeCity = async (cityId: string) => {
-  //   const city = cities.find((c) => c._id === cityId)
-  //   if (!city) return
+  // Example remove city code, only if city is empty
+  // (commented out or adapt if needed)
+  /*
+  const removeCity = async (cityId: string) => {
+    const city = cities.find((c) => c._id === cityId)
+    if (!city) return
 
-  //   // Check if city has assigned items by city._id
-  //   const hasPersonnel = personnel.some((p) => p.assignedCity === city._id)
-  //   const hasCars = cars.some((c) => c.assignedCity === city._id)
-  //   const hasTrucks = trucks.some((t) => t.assignedCity === city._id)
+    // Check if the city has any assigned items
+    const hasPersonnel = personnel.some((p) => p.assignedCity === city._id)
+    const hasCars = cars.some((c) => c.assignedCity === city._id)
+    const hasTrucks = trucks.some((t) => t.assignedCity === city._id)
 
-  //   if (hasPersonnel || hasCars || hasTrucks) {
-  //     console.error(
-  //       `Cannot delete city "${city.name}" because it is not empty.`,
-  //     )
-  //     return
-  //   }
+    if (hasPersonnel || hasCars || hasTrucks) {
+      console.error(`Cannot delete city "${city.name}" because it is not empty.`)
+      return
+    }
 
-  //   try {
-  //     await request(`/api/cities/${cityId}`, { method: 'DELETE' })
-  //     setCities((prev) => prev.filter((c) => c._id !== cityId))
-  //   } catch (err) {
-  //     console.error('Error deleting city:', err)
-  //   }
-  // }
+    try {
+      await request(`/api/cities/${cityId}`, { method: 'DELETE' })
+      setCities((prev) => prev.filter((c) => c._id !== cityId))
+    } catch (err) {
+      console.error('Error deleting city:', err)
+    }
+  }
+  */
 
   // -------------------
   //   DRAG & DROP
@@ -443,15 +484,27 @@ const Organization: React.FC = () => {
                               alignItems: 'center',
                             }}
                           >
-                            <ListItemText primary={city.name} />
-                            {/* {isEmpty && (
-                              <IconButton
-                                edge="end"
-                                onClick={() => removeCity(city._id)}
-                              >
-                                <Delete />
-                              </IconButton>
-                            )} */}
+                            <ListItemText
+                              primary={city.name}
+                              primaryTypographyProps={{
+                                variant: 'subtitle1',
+                                style: {
+                                  fontWeight: 'bold',
+                                  color: '#222',
+                                },
+                              }}
+                            />
+                            {/* 
+                              If we had removeCity logic, show trash only if empty:
+                              {isEmpty && (
+                                <IconButton
+                                  edge="end"
+                                  onClick={() => removeCity(city._id)}
+                                >
+                                  <Delete />
+                                </IconButton>
+                              )}
+                            */}
                           </Box>
 
                           {/* CityContainer for assigned vehicles & personnel */}
