@@ -1,10 +1,13 @@
 /**
  * CityController.spec.ts
- * Tests for CityController functionality (createCity, getAllCities, removeCityById)
+ * Comprehensive tests for CityController (createCity, getAllCities, removeCityById, getCityAssignments, addCityAssignment)
  */
 
 import CityController from '../../src/controllers/CityController'
+import Car from '../../src/models/Car'
 import City from '../../src/models/City'
+import Truck from '../../src/models/Truck'
+import Personnel from '../../src/models/User'
 import * as TestDatabase from '../utils/TestDatabase'
 
 describe('CityController', () => {
@@ -16,45 +19,123 @@ describe('CityController', () => {
     await TestDatabase.close()
   })
 
-  it('should create a city with a valid name', async () => {
-    const city = await CityController.createCity('MyCity')
-    expect(city.name).toBe('MyCity')
-    expect(city._id).toBeDefined()
+  beforeEach(async () => {
+    await City.deleteMany({})
+    await Car.deleteMany({})
+    await Truck.deleteMany({})
+    await Personnel.deleteMany({})
   })
 
-  it('should not create a city with an empty name', async () => {
-    expect.assertions(1)
-    try {
-      await CityController.createCity('')
-    } catch (e) {
-      const error = e as Error
-      expect(error.message).toBe('City name is required')
-    }
+  describe('createCity', () => {
+    it('should create a city with a valid name', async () => {
+      const city = await CityController.createCity('ValidCity')
+      expect(city.name).toBe('ValidCity')
+      expect(city._id).toBeDefined()
+    })
+
+    it('should not create a city with an empty name', async () => {
+      expect.assertions(1)
+      try {
+        await CityController.createCity('')
+      } catch (e) {
+        expect((e as Error).message).toBe('City name is required')
+      }
+    })
+
+    it('should not create a city with an existing name', async () => {
+      await CityController.createCity('DuplicateCity')
+
+      expect.assertions(1)
+      try {
+        await CityController.createCity('DuplicateCity')
+      } catch (e) {
+        expect((e as Error).message).toBe("City with name 'DuplicateCity' already exists")
+      }
+    })
   })
 
-  it('should retrieve all cities sorted by name', async () => {
-    // Create a couple of cities for testing
-    await CityController.createCity('ZCity')
-    await CityController.createCity('ACity')
+  describe('getAllCities', () => {
+    it('should retrieve all cities sorted by name', async () => {
+      await CityController.createCity('ZCity')
+      await CityController.createCity('ACity')
 
-    const cities = await CityController.getAllCities()
-    expect(cities.length).toBeGreaterThanOrEqual(2)
+      const cities = await CityController.getAllCities()
+      expect(cities.length).toBe(2)
 
-    // Check if the list is sorted by name
-    const names = cities.map((c) => c.name)
-    for (let i = 0; i < names.length - 1; i++) {
-      expect(names[i].localeCompare(names[i + 1])).toBeLessThanOrEqual(0)
-    }
+      const names = cities.map((c) => c.name)
+      expect(names).toEqual(['ACity', 'ZCity'])
+    })
+
+    it('should return an empty array if no cities exist', async () => {
+      const cities = await CityController.getAllCities()
+      expect(cities).toEqual([])
+    })
   })
 
-  it('should remove a city by ID', async () => {
-    const newCity = await CityController.createCity('TempCity')
-    const id = newCity._id.toString()
+  describe('removeCityById', () => {
+    it('should remove a city by ID and return confirmation message', async () => {
+      const newCity = await CityController.createCity('TempCity')
+      const id = newCity._id.toString()
 
-    const removed = await CityController.removeCityById(id)
-    expect(removed.name).toBe('TempCity')
+      const response = await CityController.removeCityById(id)
+      expect(response).toEqual({ message: `City with ID '${id}' and its assignments have been removed.` })
 
-    const found = await City.findById(id)
-    expect(found).toBeNull()
+      const found = await City.findById(id)
+      expect(found).toBeNull()
+    })
+
+    it('should throw an error if city does not exist', async () => {
+      expect.assertions(1)
+      try {
+        await CityController.removeCityById('605c72e1e3b3f21d8c98f9b3') // Non-existent ID
+      } catch (e) {
+        expect((e as Error).message).toBe("City with ID '605c72e1e3b3f21d8c98f9b3' not found")
+      }
+    })
   })
+
+  describe('getCityAssignments', () => {
+    it('should return empty assignments for a city with no associated entities', async () => {
+      await CityController.createCity('TestCity')
+
+      const assignments = await CityController.getCityAssignments('TestCity')
+      expect(assignments).toEqual({ cars: [], trucks: [], personnel: [] })
+    })
+
+    it('should throw an error if the city does not exist', async () => {
+      expect.assertions(1)
+      try {
+        await CityController.getCityAssignments('NonExistentCity')
+      } catch (e) {
+        expect((e as Error).message).toBe("City 'NonExistentCity' does not exist in the database")
+      }
+    })
+  })
+
+  describe('addCityAssignment', () => {
+    it('should add a car to a city', async () => {
+      await CityController.createCity('CarCity')
+  
+      const car = new Car({ name: 'TestCar', assignedCity: null })
+      await car.save()
+  
+      const updatedCar = await CityController.addCityAssignment('CarCity', 'Car', 'TestCar')
+      
+      expect(updatedCar).not.toBeNull() // Ensure it's not null before accessing properties
+      expect(updatedCar!.assignedCity).toBe('CarCity')
+    })
+  
+    it('should add a truck to a city', async () => {
+      await CityController.createCity('TruckCity')
+  
+      const truck = new Truck({ name: 'TestTruck', assignedCity: null })
+      await truck.save()
+  
+      const updatedTruck = await CityController.addCityAssignment('TruckCity', 'Truck', 'TestTruck')
+  
+      expect(updatedTruck).not.toBeNull() // Ensure it's not null before accessing properties
+      expect(updatedTruck!.assignedCity).toBe('TruckCity')
+    })
+  })
+  
 })
