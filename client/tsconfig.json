@@ -3,18 +3,10 @@
     "target": "es5",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "react": [
-        "./node_modules/@types/react"
-      ]
+      "@/*": ["./src/*"],
+      "react": ["./node_modules/@types/react"]
     },
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -29,10 +21,6 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "src/middleware/socket.ts"
-  ]
+  "include": ["src", "src/vite-env.d.ts"],
+  "exclude": ["src/middleware/socket.ts"]
 }
