@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nodemon --watch 'src/**/*.ts' --exec \"ts-node\" src/index.ts",
     "dev-win": "nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" \"src/index.ts\"",
+    "deploy": "tsx src/index.ts",
     "build": "tsc",
     "test": "jest --coverage",
     "test:debug": "node --inspect-brk ./node_modules/.bin/jest --runInBand",
@@ -33,6 +34,7 @@
     "swagger-ui-express": "^5.0.1",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.1",
+    "tsx": "^4.19.3",
     "typescript": "^5.3.3",
     "uuid": "^11.1.0"
   },
