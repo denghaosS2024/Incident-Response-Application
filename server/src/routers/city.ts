@@ -39,36 +39,40 @@ cityRouter.get('/', async (_req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/cities:
- *   post:
- *     summary: Create a new city
- *     description: Adds a new city to the system.
- *     tags:
- *       - Cities
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: "Mountain View"
- *                 description: The name of the city to add.
+ * /cities/{cityName}:
+ *   delete:
+ *     summary: Remove a city and reset assignedCity for related entities
+ *     description: Deletes a city by its name and sets the assignedCity field to null for all related cars, trucks, and personnel.
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the city to remove.
  *     responses:
- *       201:
- *         description: City successfully created.
+ *       200:
+ *         description: Successfully removed the city and reset assignments.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/City"
- *       400:
- *         description: Invalid input or missing city name.
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "City 'San Francisco' and its assignments have been removed."
+ *       404:
+ *         description: City not found in the database.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/ErrorResponse"
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "City 'San Francisco' not found."
+ *       500:
+ *         description: Internal server error.
  */
 cityRouter.post('/', async (req: Request, res: Response) => {
   try {
@@ -83,22 +87,22 @@ cityRouter.post('/', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/cities/{id}:
+ * /api/cities/{cityId}:
  *   delete:
- *     summary: Delete a city
- *     description: Removes a city from the system by its ID.
+ *     summary: Remove a city by its ID and reset assignments for associated vehicles and personnel
+ *     description: Deletes a city by its ID and resets the `assignedCity` field to `null` for all cars, trucks, and personnel that were associated with it.
  *     tags:
  *       - Cities
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: cityId
  *         required: true
+ *         description: The ID of the city to be deleted
  *         schema:
  *           type: string
- *         description: The unique identifier of the city.
  *     responses:
  *       200:
- *         description: City successfully deleted.
+ *         description: Successfully deleted the city and reset assignments
  *         content:
  *           application/json:
  *             schema:
@@ -108,18 +112,26 @@ cityRouter.post('/', async (req: Request, res: Response) => {
  *                   type: string
  *                   example: "City deleted"
  *                 city:
- *                   $ref: "#/components/schemas/City"
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: "City with ID '12345' and its assignments have been removed."
  *       400:
- *         description: Invalid city ID or city not found.
+ *         description: Bad request (e.g., city not found)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/ErrorResponse"
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "City with ID '12345' not found"
  */
-cityRouter.delete('/:id', async (req: Request, res: Response) => {
+cityRouter.delete('/:cityId', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const removedCity = await CityController.removeCityById(id);
+    const { cityId } = req.params;
+    const removedCity = await CityController.removeCityById(cityId.toString());
     res.json({ message: 'City deleted', city: removedCity });
   } catch (err) {
     const error = err as Error;
