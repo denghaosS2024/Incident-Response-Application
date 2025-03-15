@@ -1488,7 +1488,8 @@ const Mapbox: React.FC<MapboxProps> = ({
         }
         return false
       })
-      const areaName: string = generateDefaultName()
+      // const areaName: string = generateDefaultName()
+      const areaName = 'Area'
 
       // Add properties to the feature
       if (areaIndex >= 0) {
@@ -1658,7 +1659,6 @@ const Mapbox: React.FC<MapboxProps> = ({
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
     // const data = draw.getAll();
-    // TODO: update name of the area
   }
 
   const addDrawControls = () => {
