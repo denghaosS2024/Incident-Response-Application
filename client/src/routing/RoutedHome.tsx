@@ -10,7 +10,7 @@ import {
   PermContactCalendar,
   LocalPolice as PoliceIcon,
 } from '@mui/icons-material'
-import FmdBadRoundedIcon from '@mui/icons-material/FmdBadRounded'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import Groups2Icon from '@mui/icons-material/Groups2'
 import { Badge, Box, Modal, Typography, keyframes } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -208,7 +208,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       key: 'incidents',
       icon: hasNewIncident ? (
         <Box position="relative">
-          <FmdBadRoundedIcon sx={{ color: 'error.main' }} />
+          <ErrorOutlineIcon sx={{ color: 'error.main' }} />
           <Box
             sx={{
               position: 'absolute',
@@ -222,7 +222,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
           />
         </Box>
       ) : (
-        <FmdBadRoundedIcon />
+        <ErrorOutlineIcon />
       ),
       to: '/incidents',
       onClick: () => {
