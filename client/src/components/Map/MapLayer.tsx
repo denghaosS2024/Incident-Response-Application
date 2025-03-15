@@ -1,27 +1,27 @@
-import AddIcon from '@mui/icons-material/Add'
-import BuildIcon from '@mui/icons-material/Build'
-import ContactsIcon from '@mui/icons-material/Contacts'
-import GroupIcon from '@mui/icons-material/Group'
-import PersonIcon from '@mui/icons-material/Person'
-import RemoveIcon from '@mui/icons-material/Remove'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import List from '@mui/material/List'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import React, { useEffect, useState } from 'react'
-import eventEmitter from '../../utils/eventEmitter'
+import BuildIcon from '@mui/icons-material/Build';
+import ContactsIcon from '@mui/icons-material/Contacts';
+import GroupIcon from '@mui/icons-material/Group';
+import LayersIcon from '@mui/icons-material/Layers';
+import LayersClearIcon from '@mui/icons-material/LayersClear';
+import PersonIcon from '@mui/icons-material/Person';
+import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import React, { useEffect, useState } from 'react';
+import eventEmitter from '../../utils/eventEmitter';
 
-import { AppDispatch } from '@/redux/store'
-import { RootState } from '@/utils/types'
-import { useDispatch, useSelector } from 'react-redux'
-import IChannel from '../../models/Channel'
-import IUser from '../../models/User'
-import { loadContacts } from '../../redux/contactSlice'
-import styles from '../../styles/MapLayer.module.css'
-import request from '../../utils/request'
-import getRoleIcon from '../common/RoleIcon'
+import { AppDispatch } from '@/redux/store';
+import { RootState } from '@/utils/types';
+import { useDispatch, useSelector } from 'react-redux';
+import IChannel from '../../models/Channel';
+import IUser from '../../models/User';
+import { loadContacts } from '../../redux/contactSlice';
+import styles from '../../styles/MapLayer.module.css';
+import request from '../../utils/request';
+import getRoleIcon from '../common/RoleIcon';
 
 const MapLayer: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(3)
@@ -609,9 +609,9 @@ const MapLayer: React.FC = () => {
         sx={toggleButtonStyle}
       >
         {isVisible ? (
-          <RemoveIcon fontSize="small" />
+          <LayersClearIcon fontSize="small" />
         ) : (
-          <AddIcon fontSize="small" />
+          <LayersIcon fontSize="small" />
         )}
       </IconButton>
     </div>
