@@ -315,7 +315,7 @@ export default Router()
       }
 
       try {
-        let channel = await ChannelController.updateChannel({
+        const channel = await ChannelController.updateChannel({
           _id: new Types.ObjectId(_id),
           name,
           userIds: users.map((userId) => new Types.ObjectId(userId)),

@@ -14,7 +14,7 @@ class IncidentController {
         username: string,
     ) {
         // Check if the incident already exists
-        let incidentId = `I${username}`
+        const incidentId = `I${username}`
         let incident = await Incident.findOne({ incidentId }).exec()
 
         if (incident) {
@@ -44,8 +44,8 @@ class IncidentController {
     ) {
 
         // Check if the incident already exists
-        let incidentId = `I${incident.caller}`
-        let existingIncident = await Incident.findOne({ incidentId }).exec()
+        const incidentId = `I${incident.caller}`
+        const existingIncident = await Incident.findOne({ incidentId }).exec()
 
         if (existingIncident) {
 

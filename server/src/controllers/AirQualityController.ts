@@ -414,9 +414,9 @@ function aqiFromPM(pm) {
 }
 
 function calcAQI(Cp, Ih, Il, BPh, BPl) {
-    var a = (Ih - Il);
-    var b = (BPh - BPl);
-    var c = (Cp - BPl);
+    const a = (Ih - Il);
+    const b = (BPh - BPl);
+    const c = (Cp - BPl);
     return Math.round((a/b) * c + Il);
 }
 

@@ -12,7 +12,7 @@ class WildfireAreaController {
    */
   async add(areaId: string, coordinates: number[][], name?: string) {
     // Check if the wildfire area already exists
-    let wildfireArea = await WildfireArea.findOne({ areaId }).exec()
+    const wildfireArea = await WildfireArea.findOne({ areaId }).exec()
 
     if (wildfireArea) {
       throw new Error(`WildfireArea "${areaId}" already exists`)
