@@ -7,7 +7,7 @@ import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import PushPinIcon from '@mui/icons-material/PushPin'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
-import { Alert, Box, Typography } from '@mui/material'
+import { Alert, Box, Snackbar, Typography } from '@mui/material'
 import { Geometry } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -62,7 +62,12 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [roadblocksVisible, setRoadblocksVisible] = useState(true)
   const [fireHydrantsVisible, setFireHydrantsVisible] = useState(true)
   const [userLocationVisible, setUserLocationVisible] = useState(true)
+  const [isCreatingArea, setIsCreatingArea] = useState(false)
+  const [isUnauthorized, setIsUnauthorized] = useState(false)
   const geoLocateRef = useRef<mapboxgl.GeolocateControl | null>(null)
+
+  // get role from localStorage
+  const role = localStorage.getItem('role') || 'Citizen'
 
   // refs for areaClick
   const areaRef = useRef<boolean>(false)
@@ -1587,6 +1592,10 @@ const Mapbox: React.FC<MapboxProps> = ({
     ) as HTMLInputElement
 
     nameDisplay?.addEventListener('click', () => {
+      if (role !== 'Fire') {
+        setIsUnauthorized(true)
+        return
+      }
       nameDisplay.style.display = 'none'
       nameInput.style.display = 'block'
       nameCheckbox.style.display = 'block'
@@ -1638,8 +1647,14 @@ const Mapbox: React.FC<MapboxProps> = ({
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
     const data = draw.getAll()
-    // TODO: delete the area from the database
     // delete the popup as well
+
+    if (role !== 'Fire') {
+      setIsUnauthorized(true)
+      draw.changeMode('simple_select')
+      return
+    }
+
     const areaId: string = e.features[0]?.id?.toString() || ''
     if (areaId == '') return
 
@@ -1661,6 +1676,36 @@ const Mapbox: React.FC<MapboxProps> = ({
     // const data = draw.getAll();
   }
 
+  const displayHint = (
+    e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
+  ) => {
+    // const data = draw.getAll();
+    const mode = draw.getMode()
+    console.log(mode)
+    if (mode === 'draw_polygon') {
+      // Check if the user has Fire role
+      if (role === 'Fire') {
+        setIsCreatingArea(true)
+      } else {
+        setIsCreatingArea(false)
+        setIsUnauthorized(true)
+        draw.changeMode('simple_select')
+      }
+    } else {
+      setIsCreatingArea(false)
+    }
+  }
+
+  const selectRestrict = (
+    e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
+  ) => {
+    // const data = draw.getAll();
+    if (role !== 'Fire') {
+      setIsUnauthorized(true)
+      draw.changeMode('simple_select')
+    }
+  }
+
   const addDrawControls = () => {
     if (!mapRef.current) return
 
@@ -1669,6 +1714,8 @@ const Mapbox: React.FC<MapboxProps> = ({
     mapRef.current.on('draw.create', createArea)
     mapRef.current.on('draw.delete', deleteArea)
     mapRef.current.on('draw.update', updateArea)
+    mapRef.current.on('draw.modechange', displayHint)
+    mapRef.current.on('draw.selectionchange', selectRestrict)
     displayAllArea()
 
     const socket = socketRef.current
@@ -1690,6 +1737,9 @@ const Mapbox: React.FC<MapboxProps> = ({
     mapRef.current.off('draw.create', createArea)
     mapRef.current.off('draw.delete', deleteArea)
     mapRef.current.off('draw.update', updateArea)
+    mapRef.current.off('draw.modechange', displayHint)
+    mapRef.current.off('draw.selectionchange', selectRestrict)
+    setIsCreatingArea(false)
     // remove all names
     deleteAllPopups()
     const socket = socketRef.current
@@ -1970,6 +2020,50 @@ const Mapbox: React.FC<MapboxProps> = ({
           boxSizing: 'border-box',
         }}
       />
+      {isCreatingArea && (
+        <Snackbar
+          open={isCreatingArea}
+          message={
+            <span>
+              <strong>Usage:</strong> Tap to choose vertex of the area. Double
+              tap to add the last vertex.
+            </span>
+          }
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          ContentProps={{
+            style: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              color: 'white',
+              padding: '4px',
+              borderRadius: '8px',
+            },
+          }}
+          style={{ marginTop: '90px', width: '60%', left: '20%' }}
+        />
+      )}
+      {isUnauthorized && (
+        <Snackbar
+          open={isUnauthorized}
+          autoHideDuration={6000}
+          onClose={() => setIsUnauthorized(false)}
+          message={
+            <span>
+              <strong>Warning:</strong> This Feature requires{' '}
+              <strong>Fire Fighter</strong> Role
+            </span>
+          }
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          ContentProps={{
+            style: {
+              backgroundColor: 'rgba(255, 0, 0, 0.8)',
+              color: 'white',
+              padding: '4px',
+              borderRadius: '8px',
+            },
+          }}
+          style={{ marginTop: '90px', width: '60%', left: '20%' }}
+        />
+      )}
       {isMapPage && (
         <MapDrop
           onDropPin={() => handleAddPin('pin')}
