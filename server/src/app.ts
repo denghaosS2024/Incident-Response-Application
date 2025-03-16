@@ -16,7 +16,7 @@ import router from './routers'
 
 function getCorsMiddleware() {
   const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || '*',
     method: '*',
     allowedHeaders: '*',
     credentials: true,
