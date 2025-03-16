@@ -15,13 +15,15 @@ import Reach911Page from './pages/Reach911Page'
 import RegisterPage from './pages/RegisterPage'
 import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
+import './styles/tailwind.css'
 
 export default function App() {
-  //const dispatcher = useDispatch()
+  // const dispatcher = useDispatch()
 
-  // This is an example to display a snackbar
+  // // This is an example to display a snackbar
   // useEffect(() => {
   //   setTimeout(() => {
+  //     console.log('setting snackbar')
   //     dispatcher(
   //       setSnackbar({
   //         type: SnackbarType.INFO,
