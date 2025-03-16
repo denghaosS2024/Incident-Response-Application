@@ -87,11 +87,11 @@ class ChannelController {
     }
 
     if (exists) {
-      throw new Error('Channel already exists.')
+      throw new Error('Group already exists.')
     } else {
       exists = await Channel.findOne({name: channel.name}).exec()
       if(exists && channel.name != "PrivateContact"){
-        throw new Error('Channel should have unique name.')
+        throw new Error('Group should have unique name.')
       }
       const newChannel = await new Channel({
         name: channel.name,
