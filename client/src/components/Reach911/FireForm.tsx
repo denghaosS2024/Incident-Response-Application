@@ -46,7 +46,11 @@ const FireForm: React.FC = () => {
   ) => {
     const { value } = e.target as HTMLInputElement
 
-    dispatch(
+    if (field === 'numPeople' && (Number.isNaN(Number(value)) || value.includes(' '))) {
+      return;
+    }
+
+      dispatch(
       updateIncident({
         ...incident,
         questions: {
@@ -66,7 +70,8 @@ const FireForm: React.FC = () => {
 
       if (parsedValue && parsedValue <= 0) {
         setnumPeopleError('Enter a positive number')
-      } else {
+      }
+      else {
         setnumPeopleError('')
       }
     }

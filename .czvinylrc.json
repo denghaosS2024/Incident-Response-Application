@@ -1,0 +1,76 @@
+{
+    "headerFormat": "{type} ({scope}): [{ticket_id}] {subject}",
+    "bodyFormat": "{body}",
+    "typeQuestion": "Select the type of changes you're committing:\n",
+    "commitTypes": [
+        {
+            "description": "Build process or auxiliary tool changes",
+            "emoji": "🤖",
+            "value": "chore"
+        },
+        {
+            "description": "CI related changes",
+            "emoji": "🚀",
+            "value": "ci"
+        },
+        {
+            "description": "Documentation only changes",
+            "emoji": "📘",
+            "value": "docs"
+        },
+        {
+            "description": "A new feature",
+            "emoji": "🔥",
+            "value": "feat"
+        },
+        {
+            "description": "A bug fix",
+            "emoji": "🐞",
+            "value": "fix"
+        },
+        {
+            "description": "A code change that improves performance",
+            "emoji": "⚡",
+            "value": "perf"
+        },
+        {
+            "description": "A code change that neither fixes a bug or adds a feature",
+            "emoji": "💡",
+            "value": "refactor"
+        },
+        {
+            "description": "Create a release commit",
+            "emoji": "🔖",
+            "value": "release"
+        },
+        {
+            "description": "Markup, white-space, formatting, missing semi-colons...",
+            "emoji": "🎨",
+            "value": "style"
+        },
+        {
+            "description": "Adding missing tests",
+            "emoji": "✅",
+            "value": "test"
+        }
+    ],
+    "scopeQuestion": "Select the type of changes you're committing:\n",
+    "scopes": [
+        "client",
+        "server",
+        "common",
+        "infra",
+        "config",
+        "deps",
+        "other"
+    ],
+    "skipScope": false,
+    "ticketIdQuestion": "Enter the JIRA ticket ID (format: SEM-XXXX) or type \"--\" if not applicable:\n",
+    "skipTicketId": false,
+    "subjectQuestion": "Write a short, imperative mood description of the change:\n",
+    "subjectMaxLength": 70,
+    "subjectMinLength": 3,
+    "bodyQuestion": "Provide a longer description of the change (Skippable):\n",
+    "skipBody": true,
+    "ticketIdRegex": "((?<!([A-Z]{1,10})-?)SEM-\\d{4}(?!\\d)|^--$)"
+}

@@ -20,6 +20,10 @@ class TruckController {
     if (!name.trim()) {
       throw new Error("Truck name is required");
     }
+    const existingTruck = await Truck.findOne({ name: name.trim() });
+    if (existingTruck) {
+      throw new Error(`Truck with name '${name}' already exists`);
+    }
     const truck: ITruck = new Truck({ name: name.trim() });
     return truck.save();
   }

@@ -9,6 +9,17 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
+  check-commits:
+    name: Check Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Commit Message Format for Push
+        if: github.event_name == 'push'
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '^(chore|ci|docs|feat|fix|perf|refactor|release|style|test)\s\((client|server|common|infra|config|deps|other)\):\s\[(SEM-\d{4}|--)\]\s.+$'
+          error: 'Commit message does not match the required format: {type} ({scope}): [{ticket_id}] {subject}'
+
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
@@ -22,7 +33,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
-    name: B uild & Test
+    needs: check-commits
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -94,7 +106,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' # Only deploy on master branch
     steps:
-      - name: Deploy Server
-        run: curl "https://api.render.com/deploy/srv-curdjvjqf0us73fijapg?key=JcOMQ1ytI9c"
-      - name: Deploy Client
-        run: curl "https://api.render.com/deploy/srv-cuuarthopnds739vidb0?key=g7rBrnrhQIk"
+      #      - name: Deploy Server
+      #        run: curl "https://api.render.com/deploy/srv-curdjvjqf0us73fijapg?key=JcOMQ1ytI9c"
+      #      - name: Deploy Client
+      #        run: curl "https://api.render.com/deploy/srv-cuuarthopnds739vidb0?key=g7rBrnrhQIk"
+      - name: Deploy Server 2
+        run: curl "https://api.render.com/deploy/srv-cvb74tvnoe9s73fi4lug?key=MkoEGsRIocc"
+      - name: Deploy Client 2
+        run: curl "https://api.render.com/deploy/srv-cvb714an91rc739dlcl0?key=ubuWv2lQm_I"

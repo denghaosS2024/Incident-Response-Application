@@ -6,7 +6,7 @@ export interface ICity extends Document {
 }
 
 const CitySchema = new Schema<ICity>({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   // add more fields as needed
 });
 

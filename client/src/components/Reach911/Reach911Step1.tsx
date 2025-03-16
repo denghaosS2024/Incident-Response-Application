@@ -4,7 +4,7 @@ import Map from '../Map/Mapbox'
 
 import { AddressAutofill } from '@mapbox/search-js-react'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import IIncident from '../../models/Incident'
 import { updateIncident } from '../../redux/incidentSlice'
@@ -20,19 +20,112 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData }) => {
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
   )
-  const address = incident.address
+
+  // Local state for the input field
+  const [inputAddress, setInputAddress] = useState(incident.address || '')
+
+  // Track previous location when editing starts
+  const [isEditing, setIsEditing] = useState(false)
+  const previousLocationRef = useRef<
+    { latitude: number; longitude: number } | undefined
+  >(undefined)
+  const previousAddressRef = useRef<string>('')
+
+  // Update local input state when incident address changes from external sources
+  useEffect(() => {
+    if (!isEditing) {
+      setInputAddress(incident.address || '')
+    }
+  }, [incident.address, isEditing])
+
+  // Initialize address field from location when component loads
+  useEffect(() => {
+    const hasLocation =
+      incident.location?.latitude && incident.location?.longitude
+    const hasAddress = incident.address && incident.address.trim() !== ''
+
+    // If we have a location but no address, get the address from the location
+    if (hasLocation && !hasAddress && incident.location) {
+      const { latitude, longitude } = incident.location
+
+      // Access token
+      const accessToken =
+        'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+
+      // Reverse geocode to get address
+      fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${accessToken}`,
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.features && data.features.length > 0) {
+            const address = data.features[0].place_name
+            dispatch(
+              updateIncident({
+                ...incident,
+                address: address,
+              }),
+            )
+            setInputAddress(address)
+          }
+        })
+        .catch((error) => {
+          console.error('Error geocoding location:', error)
+        })
+    }
+  }, [incident.location, incident.address, dispatch])
 
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { value } = e.target
 
-    dispatch(
-      updateIncident({
-        ...incident,
-        address: value,
-      }),
-    )
+    // Store the previous location and address when editing starts (first change)
+    if (!isEditing && incident.location) {
+      setIsEditing(true)
+      previousLocationRef.current = { ...incident.location }
+      previousAddressRef.current = incident.address || ''
+    }
+
+    // Only update the local state, don't dispatch to Redux until blur or Enter
+    setInputAddress(value)
+  }
+
+  const handleBlur = () => {
+    // Now we apply the changes to Redux
+    if (isEditing) {
+      if (inputAddress.trim() === '') {
+        // If field is empty, restore previous values
+        if (previousLocationRef.current) {
+          dispatch(
+            updateIncident({
+              ...incident,
+              location: previousLocationRef.current,
+              address: previousAddressRef.current,
+            }),
+          )
+          // Also update local input state
+          setInputAddress(previousAddressRef.current)
+        }
+      } else {
+        // If field has a value, update with the new address
+        dispatch(
+          updateIncident({
+            ...incident,
+            address: inputAddress,
+            location: undefined, // Reset location so map will geocode this address
+          }),
+        )
+      }
+    }
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleBlur() // Use same logic as blur
+      e.currentTarget.blur() // Unfocus the input field
+    }
   }
 
   return (
@@ -63,9 +156,12 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData }) => {
                   id="outlined-basic"
                   label="Address"
                   variant="outlined"
-                  value={address}
+                  value={inputAddress}
                   autoComplete="street-address"
                   onChange={(e) => onChange(e)}
+                  onBlur={handleBlur}
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => !isEditing && setIsEditing(true)}
                 />
               </AddressAutofill>
             </form>
@@ -130,7 +226,11 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData }) => {
               padding: 0,
             }}
           >
-            <Map autoPopulateData showMarker={true} disableGeolocation={true} />
+            <Map
+              autoPopulateData={autoPopulateData}
+              showMarker={true}
+              disableGeolocation={false} // Allow geolocation if no address is set yet
+            />
           </div>
         </div>
       </Box>

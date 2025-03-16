@@ -88,8 +88,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = 'Map'
   }
 
-  if (pathname.startsWith('/groups')) {
-    title = 'Groups'
+  if (pathname.startsWith('/groups/')) {
+    title = 'Group'
   }
 
   if (pathname === '/') {

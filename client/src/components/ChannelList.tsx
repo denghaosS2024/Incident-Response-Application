@@ -64,8 +64,11 @@ export const Channel: FunctionComponent<IChannelProps> = ({
       }}
       onClick={handleClick}
     >
-      {contactIcon && <Box sx={{ mr: 1 }}>{contactIcon}</Box>}
+      {contactIcon && (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>{contactIcon}</Box>
+      )}
       <ListItemText>{displayName}</ListItemText>
+
       {isSettingButton && (
         <IconButton edge="end" size="large">
           <Arrow />

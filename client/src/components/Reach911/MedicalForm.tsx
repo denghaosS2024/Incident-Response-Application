@@ -56,6 +56,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
   const { contacts, loading } = useSelector(
     (state: RootState) => state.contactState,
   )
+  
   // Retrieving the name of the current user
   const userId = localStorage.getItem('uid')
   const currentUser = contacts.filter((user: IUser) => user._id === userId)[0]
@@ -68,6 +69,10 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
   ) => {
     const { type, value, checked } = e.target as HTMLInputElement
     const newValue: string | boolean = type === 'checkbox' ? checked : value
+
+    if (field === 'age' && (Number.isNaN(Number(value)) || value.includes(' '))) {
+      return;
+    }
 
     dispatch(
       updateIncident({
