@@ -19,6 +19,10 @@ class CarController {
     if (!name.trim()) {
       throw new Error("Car name is required");
     }
+    const existingCar = await Car.findOne({ name: name.trim() });
+    if (existingCar) {
+      throw new Error(`Car with name '${name}' already exists`);
+    }
     const car: ICar = new Car({ name: name.trim() });
     return car.save();
   }

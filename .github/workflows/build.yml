@@ -9,6 +9,17 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
+  check-commits:
+    name: Check Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Commit Message Format for Push
+        if: github.event_name == 'push'
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '^(chore|ci|docs|feat|fix|perf|refactor|release|style|test)\s\((client|server|common|infra|config|deps|other)\):\s\[(SEM-\d{4}|--)\]\s.+$'
+          error: 'Commit message does not match the required format: {type} ({scope}): [{ticket_id}] {subject}'
+
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
@@ -22,6 +33,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
+    needs: check-commits
     name: Build & Test
     runs-on: ubuntu-latest
     steps:
@@ -48,8 +60,7 @@ jobs:
       - name: Run Tests and Generate Coverage Report
         run: |
           mkdir -p coverage  # Ensure the directory exists
-          npm run test
-          # yarn jest --coverage --coverageReporters=lcov --coverageDirectory=coverage
+          npm run test       # Runs the test script defined in package.json (npm jest --coverage --coverageReporters=lcov --coverageDirectory=coverage)
           ls -R coverage/
 
       - name: Upload Coverage Report

@@ -6,7 +6,7 @@ export interface ITruck extends Document {
 }
 
 const TruckSchema = new Schema<ITruck>({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   assignedCity: {type: String, default: null},
 });
 

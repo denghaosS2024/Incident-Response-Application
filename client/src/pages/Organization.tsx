@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router-dom'
 import CityContainer from '../components/Organization/CityContainer'
 import request from '../utils/request'
 
-// Interfaces for your data, storing _id from the backend
+// Interfaces representing the backend data
 interface Car {
   assignedCity: string
   _id: string
@@ -46,19 +46,24 @@ interface Personnel {
 const Organization: React.FC = () => {
   const navigate = useNavigate()
 
+  // Arrays for each data type
   const [cars, setCars] = useState<Car[]>([])
   const [trucks, setTrucks] = useState<Truck[]>([])
   const [cities, setCities] = useState<City[]>([])
   const [personnel, setPersonnel] = useState<Personnel[]>([])
+
+  // Inputs for creating new items
   const [newCar, setNewCar] = useState('')
   const [newTruck, setNewTruck] = useState('')
   const [newCity, setNewCity] = useState('')
+
+  // Used to refresh CityContainer after changes
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
-  // For responsive spacing/text
+  // For responsive layout
   const isMobile = useMediaQuery('(max-width:600px)')
 
-  // Fetch all data from backend
+  // Fetch all data from the backend
   const fetchAllData = async () => {
     try {
       const [carsData, trucksData, citiesData, personnelData] =
@@ -77,12 +82,11 @@ const Organization: React.FC = () => {
     }
   }
 
-  // On mount
   useEffect(() => {
     fetchAllData()
   }, [])
 
-  // Sorting for display
+  // Sort for display purposes
   const sortedCars = [...cars].sort((a, b) => a.name.localeCompare(b.name))
   const sortedTrucks = [...trucks].sort((a, b) => a.name.localeCompare(b.name))
   const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name))
@@ -90,15 +94,28 @@ const Organization: React.FC = () => {
     a.name.localeCompare(b.name),
   )
 
-  // -------------------
-  //     ADD/REMOVE
-  // -------------------
+  // -----------------------------
+  //        CREATE & DELETE
+  // -----------------------------
+
+  // Create a new Car (with uniqueness check)
   const addCar = async () => {
-    if (!newCar.trim()) return
+    const candidate = newCar.trim()
+    if (!candidate) return
+
+    // Check duplicates
+    const alreadyExists = cars.some(
+      (c) => c.name.toLowerCase() === candidate.toLowerCase(),
+    )
+    if (alreadyExists) {
+      alert(`A car named "${candidate}" already exists!`)
+      return
+    }
+
     try {
       await request('/api/cars', {
         method: 'POST',
-        body: JSON.stringify({ name: newCar.trim() }),
+        body: JSON.stringify({ name: candidate }),
       })
       setNewCar('')
       await fetchAllData()
@@ -116,12 +133,24 @@ const Organization: React.FC = () => {
     }
   }
 
+  // Create a new Truck (with uniqueness check)
   const addTruck = async () => {
-    if (!newTruck.trim()) return
+    const candidate = newTruck.trim()
+    if (!candidate) return
+
+    // Check duplicates
+    const alreadyExists = trucks.some(
+      (t) => t.name.toLowerCase() === candidate.toLowerCase(),
+    )
+    if (alreadyExists) {
+      alert(`A truck named "${candidate}" already exists!`)
+      return
+    }
+
     try {
       await request('/api/trucks', {
         method: 'POST',
-        body: JSON.stringify({ name: newTruck.trim() }),
+        body: JSON.stringify({ name: candidate }),
       })
       setNewTruck('')
       await fetchAllData()
@@ -139,12 +168,24 @@ const Organization: React.FC = () => {
     }
   }
 
+  // Create a new City (with uniqueness check)
   const addCity = async () => {
-    if (!newCity.trim()) return
+    const candidate = newCity.trim()
+    if (!candidate) return
+
+    // Check duplicates
+    const alreadyExists = cities.some(
+      (ci) => ci.name.toLowerCase() === candidate.toLowerCase(),
+    )
+    if (alreadyExists) {
+      alert(`A city named "${candidate}" already exists!`)
+      return
+    }
+
     try {
       await request('/api/cities', {
         method: 'POST',
-        body: JSON.stringify({ name: newCity.trim() }),
+        body: JSON.stringify({ name: candidate }),
       })
       setNewCity('')
       await fetchAllData()
@@ -153,34 +194,28 @@ const Organization: React.FC = () => {
     }
   }
 
-  // Remove city only if empty
-  // const removeCity = async (cityId: string) => {
-  //   const city = cities.find((c) => c._id === cityId)
-  //   if (!city) return
+  // -----------------------------
+  //     REMOVE CITY LOGIC
+  // -----------------------------
+  const removeCity = async (cityId: string) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this city? All associated cars/trucks/personnel will be unassigned.',
+    )
+    if (!confirmed) return
 
-  //   // Check if city has assigned items by city._id
-  //   const hasPersonnel = personnel.some((p) => p.assignedCity === city._id)
-  //   const hasCars = cars.some((c) => c.assignedCity === city._id)
-  //   const hasTrucks = trucks.some((t) => t.assignedCity === city._id)
+    try {
+      // The backend will automatically unassign any associated items
+      await request(`/api/cities/${cityId}`, { method: 'DELETE' })
+      // Refresh data to reflect changes
+      await fetchAllData()
+    } catch (err) {
+      console.error('Error deleting city:', err)
+    }
+  }
 
-  //   if (hasPersonnel || hasCars || hasTrucks) {
-  //     console.error(
-  //       `Cannot delete city "${city.name}" because it is not empty.`,
-  //     )
-  //     return
-  //   }
-
-  //   try {
-  //     await request(`/api/cities/${cityId}`, { method: 'DELETE' })
-  //     setCities((prev) => prev.filter((c) => c._id !== cityId))
-  //   } catch (err) {
-  //     console.error('Error deleting city:', err)
-  //   }
-  // }
-
-  // -------------------
-  //   DRAG & DROP
-  // -------------------
+  // -----------------------------
+  //     DRAG & DROP LOGIC
+  // -----------------------------
   const onDragEnd = async (result: DropResult) => {
     const { source, destination, draggableId } = result
     if (!destination) return
@@ -216,7 +251,7 @@ const Organization: React.FC = () => {
 
       <DragDropContext onDragEnd={onDragEnd}>
         <Box display="flex" justifyContent="space-between">
-          {/* LEFT: PERSONNEL, CARS, TRUCKS */}
+          {/* LEFT SIDE: PERSONNEL, CARS, TRUCKS */}
           <Card style={{ width: isMobile ? '45%' : '30%' }}>
             <CardContent>
               {/* PERSONNEL */}
@@ -392,7 +427,7 @@ const Organization: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* RIGHT: CITIES */}
+          {/* RIGHT SIDE: CITIES */}
           <Card style={{ width: isMobile ? '50%' : '60%' }}>
             <CardContent>
               <Typography variant="h6">Cities</Typography>
@@ -409,65 +444,61 @@ const Organization: React.FC = () => {
               </Box>
 
               <List>
-                {sortedCities.map((city) => {
-                  // Check if city is empty by comparing assignedCity to city._id
-                  const hasPersonnel = personnel.some(
-                    (p) => p.assignedCity === city._id,
-                  )
-                  const hasCars = cars.some((c) => c.assignedCity === city._id)
-                  const hasTrucks = trucks.some(
-                    (t) => t.assignedCity === city._id,
-                  )
-                  const isEmpty = !hasPersonnel && !hasCars && !hasTrucks
-
-                  return (
-                    <Droppable key={city._id} droppableId={`city-${city.name}`}>
-                      {(provided) => (
-                        <ListItem
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
+                {sortedCities.map((city) => (
+                  <Droppable key={city._id} droppableId={`city-${city.name}`}>
+                    {(provided) => (
+                      <ListItem
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          border: '1px solid #ccc',
+                          marginBottom: 1,
+                          borderRadius: 1,
+                        }}
+                      >
+                        <Box
                           sx={{
                             display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'flex-start',
-                            border: '1px solid #ccc',
-                            marginBottom: 1,
-                            borderRadius: 1,
+                            width: '100%',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
                           }}
                         >
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              width: '100%',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
+                          <ListItemText
+                            primary={city.name}
+                            primaryTypographyProps={{
+                              variant: 'subtitle1',
+                              style: {
+                                fontWeight: 'bold',
+                                color: '#222',
+                              },
                             }}
+                          />
+                          {/* Delete button: the backend will unassign automatically */}
+                          <IconButton
+                            edge="end"
+                            onClick={() => removeCity(city._id)}
                           >
-                            <ListItemText primary={city.name} />
-                            {/* {isEmpty && (
-                              <IconButton
-                                edge="end"
-                                onClick={() => removeCity(city._id)}
-                              >
-                                <Delete />
-                              </IconButton>
-                            )} */}
-                          </Box>
+                            <Delete />
+                          </IconButton>
+                        </Box>
 
-                          {/* CityContainer for assigned vehicles & personnel */}
-                          <Box>
-                            <CityContainer
-                              cityName={city.name}
-                              refreshTrigger={refreshTrigger}
-                            />
-                          </Box>
+                        {/* CityContainer displays assigned cars/trucks/personnel */}
+                        <Box>
+                          <CityContainer
+                            cityName={city.name}
+                            refreshTrigger={refreshTrigger}
+                          />
+                        </Box>
 
-                          {provided.placeholder}
-                        </ListItem>
-                      )}
-                    </Droppable>
-                  )
-                })}
+                        {provided.placeholder}
+                      </ListItem>
+                    )}
+                  </Droppable>
+                ))}
               </List>
             </CardContent>
           </Card>

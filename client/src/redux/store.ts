@@ -1,9 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit'
-import contactReducer from '../features/contactSlice'
-import messageReducer from '../features/messageSlice'
-import incidentReducer from '../features/incidentSlice'
-import profileReducer from '../features/profileSlice'
-
+import contactReducer from './contactSlice'
+import incidentReducer from './incidentSlice'
+import messageReducer from './messageSlice'
+import profileReducer from './profileSlice'
+import snackbarReducer from './snackbarSlice'
+import storageReducer from './storageSlice'
 /**
  * Redux Store Configuration
  *
@@ -33,7 +34,9 @@ export const store = configureStore({
     messageState: messageReducer, // Reducer for managing message state
     contactState: contactReducer, // Reducer for managing contact state
     incidentState: incidentReducer, // Reducer for managing incident state
-    profileState: profileReducer, // Reducer for managing profile state 
+    profileState: profileReducer, // Reducer for managing profile state
+    snackbarState: snackbarReducer, // Reducer for managing snackbar state
+    storage: storageReducer, // Reducer for managing storage state
   },
 })
 
@@ -43,3 +46,5 @@ export const store = configureStore({
 
 // Export AppDispatch type for use in typed dispatch calls
 export type AppDispatch = typeof store.dispatch
+
+export type RootState = ReturnType<typeof store.getState>

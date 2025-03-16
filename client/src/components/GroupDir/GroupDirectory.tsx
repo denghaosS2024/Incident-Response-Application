@@ -35,10 +35,10 @@ const GroupDirectory: React.FC = () => {
                 return [];
             });
             allClosedGroups = allClosedGroups
-              .filter((channel: IChannel) => {
-                // keep only groups owned by current user
-                return channel.name !== "PrivateContact" && channel.owner._id === owner;
-              })
+              // .filter((channel: IChannel) => {
+              //   // keep only groups owned by current user
+              //   return channel.name !== "PrivateContact" && channel.owner._id === owner;
+              // })
               .sort((a: IChannel, b: IChannel) => a.name.localeCompare(b.name))
             setMyclosedChannels(allClosedGroups);
         } catch (error) {

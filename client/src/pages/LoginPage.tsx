@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
-import { AppDispatch } from '@/app/store'
+import { AppDispatch } from '@/redux/store'
 import { Box, Typography } from '@mui/material'
+import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router'
+import AlertSnackbar from '../components/common/AlertSnackbar'
 import LoginForm, { IProps as ILoginFormProps } from '../components/LoginForm'
 import request, { IRequestError } from '../utils/request'
-import AlertSnackbar from '../components/common/AlertSnackbar'
 
 // LoginPage component: Handles user authentication
 const LoginPage: React.FC = () => {
@@ -37,6 +37,9 @@ const LoginPage: React.FC = () => {
       localStorage.setItem('uid', _id)
       localStorage.setItem('username', username)
       localStorage.setItem('role', role)
+
+      // Wait for half a second before proceeding (localStorage is not always immediately available)
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
       dispatch({ type: 'socket/connect' })
 

@@ -1,36 +1,37 @@
-import React, { useState, useEffect } from 'react'
-import { IconButton, Menu, MenuItem, Dialog } from '@mui/material'
-import { AttachFile, CameraAlt } from '@mui/icons-material'
-import MessageVideoRecorder from './MessageVideoRecorder'
+import { AttachFile } from '@mui/icons-material'
+import { Dialog, IconButton, Menu, MenuItem } from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { addMessage } from '../features/messageSlice'
 import request from '../utils/request'
+import CameraCapture from './CameraCapture'
 import FileUploadForm from './FileUploadForm'
-import CameraCapture from './CameraCapture';
+import MessageVideoRecorder from './MessageVideoRecorder'
 
 interface MessageAttachmentOptionsProps {
-  channelId: string,
+  channelId: string
   currentUserId: string
 }
 
 const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
   channelId,
-  currentUserId
+  currentUserId,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false)
   const [videoRecorderOpen, setVideoRecorderOpen] = useState<boolean>(false)
-  const [openFileUpload, setOpenFileUpload] = useState(false);
-  const [openCamera, setOpenCamera] = useState(false);
-  const handleOpenFileUpload = () => setOpenFileUpload(true);
-  const handleCloseFileUpload = () => setOpenFileUpload(false);
+  const [openFileUpload, setOpenFileUpload] = useState(false)
+  const [openCamera, setOpenCamera] = useState(false)
+  const handleOpenFileUpload = () => setOpenFileUpload(true)
+  const handleCloseFileUpload = () => setOpenFileUpload(false)
   const dispatch = useDispatch()
 
   useEffect(() => {
     const fetchChannelDetails = async () => {
       try {
-        const channels = await request(`/api/channels`) 
-        const currentChannel = channels.find((channel: any) => channel._id === channelId) // Find the current channel
+        const channels = await request(`/api/channels`)
+        const currentChannel = channels.find(
+          (channel: any) => channel._id === channelId,
+        ) // Find the current channel
         if (currentChannel) {
           setPrivateChannel(currentChannel.users.length === 2) // Check if only two users exist in the channel
         }
@@ -40,7 +41,7 @@ const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
     }
 
     fetchChannelDetails()
-  }, [channelId])  
+  }, [channelId])
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -78,29 +79,36 @@ const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
         onClose={handleMenuClose}
       >
         {/* Existing attachment options can go here */}
-        <MenuItem onClick={handelOpenCamera}>
-          Take Photo
-        </MenuItem>
+        <MenuItem onClick={handelOpenCamera}>Take Photo</MenuItem>
 
-        <MenuItem onClick={openVideoRecorder}>
-          Record Video
-        </MenuItem>
+        <MenuItem onClick={openVideoRecorder}>Record Video</MenuItem>
 
-        <MenuItem onClick={handleOpenFileUpload}>
-          File Upload
-        </MenuItem>
+        <MenuItem onClick={handleOpenFileUpload}>File Upload</MenuItem>
       </Menu>
-      
-      <Dialog open={openCamera} onClose={handelcCloseCamera} maxWidth="sm" fullWidth>
+
+      <Dialog
+        open={openCamera}
+        onClose={handelcCloseCamera}
+        maxWidth="sm"
+        fullWidth
+      >
         <CameraCapture channelId={channelId} currentUserId={currentUserId} />
       </Dialog>
       {/* Modal for video recording */}
-      <Dialog open={videoRecorderOpen} onClose={closeVideoRecorder} maxWidth="sm" fullWidth>
-        <MessageVideoRecorder channelId={channelId} currentUserId={currentUserId} />
+      <Dialog
+        open={videoRecorderOpen}
+        onClose={closeVideoRecorder}
+        maxWidth="sm"
+        fullWidth
+      >
+        <MessageVideoRecorder
+          channelId={channelId}
+          currentUserId={currentUserId}
+        />
       </Dialog>
 
       <Dialog open={openFileUpload} onClose={handleCloseFileUpload}>
-        <FileUploadForm onClose={handleCloseFileUpload}  channelId={channelId} />
+        <FileUploadForm onClose={handleCloseFileUpload} channelId={channelId} />
       </Dialog>
     </>
   )

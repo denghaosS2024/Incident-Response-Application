@@ -75,8 +75,6 @@ personnelRouter.get("/", async (_req: Request, res: Response) => {
 personnelRouter.put("/cities", async (req: Request, res: Response) => {
   try {
     const { username, cityName } = req.body;
-    console.log('username:', username);
-    console.log('cityName:', cityName);
     const updatedPersonnel = await PersonnelController.updatePersonnelCity(username, cityName);
     res.status(200).json(updatedPersonnel);
   } catch (err) {

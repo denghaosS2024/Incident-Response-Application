@@ -1,12 +1,30 @@
-import { Meta, StoryObj } from '@storybook/react'
-import { Home, Message, PermContactCalendar, LocalPolice, LocalFireDepartment, LocalHospital } from '@mui/icons-material'
+import {
+  Home,
+  LocalFireDepartment,
+  LocalHospital,
+  LocalPolice,
+  Message,
+  PermContactCalendar,
+} from '@mui/icons-material'
 import Groups2Icon from '@mui/icons-material/Groups2'
-import TabBar, { Link } from '../components/TabBar'
+import { Badge } from '@mui/material'
+import { Meta, StoryObj } from '@storybook/react'
 import { useState } from 'react'
+import TabBar, { Link } from '../components/TabBar'
 
 const roleHomeTabs: Record<string, Link> = {
   Citizen: { prefix: '/', key: 'home', icon: <Home />, to: '#' },
-  Dispatch: { prefix: '/', key: 'dispatch', icon:<img src="/911-icon-selected.png" style={{ width: '28px', height: '28px', borderRadius: '8px' }} />, to: '#' },
+  Dispatch: {
+    prefix: '/',
+    key: 'dispatch',
+    icon: (
+      <img
+        src="/911-icon-selected.png"
+        style={{ width: '28px', height: '28px', borderRadius: '8px' }}
+      />
+    ),
+    to: '#',
+  },
   Police: { prefix: '/', key: 'police', icon: <LocalPolice />, to: '#' },
   Fire: { prefix: '/', key: 'fire', icon: <LocalFireDepartment />, to: '#' },
   Nurse: { prefix: '/', key: 'nurse', icon: <LocalHospital />, to: '#' },
@@ -14,7 +32,12 @@ const roleHomeTabs: Record<string, Link> = {
 
 const commonLinks: Link[] = [
   { prefix: '/messages', key: 'msg', icon: <Message />, to: '#' },
-  { prefix: '/contacts', key: 'contacts', icon: <PermContactCalendar />, to: '#' },
+  {
+    prefix: '/contacts',
+    key: 'contacts',
+    icon: <PermContactCalendar />,
+    to: '#',
+  },
   { prefix: '/groups', key: 'groups', icon: <Groups2Icon />, to: '#' },
 ]
 
@@ -23,7 +46,7 @@ const meta: Meta<typeof TabBar> = {
   component: TabBar,
   tags: ['autodocs'],
   parameters: {
-    role: 'Citizen', 
+    role: 'Citizen',
   },
 }
 
@@ -32,7 +55,7 @@ type Story = StoryObj<typeof meta>
 
 export const RoleBasedTabBar: Story = {
   parameters: {
-    role: 'Citizen', 
+    role: 'Citizen',
   },
   render: (_, { parameters }) => {
     const role = parameters.role as keyof typeof roleHomeTabs
@@ -43,8 +66,46 @@ export const RoleBasedTabBar: Story = {
   },
 }
 
-export const CitizenView = { ...RoleBasedTabBar, parameters: { role: 'Citizen' } }
-export const DispatchView = { ...RoleBasedTabBar, parameters: { role: 'Dispatch' } }
+export const CitizenView = {
+  ...RoleBasedTabBar,
+  parameters: { role: 'Citizen' },
+}
+export const DispatchView = {
+  ...RoleBasedTabBar,
+  parameters: { role: 'Dispatch' },
+}
 export const PoliceView = { ...RoleBasedTabBar, parameters: { role: 'Police' } }
 export const FireView = { ...RoleBasedTabBar, parameters: { role: 'Fire' } }
 export const NurseView = { ...RoleBasedTabBar, parameters: { role: 'Nurse' } }
+
+export const CitizenUnreadMessageView: Story = {
+  parameters: { role: 'Citizen' },
+  render: (_, { parameters }) => {
+    const UnreadMessageComponent = () => {
+      const role = parameters.role as keyof typeof roleHomeTabs
+      const homeTab = roleHomeTabs[role] || roleHomeTabs['Citizen']
+      const unreadMessageLink: Link = {
+        prefix: '/messages',
+        key: 'msg',
+        icon: (
+          <Badge badgeContent="!" color="error">
+            <Message />
+          </Badge>
+        ),
+        to: '#',
+      }
+      const otherLinks: Link[] = [
+        {
+          prefix: '/contacts',
+          key: 'contacts',
+          icon: <PermContactCalendar />,
+          to: '#',
+        },
+        { prefix: '/groups', key: 'groups', icon: <Groups2Icon />, to: '#' },
+      ]
+      const [links] = useState([homeTab, unreadMessageLink, ...otherLinks])
+      return <TabBar links={links} />
+    }
+    return <UnreadMessageComponent />
+  },
+}
