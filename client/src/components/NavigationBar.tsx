@@ -56,6 +56,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     '/reach911': '911 Call',
     '/incidents': 'Incidents',
     '/organization': 'Organization',
+    '/organization/view': 'Organization',
     '/map': 'Map',
   }
 
