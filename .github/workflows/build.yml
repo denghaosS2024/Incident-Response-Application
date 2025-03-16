@@ -108,7 +108,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' # Only deploy on master branch
     steps:
-      - name: Deploy Server
-        run: curl "https://api.render.com/deploy/srv-curdjvjqf0us73fijapg?key=JcOMQ1ytI9c"
-      - name: Deploy Client
-        run: curl "https://api.render.com/deploy/srv-cuuarthopnds739vidb0?key=g7rBrnrhQIk"
+#      - name: Deploy Server
+#        run: curl "https://api.render.com/deploy/srv-curdjvjqf0us73fijapg?key=JcOMQ1ytI9c"
+#      - name: Deploy Client
+#        run: curl "https://api.render.com/deploy/srv-cuuarthopnds739vidb0?key=g7rBrnrhQIk"
+      - name: Deploy Server 2
+        run: curl "https://api.render.com/deploy/srv-cvb74tvnoe9s73fi4lug?key=MkoEGsRIocc"
+      - name: Deploy Client 2
+        run: curl "https://api.render.com/deploy/srv-cvb714an91rc739dlcl0?key=ubuWv2lQm_I"
