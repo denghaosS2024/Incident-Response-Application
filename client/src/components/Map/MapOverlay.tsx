@@ -1,29 +1,30 @@
-import BuildIcon from '@mui/icons-material/Build';
-import ContactsIcon from '@mui/icons-material/Contacts';
-import GroupIcon from '@mui/icons-material/Group';
-import LayersIcon from '@mui/icons-material/Layers';
-import LayersClearIcon from '@mui/icons-material/LayersClear';
-import PersonIcon from '@mui/icons-material/Person';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import React, { useEffect, useState } from 'react';
-import eventEmitter from '../../utils/eventEmitter';
+import BuildIcon from '@mui/icons-material/Build'
+import ContactsIcon from '@mui/icons-material/Contacts'
+import GroupIcon from '@mui/icons-material/Group'
+import PersonIcon from '@mui/icons-material/Person'
+import Box from '@mui/material/Box'
+import List from '@mui/material/List'
+import ListItemButton from '@mui/material/ListItemButton'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
+import React, { useEffect, useState } from 'react'
+import eventEmitter from '../../utils/eventEmitter'
 
-import { AppDispatch } from '@/redux/store';
-import { RootState } from '@/utils/types';
-import { useDispatch, useSelector } from 'react-redux';
-import IChannel from '../../models/Channel';
-import IUser from '../../models/User';
-import { loadContacts } from '../../redux/contactSlice';
-import styles from '../../styles/MapLayer.module.css';
-import request from '../../utils/request';
-import getRoleIcon from '../common/RoleIcon';
+import LayersIcon from '@mui/icons-material/Layers'
+import LayersClearIcon from '@mui/icons-material/LayersClear'
+import IconButton from '@mui/material/IconButton'
+import { useDispatch, useSelector } from 'react-redux'
+import IChannel from '../../models/Channel'
+import IUser from '../../models/User'
+import { loadContacts } from '../../redux/contactSlice'
+import { AppDispatch } from '../../redux/store'
+import styles from '../../styles/MapOverlay.module.css'
+import { RootState } from '../../utils/types'
+import getRoleIcon from '../common/RoleIcon'
+import MapGroupItems from './MapGroupItems'
+import MapOverlayUtil from './MapOverlayUtil'
 
-const MapLayer: React.FC = () => {
+const MapOverlay: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(3)
   const [isVisible, setIsVisible] = useState<boolean>(false)
   const [navbarHeight, setNavbarHeight] = useState<number>(56)
@@ -39,10 +40,8 @@ const MapLayer: React.FC = () => {
   const [activeGroup, setActiveGroup] = useState<Record<string, boolean>>({})
 
   // State for storing groups
-  const [myManagingGroups, setMyManagingGroups] = useState<IChannel[]>([])
-  const [myParticipatingGroups, setMyParticipatingGroups] = useState<
-    IChannel[]
-  >([])
+  const [myManagingGroups, setOwnedGroups] = useState<IChannel[]>([])
+  const [myParticipatingGroups, setActiveGroups] = useState<IChannel[]>([])
   const [groupsLoading, setGroupsLoading] = useState<boolean>(true)
 
   const [activeMainButtons, setActiveMainButtons] = useState({
@@ -56,72 +55,50 @@ const MapLayer: React.FC = () => {
   const { contacts, loading } = useSelector(
     (state: RootState) => state.contactState,
   )
-  const currentUserId = localStorage.getItem('uid')
-  const users = contacts.filter((user: IUser) => user._id !== currentUserId)
 
-  const currentUserRole = localStorage.getItem('role') || 'Citizen'
-  const normalizedRole = currentUserRole.toLowerCase()
-  let roleKey = 'Citizen'
-  if (normalizedRole.includes('admin')) {
-    roleKey = 'Administrator'
-  } else if (normalizedRole.includes('nurse')) {
-    roleKey = 'Nurse'
-  } else if (normalizedRole.includes('fire')) {
-    roleKey = 'Fire'
-  } else if (normalizedRole.includes('police')) {
-    roleKey = 'Police'
+  const utilLayers = MapOverlayUtil.getUtilItems().sort()
+
+  const handleSelectUtil = (layer: string, visible: boolean) => {
+    if (layer === 'Util') {
+      setActiveMainButtons((prev) => ({
+        ...prev,
+        util: visible,
+      }))
+
+      // Open util dropdown if any of the util layers drops down a marker
+      if (visible) {
+        setSelectedIndex(1)
+      }
+    } else {
+      // Update visibility of util layers when toggled from the map
+      setActiveUtil((prev) => ({
+        ...prev,
+        [layer]: visible,
+      }))
+    }
   }
-
-  const roleUtilMapping: Record<string, string[]> = {
-    Citizen: ['Areas', 'Hospitals', 'Pins', 'Pollution'],
-    Fire: [
-      'Areas',
-      'Blocks',
-      'Cars',
-      'Hospitals',
-      'Hydrants',
-      'Incidents',
-      'Pins',
-      'Pollution',
-      'SAR',
-      'Trucks',
-    ],
-    Police: [
-      'Areas',
-      'Blocks',
-      'Cars',
-      'Hospitals',
-      'Hydrants',
-      'Incidents',
-      'Pins',
-      'Pollution',
-      'SAR',
-      'Trucks',
-    ],
-    Nurse: ['Areas', 'Hospitals', 'Incidents', 'Pins', 'Pollution', 'Trucks'],
-    Administrator: [
-      'Areas',
-      'Blocks',
-      'Cars',
-      'Hospitals',
-      'Hydrants',
-      'Incidents',
-      'Pins',
-      'Pollution',
-      'SAR',
-      'Trucks',
-    ],
-  }
-
-  const utilLayers = roleUtilMapping[roleKey] || []
-  const sortedUtilLayers = [...utilLayers].sort()
 
   useEffect(() => {
+    // Configure overlay dimensions based on current page
+    // These are dead code
     const navbar = document.querySelector('header')
     const tabbar = document.querySelector('[role="tablist"]')
     if (navbar) setNavbarHeight(navbar.clientHeight)
     if (tabbar) setTabbarHeight(tabbar.clientHeight)
     const path = window.location.pathname
+
+    //Fetch groups
+    setGroupsLoading(true)
+
+    MapOverlayUtil.fetchGroups()
+      .then((groups) => {
+        if (groups) {
+          setActiveGroups(groups.active)
+          setOwnedGroups(groups.owned)
+        }
+      })
+      .finally(() => setGroupsLoading(false))
+
     setIsFullPage(path === '/map')
     setIs911Page(path.includes('911'))
   }, [])
@@ -130,81 +107,8 @@ const MapLayer: React.FC = () => {
     dispatch(loadContacts())
   }, [dispatch])
 
-  // Fetch groups
-  useEffect(() => {
-    const fetchGroups = async () => {
-      setGroupsLoading(true)
-      try {
-        const owner = localStorage.getItem('uid') || ''
-
-        // Fetch groups the user is participating in
-        const myGroups = await request(`/api/channels/groups/${owner}`, {
-          method: 'GET',
-        }).catch((error) => {
-          console.error('Error fetching groups:', error)
-          return []
-        })
-
-        // Filter active groups the user is participating in
-        const activeGroups = myGroups.filter((group: IChannel) => !group.closed)
-        setMyParticipatingGroups(activeGroups)
-
-        // Filter groups the user is managing (owner of)
-        const ownedGroups = myGroups.filter(
-          (group: IChannel) => group.owner?._id === owner && !group.closed,
-        )
-        setMyManagingGroups(ownedGroups)
-      } catch (error) {
-        console.error('Error fetching groups:', error)
-      } finally {
-        setGroupsLoading(false)
-      }
-    }
-
-    fetchGroups()
-  }, [])
-
-  useEffect(() => {
-    const handleSelectUtil = (select: boolean) => {
-      if (select) {
-        setSelectedIndex(1)
-      }
-    }
-    eventEmitter.on('selectUtil', handleSelectUtil)
-
-    return () => {
-      eventEmitter.removeListener('selectUtil', handleSelectUtil)
-    }
-  }, [])
-
   // Listen for util visibility events to update the state from mapbox component
   useEffect(() => {
-    const handleSelectUtil = ({
-      layer,
-      visible,
-    }: {
-      layer: string
-      visible: boolean
-    }) => {
-      if (layer === 'Util') {
-        setActiveMainButtons((prev) => ({
-          ...prev,
-          util: visible,
-        }))
-
-        // Open util dropdown if any of the util layers drops down a marker
-        if (visible) {
-          setSelectedIndex(1)
-        }
-      } else {
-        // Update visibility of util layers when toggled from the map
-        setActiveUtil((prev) => ({
-          ...prev,
-          [layer]: visible,
-        }))
-      }
-    }
-
     eventEmitter.on('selectUtil', handleSelectUtil)
 
     return () => {
@@ -217,14 +121,11 @@ const MapLayer: React.FC = () => {
     eventEmitter.emit('you_button_clicked', true)
   }, [])
 
-  const handleListItemClick = (
-    event: React.MouseEvent<HTMLDivElement>,
-    index: number,
-  ) => {
-    if (selectedIndex === index) {
+  const handleContactsClick = () => {
+    if (selectedIndex === 2) {
       setSelectedIndex(null)
     } else {
-      setSelectedIndex(index)
+      setSelectedIndex(2)
     }
   }
 
@@ -256,27 +157,7 @@ const MapLayer: React.FC = () => {
       ...prev,
       [layer]: !prev[layer],
     }))
-    handleUtilLayerClick(layer)
-  }
-
-  // emit toggle visibility event for util layers to show/hide on map
-  const handleUtilLayerClick = (layer: string) => {
-    switch (layer) {
-      case 'Pins':
-        eventEmitter.emit('toggle_pin')
-        break
-      case 'Blocks':
-        eventEmitter.emit('toggle_roadblock')
-        break
-      case 'Hydrants':
-        eventEmitter.emit('toggle_fireHydrant')
-        break
-      case 'Areas':
-        eventEmitter.emit('area_util')
-        break
-      default:
-        console.log(`Util Layer clicked: ${layer}`)
-    }
+    MapOverlayUtil.onUtilLayerClick(layer)
   }
 
   const toggleVisibility = () => {
@@ -284,22 +165,7 @@ const MapLayer: React.FC = () => {
     if (!isVisible) setSelectedIndex(null)
   }
 
-  const menuStyle = isFullPage
-    ? { left: '20px', bottom: '120px', top: 'auto', transform: 'none' }
-    : is911Page
-      ? { left: '20px', bottom: '120px', top: 'auto', transform: 'none' }
-      : { left: '20px', top: '45%', transform: 'translateY(-50%)' }
-
-  const toggleButtonStyle = {
-    position: 'absolute',
-    bottom: '60px',
-    left: '20px',
-    zIndex: 1000,
-    bgcolor: 'white',
-    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.2)',
-    width: '40px',
-    height: '40px',
-  }
+  const menuStyle = MapOverlayUtil.getMenuStyle(isFullPage, is911Page)
 
   // change background color of selected item
   const getButtonStyle = (index: number) => ({
@@ -307,75 +173,46 @@ const MapLayer: React.FC = () => {
   })
 
   const handleMainButtonClick = (
-    button: 'group' | 'util' | 'contacts' | 'you',
+    buttonText: 'group' | 'util' | 'contacts' | 'you',
   ) => {
+    // Index of sub-pages in the overlay
+    const stateMapping: Record<string, number> = {
+      group: 0,
+      util: 1,
+      contacts: 2,
+    }
+
     setActiveMainButtons((prev) => {
       const newState = {
         ...prev,
-        [button]: !prev[button],
+        [buttonText]: !prev[buttonText],
       }
 
       // Emit you button clicked event
       // new state is true if the button is clicked and false otherwise
-      if (button === 'you') {
+      if (buttonText === 'you') {
         eventEmitter.emit('you_button_clicked', newState.you)
       }
 
       return newState
     })
 
-    if (button === 'group') {
-      if (selectedIndex === 0) {
-        setSelectedIndex(null)
-      } else {
-        setSelectedIndex(0)
-      }
-    } else if (button === 'contacts') {
-      if (selectedIndex === 2) {
-        setSelectedIndex(null)
-      } else {
-        setSelectedIndex(2)
-      }
-    } else if (button === 'util') {
-      if (selectedIndex === 1) {
-        setSelectedIndex(null)
-      } else {
-        setSelectedIndex(1)
-      }
+    if (buttonText === 'you') {
+      return
+    } else if (stateMapping[buttonText] === selectedIndex) {
+      setSelectedIndex(null)
+    } else {
+      setSelectedIndex(stateMapping[buttonText])
     }
-  }
-
-  const renderGroupItems = (groups: IChannel[]) => {
-    if (groups.length === 0) return null
-
-    return (
-      <>
-        {groups.map((group) => (
-          <ListItemButton
-            dense
-            key={group._id}
-            onClick={() => handleGroupItemClick(group._id)}
-            sx={{
-              backgroundColor: activeGroup[group._id]
-                ? '#F0F5FB'
-                : 'transparent',
-              fontSize: '0.875rem',
-            }}
-          >
-            <ListItemText primary={group.name} sx={{ fontSize: '0.875rem' }} />
-          </ListItemButton>
-        ))}
-      </>
-    )
   }
 
   return (
     <div>
       <Box
-        className={`${styles.levitatingList} ${!isVisible ? styles.hidden : ''}`}
+        className={`${styles.levitatingList} ${!isVisible ? 'hidden' : ''}`}
         style={menuStyle}
       >
-        <List component="nav" aria-label="map layer selection" dense>
+        <List component="nav" aria-label="map layer selection">
           {/* Group */}
           <ListItemButton
             dense
@@ -434,8 +271,16 @@ const MapLayer: React.FC = () => {
                   </ListItemButton>
                 ) : (
                   <>
-                    {renderGroupItems(myManagingGroups)}
-                    {renderGroupItems(myParticipatingGroups)}
+                    <MapGroupItems
+                      groups={myManagingGroups}
+                      activeGroup={activeGroup}
+                      onItemClick={handleGroupItemClick}
+                    />
+                    <MapGroupItems
+                      groups={myParticipatingGroups}
+                      activeGroup={activeGroup}
+                      onItemClick={handleGroupItemClick}
+                    />
                   </>
                 )}
               </List>
@@ -483,7 +328,7 @@ const MapLayer: React.FC = () => {
               }}
             >
               <List dense>
-                {sortedUtilLayers.map((layer) => (
+                {utilLayers.map((layer) => (
                   <ListItemButton
                     dense
                     key={layer}
@@ -508,7 +353,7 @@ const MapLayer: React.FC = () => {
           {/* Contacts */}
           <ListItemButton
             dense
-            onClick={(e) => handleListItemClick(e, 2)}
+            onClick={handleContactsClick}
             sx={getButtonStyle(2)}
           >
             <ListItemIcon sx={{ minWidth: '32px', mr: 1 }}>
@@ -548,7 +393,7 @@ const MapLayer: React.FC = () => {
                       sx={{ fontSize: '0.875rem' }}
                     />
                   </ListItemButton>
-                ) : users.length === 0 ? (
+                ) : MapOverlayUtil.getUsers(contacts).length === 0 ? (
                   <ListItemButton>
                     <ListItemText
                       primary="No contacts"
@@ -556,7 +401,7 @@ const MapLayer: React.FC = () => {
                     />
                   </ListItemButton>
                 ) : (
-                  users.map((user: IUser) => (
+                  MapOverlayUtil.getUsers(contacts).map((user: IUser) => (
                     <ListItemButton
                       dense
                       key={user._id}
@@ -603,19 +448,28 @@ const MapLayer: React.FC = () => {
         </List>
       </Box>
 
-      <IconButton
-        className={styles.toggleButton}
-        onClick={toggleVisibility}
-        sx={toggleButtonStyle}
-      >
-        {isVisible ? (
-          <LayersClearIcon fontSize="small" />
-        ) : (
-          <LayersIcon fontSize="small" />
-        )}
-      </IconButton>
+      {/* Overlay Toggle */}
+
+      <div className="bg-white">
+        <IconButton
+          className={`${styles.toggleButton}`}
+          onClick={toggleVisibility}
+          sx={{
+            position: 'absolute',
+            bottom: '60px',
+            left: '20px',
+            zIndex: 1000,
+          }}
+        >
+          {isVisible ? (
+            <LayersClearIcon fontSize="small" />
+          ) : (
+            <LayersIcon fontSize="small" />
+          )}
+        </IconButton>
+      </div>
     </div>
   )
 }
 
-export default MapLayer
+export default MapOverlay
