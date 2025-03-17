@@ -134,15 +134,15 @@ function IncidentsPage() {
         filteredData.filter((incident) => incident.incidentState === 'Waiting'),
       ),
       Triage: sortByOpeningDate(
-        filteredData.filter((incident) => incident.incidentState === 'Triage'),
+        filteredData.filter((incident) => incident.incidentState === 'Triage' && incident.owner === userId),
       ),
       Assigned: sortByOpeningDate(
         filteredData.filter(
-          (incident) => incident.incidentState === 'Assigned',
+          (incident) => incident.incidentState === 'Assigned' && incident.owner === userId,
         ),
       ),
       Closed: sortByOpeningDate(
-        filteredData.filter((incident) => incident.incidentState === 'Closed'),
+        filteredData.filter((incident) => incident.incidentState === 'Closed' && incident.owner === userId),
       ),
     }
   }
