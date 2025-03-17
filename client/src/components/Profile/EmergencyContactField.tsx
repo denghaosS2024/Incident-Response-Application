@@ -140,8 +140,8 @@ const ContactInfo = ({
         <CloseIcon />
       </IconButton>
       <CardContent>
-        <Grid container spacing={2} direction="column">
-          <Grid item xs={12}>
+        <Grid container spacing={2}>
+          <Grid item xs={4}>
             <TextField
               label="Name"
               value={name}
@@ -157,7 +157,7 @@ const ContactInfo = ({
               helperText={nameError}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={4}>
             <TextField
               label="Phone"
               value={phone}
@@ -173,7 +173,7 @@ const ContactInfo = ({
               helperText={phoneError}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={4}>
             <TextField
               label="Email"
               value={email}
