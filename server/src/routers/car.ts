@@ -1,7 +1,7 @@
-import { Request, Response, Router } from 'express';
-import CarController from '../controllers/CarController';
+import { Request, Response, Router } from 'express'
+import CarController from '../controllers/CarController'
 
-const carRouter = Router();
+const carRouter = Router()
 
 /**
  * @swagger
@@ -27,15 +27,15 @@ const carRouter = Router();
  *             schema:
  *               $ref: "#/components/schemas/ErrorResponse"
  */
-carRouter.get("/", async (_req: Request, res: Response) => {
+carRouter.get('/', async (_req: Request, res: Response) => {
   try {
-    const cars = await CarController.getAllCars();
-    res.json(cars);
+    const cars = await CarController.getAllCars()
+    res.json(cars)
   } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
+    const error = err as Error
+    res.status(500).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -70,16 +70,16 @@ carRouter.get("/", async (_req: Request, res: Response) => {
  *             schema:
  *               $ref: "#/components/schemas/ErrorResponse"
  */
-carRouter.post("/", async (req: Request, res: Response) => {
+carRouter.post('/', async (req: Request, res: Response) => {
   try {
-    const { name } = req.body;
-    const newCar = await CarController.createCar(name);
-    res.status(201).json(newCar);
+    const { name } = req.body
+    const newCar = await CarController.createCar(name)
+    res.status(201).json(newCar)
   } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    const error = err as Error
+    res.status(400).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -116,16 +116,16 @@ carRouter.post("/", async (req: Request, res: Response) => {
  *             schema:
  *               $ref: "#/components/schemas/ErrorResponse"
  */
-carRouter.delete("/:id", async (req: Request, res: Response) => {
+carRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const removedCar = await CarController.removeCarById(id);
-    res.json({ message: "Car deleted", car: removedCar });
+    const { id } = req.params
+    const removedCar = await CarController.removeCarById(id)
+    res.json({ message: 'Car deleted', car: removedCar })
   } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    const error = err as Error
+    res.status(400).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -168,16 +168,16 @@ carRouter.delete("/:id", async (req: Request, res: Response) => {
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/ErrorResponse"
- */ 
-carRouter.put("/cities", async (req: Request, res: Response) => {
+ */
+carRouter.put('/cities', async (req: Request, res: Response) => {
   try {
-    const { carName, cityName } = req.body;
-    const updatedCar = await CarController.updateCarCity(carName, cityName);
-    res.status(200).json(updatedCar);
+    const { carName, cityName } = req.body
+    const updatedCar = await CarController.updateCarCity(carName, cityName)
+    res.status(200).json(updatedCar)
   } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    const error = err as Error
+    res.status(400).json({ error: error.message })
   }
-});
+})
 
-export default carRouter;
+export default carRouter
