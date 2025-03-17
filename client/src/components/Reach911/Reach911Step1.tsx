@@ -13,9 +13,11 @@ import { RootState } from '../../utils/types'
 
 interface Reach911Step1Props {
   autoPopulateData?: boolean
+  isCreatedByFirstResponder?: boolean
+  incidentId?:string;
 }
 
-const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData }) => {
+const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData, isCreatedByFirstResponder, incidentId}) => {
   const dispatch = useDispatch<AppDispatch>()
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
@@ -132,7 +134,7 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData }) => {
     <div className={styles.wrapperStep1}>
       <div className={styles.flexCenterColumn}>
         <Typography variant="h6" align="center" gutterBottom>
-          You have reached 911.
+          {isCreatedByFirstResponder ? `Incident ID: ${incidentId}` : 'You have reached 911.'}
         </Typography>
         <Typography
           variant="subtitle1"
