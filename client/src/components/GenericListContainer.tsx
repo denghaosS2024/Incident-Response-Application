@@ -1,18 +1,18 @@
-import React, { ReactNode } from 'react';
-import { Box, Typography } from '@mui/material';
-import ItemList, { ItemListProps } from './GenericListItem';
-import { useTheme } from '@mui/material/styles';
+import { Box, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { ReactNode } from 'react'
+import ItemList, { ItemListProps } from './GenericListItem'
 
 export interface GenericListContainerProps<T> {
-  header: ReactNode;
-  listProps: ItemListProps<T>;
+  header: ReactNode
+  listProps: ItemListProps<T>
 }
 
 const GenericListContainer = <T,>({
   header,
   listProps,
 }: GenericListContainerProps<T>) => {
-    const theme = useTheme();
+  const theme = useTheme()
   return (
     <Box
       sx={{
@@ -35,7 +35,7 @@ const GenericListContainer = <T,>({
       </Typography>
       <ItemList<T> {...listProps} />
     </Box>
-  );
-};
+  )
+}
 
-export default GenericListContainer;
+export default GenericListContainer

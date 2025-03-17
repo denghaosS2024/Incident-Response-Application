@@ -9,10 +9,10 @@ import Snackbar from '@mui/material/Snackbar'
 import { useDispatch, useSelector } from 'react-redux'
 import * as UUID from 'uuid'
 import { clearSnackbar, SnackbarType } from '../redux/snackbarSlice'
-
+import { RootState } from '../redux/store'
 export default function IrSnackbar() {
   const dispatcher = useDispatch()
-  const snackbarState = useSelector((state: any) => state.snackbarState)
+  const snackbarState = useSelector((state: RootState) => state.snackbarState)
 
   function handleClose() {
     dispatcher(clearSnackbar())

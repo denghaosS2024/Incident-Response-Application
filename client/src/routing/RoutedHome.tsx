@@ -1,5 +1,4 @@
 // External Imports
-import IMessage from '@/models/Message'
 import {
   Hotel as BedIcon,
   LocalFireDepartment as FirefighterIcon,
@@ -16,6 +15,7 @@ import { Badge, Box, Modal, Typography, keyframes } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, Outlet } from 'react-router-dom'
+import IMessage from '../models/Message'
 
 // IR App
 import IrSnackbar from '../components/IrSnackbar'
@@ -28,9 +28,8 @@ import {
   clearAllAlerts,
   updateMessage,
 } from '../redux/messageSlice'
-import { AppDispatch } from '../redux/store'
+import { AppDispatch, RootState } from '../redux/store'
 import SocketClient from '../utils/Socket'
-import { RootState } from '../utils/types'
 
 interface IProps {
   showBackButton?: boolean

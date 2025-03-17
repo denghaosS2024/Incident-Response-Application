@@ -1,13 +1,4 @@
-import {
-  Button,
-  Box,
-  MenuItem,
-  Select,
-  TextField,
-  FormControl,
-  FormHelperText,
-  InputLabel,
-} from '@mui/material'
+import { Box, Button, FormHelperText, TextField } from '@mui/material'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import ConfirmationDialog from './common/ConfirmationDialog'
@@ -137,19 +128,26 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
           />
         </Box>
         <Box width="100%" maxWidth="500px" my={2}>
-          <Box display="flex " flexWrap="wrap" justifyContent="space-between" >
-            {['Citizen', 'Dispatch', 'Police', 'Fire', 'Nurse', 'Administrator'].map((r) => (
+          <Box display="flex " flexWrap="wrap" justifyContent="space-between">
+            {[
+              'Citizen',
+              'Dispatch',
+              'Police',
+              'Fire',
+              'Nurse',
+              'Administrator',
+            ].map((r) => (
               <Button
                 key={r}
                 variant={role === r ? 'contained' : 'outlined'}
                 color="primary"
                 onClick={() => handleRoleSelection(r)}
-                sx={{ 
-                  flex: '1 1 30%',  
+                sx={{
+                  flex: '1 1 30%',
                   marginBottom: '8px',
-                  marginLeft:'10px',
-                  marginRight:'10px',
-                  height:'70px'
+                  marginLeft: '10px',
+                  marginRight: '10px',
+                  height: '70px',
                 }}
               >
                 {r}

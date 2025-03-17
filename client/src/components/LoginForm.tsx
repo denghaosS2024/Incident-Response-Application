@@ -1,4 +1,4 @@
-import { Button, Box, TextField } from '@mui/material'
+import { Box, Button, TextField } from '@mui/material'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -32,7 +32,6 @@ const LoginForm: React.FC<IProps> = (props: IProps) => {
 
     if (!password) {
       return setPasswordError('Password can not be empty')
-      hasError = true
     }
 
     if (!hasError) {

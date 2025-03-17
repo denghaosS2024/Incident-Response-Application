@@ -1,6 +1,6 @@
-import IMessage from '@/models/Message'
 import { Box, Grid } from '@mui/material'
 import React, { useState } from 'react'
+import IMessage from '../../models/Message'
 import styles from '../../styles/ChatBox.module.css'
 import AlertSnackbar from '../common/AlertSnackbar'
 import MessageAlertOptions from '../MessageAlertOptions'

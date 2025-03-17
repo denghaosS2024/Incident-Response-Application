@@ -9,11 +9,18 @@ export interface ItemListProps<T> {
   renderItem: (item: T) => ReactNode
 }
 
-const ItemList = <T,>({ items, loading, getKey, renderItem }: ItemListProps<T>) => {
+const ItemList = <T,>({
+  items,
+  loading,
+  getKey,
+  renderItem,
+}: ItemListProps<T>) => {
   if (loading) return <Loading />
 
   if (!items || items.length === 0) {
-    return <Typography style={{ padding: 16 }}>No Incidents available</Typography>
+    return (
+      <Typography style={{ padding: 16 }}>No Incidents available</Typography>
+    )
   }
 
   return (

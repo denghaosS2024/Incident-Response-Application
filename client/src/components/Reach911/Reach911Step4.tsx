@@ -9,10 +9,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { addMessage, loadMessages } from '../../redux/messageSlice'
 
-import type IChannel from '@/models/Channel'
-import type IIncident from '@/models/Incident'
-import type { AppDispatch } from '@/redux/store'
-import type { RootState } from '@/utils/types'
+import type IChannel from '../../models/Channel'
+import type IIncident from '../../models/Incident'
+import type { AppDispatch, RootState } from '../../redux/store'
 
 interface Reach911Step4Props {
   isCreatedByFirstResponder?: boolean

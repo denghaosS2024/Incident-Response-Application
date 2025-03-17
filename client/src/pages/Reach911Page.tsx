@@ -13,9 +13,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import IIncident from '../models/Incident'
 import { updateIncident } from '../redux/incidentSlice'
-import { AppDispatch } from '../redux/store'
+import { AppDispatch, RootState } from '../redux/store'
 import request from '../utils/request'
-import { RootState } from '../utils/types'
 
 const Reach911Page: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -79,7 +78,11 @@ const Reach911Page: React.FC = () => {
   }, [activeStep])
 
   const contents = [
-    <Reach911Step1 autoPopulateData={autoPopulateData} isCreatedByFirstResponder={isCreatedByFirstResponder} incidentId={incidentId} />,
+    <Reach911Step1
+      autoPopulateData={autoPopulateData}
+      isCreatedByFirstResponder={isCreatedByFirstResponder}
+      incidentId={incidentId}
+    />,
     <Reach911Step2 />,
     <Reach911Step3 isCreatedByFirstResponder={isCreatedByFirstResponder} />,
     <Reach911Step4 isCreatedByFirstResponder={isCreatedByFirstResponder} />,

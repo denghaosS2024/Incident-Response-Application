@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react'
 // import { RouteComponentProps } from 'react-router'
-import { AppDispatch } from '@/redux/store'
-import { RootState } from '@/utils/types'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ContactList, { ClickContactHandler } from '../components/ContactList'
 import IChannel from '../models/Channel'
 import { loadContacts } from '../redux/contactSlice'
+import { AppDispatch, RootState } from '../redux/store'
 import request from '../utils/request'
 
 const roleContactMap: Record<string, string[]> = {

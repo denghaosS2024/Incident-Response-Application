@@ -1,9 +1,9 @@
-import IMessage from '@/models/Message'
-import { MessagesState } from '@/utils/types'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { createAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import moment from 'moment'
+import IMessage from '../models/Message'
 import request from '../utils/request'
+import { MessagesState } from '../utils/types'
 
 // Defines the structure of the payload for setting messages
 interface ISetMessagesPayload {
@@ -45,16 +45,26 @@ export const updateMessage = createAction<IMessage>('messages/updateMessage')
 // Async thunk for acknowledging a message
 export const acknowledgeMessage = createAsyncThunk(
   'messages/acknowledgeMessage',
-  async ({ messageId, senderId, channelId }: { messageId: string, senderId: string, channelId: string }) => {
-    const response = await request(`/api/channels/${channelId}/messages/acknowledge`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ senderId, messageId }),
-    });
-    return response;
-  }
-);
-
+  async ({
+    messageId,
+    senderId,
+    channelId,
+  }: {
+    messageId: string
+    senderId: string
+    channelId: string
+  }) => {
+    const response = await request(
+      `/api/channels/${channelId}/messages/acknowledge`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderId, messageId }),
+      },
+    )
+    return response
+  },
+)
 
 // Create the message slice with reducers and extra reducers
 export const messageSlice = createSlice({
@@ -96,7 +106,9 @@ export const messageSlice = createSlice({
         const channelId = updatedMessage.channelId
         const channelMessages = state.messages[channelId]
         if (channelMessages) {
-          const index = channelMessages.findIndex((msg) => msg._id === updatedMessage._id)
+          const index = channelMessages.findIndex(
+            (msg) => msg._id === updatedMessage._id,
+          )
           if (index !== -1) {
             channelMessages[index] = updatedMessage
           }
@@ -108,7 +120,9 @@ export const messageSlice = createSlice({
       const channelId = updatedMessage.channelId.toString()
       const channelMessages = state.messages[channelId]
       if (channelMessages) {
-        const index = channelMessages.findIndex(m => m._id === updatedMessage._id)
+        const index = channelMessages.findIndex(
+          (m) => m._id === updatedMessage._id,
+        )
         if (index !== -1) {
           channelMessages[index] = updatedMessage
         } else {

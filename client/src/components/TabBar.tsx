@@ -13,7 +13,6 @@ export type Link = {
   onClick?: () => void
 }
 
-
 const getCurrentTab = (links: Link[], currentPath: string): number => {
   // First, check for an exact match with the root path '/'
   if (currentPath === '/') {
@@ -36,11 +35,12 @@ export interface TabBarProps {
 
 const TabBar: FunctionComponent<TabBarProps> = ({ links }) => {
   const location = useLocation() // Hook to get the current path
-  const [currentTabIndex, setCurrentTabIndex] = useState<number>(getCurrentTab(links, location.pathname))
+  const [currentTabIndex, setCurrentTabIndex] = useState<number>(
+    getCurrentTab(links, location.pathname),
+  )
 
   // Effect to update the current tab value based on route changes
   useEffect(() => {
-
     setCurrentTabIndex(getCurrentTab(links, location.pathname))
   }, [location.pathname, links])
 
@@ -49,26 +49,32 @@ const TabBar: FunctionComponent<TabBarProps> = ({ links }) => {
   }
 
   return (
-    <Tabs value={currentTabIndex} onChange={handleChange}
+    <Tabs
+      value={currentTabIndex}
+      onChange={handleChange}
       centered
-      sx={{ minHeight: 40, display:'flex',justifyContent:'center' }} 
+      sx={{ minHeight: 40, display: 'flex', justifyContent: 'center' }}
     >
       {links.map((link: Link, idx: number) => {
-        const isSelected = idx === currentTabIndex;
+        const isSelected = idx === currentTabIndex
         return (
           <Tab
             key={link.key}
             // When selected, try "selectedIcon" if exist. Otherwise, use "icon".
-            icon={(isSelected && link.selectedIcon != null ? link.selectedIcon : link.icon)}
+            icon={
+              isSelected && link.selectedIcon != null
+                ? link.selectedIcon
+                : link.icon
+            }
             component={Link}
             to={link.to}
             onClick={link.onClick}
             sx={{
-              minWidth: 50,  
-              maxWidth: 60, 
+              minWidth: 50,
+              maxWidth: 60,
             }}
           />
-        );
+        )
       })}
     </Tabs>
   )

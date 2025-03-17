@@ -8,16 +8,19 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import IIncident from '../../models/Incident'
 import { updateIncident } from '../../redux/incidentSlice'
-import { AppDispatch } from '../../redux/store'
-import { RootState } from '../../utils/types'
+import { AppDispatch, RootState } from '../../redux/store'
 
 interface Reach911Step1Props {
   autoPopulateData?: boolean
   isCreatedByFirstResponder?: boolean
-  incidentId?:string;
+  incidentId?: string
 }
 
-const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData, isCreatedByFirstResponder, incidentId}) => {
+const Reach911Step1: React.FC<Reach911Step1Props> = ({
+  autoPopulateData,
+  isCreatedByFirstResponder,
+  incidentId,
+}) => {
   const dispatch = useDispatch<AppDispatch>()
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
@@ -134,7 +137,9 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData, isCreat
     <div className={styles.wrapperStep1}>
       <div className={styles.flexCenterColumn}>
         <Typography variant="h6" align="center" gutterBottom>
-          {isCreatedByFirstResponder ? `Incident ID: ${incidentId}` : 'You have reached 911.'}
+          {isCreatedByFirstResponder
+            ? `Incident ID: ${incidentId}`
+            : 'You have reached 911.'}
         </Typography>
         <Typography
           variant="subtitle1"
@@ -152,6 +157,7 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({ autoPopulateData, isCreat
             }}
           >
             <form>
+              {/* TODO: Find out why this is here, which raises error "AddressAutofill cannot be used as a JSX component." */}
               <AddressAutofill accessToken="pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA">
                 <TextField
                   fullWidth

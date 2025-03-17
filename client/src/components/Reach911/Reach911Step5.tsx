@@ -1,4 +1,3 @@
-import type { AppDispatch } from '@/redux/store'
 import {
   Box,
   CircularProgress,
@@ -14,6 +13,7 @@ import { useDispatch } from 'react-redux'
 import type IIncident from '../../models/Incident'
 import { IncidentPriority } from '../../models/Incident'
 import { updateIncident } from '../../redux/incidentSlice'
+import type { AppDispatch } from '../../redux/store'
 import request from '../../utils/request'
 
 interface Reach911Step5Props {

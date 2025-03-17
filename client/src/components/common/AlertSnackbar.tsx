@@ -1,5 +1,5 @@
+import { Alert, AlertColor, Snackbar } from '@mui/material'
 import React from 'react'
-import { Snackbar, Alert, AlertColor } from '@mui/material'
 
 interface AlertSnackbarProps {
   open: boolean
@@ -32,10 +32,10 @@ const AlertSnackbar: React.FC<AlertSnackbarProps> = ({
         left: '50%',
         transform: 'translate(-50%, -50%)',
         zIndex: 9999,
-        width: 'auto'
+        width: 'auto',
       }}
     >
-      <Alert onClose={onClose} severity={severity} sx={{ width: '100%' }} >
+      <Alert onClose={onClose} severity={severity} sx={{ width: '100%' }}>
         {message}
       </Alert>
     </Snackbar>

@@ -21,8 +21,8 @@ import IIncident from '../../models/Incident'
 import IUser from '../../models/User'
 import { loadContacts } from '../../redux/contactSlice'
 import { updateIncident } from '../../redux/incidentSlice'
-import { AppDispatch } from '../../redux/store'
-import { MedicalQuestions, RootState } from '../../utils/types'
+import { AppDispatch, RootState } from '../../redux/store'
+import { MedicalQuestions } from '../../utils/types'
 import Loading from '../common/Loading'
 
 interface MedicalFormProps {
@@ -56,7 +56,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
   const { contacts, loading } = useSelector(
     (state: RootState) => state.contactState,
   )
-  
+
   // Retrieving the name of the current user
   const userId = localStorage.getItem('uid')
   const currentUser = contacts.filter((user: IUser) => user._id === userId)[0]
@@ -70,8 +70,11 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     const { type, value, checked } = e.target as HTMLInputElement
     const newValue: string | boolean = type === 'checkbox' ? checked : value
 
-    if (field === 'age' && (Number.isNaN(Number(value)) || value.includes(' '))) {
-      return;
+    if (
+      field === 'age' &&
+      (Number.isNaN(Number(value)) || value.includes(' '))
+    ) {
+      return
     }
 
     dispatch(

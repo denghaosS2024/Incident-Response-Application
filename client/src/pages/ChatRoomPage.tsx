@@ -1,11 +1,10 @@
-import { AppDispatch } from '@/redux/store'
-import { RootState } from '@/utils/types'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ChatBox from '../components/Chat/ChatBox'
 import IChannel from '../models/Channel'
 import { addMessage, loadMessages } from '../redux/messageSlice'
+import { AppDispatch, RootState } from '../redux/store'
 import request from '../utils/request'
 
 // ChatRoomPage component: Displays messages for a specific channel and allows sending new messages

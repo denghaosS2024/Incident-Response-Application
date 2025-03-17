@@ -1,7 +1,7 @@
-import IUser from '@/models/User'
-import { ContactsState } from '@/utils/types'
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import IUser from '../models/User'
 import request from '../utils/request'
+import { ContactsState } from '../utils/types'
 
 // Initial state for the contact slice
 const initialState: ContactsState = {
@@ -35,18 +35,22 @@ export const contactSlice = createSlice({
           const { users } = action.payload
           state.contacts = users
           state.loading = false
-        })
+        },
+      )
       .addCase(loadContacts.pending, (state) => {
         state.loading = true
       })
 
-      .addCase(loadMockContacts.fulfilled, (state, action: PayloadAction<IContactsPayload>) => {
-        const { users } = action.payload;
-        state.contacts = users;
-        state.loading = false;  // Set loading to false after mock data is loaded
-      })
+      .addCase(
+        loadMockContacts.fulfilled,
+        (state, action: PayloadAction<IContactsPayload>) => {
+          const { users } = action.payload
+          state.contacts = users
+          state.loading = false // Set loading to false after mock data is loaded
+        },
+      )
       .addCase(loadMockContacts.pending, (state) => {
-        state.loading = true;  // Set loading to true while data is being fetched
+        state.loading = true // Set loading to true while data is being fetched
       })
   },
 })
@@ -59,21 +63,29 @@ export default contactSlice.reducer
 
 //Export mock data, checking for adding group participants
 // Add this to your `contactSlice` file
-export const loadMockContacts = createAsyncThunk('contacts/loadMockContacts', async () => {
-  // Mock data for testing purposes
-  const users: IUser[] = [
-    { _id:
-      "67c7a1280697d82aef1ac3ec",
-      username:
-      "test",
-      role:
-      "Citizen" },
-    { _id: '67ca7468da683a25ed90e2fd', username: 'grouptest', role: 'Citizen', online: false },
-    { _id: '67ca7492da683a25ed90e306', username: 'participant_test', role: 'Citizen', online: true },
-  ];
-  
-  return { users } as IContactsPayload;
-});
+export const loadMockContacts = createAsyncThunk(
+  'contacts/loadMockContacts',
+  async () => {
+    // Mock data for testing purposes
+    const users: IUser[] = [
+      { _id: '67c7a1280697d82aef1ac3ec', username: 'test', role: 'Citizen' },
+      {
+        _id: '67ca7468da683a25ed90e2fd',
+        username: 'grouptest',
+        role: 'Citizen',
+        online: false,
+      },
+      {
+        _id: '67ca7492da683a25ed90e306',
+        username: 'participant_test',
+        role: 'Citizen',
+        online: true,
+      },
+    ]
+
+    return { users } as IContactsPayload
+  },
+)
 /**
  * Contact Slice
  *

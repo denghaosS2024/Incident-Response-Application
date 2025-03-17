@@ -4,10 +4,10 @@
  * This file defines TypeScript interfaces used throughout the client application.
  */
 
-import IIncident from '@/models/Incident'
-import IMessage from '@/models/Message'
-import { IProfile } from '@/models/Profile'
-import IUser from '@/models/User'
+import IIncident from '../models/Incident'
+import IMessage from '../models/Message'
+import { IProfile } from '../models/Profile'
+import IUser from '../models/User'
 
 /**
  * Interface representing a collection of messages, indexed by channel ID
@@ -33,16 +33,6 @@ export interface ContactsState {
   contacts: IUser[]
   loading: boolean
   error: string | null
-}
-
-/**
- * Interface representing the root state of the application
- */
-export interface RootState {
-  messageState: MessagesState
-  contactState: ContactsState
-  incidentState: IncidentsState
-  profileState: ProfileState
 }
 
 export interface IncidentsState {

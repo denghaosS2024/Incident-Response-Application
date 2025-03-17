@@ -14,8 +14,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import IIncident from '../../models/Incident'
 import { loadContacts } from '../../redux/contactSlice'
 import { updateIncident } from '../../redux/incidentSlice'
-import { AppDispatch } from '../../redux/store'
-import { PoliceQuestions, RootState } from '../../utils/types'
+import { AppDispatch, RootState } from '../../redux/store'
+import { PoliceQuestions } from '../../utils/types'
 
 const FireForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()

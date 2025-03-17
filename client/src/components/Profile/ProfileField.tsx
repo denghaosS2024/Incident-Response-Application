@@ -1,15 +1,21 @@
-import React from "react";
-import { TextField } from "@mui/material";
+import { TextField } from '@mui/material'
+import React from 'react'
 
 interface ProfileFieldProps {
-  label: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  error?: boolean;
-  helperText?: string; 
+  label: string
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  error?: boolean
+  helperText?: string
 }
 
-export default function ProfileField({ label, value, onChange, error = false, helperText = "" }: ProfileFieldProps) {
+export default function ProfileField({
+  label,
+  value,
+  onChange,
+  error = false,
+  helperText = '',
+}: ProfileFieldProps) {
   return (
     <TextField
       label={label}
@@ -18,8 +24,8 @@ export default function ProfileField({ label, value, onChange, error = false, he
       variant="outlined"
       fullWidth
       margin="normal"
-      error={error} 
-      helperText={helperText} 
+      error={error}
+      helperText={helperText}
     />
-  );
+  )
 }

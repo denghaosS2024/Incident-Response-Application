@@ -15,8 +15,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import IIncident from '../../models/Incident'
 import { loadContacts } from '../../redux/contactSlice'
 import { updateIncident } from '../../redux/incidentSlice'
-import { AppDispatch } from '../../redux/store'
-import { FireQuestions, RootState } from '../../utils/types'
+import { AppDispatch, RootState } from '../../redux/store'
+import { FireQuestions } from '../../utils/types'
 
 const FireForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -46,11 +46,14 @@ const FireForm: React.FC = () => {
   ) => {
     const { value } = e.target as HTMLInputElement
 
-    if (field === 'numPeople' && (Number.isNaN(Number(value)) || value.includes(' '))) {
-      return;
+    if (
+      field === 'numPeople' &&
+      (Number.isNaN(Number(value)) || value.includes(' '))
+    ) {
+      return
     }
 
-      dispatch(
+    dispatch(
       updateIncident({
         ...incident,
         questions: {
@@ -70,8 +73,7 @@ const FireForm: React.FC = () => {
 
       if (parsedValue && parsedValue <= 0) {
         setnumPeopleError('Enter a positive number')
-      }
-      else {
+      } else {
         setnumPeopleError('')
       }
     }

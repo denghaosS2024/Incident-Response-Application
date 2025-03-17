@@ -1,7 +1,7 @@
-import { AppDispatch } from '@/redux/store'
 import { Box, Grid } from '@mui/material'
 import { useDispatch } from 'react-redux'
 import { addMessage } from '../redux/messageSlice'
+import { AppDispatch } from '../redux/store'
 import request from '../utils/request'
 import AlertButton from './AlertButton'
 interface AlertPanelProps {
