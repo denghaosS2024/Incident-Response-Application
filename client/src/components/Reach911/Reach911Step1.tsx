@@ -2,13 +2,15 @@ import { Box, TextField, Typography } from '@mui/material'
 import styles from '../../styles/Reach911Page.module.css'
 import Map from '../Map/Mapbox'
 
+import { AddressAutofillRetrieveResponse } from '@mapbox/search-js-core'
 import { AddressAutofill } from '@mapbox/search-js-react'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import IIncident from '../../models/Incident'
 import { updateIncident } from '../../redux/incidentSlice'
 import { AppDispatch, RootState } from '../../redux/store'
+
 
 interface Reach911Step1Props {
   autoPopulateData?: boolean
@@ -28,20 +30,6 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
 
   // Local state for the input field
   const [inputAddress, setInputAddress] = useState(incident.address || '')
-
-  // Track previous location when editing starts
-  const [isEditing, setIsEditing] = useState(false)
-  const previousLocationRef = useRef<
-    { latitude: number; longitude: number } | undefined
-  >(undefined)
-  const previousAddressRef = useRef<string>('')
-
-  // Update local input state when incident address changes from external sources
-  useEffect(() => {
-    if (!isEditing) {
-      setInputAddress(incident.address || '')
-    }
-  }, [incident.address, isEditing])
 
   // Initialize address field from location when component loads
   useEffect(() => {
@@ -84,54 +72,32 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { value } = e.target
-
-    // Store the previous location and address when editing starts (first change)
-    if (!isEditing && incident.location) {
-      setIsEditing(true)
-      previousLocationRef.current = { ...incident.location }
-      previousAddressRef.current = incident.address || ''
-    }
-
-    // Only update the local state, don't dispatch to Redux until blur or Enter
     setInputAddress(value)
   }
 
-  const handleBlur = () => {
-    // Now we apply the changes to Redux
-    if (isEditing) {
-      if (inputAddress.trim() === '') {
-        // If field is empty, restore previous values
-        if (previousLocationRef.current) {
-          dispatch(
-            updateIncident({
-              ...incident,
-              location: previousLocationRef.current,
-              address: previousAddressRef.current,
-            }),
-          )
-          // Also update local input state
-          setInputAddress(previousAddressRef.current)
-        }
-      } else {
-        // If field has a value, update with the new address
-        dispatch(
-          updateIncident({
-            ...incident,
-            address: inputAddress,
-            location: undefined, // Reset location so map will geocode this address
-          }),
-        )
-      }
-    }
-    setIsEditing(false)
+  // If a user clicks on a suggestion from the autofil dropdown, we update the incident with the new location! 
+  function onRetrieve(res: AddressAutofillRetrieveResponse) {
+    const newAddress = res.features[0].properties.full_address ?? '';
+    const newLocation = {longitude: res.features[0].geometry.coordinates[0], latitude: res.features[0].geometry.coordinates[1]};
+    dispatch(
+      updateIncident({
+        ...incident,
+        location: newLocation,
+        address: newAddress,
+      }),
+    )
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleBlur() // Use same logic as blur
-      e.currentTarget.blur() // Unfocus the input field
-    }
+  // When user clicks out of the input, we revert it back to the original incident location!
+  function onBlur(){
+    setInputAddress(incident.address);
   }
+
+  // We listen to incident's location changes, and update the text field accordingly. We do this to support manual changes from the map's pin. 
+  useEffect(()=>{
+    setInputAddress(incident.address);
+  }, [incident.address])  
+
 
   return (
     <div className={styles.wrapperStep1}>
@@ -157,8 +123,7 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
             }}
           >
             <form>
-              {/* TODO: Find out why this is here, which raises error "AddressAutofill cannot be used as a JSX component." */}
-              <AddressAutofill accessToken="pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA">
+              <AddressAutofill onRetrieve={onRetrieve} options={{streets:false}} accessToken="pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA">
                 <TextField
                   fullWidth
                   id="outlined-basic"
@@ -166,10 +131,8 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
                   variant="outlined"
                   value={inputAddress}
                   autoComplete="street-address"
+                  onBlur={onBlur}
                   onChange={(e) => onChange(e)}
-                  onBlur={handleBlur}
-                  onKeyDown={handleKeyDown}
-                  onFocus={() => !isEditing && setIsEditing(true)}
                 />
               </AddressAutofill>
             </form>
