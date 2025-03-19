@@ -25,6 +25,12 @@ const RegisterHospital = () => {
   const [errors, setErrors] = useState({ name: false, address: false });
 
   /* ------------------------------ FUNCTIONS ------------------------------ */
+
+  const updateHospitalDiscussion = () => {
+    console.log("Creating / Updating hospital discussion."); 
+    // TODO: Implement discussion update (SEM-2563)
+  };
+
   const handleSubmit = () => {
     if (!hospitalName || !address) {
       setErrors({
@@ -35,10 +41,11 @@ const RegisterHospital = () => {
     }
     console.log("Submitting hospital:", { hospitalName, address, description, erBeds });
     // TODO: API call to register hospital
+    updateHospitalDiscussion();
   }
 
   const handleCancel = () => {
-    // TODO :
+    // TODO : Revert back to previous values (GET API call)
   }
 
   const handleDelete = () => {
