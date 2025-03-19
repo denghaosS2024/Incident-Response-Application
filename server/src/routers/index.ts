@@ -18,11 +18,11 @@ import user from "./user";
 import airQuality from "./airQuality";
 import carRouter from "./car";
 import cityRouter from "./city";
+import HospitalRouter from "./hospital";
 import personnelRouter from "./personnel";
 import profileRouter from "./profile";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
-
 
 export default Router()
   .use("/users", user)
@@ -36,4 +36,5 @@ export default Router()
   .use("/cities", cityRouter)
   .use("/personnel", personnelRouter) 
   .use("/profiles", profileRouter)
-  .use("/wildfire", wildfireAreaRouter);
+  .use("/wildfire", wildfireAreaRouter)
+  .use("/hospital", HospitalRouter);
