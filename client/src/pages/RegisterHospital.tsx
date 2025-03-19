@@ -26,11 +26,13 @@ const RegisterHospital = () => {
 
   /* ------------------------------ FUNCTIONS ------------------------------ */
 
+  /* Function to create or update the hospital discussion (SEM-2563) */
   const updateHospitalDiscussion = () => {
-    console.log("Creating / Updating hospital discussion."); 
-    // TODO: Implement discussion update (SEM-2563)
+    console.log("Updating hospital discussion."); 
+    // TODO: Implement discussion update 
   };
 
+  /* Function to register a new hospital on submit */
   const handleSubmit = () => {
     if (!hospitalName || !address) {
       setErrors({
@@ -44,10 +46,12 @@ const RegisterHospital = () => {
     updateHospitalDiscussion();
   }
 
+  /* Handle cancellation of hospital registration (SEM-2564) */
   const handleCancel = () => {
     // TODO : Revert back to previous values (GET API call)
   }
 
+  /* Handle deletion of existing hospital (SEM-2565) */
   const handleDelete = () => {
     console.log('Deleting hospital entry')
     // TODO: Implement delete functionality
