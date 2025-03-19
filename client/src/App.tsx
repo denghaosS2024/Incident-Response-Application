@@ -12,6 +12,7 @@ import Messages from './pages/Messages'
 import Organization from './pages/Organization'
 import ProfilePage from './pages/ProfilePage'
 import Reach911Page from './pages/Reach911Page'
+import RegisterHospital from './pages/RegisterHospital'
 import RegisterPage from './pages/RegisterPage'
 import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="/organization" element={<Organization />} />
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/register-hospital" element={<RegisterHospital />} />
           </Route>
           <Route element={<RoutedHome showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
