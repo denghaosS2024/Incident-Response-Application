@@ -7,6 +7,7 @@ import {
   Link,
   List,
   ListItemText,
+  SxProps,
   Typography,
 } from '@mui/material'
 import { Fragment, FunctionComponent } from 'react'
@@ -19,6 +20,9 @@ export interface IChannelProps {
   onClick?: (channelId: string) => void
   isSettingButton?: boolean
   selectedChannelId?: string | null
+  sx?: SxProps,
+  settingButtonSx?: SxProps,
+  settingButtonLinkSx?: SxProps,
 }
 
 // Channel component renders a single channel with an optional setting button
@@ -29,7 +33,11 @@ export const Channel: FunctionComponent<IChannelProps> = ({
   channel: { _id, name, users, owner },
   onClick,
   isSettingButton = false,
-  selectedChannelId,
+  selectedChannelId, 
+  sx = {},
+  settingButtonSx = {},
+  settingButtonLinkSx = {},
+  
 }) => {
   // Get current username to check if it's their 911 channel
   const currentUsername = localStorage.getItem('username')
@@ -61,6 +69,7 @@ export const Channel: FunctionComponent<IChannelProps> = ({
         overflow: 'hidden',
         backgroundColor: isSelected ? 'gray' : '#1976d2',
         color: 'white',
+        ...(sx as object),
       }}
       onClick={handleClick}
     >
@@ -96,7 +105,7 @@ export const Channel: FunctionComponent<IChannelProps> = ({
             left: 0,
           }}
         >
-          <IconButton edge="start" size="large">
+          <IconButton edge="start" size="large" sx={settingButtonSx}>
             <EditIcon />
           </IconButton>
         </Link>
@@ -106,7 +115,7 @@ export const Channel: FunctionComponent<IChannelProps> = ({
         <Link
           color="inherit"
           href={`/messages/${_id}?name=${name}`}
-          sx={{ width: '100%' }}
+          sx={{ width: '100%',  ...(settingButtonLinkSx as object)}}
         >
           {ChannelContent}
         </Link>
