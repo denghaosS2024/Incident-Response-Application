@@ -22,12 +22,19 @@ const RegisterHospital = () => {
   const [erBeds, setErBeds] = useState(0)
   const [worksAtER, setWorksAtER] = useState(false)
   const [role] = useState(localStorage.getItem('role'))
+  const [errors, setErrors] = useState({ name: false, address: false });
 
   /* ------------------------------ FUNCTIONS ------------------------------ */
   const handleSubmit = () => {
-    const hospitalData = { hospitalName, address, description, erBeds }
-    console.log('Registering hospital:', hospitalData)
-    // TODO: Make API request to register hospital
+    if (!hospitalName || !address) {
+      setErrors({
+        name: !hospitalName,
+        address: !address,
+      });
+      return;
+    }
+    console.log("Submitting hospital:", { hospitalName, address, description, erBeds });
+    // TODO: API call to register hospital
   }
 
   const handleCancel = () => {
@@ -42,22 +49,36 @@ const RegisterHospital = () => {
   /* ------------------------------ RENDER PAGE ------------------------------ */
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 400, mx: 'auto', mt: 4 }}>
+
+      {/* Hospital Name */}
       <TextField
         label="Name"
         fullWidth
         margin="normal"
         value={hospitalName}
-        onChange={(e) => setHospitalName(e.target.value)}
+        onChange={(e) => {
+          setHospitalName(e.target.value);
+          setErrors({ ...errors, name: false });
+        }}
+        error={errors.name}
+        helperText={errors.name ? "Hospital name is required" : ""}
       />
 
+      {/* Hospital Address */}
       <TextField
         label="Address"
         fullWidth
         margin="normal"
         value={address}
-        onChange={(e) => setAddress(e.target.value)}
+        onChange={(e) => {
+          setAddress(e.target.value);
+          setErrors({ ...errors, address: false });
+        }}
+        error={errors.address}
+        helperText={errors.address ? "Address is required" : ""}
       />
 
+      {/* Hospital Description */}
       <TextField
         label="Description"
         fullWidth
@@ -68,6 +89,7 @@ const RegisterHospital = () => {
         onChange={(e) => setDescription(e.target.value)}
       />
 
+      {/* Total ER Beds */}
       <TextField
         label="Total number ER beds"
         fullWidth
@@ -80,10 +102,12 @@ const RegisterHospital = () => {
         }}
       />
 
+      {/* Total Nurses */}
       <Typography variant="body1" sx={{ mt: 2 }}>
         Nurses: None Listed
       </Typography>
 
+      {/* Show checkbox only if role is 'Nurse' */}
       {role === "Nurse" && (
         <FormControlLabel
           control={
@@ -97,6 +121,7 @@ const RegisterHospital = () => {
         />
       )}
 
+      {/* Buttons to submit, cancel or delete */}
       <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
         <Button variant="contained" color="primary" onClick={handleSubmit}>
           Submit
