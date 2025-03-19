@@ -1,18 +1,27 @@
 import { Box, Button, Checkbox, FormControlLabel, InputAdornment, Paper, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 const RegisterHospital = () => {
 
+  // TODO : Remove this comment
+  /* 
+  hospitalName : string
+  hospitalAddress : string
+  hospitalDescription : string
+  numberOfERBeds : int
+  nuumberOfPatients : int
+  nurses : List<string>
+  /*
+
   /* ------------------------------ CONSTANTS ------------------------------ */
 
+  // TODO : Use client side model interface instead of below variables
   const [hospitalName, setHospitalName] = useState('')
   const [address, setAddress] = useState('')
   const [description, setDescription] = useState('')
   const [erBeds, setErBeds] = useState(0)
   const [worksAtER, setWorksAtER] = useState(false)
-  const [role, setRole] = useState(localStorage.getItem('role'))
-  const navigate = useNavigate()
+  const [role] = useState(localStorage.getItem('role'))
 
   /* ------------------------------ FUNCTIONS ------------------------------ */
   const handleSubmit = () => {
@@ -70,7 +79,11 @@ const RegisterHospital = () => {
           startAdornment: <InputAdornment position="start">🛏️</InputAdornment>,
         }}
       />
-      
+
+      <Typography variant="body1" sx={{ mt: 2 }}>
+        Nurses: None Listed
+      </Typography>
+
       {role === "Nurse" && (
         <FormControlLabel
           control={
@@ -83,10 +96,6 @@ const RegisterHospital = () => {
           label="I work at this hospital's ER"
         />
       )}
-
-      <Typography variant="body1" sx={{ mt: 2 }}>
-        Nurses: None Listed
-      </Typography>
 
       <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
         <Button variant="contained" color="primary" onClick={handleSubmit}>
