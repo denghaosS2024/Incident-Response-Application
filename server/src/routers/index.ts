@@ -9,6 +9,7 @@
 import { Router } from 'express';
 
 import channel from "./channel";
+import HospitalRouter from "./hospital";
 import incident from "./incident";
 import login from "./login";
 import map from "./map";
@@ -23,7 +24,6 @@ import profileRouter from "./profile";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
 
-
 export default Router()
   .use("/users", user)
   .use("/login", login)
@@ -36,4 +36,5 @@ export default Router()
   .use("/cities", cityRouter)
   .use("/personnel", personnelRouter) 
   .use("/profiles", profileRouter)
-  .use("/wildfire", wildfireAreaRouter);
+  .use("/wildfire", wildfireAreaRouter)
+  .use("/hospital", HospitalRouter);

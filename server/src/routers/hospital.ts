@@ -18,3 +18,17 @@ export default Router()
         }
     })
 
+    .get('/:hospitalId', async (request, response) => {
+        try {
+            const hospitalId = request.params.hospitalId;
+            const result = await HospitalController.getHospitalById(hospitalId);
+            if (!result) {
+                return response.status(404).json({ message: "No Hospital found" });
+            }
+            return response.status(200).json(result);
+        } catch (e) {
+            const error = e as Error;
+            return response.status(500).json({ message: error.message })
+        }
+    })
+
