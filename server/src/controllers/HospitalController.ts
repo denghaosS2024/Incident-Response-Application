@@ -28,7 +28,7 @@ class HospitalController {
      * @param hospitalId
      * @returns The hospital object associated with the hospitalId passed
      */
-    async getByHospitalId(hospitalId: string) {
+    async getHospitalById(hospitalId: string) {
         try {
             const hospital = await Hospital.findOne({ hospitalId });
 
