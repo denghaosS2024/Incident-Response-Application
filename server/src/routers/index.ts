@@ -9,6 +9,7 @@
 import { Router } from 'express';
 
 import channel from "./channel";
+import HospitalRouter from "./hospital";
 import incident from "./incident";
 import login from "./login";
 import map from "./map";
@@ -18,7 +19,6 @@ import user from "./user";
 import airQuality from "./airQuality";
 import carRouter from "./car";
 import cityRouter from "./city";
-import HospitalRouter from "./hospital";
 import personnelRouter from "./personnel";
 import profileRouter from "./profile";
 import truckRouter from "./truck";
