@@ -1,10 +1,12 @@
 import { StyledEngineProvider } from '@mui/material/styles'
+import { useFlags } from 'launchdarkly-react-client-sdk'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import ChatRoomPage from './pages/ChatRoomPage'
 import Contacts from './pages/Contacts'
 import GroupInformationPage from './pages/GroupInformationPage'
 import GroupsPage from './pages/GroupsPage'
 import HomePage from './pages/HomePage'
+import HospitalsDirectory from './pages/HospitalsDirectory'
 import IncidentsPage from './pages/IncidentsPage'
 import LoginPage from './pages/LoginPage'
 import MapPage from './pages/MapPage'
@@ -34,6 +36,9 @@ export default function App() {
   //     )
   //   }, 3000)
   // })
+  
+  //Feature toggling: show the hospitals directory page only when the flag is enabled
+  const { ['hospitalsDirectory']: hospitalsDirectory } = useFlags();
 
   return (
     <StyledEngineProvider injectFirst>
@@ -53,6 +58,9 @@ export default function App() {
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/register-hospital" element={<RegisterHospital />} />
+            {hospitalsDirectory &&
+            <Route path="/hospitals" element={<HospitalsDirectory />} />  
+            }
           </Route>
           <Route element={<RoutedHome showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
