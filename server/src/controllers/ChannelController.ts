@@ -4,14 +4,13 @@
 import { FilterQuery, Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from '../models/Channel'
-import User from '../models/User'
-import Profile from '../models/Profile'
 import Message from '../models/Message'
-import UserConnections from '../utils/UserConnections';
-import { Storage } from '@google-cloud/storage'
-import dotenv from 'dotenv'
+import Profile from '../models/Profile'
+import User from '../models/User'
+import Env from '../utils/Env'
+import GoogleStorage from '../utils/GoogleStorage'
+import UserConnections from '../utils/UserConnections'
 import UserController from './UserController'
-dotenv.config()
 
 class ChannelController {
   /**
@@ -71,8 +70,8 @@ class ChannelController {
     }
 
     // Check if the channel already exists
-    let exists : IChannel | null
-    if (channel.name === "PrivateContact") {
+    let exists: IChannel | null
+    if (channel.name === 'PrivateContact') {
       exists = await Channel.findOne({
         users,
       }).exec()
@@ -82,15 +81,15 @@ class ChannelController {
       }).exec()
     }
 
-    if (channel.name === "PrivateContact" && exists) {
+    if (channel.name === 'PrivateContact' && exists) {
       return exists
     }
 
     if (exists) {
       throw new Error('Group already exists.')
     } else {
-      exists = await Channel.findOne({name: channel.name}).exec()
-      if(exists && channel.name != "PrivateContact"){
+      exists = await Channel.findOne({ name: channel.name }).exec()
+      if (exists && channel.name != 'PrivateContact') {
         throw new Error('Group should have unique name.')
       }
       const newChannel = await new Channel({
@@ -106,18 +105,20 @@ class ChannelController {
   }
 
   /**
-     * Creates a 911 emergency channel with specific configurations
-     * @param username - The username of the caller
-     * @param userId - MongoDB ObjectId of the user
-     * @returns The created 911 channel
-     */
+   * Creates a 911 emergency channel with specific configurations
+   * @param username - The username of the caller
+   * @param userId - MongoDB ObjectId of the user
+   * @returns The created 911 channel
+   */
   create911Channel = async (username: string, userId: Types.ObjectId) => {
-    const channel911Name = `I${username}_911`;
+    const channel911Name = `I${username}_911`
 
     // Find system user
-    const systemUser = await UserController.findUserByUsername('System');
+    const systemUser = await UserController.findUserByUsername('System')
     if (!systemUser) {
-      throw new Error('System user not found. Please ensure System user is created with Administrator role.');
+      throw new Error(
+        'System user not found. Please ensure System user is created with Administrator role.',
+      )
     }
 
     // Use existing create method with 911-specific configurations
@@ -126,19 +127,20 @@ class ChannelController {
       userIds: [userId, systemUser._id],
       description: `911 Emergency Channel for ${username}`,
       ownerId: userId,
-      closed: false
-    });
+      closed: false,
+    })
 
     // Add system welcome message
     await this.appendMessage({
-      content: "Hello! A dispatcher will be with you shortly. Please provide any additional information here.",
+      content:
+        'Hello! A dispatcher will be with you shortly. Please provide any additional information here.',
       senderId: systemUser._id,
       channelId: channel._id,
       isAlert: false,
-      responders: []
-    });
+      responders: [],
+    })
 
-    return channel;
+    return channel
   }
 
   /**
@@ -225,9 +227,9 @@ class ChannelController {
 
       const connection = UserConnections.getUserConnection(id)!
 
-      if (isAlert && user.role == "Fire") {
+      if (isAlert && user.role == 'Fire') {
         connection.emit('new-fire-alert', message)
-      } else if (isAlert && user.role == "Police") {
+      } else if (isAlert && user.role == 'Police') {
         connection.emit('new-police-alert', message)
       } else {
         connection.emit('new-message', message)
@@ -330,21 +332,26 @@ class ChannelController {
       throw new Error(`Channel(${channelId.toHexString()}) not found.`)
     }
 
-    const receiverId = channel.users.find(user => !user._id.equals(senderId))?._id as Types.ObjectId | undefined;
+    const receiverId = channel.users.find((user) => !user._id.equals(senderId))
+      ?._id as Types.ObjectId | undefined
     if (!receiverId) {
-      throw new Error(`No other user found in Channel(${channelId.toHexString()}).`);
+      throw new Error(
+        `No other user found in Channel(${channelId.toHexString()}).`,
+      )
     }
 
-    const receiverProfile = await Profile.findOne({ userId: receiverId }).exec();
+    const receiverProfile = await Profile.findOne({ userId: receiverId }).exec()
     if (!receiverProfile) {
-      throw new Error(`Profile for Receiver(${receiverId.toHexString()}) not found.`);
+      throw new Error(
+        `Profile for Receiver(${receiverId.toHexString()}) not found.`,
+      )
     }
     const receiver = await User.findById(receiverId).exec()
     if (!receiver) {
-      throw new Error(`Receiver(${receiverId.toHexString()}) not found.`);
+      throw new Error(`Receiver(${receiverId.toHexString()}) not found.`)
     }
-    const receiverPhoneNumber = receiverProfile.phone;
-    const content = `Phone call started now between ${sender.username} and ${receiver?.username}.`;
+    const receiverPhoneNumber = receiverProfile.phone
+    const content = `Phone call started now between ${sender.username} and ${receiver?.username}.`
 
     // Create and save the new message
     const message = await new Message({
@@ -365,7 +372,7 @@ class ChannelController {
       const connection = UserConnections.getUserConnection(id)!
       connection.emit('new-message', message)
     })
-    return {message, phoneNumber: receiverPhoneNumber};
+    return { message, phoneNumber: receiverPhoneNumber }
   }
 
   /**
@@ -383,13 +390,13 @@ class ChannelController {
     }
 
     // Initialize Google Cloud Storage
-    const storage = new Storage({
-      projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
-      keyFilename:
-        process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
-    })
+    const storage = GoogleStorage.getStorage()
 
-    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
+    const bucketName = Env.getParam(
+      'GCS_BUCKET_NAME',
+      'your-gcs-bucket-name',
+      false,
+    )
     // Generate a unique file name for the video (using channelId and current timestamp)
     const fileName = `videos/${channelId}/${Date.now()}.webm`
     const bucket = storage.bucket(bucketName)
@@ -425,13 +432,9 @@ class ChannelController {
     }
 
     // Initialize Google Cloud Storage
-    const storage = new Storage({
-      projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
-      keyFilename:
-        process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
-    })
+    const storage = GoogleStorage.getStorage()
+    const bucketName = GoogleStorage.getBucketName()
 
-    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
     // Generate a unique file name for the image (using channelId and current timestamp)
     const fileName = `images/${channelId}/${Date.now()}.png`
     const bucket = storage.bucket(bucketName)
@@ -470,13 +473,9 @@ class ChannelController {
       throw new Error(`Channel(${channelId.toHexString()}) not found.`)
     }
 
-    const storage = new Storage({
-      projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
-      keyFilename:
-        process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
-    })
+    const storage = GoogleStorage.getStorage()
+    const bucketName = GoogleStorage.getBucketName()
 
-    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
     const fileRoute = `uploads/${channelId}/${fileName}.${Date.now()}.${fileExtension}`
     const bucket = storage.bucket(bucketName)
     const file = bucket.file(fileRoute)
@@ -504,13 +503,9 @@ class ChannelController {
       throw new Error(`Channel(${channelId.toHexString()}) not found.`)
     }
 
-    const storage = new Storage({
-      projectId: process.env.GCP_PROJECT_ID || 'YOUR_PROJECT_ID',
-      keyFilename:
-        process.env.GCP_KEY_FILE || 'path/to/your/service-account.json',
-    })
+    const storage = GoogleStorage.getStorage()
+    const bucketName = GoogleStorage.getBucketName()
 
-    const bucketName = process.env.GCS_BUCKET_NAME || 'your-gcs-bucket-name'
     const fileExtension = 'webm'
     const fileRoute = `voice_messages/${channelId}/${fileName}.${Date.now()}.${fileExtension}`
     const bucket = storage.bucket(bucketName)
@@ -553,21 +548,23 @@ class ChannelController {
 
   getClosedGroups = async () => {
     try {
-      const closedGroups = await Channel.find({ closed: true }).sort({ name: 1 });
-      return closedGroups;
+      const closedGroups = await Channel.find({ closed: true }).sort({
+        name: 1,
+      })
+      return closedGroups
     } catch (error) {
-      throw error;
+      throw error
     }
   }
 
   /**
- * Update existing channel
- * @param channel - An object containing channel details to update
- * @param channel._id - ID of the channel to update
- * @param channel.userIds - Array of user IDs to be in the channel
- * @returns The updated channel object
- * @throws Error if the channel is not found
- */
+   * Update existing channel
+   * @param channel - An object containing channel details to update
+   * @param channel._id - ID of the channel to update
+   * @param channel.userIds - Array of user IDs to be in the channel
+   * @returns The updated channel object
+   * @throws Error if the channel is not found
+   */
   updateChannel = async (channel: {
     _id: Types.ObjectId
     name: string
@@ -576,59 +573,59 @@ class ChannelController {
     ownerId?: Types.ObjectId
     closed?: boolean
   }) => {
-
     // Find the channel by ID
-    const existingChannel = await Channel.findById(channel._id).exec();
+    const existingChannel = await Channel.findById(channel._id).exec()
 
     if (!existingChannel) {
-      throw new Error(`Channel(${channel._id.toString()}) not found.`);
+      throw new Error(`Channel(${channel._id.toString()}) not found.`)
     }
 
     // Remove duplicates and ensure order of user IDs
     const userIds = Array.from(new Set(channel.userIds)).sort((a, b) =>
       a.toString().localeCompare(b.toString()),
-    );
+    )
 
     // Find all user objects
     const users = await Promise.all(
       userIds.map(async (id) => {
-        const user = await User.findById(id).exec();
+        const user = await User.findById(id).exec()
         if (!user) {
-          throw new Error(`User(${id.toString()}) not found.`);
+          throw new Error(`User(${id.toString()}) not found.`)
         }
-        return user;
-      })
-    );
+        return user
+      }),
+    )
 
     // Only update the users field
-    existingChannel.users = users;
+    existingChannel.users = users
 
     // Keep other properties the same
-    existingChannel.name = channel.name || existingChannel.name;
-    existingChannel.description = channel.description || existingChannel.description;
-    existingChannel.closed = channel.closed !== undefined ? channel.closed : existingChannel.closed;
+    existingChannel.name = channel.name || existingChannel.name
+    existingChannel.description =
+      channel.description || existingChannel.description
+    existingChannel.closed =
+      channel.closed !== undefined ? channel.closed : existingChannel.closed
 
     // If owner is provided, update it
     if (channel.ownerId) {
-      const newOwner = await User.findById(channel.ownerId).exec();
+      const newOwner = await User.findById(channel.ownerId).exec()
       if (newOwner) {
-        existingChannel.owner = newOwner;
+        existingChannel.owner = newOwner
       }
     }
 
     // Save the updated channel
-    const updatedChannel = await existingChannel.save();
+    const updatedChannel = await existingChannel.save()
     UserConnections.broadcast('updateGroups', {})
 
-    return updatedChannel;
+    return updatedChannel
   }
 
   acknowledgeMessage = async (
     messageId: Types.ObjectId,
     senderId: Types.ObjectId,
-    channelId: Types.ObjectId
+    channelId: Types.ObjectId,
   ) => {
-
     const sender = await User.findById(senderId).exec()
     if (!sender) {
       throw new Error(`Sender(${senderId.toHexString()}) not found.`)
@@ -639,14 +636,17 @@ class ChannelController {
       throw new Error(`Channel(${channelId.toHexString()}) not found.`)
     }
 
-
     try {
-      const message = await
-        Message.findByIdAndUpdate(
-          messageId,
-          { $push: { acknowledgedBy: senderId, acknowledgedAt: new Date().toISOString() } },
-          { new: true }
-        ).exec()
+      const message = await Message.findByIdAndUpdate(
+        messageId,
+        {
+          $push: {
+            acknowledgedBy: senderId,
+            acknowledgedAt: new Date().toISOString(),
+          },
+        },
+        { new: true },
+      ).exec()
       if (!message) {
         throw new Error(`Message(${messageId.toHexString()}) not found.`)
       }

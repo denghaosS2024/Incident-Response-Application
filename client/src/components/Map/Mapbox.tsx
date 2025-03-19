@@ -18,6 +18,7 @@ import IIncident from '../../models/Incident'
 import { updateIncident } from '../../redux/incidentSlice'
 import { AppDispatch, RootState } from '../../redux/store'
 import eventEmitter from '../../utils/eventEmitter'
+import Globals from '../../utils/Globals'
 import request from '../../utils/request'
 import SocketClient from '../../utils/Socket'
 import { WildfireArea } from '../../utils/types'
@@ -478,8 +479,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
   }
 
-  const accessToken =
-    'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+  const accessToken = Globals.getMapboxToken()
 
   const navigateToMarker = async (
     map: mapboxgl.Map | null,
@@ -631,8 +631,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   // -------------------------------- map init start --------------------------------
 
   useEffect(() => {
-    mapboxgl.accessToken =
-      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+    mapboxgl.accessToken = Globals.getMapboxToken()
 
     // For main map page (/map), always prioritize geolocation
     if (isMapPage) {
@@ -2080,8 +2079,7 @@ const Mapbox: React.FC<MapboxProps> = ({
 export default Mapbox
 export const getMapboxToken = () => {
   if (!mapboxgl.accessToken) {
-    mapboxgl.accessToken =
-      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+    mapboxgl.accessToken = Globals.getMapboxToken()
   }
   return mapboxgl.accessToken
 }

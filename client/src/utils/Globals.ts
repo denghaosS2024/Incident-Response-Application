@@ -12,4 +12,13 @@ export default class Globals {
 
     return import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:3001'
   }
+  public static getMapboxToken() {
+    if (!import.meta.env.VITE_MAPBOX_TOKEN) {
+      console.warn('VITE_MAPBOX_TOKEN is not set. Using fallback token.')
+    }
+    return (
+      import.meta.env.VITE_MAPBOX_TOKEN ??
+      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+    )
+  }
 }

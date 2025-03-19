@@ -1,4 +1,5 @@
-import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerJsdoc from 'swagger-jsdoc'
+import Env from '../../utils/Env'
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -9,12 +10,12 @@ const options: swaggerJsdoc.Options = {
       description: 'API documentation for SEM Incident Response Application',
       contact: {
         name: 'API Support',
-        email: 'support@example.com'
+        email: 'support@example.com',
       },
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:3001',
+        url: Env.getApiUrl(),
         description: 'Development server',
       },
     ],
@@ -28,9 +29,7 @@ const options: swaggerJsdoc.Options = {
       },
     },
   },
-  apis: [
-    './src/routers/*.ts',
-  ],
-};
+  apis: ['./src/routers/*.ts'],
+}
 
-export const specs = swaggerJsdoc(options);
+export const specs = swaggerJsdoc(options)

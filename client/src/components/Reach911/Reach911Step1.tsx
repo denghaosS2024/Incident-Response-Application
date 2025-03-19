@@ -10,8 +10,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import IIncident from '../../models/Incident'
 import { updateIncident } from '../../redux/incidentSlice'
 import { AppDispatch, RootState } from '../../redux/store'
-
-
+import Globals from '../../utils/Globals'
 interface Reach911Step1Props {
   autoPopulateData?: boolean
   isCreatedByFirstResponder?: boolean
@@ -42,8 +41,7 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
       const { latitude, longitude } = incident.location
 
       // Access token
-      const accessToken =
-        'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+      const accessToken = Globals.getMapboxToken()
 
       // Reverse geocode to get address
       fetch(
@@ -75,10 +73,13 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
     setInputAddress(value)
   }
 
-  // If a user clicks on a suggestion from the autofil dropdown, we update the incident with the new location! 
+  // If a user clicks on a suggestion from the autofil dropdown, we update the incident with the new location!
   function onRetrieve(res: AddressAutofillRetrieveResponse) {
-    const newAddress = res.features[0].properties.full_address ?? '';
-    const newLocation = {longitude: res.features[0].geometry.coordinates[0], latitude: res.features[0].geometry.coordinates[1]};
+    const newAddress = res.features[0].properties.full_address ?? ''
+    const newLocation = {
+      longitude: res.features[0].geometry.coordinates[0],
+      latitude: res.features[0].geometry.coordinates[1],
+    }
     dispatch(
       updateIncident({
         ...incident,
@@ -89,15 +90,14 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
   }
 
   // When user clicks out of the input, we revert it back to the original incident location!
-  function onBlur(){
-    setInputAddress(incident.address);
+  function onBlur() {
+    setInputAddress(incident.address)
   }
 
-  // We listen to incident's location changes, and update the text field accordingly. We do this to support manual changes from the map's pin. 
-  useEffect(()=>{
-    setInputAddress(incident.address);
-  }, [incident.address])  
-
+  // We listen to incident's location changes, and update the text field accordingly. We do this to support manual changes from the map's pin.
+  useEffect(() => {
+    setInputAddress(incident.address)
+  }, [incident.address])
 
   return (
     <div className={styles.wrapperStep1}>
@@ -123,7 +123,11 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
             }}
           >
             <form>
-              <AddressAutofill onRetrieve={onRetrieve} options={{streets:false}} accessToken="pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA">
+              <AddressAutofill
+                onRetrieve={onRetrieve}
+                options={{ streets: false }}
+                accessToken={Globals.getMapboxToken()}
+              >
                 <TextField
                   fullWidth
                   id="outlined-basic"

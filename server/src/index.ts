@@ -11,9 +11,10 @@ import { Server as SocketIO } from 'socket.io'
 import app from './app'
 import Socket from './socket'
 import * as Database from './utils/Database'
+import Env from './utils/Env'
 
 // Set the port for the server to listen on
-const PORT = parseInt(process.env.PORT || '3001')
+const PORT = parseInt(Env.getParam('PORT', '3001'))
 
 // Create an HTTP server instance
 const server = new Server(app)
