@@ -1,54 +1,106 @@
-import { Box, Button, Checkbox, FormControlLabel, InputAdornment, Paper, TextField, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  InputAdornment,
+  Paper,
+  Snackbar,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { useState } from 'react'
+import request from '../utils/request'
+
+interface HospitalData {
+  hospitalId: string
+  hospitalName: string
+  hospitalAddress: string
+  hospitalDescription: string
+  totalNumberERBeds: number
+  nurses: string[]
+}
 
 const RegisterHospital = () => {
-
-  // TODO : Remove this comment
-  /* 
-  hospitalName : string
-  hospitalAddress : string
-  hospitalDescription : string
-  numberOfERBeds : int
-  nuumberOfPatients : int
-  nurses : List<string>
-  /*
-
   /* ------------------------------ CONSTANTS ------------------------------ */
 
-  // TODO : Use client side model interface instead of below variables
-  const [hospitalName, setHospitalName] = useState('')
-  const [address, setAddress] = useState('')
-  const [description, setDescription] = useState('')
-  const [erBeds, setErBeds] = useState(0)
-  const [worksAtER, setWorksAtER] = useState(false)
-  const [role] = useState(localStorage.getItem('role'))
-  const [errors, setErrors] = useState({ name: false, address: false });
+  const [hospitalData, setHospitalData] = useState<HospitalData>({
+    hospitalId: '',
+    hospitalName: '',
+    hospitalAddress: '',
+    hospitalDescription: '',
+    totalNumberERBeds: 0,
+    nurses: [],
+  })
+
+  const [errors, setErrors] = useState({
+    hospitalName: false,
+    hospitalAddress: false,
+  })
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>(
+    'success',
+  )
+
+  const role = localStorage.getItem('role')
+  const username = localStorage.getItem('username')
 
   /* ------------------------------ FUNCTIONS ------------------------------ */
 
   /* Function to create or update the hospital discussion (SEM-2563) */
-  const updateHospitalDiscussion = () => {
-    console.log("Updating hospital discussion."); 
-    // TODO: Implement discussion update 
-  };
+  const updateHospitalDiscussion = (hospitalData: HospitalData) => {
+    console.log('Updating hospital discussion.')
+    // TODO: Implement discussion update
+  }
 
-  /* Function to register a new hospital on submit */
-  const handleSubmit = () => {
-    if (!hospitalName || !address) {
-      setErrors({
-        name: !hospitalName,
-        address: !address,
-      });
-      return;
+  /* Function to show the alert */
+  const showSnackbar = (message: string, severity: 'success' | 'error') => {
+    setSnackbarMessage(message)
+    setSnackbarSeverity(severity)
+    setOpenSnackbar(true)
+  }
+
+  /* API call to register a new hospital */
+  const registerHospital = async (hospitalData: HospitalData) => {
+    console.log('Calling API to register a new hospital.')
+    try {
+      const response = await request('/api/hospital/register', {
+        method: 'POST',
+        body: JSON.stringify(hospitalData),
+        headers: { 'Content-Type': 'application/json' },
+      })
+      console.log('Hospital registered successfully:', response)
+      return response
+    } catch (error) {
+      console.error('Error registering hospital:', error)
+      return null
     }
-    console.log("Submitting hospital:", { hospitalName, address, description, erBeds });
-    // TODO: API call to register hospital
-    updateHospitalDiscussion();
+  }
+
+  /* Function to register a new hospital on submit*/
+  const handleSubmit = async () => {
+    if (!hospitalData.hospitalName || !hospitalData.hospitalAddress) {
+      setErrors({
+        hospitalName: !hospitalData.hospitalName,
+        hospitalAddress: !hospitalData.hospitalAddress,
+      })
+      return
+    }
+    console.log('Submitting hospital:', hospitalData)
+    const response = await registerHospital(hospitalData)
+    if (response) {
+      showSnackbar('Hospital created successfully!', 'success')
+      updateHospitalDiscussion(response)
+    } else {
+      showSnackbar('Error registering hospital.', 'error')
+    }
   }
 
   /* Handle cancellation of hospital registration (SEM-2564) */
   const handleCancel = () => {
-    // TODO : Revert back to previous values (GET API call)
+    // TODO : Revert back to previous values (GET API call) or use redux
   }
 
   /* Handle deletion of existing hospital (SEM-2565) */
@@ -60,19 +112,17 @@ const RegisterHospital = () => {
   /* ------------------------------ RENDER PAGE ------------------------------ */
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 400, mx: 'auto', mt: 4 }}>
-
       {/* Hospital Name */}
       <TextField
         label="Name"
         fullWidth
         margin="normal"
-        value={hospitalName}
-        onChange={(e) => {
-          setHospitalName(e.target.value);
-          setErrors({ ...errors, name: false });
-        }}
-        error={errors.name}
-        helperText={errors.name ? "Hospital name is required" : ""}
+        value={hospitalData.hospitalName}
+        onChange={(e) =>
+          setHospitalData({ ...hospitalData, hospitalName: e.target.value })
+        }
+        error={errors.hospitalName}
+        helperText={errors.hospitalName ? 'Hospital name is required' : ''}
       />
 
       {/* Hospital Address */}
@@ -80,13 +130,12 @@ const RegisterHospital = () => {
         label="Address"
         fullWidth
         margin="normal"
-        value={address}
-        onChange={(e) => {
-          setAddress(e.target.value);
-          setErrors({ ...errors, address: false });
-        }}
-        error={errors.address}
-        helperText={errors.address ? "Address is required" : ""}
+        value={hospitalData.hospitalAddress}
+        onChange={(e) =>
+          setHospitalData({ ...hospitalData, hospitalAddress: e.target.value })
+        }
+        error={errors.hospitalAddress}
+        helperText={errors.hospitalAddress ? 'Address is required' : ''}
       />
 
       {/* Hospital Description */}
@@ -96,8 +145,13 @@ const RegisterHospital = () => {
         multiline
         rows={3}
         margin="normal"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        value={hospitalData.hospitalDescription}
+        onChange={(e) =>
+          setHospitalData({
+            ...hospitalData,
+            hospitalDescription: e.target.value,
+          })
+        }
       />
 
       {/* Total ER Beds */}
@@ -106,8 +160,13 @@ const RegisterHospital = () => {
         fullWidth
         type="number"
         margin="normal"
-        value={erBeds}
-        onChange={(e) => setErBeds(Number(e.target.value))}
+        value={hospitalData.totalNumberERBeds}
+        onChange={(e) =>
+          setHospitalData({
+            ...hospitalData,
+            totalNumberERBeds: Number(e.target.value),
+          })
+        }
         InputProps={{
           startAdornment: <InputAdornment position="start">🛏️</InputAdornment>,
         }}
@@ -119,12 +178,18 @@ const RegisterHospital = () => {
       </Typography>
 
       {/* Show checkbox only if role is 'Nurse' */}
-      {role === "Nurse" && (
+      {role === 'Nurse' && (
         <FormControlLabel
           control={
             <Checkbox
-              checked={worksAtER}
-              onChange={(e) => setWorksAtER(e.target.checked)}
+              onChange={(e) => {
+                if (e.target.checked && username) {
+                  setHospitalData((prev) => ({
+                    ...prev,
+                    nurses: [...prev.nurses, username],
+                  }))
+                }
+              }}
               color="primary"
             />
           }
@@ -144,6 +209,21 @@ const RegisterHospital = () => {
           Delete
         </Button>
       </Box>
+
+      {/* For Alerts pertaining to hospital registration or updation*/}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Paper>
   )
 }

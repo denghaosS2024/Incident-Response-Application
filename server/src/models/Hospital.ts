@@ -1,39 +1,48 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
+import mongoose, { Document, Schema } from 'mongoose'
+import { v4 as uuidv4 } from 'uuid'
 
-// TODO: Add further fields after discussing with team
 export interface IHospital extends Document {
-    hospitalId: string;
-    hospitalName: string;
-    hospitalAddress: string;
-    hospitalDescription: string;
+  hospitalId: string
+  hospitalName: string
+  hospitalAddress: string
+  hospitalDescription: string
+  totalNumberERBeds: number
+  nurses: string[]
 }
 
-// TODO : Add further fields after discussing with team
-const HospitalSchema = new Schema(
-    {
-        hospitalId: {
-            type: String,
-            required: true,
-            unique: true,
-            default: uuidv4,
-        },
-        hospitalName: {
-            type: String,
-            required: true,
-            unique: false,
-        },
-        hospitalAddress: {
-            type: String,
-            required: true,
-            unique: true,
-        },
-        hospitalDescription: {
-            type: String,
-            required: false,
-            unique: false,
-        }
-    },
-)
+const HospitalSchema = new Schema({
+  hospitalId: {
+    type: String,
+    required: true,
+    unique: true,
+    default: uuidv4,
+  },
+  hospitalName: {
+    type: String,
+    required: true,
+    unique: false,
+  },
+  hospitalAddress: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  hospitalDescription: {
+    type: String,
+    required: false,
+    unique: false,
+  },
+  totalNumberERBeds: {
+    type: Number,
+    required: false,
+    unique: false,
+    default: 0,
+  },
+  nurses: {
+    type: [String],
+    required: false,
+    default: [],
+  },
+})
 
 export default mongoose.model<IHospital>('Hospital', HospitalSchema)
