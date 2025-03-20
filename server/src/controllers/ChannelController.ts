@@ -540,6 +540,9 @@ class ChannelController {
   getChannel = async (channelId: Types.ObjectId) => {
     try {
       const channel = await Channel.getGroupById(channelId)
+      if (!channel) {
+        throw new Error(`Channel(${channelId.toHexString()}) not found.`)
+      }
       return channel
     } catch (error) {
       throw error
