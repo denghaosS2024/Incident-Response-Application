@@ -24,12 +24,14 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   useEffect(() => {
     const fetchChannelDetails = async () => {
       try {
-        const channels = await request(`/api/channels`)
-        const currentChannel = channels.find(
-          (channel: any) => channel._id === channelId,
+        // const channels = await request(`/api/channels`)
+        // const currentChannel = channels.find(
+        //   (channel: any) => channel._id === channelId,
+        // )
+        const currentChannel = await request(`/api/channels/${channelId}`
         ) // Find the current channel
         if (currentChannel) {
-          setPrivateChannel(currentChannel.users.length === 2) // Check if only two users exist in the channel
+          setPrivateChannel(currentChannel.name === "PrivateContact") // Check if only two users exist in the channel
         }
       } catch (error) {
         console.error('Failed to fetch channel details:', error)
