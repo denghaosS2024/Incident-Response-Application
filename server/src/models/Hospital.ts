@@ -7,6 +7,7 @@ export interface IHospital extends Document {
   hospitalAddress: string
   hospitalDescription: string
   totalNumberERBeds: number
+  totalNumberOfPatients: number
   nurses: string[]
 }
 
@@ -38,9 +39,15 @@ const HospitalSchema = new Schema({
     unique: false,
     default: 0,
   },
+  totalNumberOfPatients: {
+    type: Number,
+    required: false,
+    unique: false,
+  },
   nurses: {
     type: [String],
     required: false,
+    unique: false,
     default: [],
   },
 })

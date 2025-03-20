@@ -19,10 +19,11 @@ interface HospitalData {
   hospitalAddress: string
   hospitalDescription: string
   totalNumberERBeds: number
+  totalNumberOfPatients: number
   nurses: string[]
 }
 
-const RegisterHospital = () => {
+const RegisterHospital: React.FC = () => {
   /* ------------------------------ CONSTANTS ------------------------------ */
 
   const [hospitalData, setHospitalData] = useState<HospitalData>({
@@ -31,6 +32,7 @@ const RegisterHospital = () => {
     hospitalAddress: '',
     hospitalDescription: '',
     totalNumberERBeds: 0,
+    totalNumberOfPatients: 0,
     nurses: [],
   })
 
