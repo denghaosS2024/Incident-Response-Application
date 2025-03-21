@@ -3,7 +3,7 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd'
 import { useDispatch, useSelector } from 'react-redux'
 import IChannel from '../models/Channel'
 import IUser from '../models/User'
-import { loadContacts } from '../redux/contactSlice'
+import { loadFilteredContacts } from '../redux/contactSlice'
 import { AppDispatch, RootState } from '../redux/store'
 import request from '../utils/request'
 import SocketClient from '../utils/Socket'
@@ -27,33 +27,10 @@ export default function Board({
   const [groups, setGroups] = useState<any[]>([]) // Store the groups
   const [colSubtitle, setColSubtitle] = useState<string>('')
   const owner = localStorage.getItem('uid') || ''
-
-  const currentUserId = localStorage.getItem('uid')
   const currentUserRole = localStorage.getItem('role') || ''
-  const roleContactMap: Record<string, string[]> = {
-    Citizen: ['Citizen', 'Administrator'],
-    Dispatch: ['Dispatch', 'Police', 'Fire', 'Administrator'],
-    Police: ['Dispatch', 'Police', 'Fire', 'Administrator'],
-    Fire: ['Dispatch', 'Police', 'Fire', 'Administrator'],
-    Nurse: ['Nurse', 'Administrator'],
-    Administrator: [
-      'Dispatch',
-      'Police',
-      'Fire',
-      'Nurse',
-      'Citizen',
-      'Administrator',
-    ],
-  }
-  const allowedRoles = roleContactMap[currentUserRole] || []
-  // Filter out the current user from the contacts list
-  contacts = contacts.filter(
-    (user) => user._id !== currentUserId && allowedRoles.includes(user.role),
-  )
 
   useEffect(() => {
-    // dispatch(loadMockContacts());
-    dispatch(loadContacts())
+    dispatch(loadFilteredContacts(currentUserRole))
   }, [dispatch]) // Only dispatch when the component mounts
 
   useEffect(() => {

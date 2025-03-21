@@ -21,6 +21,27 @@ const loadContacts = createAsyncThunk('contacts/loadContacts', async () => {
   return { users } as IContactsPayload
 })
 
+// Async thunk for fetching filtered contacts based on role
+const loadFilteredContacts = createAsyncThunk(
+  'contacts/loadFilteredContacts',
+  async (currentUserRole: string) => {
+    const roleContactMap: Record<string, string[]> = {
+      Citizen: ['Citizen', 'Administrator'],
+      Dispatch: ['Dispatch', 'Police', 'Fire', 'Administrator'],
+      Police: ['Dispatch', 'Police', 'Fire', 'Administrator'],
+      Fire: ['Dispatch', 'Police', 'Fire', 'Administrator'],
+      Nurse: ['Nurse', 'Administrator'],
+      Administrator: ['Dispatch', 'Police', 'Fire', 'Nurse', 'Citizen', 'Administrator'],
+    }
+    
+    const users = await request<IUser[]>('/api/users')
+    const owner = localStorage.getItem('uid') || ''
+    const allowedRoles = roleContactMap[currentUserRole] || []
+    const filteredUsers = users.filter(user => user._id !== owner && allowedRoles.includes(user.role))
+    return { users: filteredUsers } as IContactsPayload
+  }
+)
+
 // Create the contact slice with reducers and extra reducers
 export const contactSlice = createSlice({
   name: 'contacts',
@@ -40,74 +61,22 @@ export const contactSlice = createSlice({
       .addCase(loadContacts.pending, (state) => {
         state.loading = true
       })
-
       .addCase(
-        loadMockContacts.fulfilled,
+        loadFilteredContacts.fulfilled,
         (state, action: PayloadAction<IContactsPayload>) => {
           const { users } = action.payload
           state.contacts = users
-          state.loading = false // Set loading to false after mock data is loaded
+          state.loading = false
         },
       )
-      .addCase(loadMockContacts.pending, (state) => {
-        state.loading = true // Set loading to true while data is being fetched
+      .addCase(loadFilteredContacts.pending, (state) => {
+        state.loading = true
       })
   },
 })
 
-// Export the loadContacts async thunk
-export { loadContacts }
+// Export the loadContacts and loadFilteredContacts async thunks
+export { loadContacts, loadFilteredContacts }
 
 // Export the reducer as the default export
 export default contactSlice.reducer
-
-//Export mock data, checking for adding group participants
-// Add this to your `contactSlice` file
-export const loadMockContacts = createAsyncThunk(
-  'contacts/loadMockContacts',
-  async () => {
-    // Mock data for testing purposes
-    const users: IUser[] = [
-      { _id: '67c7a1280697d82aef1ac3ec', username: 'test', role: 'Citizen' },
-      {
-        _id: '67ca7468da683a25ed90e2fd',
-        username: 'grouptest',
-        role: 'Citizen',
-        online: false,
-      },
-      {
-        _id: '67ca7492da683a25ed90e306',
-        username: 'participant_test',
-        role: 'Citizen',
-        online: true,
-      },
-    ]
-
-    return { users } as IContactsPayload
-  },
-)
-/**
- * Contact Slice
- *
- * This Redux slice manages the state of contacts in the application.
- *
- * Key components:
- * - Initial state: Defines the structure for contacts, loading state, and errors.
- * - loadContacts: An async thunk for fetching all contacts from the API.
- * - contactSlice: The main slice containing reducers and extra reducers.
- *
- * State structure:
- * - contacts: An array of user objects.
- * - loading: Boolean indicating if a contact operation is in progress.
- * - error: Stores any error that occurred during contact operations.
- *
- * Actions:
- * - loadContacts: Fetches and updates the list of contacts.
- *
- * Extra Reducers:
- * - Handles the fulfilled state of loadContacts, updating the contacts array.
- *
- * Usage:
- * This slice is combined in the store and provides actions and state
- * for managing contacts throughout the application.
- */
