@@ -434,6 +434,26 @@ describe('Router - Channel', () => {
     expect(updatedChannel.users.some((u) => u._id === userB)).toBe(false);
   });
 
+  it('retrieve a channel by ID', async () => {
+    // Ensure the channel exists before retrievingconst 
+    const { body } = await request(app)
+      .get(`/api/channels/${channelId}`)
+      .expect(200);
+    
+    expect(body).toBeDefined();
+    expect(body._id).toBe(channelId);
+    expect(body.name).toBe('Test Channel 1');
+    expect(body.users.length).toBe(1);
+  });
 
+  it('should return 404 if the channel does not exist', async () => {
+    // Provide a random ID that won’t match any existing channel
+    const fakeId = '64f0413bd1fd8a7a6e8a1f21';
+    const {body}  = await request(app)
+      .get(`/api/channels/${fakeId}`)
+      .expect(404);
+    expect(body).toHaveProperty('message');
+    expect(body.message).toMatch(/Channel.*not found/);
+  });
   afterAll(TestDatabase.close)
 })

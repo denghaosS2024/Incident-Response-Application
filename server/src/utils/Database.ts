@@ -13,7 +13,8 @@ import '../models/Message'
 import User from '../models/User'
 
 import dotenv from 'dotenv'
-import Channel from "../models/Channel";
+import Channel from '../models/Channel'
+import Env from './Env'
 
 dotenv.config({ path: '.env' })
 
@@ -28,8 +29,12 @@ export const connect = async (
 ) => {
   // If MongoDB URL is not provided, use the environment variables
   if (url === undefined) {
-    let baseUrl = process.env.MONGODB_URL
-    let dbName = process.env.MONGODB_DB_NAME
+    let baseUrl = Env.getParam(
+      'MONGODB_URL',
+      'mongodb://localhost:27017',
+      false,
+    )
+    let dbName = Env.getParam('MONGODB_DB_NAME', 'sem', false)
 
     // Edge case for those who added an extra forward slash at either ends
     if (baseUrl?.endsWith('/')) {

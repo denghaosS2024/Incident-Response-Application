@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material'
+import { Box } from '@mui/material'
 import { useEffect, useState } from 'react'
 import IChannel from '../../models/Channel'
 import request from '../../utils/request'
@@ -63,15 +63,12 @@ const GroupDirectory: React.FC = () => {
   return (
     <Box
       sx={{
-        border: '1px solid #ddd',
         borderRadius: '8px',
-        padding: '1rem',
         mx: 'auto',
+        display: "grid",
+        placeItems: "center" /* Centers vertically */
       }}
     >
-      <Typography variant="h3" sx={{ mb: 2 }}>
-        Group Directory
-      </Typography>
       <GroupListBlock
         headerName="Groups I am managing"
         id="managing"

@@ -13,10 +13,11 @@ import path from 'path'
 import swaggerUi from 'swagger-ui-express'
 import { specs } from './config/swagger/swagger'
 import router from './routers'
+import Env from './utils/Env'
 
 function getCorsMiddleware() {
   const corsOptions = {
-    origin: '*',
+    origin: Env.getFrontendCorsUrl(),
     method: '*',
     allowedHeaders: '*',
     credentials: true,

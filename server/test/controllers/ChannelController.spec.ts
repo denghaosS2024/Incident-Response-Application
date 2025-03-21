@@ -545,5 +545,18 @@ it('can get closed groups sorted by name', async () => {
     expect(updatedChannel.users.some((u) => u._id.equals(userB._id))).toBe(false);
   });
 
+  it('can update the owner of the channel when owner is provided', async () => {
+    expect(channel).toBeDefined();
+
+    const updatedChannel = await ChannelController.updateChannel({
+      _id: channel._id,
+      name: channel.name,
+      userIds: channel.users.map((u) => u._id),
+      ownerId: userC._id,
+    });
+    expect(updatedChannel.owner).toBeDefined();
+    expect(updatedChannel.owner?.['_id']).toEqual(userC._id);
+  });
+
   afterAll(TestDatabase.close)
 })
