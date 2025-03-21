@@ -18,6 +18,7 @@ import RegisterHospital from './pages/RegisterHospital'
 import RegisterPage from './pages/RegisterPage'
 import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
+import './styles/globals.css'
 import './styles/tailwind.css'
 
 export default function App() {
