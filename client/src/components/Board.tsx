@@ -20,7 +20,7 @@ export default function Board({
 }) {
   const [done, setDone] = useState<IUser[]>([])
   const dispatch = useDispatch<AppDispatch>()
-  let { contacts, loading, error } = useSelector(
+  const { contacts, loading, error } = useSelector(
     (state: RootState) => state.contactState,
   )
   const [todo, setTodo] = useState<IUser[]>([])
