@@ -455,5 +455,50 @@ describe('Router - Channel', () => {
     expect(body).toHaveProperty('message');
     expect(body.message).toMatch(/Channel.*not found/);
   });
+
+  it('acknowledges a message in a channel', async () => {
+    // Create a new channel and message
+    const {
+      body: { _id: channelId },
+    } = await request(app)
+      .post('/api/channels')
+      .send({
+        name: 'Test Channel for Acknowledge',
+        users: [userA],
+      })
+      .expect(200);
+
+    const content = 'This is a test message';
+    const {
+      body: { _id: messageId },
+    } = await request(app)
+      .post(`/api/channels/${channelId}/messages`)
+      .set('x-application-uid', userA)
+      .send({ content, isAlert: false })
+      .expect(200);
+
+    // Acknowledge the message
+    const { body: acknowledgedMessage } = await request(app)
+      .patch(`/api/channels/${channelId}/messages/acknowledge`)
+      .send({ messageId, senderId: userA })
+      .expect(200);
+
+    expect(acknowledgedMessage).toBeDefined();
+    expect(acknowledgedMessage._id).toBe(messageId);
+  });
+
+  it('should return 404 if the channel does not exist for ackowledge', async () => {
+    // Provide a random ID that won’t match any existing channel
+    const fakeId = '64f0413bd1fdda7a6e1a1f21';
+    const { body } = await request(app)
+      .patch(`/api/channels/${fakeId}/messages/acknowledge`)
+      .send({ messageId, senderId: userA })
+      .expect(404);
+  
+    expect(body).toHaveProperty('message');
+    expect(body.message).toMatch(/Channel.*not found/);
+  });
+
+
   afterAll(TestDatabase.close)
 })
