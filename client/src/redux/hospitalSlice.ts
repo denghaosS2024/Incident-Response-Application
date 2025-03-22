@@ -1,25 +1,6 @@
 import IHospital from '@/models/Hospital'
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
-import request from '../utils/request'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { HospitalState } from '../utils/types'
-
-/* ---------------------- Async Thunk: Fetch Hospital by ID ---------------------- */
-/**
- * Fetch hospital details from API using hospital ID.
- */
-export const fetchHospitalById = createAsyncThunk(
-  'hospital/fetchById',
-  async (hospitalId: string, { rejectWithValue }) => {
-    try {
-      const response = await request(`/api/hospital/${hospitalId}`, {
-        method: 'GET',
-      })
-      return response // Return hospital data on success
-    } catch (error) {
-      return rejectWithValue(error) // Return error to Redux state
-    }
-  },
-)
 
 /* ---------------------- Initial State ---------------------- */
 const initialState: HospitalState = {
@@ -47,27 +28,27 @@ const hospitalSlice = createSlice({
       state.error = null
       state.loading = false
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchHospitalById.pending, (state) => {
-        state.loading = true
-        state.error = null
-      })
-      .addCase(
-        fetchHospitalById.fulfilled,
-        (state, action: PayloadAction<IHospital>) => {
-          state.loading = false
-          state.hospitalData = action.payload
-        },
-      )
-      .addCase(fetchHospitalById.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.payload as string
-      })
+    /**
+     * Set loading status for hospital-related operations
+     */
+    setHospitalLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload
+    },
+    /**
+     * Set error message for hospital-related operations
+     */
+    setHospitalError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload
+    },
   },
 })
 
 /* ---------------------- Export Actions & Reducer ---------------------- */
-export const { setHospital, clearHospital } = hospitalSlice.actions
+export const {
+  setHospital,
+  clearHospital,
+  setHospitalLoading,
+  setHospitalError,
+} = hospitalSlice.actions
+
 export default hospitalSlice.reducer

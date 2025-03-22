@@ -1,3 +1,5 @@
+import IHospital from '@/models/Hospital'
+import { setHospital } from '@/redux/hospitalSlice'
 import {
   Alert,
   Box,
@@ -10,23 +12,15 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { useParams } from 'react-router-dom'
 import request from '../utils/request'
-
-interface HospitalData {
-  hospitalId: string
-  hospitalName: string
-  hospitalAddress: string
-  hospitalDescription: string
-  totalNumberERBeds: number
-  totalNumberOfPatients: number
-  nurses: string[]
-}
 
 const RegisterHospital: React.FC = () => {
   /* ------------------------------ CONSTANTS ------------------------------ */
 
-  const [hospitalData, setHospitalData] = useState<HospitalData>({
+  const emptyHospitalData: IHospital = {
     hospitalId: '',
     hospitalName: '',
     hospitalAddress: '',
@@ -34,12 +28,16 @@ const RegisterHospital: React.FC = () => {
     totalNumberERBeds: 0,
     totalNumberOfPatients: 0,
     nurses: [],
-  })
+  }
+
+  const { hospitalId } = useParams<{ hospitalId?: string }>()
+  const [hospitalData, setHospitalData] = useState<IHospital>(emptyHospitalData)
 
   const [errors, setErrors] = useState({
     hospitalName: false,
     hospitalAddress: false,
   })
+  const dispatch = useDispatch()
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>(
@@ -49,23 +47,29 @@ const RegisterHospital: React.FC = () => {
   const role = localStorage.getItem('role')
   const username = localStorage.getItem('username')
 
-  /* ------------------------------ FUNCTIONS ------------------------------ */
+  /* ------------------------------ USE EFFECTS ------------------------------ */
 
-  /* Function to create or update the hospital discussion (SEM-2563) */
-  const updateHospitalDiscussion = (hospitalData: HospitalData) => {
-    console.log('Updating hospital discussion.')
-    // TODO: Implement discussion update
-  }
+  useEffect(() => {
+    const getHospital = async () => {
+      if (hospitalId) {
+        const data = await fetchHospitalDetails(hospitalId)
+        if (data) {
+          setHospitalData(data) // local state
+          dispatch(setHospital(data)) // redux state
+        }
+      } else {
+        setHospitalData(emptyHospitalData) // local state
+        dispatch(setHospital(emptyHospitalData)) // redux state
+      }
+    }
 
-  /* Function to show the alert */
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbarMessage(message)
-    setSnackbarSeverity(severity)
-    setOpenSnackbar(true)
-  }
+    getHospital()
+  }, [hospitalId])
+
+  /* ------------------------------ API CALLS ------------------------------ */
 
   /* API call to register a new hospital */
-  const registerHospital = async (hospitalData: HospitalData) => {
+  const registerHospital = async (hospitalData: IHospital) => {
     console.log('Calling API to register a new hospital.')
     try {
       const response = await request('/api/hospital/register', {
@@ -79,6 +83,36 @@ const RegisterHospital: React.FC = () => {
       console.error('Error registering hospital:', error)
       return null
     }
+  }
+
+  /* API call to fetch details of a hospital based on hospital Id */
+  const fetchHospitalDetails = async (hospitalId: string) => {
+    console.log('Calling API to fetch hospital details based on hospitalId')
+    try {
+      const response = await request(`/api/hospital/${hospitalId}`, {
+        method: 'GET',
+      })
+      console.log('Fetched hospital details:', response)
+      return response
+    } catch (error) {
+      console.error('Error fetching hospital details:', error)
+      return null
+    }
+  }
+
+  /* ------------------------------ FUNCTIONS ------------------------------ */
+
+  /* Function to create or update the hospital discussion (SEM-2563) */
+  const updateHospitalDiscussion = (hospitalData: IHospital) => {
+    console.log('Updating hospital discussion.')
+    // TODO: Implement discussion update
+  }
+
+  /* Function to show the alert */
+  const showSnackbar = (message: string, severity: 'success' | 'error') => {
+    setSnackbarMessage(message)
+    setSnackbarSeverity(severity)
+    setOpenSnackbar(true)
   }
 
   /* Function to register a new hospital on submit*/
