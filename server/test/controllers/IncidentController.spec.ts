@@ -1,7 +1,8 @@
 import { Query, Types } from 'mongoose';
 import IncidentController from '../../src/controllers/IncidentController';
-import Incident, { IIncident } from '../../src/models/Incident';
+import Incident, { IIncident, IncidentPriority } from '../../src/models/Incident';
 import * as TestDatabase from '../utils/TestDatabase';
+
 
 describe('Incident Controller', () => {
   beforeAll(TestDatabase.connect)
@@ -206,4 +207,98 @@ describe('Incident Controller', () => {
     // it should have return the existing incident
     expect(res.incidentId).toBe(rawIncident.incidentId);
   })
+
+  it('should create new incident with default values', async () => {
+    const caller = 'Test1';
+    const incident = new Incident({
+      caller: caller,
+  })
+    const newIncident = await IncidentController.createIncident(incident)
+
+    expect(newIncident).toBeDefined()
+    expect(newIncident.incidentId).toBe(`I${caller}`)
+    expect(newIncident.caller).toBe(caller)
+    expect(newIncident.incidentState).toBe('Waiting')
+    expect(newIncident.owner).toBe('System')
+    expect(newIncident.commander).toBe('System')
+    expect(newIncident.address).toBe('')
+    expect(newIncident.type).toBe('U')
+    expect(newIncident.questions).toEqual({})
+    expect(newIncident.priority).toBe(IncidentPriority.Immediate)
+    expect(newIncident.incidentCallGroup).toBeNull()
+  })
+
+  it('should create new incident with provided values', async () => {
+    // example id
+    const validGroupId = '507f1f77bcf86cd799439011'; 
+
+    const caller = 'Test2';
+    const incident = new Incident({
+      incidentId: `I${caller}`,
+      caller: caller,
+      openingDate: new Date(),
+      incidentState: 'Waiting',
+      owner: "TestOwner",
+      commander: "TestCommander",
+      address:  "110 Test Avenue" ,
+      type: "U",
+      questions:{},
+      priority: IncidentPriority.Immediate,
+      incidentCallGroup: validGroupId,
+  })
+
+    const newIncident = await IncidentController.createIncident(incident)
+
+    expect(newIncident).toBeDefined()
+    expect(newIncident.incidentId).toBe(`I${caller}`)
+    expect(newIncident.caller).toBe(caller)
+    expect(newIncident.incidentState).toBe('Waiting')
+    expect(newIncident.owner).toBe('TestOwner')
+    expect(newIncident.commander).toBe('TestCommander')
+    expect(newIncident.address).toBe('110 Test Avenue')
+    expect(newIncident.type).toBe('U')
+    expect(newIncident.questions).toEqual({})
+    expect(newIncident.priority).toBe(IncidentPriority.Immediate)
+    expect(newIncident.incidentCallGroup?.toString()).toBe(validGroupId);
+  })
+
+  it('should create new incident with default values for state, owner, commander, and incidentCallGroup when passed null or undefined values', async () => {
+    const caller = 'Test';
+    const incident = new Incident({
+      caller: caller,
+      incidentState: null,
+      owner: undefined,
+      commander: undefined,
+      incidentCallGroup: undefined
+    });
+  
+    const newIncident = await IncidentController.createIncident(incident);
+  
+    expect(newIncident).toBeDefined();
+    expect(newIncident.incidentId).toBe(`I${caller}`);
+    expect(newIncident.caller).toBe(caller);
+    expect(newIncident.incidentState).toBe('Waiting'); 
+    expect(newIncident.owner).toBe('System'); 
+    expect(newIncident.commander).toBe('System');
+    expect(newIncident.incidentCallGroup).toBeNull();
+  });
+
+  it('should create new incident with default values for owner, commander, and incidentCallGroup when passed empty values', async () => {
+    const caller = 'Test3';
+    const incident = new Incident({
+      caller: caller,
+      owner: "",
+      commander: "", 
+      incidentCallGroup: "",  
+    });
+  
+    const newIncident = await IncidentController.createIncident(incident);
+  
+    expect(newIncident).toBeDefined();
+    expect(newIncident.incidentId).toBe(`I${caller}`);
+    expect(newIncident.caller).toBe(caller);
+    expect(newIncident.owner).toBe("System"); 
+    expect(newIncident.commander).toBe('System'); 
+    expect(newIncident.incidentCallGroup).toBeNull(); 
+  });
 })
