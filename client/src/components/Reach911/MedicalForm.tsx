@@ -67,15 +67,14 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
       | SelectChangeEvent<string>,
   ) => {
-    const { type, value, checked } = e.target as HTMLInputElement
-    const newValue: string | boolean = type === 'checkbox' ? checked : value
+    const { type, checked } = e.target as HTMLInputElement
+    let { value } = e.target;
 
-    if (
-      field === 'age' &&
-      (Number.isNaN(Number(value)) || value.includes(' '))
-    ) {
-      return
+    if (field === 'age') {
+      value = value.replace(/[^0-9]/g, ''); // Only allow digits
     }
+    
+    const newValue: string | boolean = type === 'checkbox' ? checked : value
 
     dispatch(
       updateIncident({
@@ -171,15 +170,10 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             label="Age"
             fullWidth
             value={age}
-            type="number"
+
             error={!!ageError}
             helperText={ageError}
-            InputProps={{
-              inputProps: {
-                max: 110,
-                min: 1,
-              },
-            }}
+            
             onChange={(e) => onChange('age', e)}
           />
         </Box>
