@@ -7,7 +7,7 @@ import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from '../models/Channel'
 import Message from '../models/Message'
 import Profile from '../models/Profile'
 import User from '../models/User'
-import Env from '../utils/Env'
+// import Env from '../utils/Env'
 import GoogleStorage from '../utils/GoogleStorage'
 import UserConnections from '../utils/UserConnections'
 import UserController from './UserController'
@@ -375,96 +375,9 @@ class ChannelController {
     return { message, phoneNumber: receiverPhoneNumber }
   }
 
-  /**
-   * Generate a signed URL for uploading a video to Google Cloud Storage.
-   * @param channelId - The ID of the channel to upload the video to.
-   * @returns An object containing the signed URL and the file URL.
-   * @throws Error if the channel is not found.
-   *
-   */
-  getVideoUploadUrl = async (channelId: Types.ObjectId) => {
-    // Retrieve the channel from the database
-    const channel = await Channel.findById(channelId).exec()
-    if (!channel) {
-      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
-    }
-
-    // Initialize Google Cloud Storage
-    const storage = GoogleStorage.getStorage()
-
-    const bucketName = Env.getParam(
-      'GCS_BUCKET_NAME',
-      'your-gcs-bucket-name',
-      false,
-    )
-    // Generate a unique file name for the video (using channelId and current timestamp)
-    const fileName = `videos/${channelId}/${Date.now()}.webm`
-    const bucket = storage.bucket(bucketName)
-    const file = bucket.file(fileName)
-
-    // Set the signed URL to expire in 15 minutes
-    const expires = Date.now() + 15 * 60 * 1000
-
-    try {
-      // Generate a signed URL that allows a PUT request for the video upload
-      const [uploadUrl] = await file.getSignedUrl({
-        version: 'v4',
-        action: 'write',
-        expires,
-        contentType: 'video/webm',
-      })
-
-      // Construct the public URL for accessing the video after upload
-      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`
-
-      return { uploadUrl, fileUrl }
-    } catch (error) {
-      console.error('Error generating signed URL:', error)
-      return { error: 'Error generating signed URL' }
-    }
-  }
-
-  getImageUploadUrl = async (channelId: Types.ObjectId) => {
-    // Retrieve the channel from the database
-    const channel = await Channel.findById(channelId).exec()
-    if (!channel) {
-      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
-    }
-
-    // Initialize Google Cloud Storage
-    const storage = GoogleStorage.getStorage()
-    const bucketName = GoogleStorage.getBucketName()
-
-    // Generate a unique file name for the image (using channelId and current timestamp)
-    const fileName = `images/${channelId}/${Date.now()}.png`
-    const bucket = storage.bucket(bucketName)
-    const file = bucket.file(fileName)
-
-    // Set the signed URL to expire in 15 minutes
-    const expires = Date.now() + 15 * 60 * 1000
-
-    try {
-      // Generate a signed URL that allows a PUT request for the image upload
-      const [uploadUrl] = await file.getSignedUrl({
-        version: 'v4',
-        action: 'write',
-        expires,
-        contentType: 'image/png',
-      })
-
-      // Construct the public URL for accessing the image after upload
-      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`
-
-      return { uploadUrl, fileUrl }
-    } catch (error) {
-      console.error('Error generating signed URL:', error)
-      return { error: 'Error generating signed URL' }
-    }
-  }
-
-  getFileUploadUrl = async (
+  getUploadUrl = async (
     channelId: Types.ObjectId,
-    fileName: string,
+    fileRoute: string,
     fileType: string,
     fileExtension: string,
   ) => {
@@ -476,9 +389,9 @@ class ChannelController {
     const storage = GoogleStorage.getStorage()
     const bucketName = GoogleStorage.getBucketName()
 
-    const fileRoute = `uploads/${channelId}/${fileName}.${Date.now()}.${fileExtension}`
+    const fileName = `${fileRoute}/${Date.now()}.${fileExtension}`
     const bucket = storage.bucket(bucketName)
-    const file = bucket.file(fileRoute)
+    const file = bucket.file(fileName)
 
     const expires = Date.now() + 15 * 60 * 1000
 
@@ -489,7 +402,7 @@ class ChannelController {
         expires,
         contentType: fileType,
       })
-      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`
+      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`
       return { uploadUrl, fileUrl }
     } catch (error) {
       console.error('Error generating signed URL:', error)
@@ -497,35 +410,67 @@ class ChannelController {
     }
   }
 
+  /**
+   * Generate a signed URL for uploading a video to Google Cloud Storage.
+   * @param channelId - The ID of the channel to upload the video to.
+   * @returns An object containing the signed URL and the file URL.
+   * @throws Error if the channel is not found.
+   *
+   * */
+  getVideoUploadUrl = async (channelId: Types.ObjectId) => {
+    return this.getUploadUrl(channelId, 'videos', 'video/webm', 'webm')
+  }
+
+  /**
+   * Generate a signed URL for uploading an image to Google Cloud Storage.
+   * @param channelId - The ID of the channel to upload the image to.
+   * @returns An object containing the signed URL and the file URL.
+   * @throws Error if the channel is not found.
+   * 
+   * */
+  getImageUploadUrl = async (channelId: Types.ObjectId) => {
+    return this.getUploadUrl(channelId, 'images', 'image/png', 'png')
+  }
+
+  /**
+   * Generate a signed URL for uploading a file to Google Cloud Storage.
+   * @param channelId - The ID of the channel to upload the file to.
+   * @param fileName - The name of the file to upload.
+   * @param fileType - The MIME type of the file.
+   * @param fileExtension - The extension of the file.
+   * @returns An object containing the signed URL and the file URL.
+   * @throws Error if the channel is not found.
+   * 
+   * */
+  getFileUploadUrl = async (
+    channelId: Types.ObjectId,
+    fileName: string,
+    fileType: string,
+    fileExtension: string,
+  ) => {
+    return this.getUploadUrl(
+      channelId,
+      `uploads/${channelId}/${fileName}`,
+      fileType,
+      fileExtension,
+    )
+  }
+
+  /**
+   * Generate a signed URL for uploading a voice message to Google Cloud Storage.
+   * @param channelId - The ID of the channel to upload the voice message to.
+   * @param fileName - The name of the voice message file.
+   * @returns An object containing the signed URL and the file URL.
+   * @throws Error if the channel is not found.
+   *
+   * */
   getVoiceUploadUrl = async (channelId: Types.ObjectId, fileName: string) => {
-    const channel = await Channel.findById(channelId).exec()
-    if (!channel) {
-      throw new Error(`Channel(${channelId.toHexString()}) not found.`)
-    }
-
-    const storage = GoogleStorage.getStorage()
-    const bucketName = GoogleStorage.getBucketName()
-
-    const fileExtension = 'webm'
-    const fileRoute = `voice_messages/${channelId}/${fileName}.${Date.now()}.${fileExtension}`
-    const bucket = storage.bucket(bucketName)
-    const file = bucket.file(fileRoute)
-
-    const expires = Date.now() + 15 * 60 * 1000
-
-    try {
-      const [uploadUrl] = await file.getSignedUrl({
-        version: 'v4',
-        action: 'write',
-        expires,
-        contentType: 'audio/webm',
-      })
-      const fileUrl = `https://storage.googleapis.com/${bucketName}/${fileRoute}`
-      return { uploadUrl, fileUrl }
-    } catch (error) {
-      console.error('Error generating signed URL:', error)
-      return { error: 'Error generating signed URL' }
-    }
+    return this.getUploadUrl(
+      channelId,
+      `voice_messages/${channelId}/${fileName}`,
+      'audio/webm',
+      'webm',
+    )
   }
 
   getUserGroups = async (userId: Types.ObjectId) => {
