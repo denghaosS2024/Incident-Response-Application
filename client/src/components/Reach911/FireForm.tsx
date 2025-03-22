@@ -190,6 +190,8 @@ const FireForm: React.FC = () => {
             helperText={numPeopleError}
             InputProps={{
               inputProps: {
+                inputMode: 'numeric', // Forces numeric keyboard on iOS
+                pattern: '[0-9]*', // Ensures only numbers are entered
                 max: 999,
                 min: 1,
               },
