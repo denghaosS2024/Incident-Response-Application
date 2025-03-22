@@ -73,7 +73,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     if (field === 'age') {
       value = value.replace(/[^0-9]/g, ''); // Only allow digits
     }
-    
+
     const newValue: string | boolean = type === 'checkbox' ? checked : value
 
     dispatch(
@@ -170,10 +170,16 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             label="Age"
             fullWidth
             value={age}
-
             error={!!ageError}
             helperText={ageError}
-            
+            InputProps={{
+              inputProps: {
+                inputMode: 'numeric', // Forces numeric keyboard on iOS
+                pattern: '[0-9]*', // Ensures only numbers are entered
+                max: 110,
+                min: 1,
+              },
+            }}
             onChange={(e) => onChange('age', e)}
           />
         </Box>
