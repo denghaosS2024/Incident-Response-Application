@@ -91,6 +91,7 @@ export default class MapOverlayUtil {
     Blocks: () => eventEmitter.emit('toggle_roadblock'),
     Hydrants: () => eventEmitter.emit('toggle_fireHydrant'),
     Areas: () => eventEmitter.emit('area_util'),
+    Pollution: () => eventEmitter.emit('toggle_airQuality'),
   }
 
   /**

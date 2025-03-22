@@ -62,6 +62,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [pinsVisible, setPinsVisible] = useState(true)
   const [roadblocksVisible, setRoadblocksVisible] = useState(true)
   const [fireHydrantsVisible, setFireHydrantsVisible] = useState(true)
+  const [airQualityVisible, setAirQualityVisible] = useState(true)
   const [userLocationVisible, setUserLocationVisible] = useState(true)
   const [isCreatingArea, setIsCreatingArea] = useState(false)
   const [isUnauthorized, setIsUnauthorized] = useState(false)
@@ -1175,6 +1176,34 @@ const Mapbox: React.FC<MapboxProps> = ({
       })
     }
 
+    // Toggle air quality visibility at the component level
+    const toggleAirQuality = () => {
+      if (!mapRef.current) return
+      setAirQualityVisible((prev) => {
+        const newState = !prev
+
+        airQualityRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          // Handle popup visibility
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Pollution',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
     const toggleRoadblocks = () => {
       if (!mapRef.current) return
       setRoadblocksVisible((prev) => {
@@ -1254,12 +1283,14 @@ const Mapbox: React.FC<MapboxProps> = ({
     eventEmitter.on('toggle_pin', togglePins)
     eventEmitter.on('toggle_roadblock', toggleRoadblocks)
     eventEmitter.on('toggle_fireHydrant', toggleFireHydrants)
+    eventEmitter.on('toggle_airQuality', toggleAirQuality)
 
     return () => {
       eventEmitter.removeListener('you_button_clicked', toggleUserLocation)
       eventEmitter.removeListener('toggle_pin', togglePins)
       eventEmitter.removeListener('toggle_roadblock', toggleRoadblocks)
       eventEmitter.removeListener('toggle_fireHydrant', toggleFireHydrants)
+      eventEmitter.removeListener('toggle_airQuality', toggleAirQuality)
     }
   }, [])
 
