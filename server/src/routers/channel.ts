@@ -500,29 +500,27 @@ export default Router()
   })
   /**
    * @swagger
-   * /api/:id/messages:
-   *   get:
-   *     summary: Get messages for a channel
-   *     description: Get messages for a specific channel
-   *     tags: [Channels]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *           description: Channel ID
-   *     responses:
-   *       200:
-   *         description: Successfully retrieved messages for the channel
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: '#/components/schemas/Message'
-   *       404:
-   *         description: Channel not found
+   * /api/:id:
+   *  get:
+   *   summary: Get a channel by ID
+   *  description: Get a channel by its ID
+   * tags: [Channels]
+   * parameters:
+   *  - in: path
+   *   name: id
+   *  required: true
+   * schema:
+   * type: string
+   * description: Channel ID
+   * responses:
+   * 200:
+   * description: Channel retrieved successfully
+   * content:
+   * application/json:
+   * schema:
+   * $ref: '#/components/schemas/Channel'
+   * 404:
+   * description: Channel not found
    */
   .get('/:id', async (request, response) => {
     try {
