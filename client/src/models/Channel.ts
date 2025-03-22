@@ -31,7 +31,7 @@ export const resolveChannelName = (channel: IChannel) => {
 
     channel.name = others
       .map(({ username }) => username)
-      .sort()
+      .sort((a , b) => a.localeCompare(b))
       .join(',')
   }
 

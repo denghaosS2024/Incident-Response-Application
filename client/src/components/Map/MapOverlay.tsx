@@ -55,7 +55,7 @@ const MapOverlay: React.FC = () => {
     (state: RootState) => state.contactState,
   )
 
-  const utilLayers = MapOverlayUtil.getUtilItems().sort()
+  const utilLayers = MapOverlayUtil.getUtilItems().sort((a, b) => a.localeCompare(b))
 
   const handleSelectUtil = (layer: string, visible: boolean) => {
     if (layer === 'Util') {
