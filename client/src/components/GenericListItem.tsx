@@ -1,5 +1,5 @@
-import { Divider, List, Typography } from '@mui/material'
-import { Fragment, ReactNode } from 'react'
+import { TableBody, TableCell, TableRow, Typography } from '@mui/material'
+import { ReactNode } from 'react'
 import Loading from './common/Loading'
 
 export interface ItemListProps<T> {
@@ -19,19 +19,24 @@ const ItemList = <T,>({
 
   if (!items || items.length === 0) {
     return (
-      <Typography style={{ padding: 16 }}>No Incidents available</Typography>
+      <TableBody>
+        <TableRow>
+          <TableCell colSpan={5}>
+            <Typography style={{ padding: 16 }}>
+              No Incidents available
+            </Typography>
+          </TableCell>
+        </TableRow>
+      </TableBody>
     )
   }
 
   return (
-    <List>
-      {items.map((item, index) => (
-        <Fragment key={getKey(item)}>
-          {renderItem(item)}
-          {index !== items.length - 1 && <Divider />}
-        </Fragment>
+    <TableBody>
+      {items.map((item) => (
+        <TableRow key={getKey(item)}>{renderItem(item)}</TableRow>
       ))}
-    </List>
+    </TableBody>
   )
 }
 

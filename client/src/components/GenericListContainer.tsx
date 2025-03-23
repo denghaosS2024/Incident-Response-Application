@@ -1,10 +1,17 @@
-import { Box, Typography } from '@mui/material'
+import {
+  Box,
+  Table,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { ReactNode } from 'react'
 import ItemList, { ItemListProps } from './GenericListItem'
 
 export interface GenericListContainerProps<T> {
-  header: ReactNode
+  header: string | string[]
   listProps: ItemListProps<T>
 }
 
@@ -13,27 +20,55 @@ const GenericListContainer = <T,>({
   listProps,
 }: GenericListContainerProps<T>) => {
   const theme = useTheme()
+  const isHeaderArray = Array.isArray(header)
+
   return (
     <Box
       sx={{
-        border: '2px solid black',
-        borderRadius: '4px',
+        border: '1px solid black',
+        borderRadius: '12px',
         overflow: 'hidden',
         marginBottom: 2,
       }}
     >
-      <Typography
-        variant="h6"
-        sx={{
-          borderBottom: '2px solid black',
-          padding: '8px',
-          backgroundColor: theme.palette.primary.light,
-          color: 'white',
-        }}
-      >
-        {header}
-      </Typography>
-      <ItemList<T> {...listProps} />
+      {/* If header is a string, render it as a title */}
+      {!isHeaderArray && (
+        <Typography
+          variant="h6"
+          sx={{
+            padding: 1.5,
+            backgroundColor: theme.palette.primary.main,
+            borderBottom: '1px solid',
+            color: theme.palette.primary.contrastText,
+          }}
+        >
+          {header}
+        </Typography>
+      )}
+
+      {/* Table for both header and rows */}
+      <TableContainer sx={{ width: '100%', overflowX: 'hidden' }}>
+        <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
+          {isHeaderArray && (
+            <TableHead>
+              <TableRow>
+                {header.map((headerItem, index) => (
+                  <TableCell
+                    key={index}
+                    sx={{ fontWeight: 'bold' }}
+                    align="center"
+                  >
+                    {headerItem}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+          )}
+
+          {/* Render Rows (List of items) */}
+          <ItemList<T> {...listProps} />
+        </Table>
+      </TableContainer>
     </Box>
   )
 }
