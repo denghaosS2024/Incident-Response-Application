@@ -5,9 +5,9 @@ import app from '../../src/app'
 import UserController from '../../src/controllers/UserController'
 import { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
 import Profile from '../../src/models/Profile'
-import * as TestDatabase from '../utils/TestDatabase'
 import ROLES from "../../src/utils/Roles"
 import SystemDefinedGroups from "../../src/utils/SystemDefinedGroups"
+import * as TestDatabase from '../utils/TestDatabase'
 
 jest.mock('@google-cloud/storage', () => {
   const mockGetSignedUrl = jest.fn().mockResolvedValue(['mock-signed-url'])
@@ -659,6 +659,65 @@ describe('Router - Channel', () => {
       expect(body.message).toMatch(/Channel.*not found/);
     });
   });
+
+  describe('Get Closed Groups', () => {
+  let closedChannelId1;
+  let closedChannelId2;
+  let openChannelId;
+
+  beforeAll(async () => {
+    // Create test channels - 2 closed and 1 open
+    const { body: closed1 } = await request(app)
+      .post('/api/channels')
+      .send({
+        name: 'Closed Group 1',
+        users: [userA, userB],
+        closed: true
+      })
+      .expect(200);
+    
+    const { body: closed2 } = await request(app)
+      .post('/api/channels')
+      .send({
+        name: 'Closed Group 2',
+        users: [userA, userC],
+        closed: true
+      })
+      .expect(200);
+    
+    const { body: open } = await request(app)
+      .post('/api/channels')
+      .send({
+        name: 'Open Group',
+        users: [userB, userC],
+        closed: false
+      })
+      .expect(200);
+    
+    closedChannelId1 = closed1._id;
+    closedChannelId2 = closed2._id;
+    openChannelId = open._id;
+  });
+
+  it('retrieves all closed groups', async () => {
+    const { body: closedGroups } = await request(app)
+      .get('/api/channels/groups/closed')
+      .expect(200);
+    
+    expect(closedGroups.length).toBeGreaterThanOrEqual(2);
+    
+    const groupIds = closedGroups.map(group => group._id);
+    expect(groupIds).toContain(closedChannelId1);
+    expect(groupIds).toContain(closedChannelId2);
+    
+    expect(groupIds).not.toContain(openChannelId);
+
+    const names = closedGroups.map(group => group.name);
+    const sortedNames = [...names].sort();
+    expect(names).toEqual(sortedNames);
+  });
+
+});
 
 
 
