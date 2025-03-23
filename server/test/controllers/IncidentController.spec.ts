@@ -301,4 +301,28 @@ describe('Incident Controller', () => {
     expect(newIncident.commander).toBe('System'); 
     expect(newIncident.incidentCallGroup).toBeNull(); 
   });
+
+  it('should create a new SAR incident with correct type and ID format', async () => {
+  const username = 'test-sar-user';
+
+  const sarIncident = new Incident({
+    incidentId: `S${username}1`,
+    caller: username,
+    openingDate: new Date(),
+    incidentState: 'Assigned',
+    owner: username,
+    commander: username,
+    type: 'S'
+  });
+  
+  const newSARIncident = await IncidentController.createIncident(sarIncident);
+  
+  expect(newSARIncident).toBeDefined();
+  expect(newSARIncident.incidentId).toBe(`S${username}1`);
+  expect(newSARIncident.caller).toBe(username);
+  expect(newSARIncident.type).toBe('S');
+  expect(newSARIncident.incidentState).toBe('Assigned');
+  expect(newSARIncident.owner).toBe(username);
+  expect(newSARIncident.commander).toBe(username);
+});
 })

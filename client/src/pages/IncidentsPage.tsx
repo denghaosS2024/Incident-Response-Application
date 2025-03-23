@@ -399,8 +399,7 @@ function IncidentsPage() {
               </FormControl>
             </MenuItem>
           </Menu>
-          {/* {!hasActiveResponderIncident &&  */}
-        {
+          {!hasActiveResponderIncident && 
           (
             <>
               <Tooltip title="Create new SAR incident">
