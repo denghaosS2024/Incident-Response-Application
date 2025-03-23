@@ -1,3 +1,4 @@
+import GenericItemizeContainer from '@/components/GenericItemizeContainer'
 import { Add, NavigateNext as Arrow, Settings } from '@mui/icons-material'
 import {
   Box,
@@ -11,7 +12,6 @@ import {
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import GenericListContainer from '../components/GenericListContainer'
 import { IncidentType } from '../models/Incident'
 import { resetIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
@@ -237,53 +237,59 @@ function IncidentsPage() {
         Incidents Dashboard
       </Typography>
       {Object.entries(incidentGroups).map(([header, incidents]) => (
-        <GenericListContainer<IncidentData>
+        <GenericItemizeContainer<IncidentData>
           key={header}
-          header={header}
-          listProps={{
-            items: incidents,
-            loading: false,
-            getKey: (incident) => incident.incidentId,
-            renderItem: (incident) => (
-              <Box sx={{ display: 'flex', alignItems: 'center', padding: 1 }}>
-                <Box sx={{ flex: 3, display: 'flex', flexDirection: 'row' }}>
-                  <Typography variant="body2" sx={{ flex: 1 }}>
-                    {incident.incidentId}
-                  </Typography>
-                  <Typography variant="body2" sx={{ flex: 1 }}>
-                    {new Date(incident.openingDate).toLocaleString('en-US', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      hour12: false,
-                    })}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                  }}
-                >
-                  <Typography variant="body2" sx={{ marginRight: 1 }}>
-                    {incident.type}
-                  </Typography>
-                  <Typography variant="body2">
-                    {(() => {
-                      const priorityMap: Record<string, string> = {
-                        One: '1',
-                        Two: '2',
-                        Three: '3',
-                      }
-                      return priorityMap[incident.priority] || incident.priority // Default to original value if not found
-                    })()}
-                  </Typography>
-                </Box>
+          items={incidents}
+          getKey={(incident) => incident.incidentId}
+          title={header}
+          showHeader={false}
+          emptyMessage="No incidents available"
+          columns={[
+            {
+              key: 'incidentId',
+              align: 'center',
+              label: 'Incident ID',
+              render: (incident) => incident.incidentId,
+            },
+            {
+              key: 'openingDate',
+              align: 'center',
+              label: 'Opening Date',
+              render: (incident) =>
+                new Date(incident.openingDate).toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: false,
+                }),
+            },
+            {
+              key: 'type',
+              align: 'center',
+              label: 'Type',
+              render: (incident) => incident.type,
+            },
+            {
+              key: 'priority',
+              align: 'center',
+              label: 'Priority',
+              render: (incident) => {
+                const priorityMap: Record<string, string> = {
+                  One: '1',
+                  Two: '2',
+                  Three: '3',
+                }
+                return priorityMap[incident.priority] || incident.priority // Default to original value if not found
+              },
+            },
+            {
+              key: 'incidentId',
+              align: 'center',
+              label: 'Action',
+              render: (incident) => (
                 <IconButton
                   edge="end"
                   size="large"
@@ -291,9 +297,9 @@ function IncidentsPage() {
                 >
                   <Arrow />
                 </IconButton>
-              </Box>
-            ),
-          }}
+              ),
+            },
+          ]}
         />
       ))}
       {role === 'Fire' || role === 'Police' ? (
