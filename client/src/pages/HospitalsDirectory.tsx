@@ -1,6 +1,6 @@
 import IHospital from '@/models/Hospital';
 import request from '@/utils/request';
-import { Add } from '@mui/icons-material';
+import { Add, NavigateNext as Arrow, } from '@mui/icons-material';
 import {
   Box,
   IconButton,
@@ -41,6 +41,10 @@ const HospitalsDirectory: React.FC = () => {
     navigate('/register-hospital')
   }
 
+  // Handle redirection to the register hospital page to access description
+  const redirectToHospitalDescription = (hospital: IHospital) => {
+    navigate(`/register-hospital/${hospital.hospitalId}`);
+  };
 
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
@@ -56,22 +60,26 @@ return (
           loading: false,
           getKey: (hospital: IHospital): string => hospital.hospitalId,
           renderItem: (hospital: IHospital) => (
-            <Box sx={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                gap: 2, 
-                alignItems: 'center',
-                padding: 1,
-              }}>
-                <Typography variant="body2" sx={{ textAlign: 'left' }}>
-                  {hospital.hospitalName}
-                </Typography>
-                <Typography variant="body2" sx={{ textAlign: 'center' }}>
-                  {hospital.totalNumberERBeds}
-                </Typography>
-                <Typography variant="body2" sx={{ textAlign: 'center' }}>
-                  {0}
-                </Typography>              
+            <Box className="flex items-center justify-between gap-2 p-1">
+              <Box className="grid grid-cols-[2fr_1fr_1fr] gap-2 items-center flex-grow">
+                  
+                  <Typography variant="body2" className="text-left">
+                    {hospital.hospitalName}
+                  </Typography>
+                  <Typography variant="body2" className="text-center">
+                    {hospital.totalNumberERBeds}
+                  </Typography>
+                  <Typography variant="body2" className="text-center">
+                    {0}
+                  </Typography>            
+              </Box>
+              <IconButton
+                    edge="end"
+                    size="large"
+                    onClick={(): void => redirectToHospitalDescription(hospital)} 
+                  >
+                    <Arrow />
+                  </IconButton>  
             </Box>
           ),
         }}

@@ -59,6 +59,7 @@ export default function App() {
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/register-hospital" element={<RegisterHospital />} />
+            <Route path="/register-hospital/:hospitalId" element={<RegisterHospital />} />
             {hospitalsDirectory &&
             <Route path="/hospitals" element={<HospitalsDirectory />} />  
             }

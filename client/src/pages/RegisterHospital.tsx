@@ -89,7 +89,7 @@ const RegisterHospital: React.FC = () => {
   const fetchHospitalDetails = async (hospitalId: string) => {
     console.log('Calling API to fetch hospital details based on hospitalId')
     try {
-      const response = await request(`/api/hospital/${hospitalId}`, {
+      const response = await request(`/api/hospital?hospitalId=${hospitalId}`, {
         method: 'GET',
       })
       console.log('Fetched hospital details:', response)
