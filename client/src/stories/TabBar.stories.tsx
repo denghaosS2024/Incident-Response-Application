@@ -10,7 +10,7 @@ import Groups2Icon from '@mui/icons-material/Groups2'
 import { Badge } from '@mui/material'
 import { Meta, StoryObj } from '@storybook/react'
 import { useState } from 'react'
-import TabBar, { Link } from '../components/TabBar'
+import TabBar, { Link } from '../components/common/TabBar'
 
 const roleHomeTabs: Record<string, Link> = {
   Citizen: { prefix: '/', key: 'home', icon: <Home />, to: '#' },
