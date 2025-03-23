@@ -7,13 +7,16 @@ import {
   Typography
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import GenericListContainer from '../components/GenericListContainer';
+
 
 const HospitalsDirectory: React.FC = () => {
 
   const [hospitalList, setHospitalList] = useState<IHospital[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   // Fetch hospitals from the server
   useEffect(() => {
@@ -32,6 +35,11 @@ const HospitalsDirectory: React.FC = () => {
 
     fetchData()
   }, [])
+
+  // Handle redirection to the register hospital page
+  const redirectToRegisterHospital = () => {
+    navigate('/register-hospital')
+  }
 
 
   if (loading) return <div>Loading...</div>
@@ -76,6 +84,7 @@ return (
                 width: 56,
                 height: 56,
               }}
+              onClick={redirectToRegisterHospital}
             >
               <Add fontSize="large" />
             </IconButton>
