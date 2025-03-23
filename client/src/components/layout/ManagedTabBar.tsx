@@ -1,3 +1,4 @@
+import { setHasGroupNotification, setHasNewIncident } from '@/redux/notifySlice'
 import {
   Hotel as BedIcon,
   LocalFireDepartment as FirefighterIcon,
@@ -16,17 +17,17 @@ import { useDispatch, useSelector } from 'react-redux'
 import { clearAllAlerts } from '../../redux/messageSlice'
 import { AppDispatch, RootState } from '../../redux/store'
 import TabBar, { Link } from '../common/TabBar'
-
 export default function ManagedTabBar() {
   const dispatch = useDispatch<AppDispatch>()
   const role = localStorage.getItem('role') || 'Citizen'
+  const notifyState = useSelector((state: RootState) => state.notifyState)
   // Check if there are any unread messages
   const alerts = useSelector((state: RootState) => state.messageState.alerts)
   const hasUnreadMessages = Object.values(alerts).some((alert) => alert)
-  // check if there are any group notifications
-  const [hasGroupNotification, setHasGroupNotification] = useState(false)
-  // check if there are any new incidents
-  const [hasNewIncident, setHasNewIncident] = useState<boolean>(false)
+  //   // check if there are any group notifications
+  //   const [hasGroupNotification, setHasGroupNotification] = useState(false)
+  //   // check if there are any new incidents
+  //   const [hasNewIncident, setHasNewIncident] = useState<boolean>(false)
   const [selectedTab, setSelectedTab] = useState<string | null>('home')
 
   const roleTabs: Record<string, Link> = {
@@ -129,14 +130,14 @@ export default function ManagedTabBar() {
     {
       prefix: '/groups',
       key: 'groups',
-      icon: hasGroupNotification ? (
+      icon: notifyState.hasGroupNotification ? (
         <Groups2Icon style={{ color: 'red' }} />
       ) : (
         <Groups2Icon />
       ),
       to: '/groups',
       onClick: () => {
-        setHasGroupNotification(false)
+        dispatch(setHasGroupNotification(false))
         setSelectedTab('groups')
       },
     },
@@ -164,7 +165,7 @@ export default function ManagedTabBar() {
     orderedTabs.push({
       prefix: '/incidents',
       key: 'incidents',
-      icon: hasNewIncident ? (
+      icon: notifyState.hasNewIncident ? (
         <Box position="relative">
           <ErrorOutlineIcon sx={{ color: 'error.main' }} />
           <Box
@@ -184,7 +185,7 @@ export default function ManagedTabBar() {
       ),
       to: '/incidents',
       onClick: () => {
-        setHasNewIncident(false)
+        dispatch(setHasNewIncident(false))
         setSelectedTab('incidents')
       },
     })

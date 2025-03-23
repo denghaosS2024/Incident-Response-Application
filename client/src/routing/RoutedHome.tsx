@@ -6,6 +6,12 @@ import { Navigate, Outlet } from 'react-router-dom'
 import IMessage from '../models/Message'
 
 // IR App
+import {
+  setHasGroupNotification,
+  setHasNewIncident,
+  setIncidentAlertMessage,
+  setShowIncidentAlert,
+} from '@/redux/notifySlice'
 import IrSnackbar from '../components/common/IrSnackbar'
 import ManagedTabBar from '../components/layout/ManagedTabBar'
 import NavigationBar from '../components/NavigationBar'
@@ -140,17 +146,18 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
 
     socket.on('group-member-added', (data) => {
       //TODO: Do something here?
-      // if (data.userId === localStorage.getItem('uid')) {
-      //   setHasGroupNotification(true)
-      // }
+      if (data.userId === localStorage.getItem('uid')) {
+        dispatch(setHasGroupNotification(true))
+      }
     })
     socket.on('new-incident-created', (data) => {
       console.log('New incident created:', data)
       if (role === 'Dispatch') {
-        // setHasNewIncident(true)
-        // setHasNewIncident(true)
-        // setShowIncidentAlert(true)
-        // setIncidentAlertMessage(`New incident created by ${data.username}`)
+        dispatch(setHasNewIncident(true))
+        dispatch(setShowIncidentAlert(true))
+        dispatch(
+          setIncidentAlertMessage(`New incident created by ${data.username}`),
+        )
         setBgColor('red')
         setTextColor('white')
       }
