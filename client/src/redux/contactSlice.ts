@@ -17,7 +17,8 @@ interface IContactsPayload {
 
 // Async thunk for fetching all contacts from the API
 const loadContacts = createAsyncThunk('contacts/loadContacts', async () => {
-  const users = await request<IUser[]>('/api/users')
+  let users = await request<IUser[]>('/api/users')
+  users = users.filter(user => user.username!="System");
   return { users } as IContactsPayload
 })
 
@@ -37,7 +38,8 @@ const loadFilteredContacts = createAsyncThunk(
     const users = await request<IUser[]>('/api/users')
     const owner = localStorage.getItem('uid') || ''
     const allowedRoles = roleContactMap[currentUserRole] || []
-    const filteredUsers = users.filter(user => user._id !== owner && allowedRoles.includes(user.role))
+    let filteredUsers = users.filter(user => user._id !== owner && allowedRoles.includes(user.role))
+    filteredUsers = filteredUsers.filter(user => user.username!="System");
     return { users: filteredUsers } as IContactsPayload
   }
 )
