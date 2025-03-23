@@ -8,8 +8,8 @@ import IconButton from '@mui/material/IconButton'
 import Snackbar from '@mui/material/Snackbar'
 import { useDispatch, useSelector } from 'react-redux'
 import * as UUID from 'uuid'
-import { clearSnackbar, SnackbarType } from '../redux/snackbarSlice'
-import { RootState } from '../redux/store'
+import { clearSnackbar, SnackbarType } from '../../redux/snackbarSlice'
+import { RootState } from '../../redux/store'
 export default function IrSnackbar() {
   const dispatcher = useDispatch()
   const snackbarState = useSelector((state: RootState) => state.snackbarState)
