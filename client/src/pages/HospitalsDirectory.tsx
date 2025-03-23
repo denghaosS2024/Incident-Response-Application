@@ -1,34 +1,53 @@
+import IHospital from '@/models/Hospital';
+import request from '@/utils/request';
+import { Add } from '@mui/icons-material';
 import {
   Box,
+  IconButton,
   Typography
 } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import GenericListContainer from '../components/GenericListContainer';
 
-type HospitalData = {
-    id: string,
-    name: string;
-    totalBeds: number;
-    availableBeds: number;
-};
 const HospitalsDirectory: React.FC = () => {
 
-  // Example data for hospitals for feature toggling demo purposes
-    const hospitalList: HospitalData[] = [
-        { id: "1", name: "El Camino", totalBeds: 100, availableBeds: 10 },
-        { id: "2", name: "General Hospital", totalBeds: 200, availableBeds: 20 }
-    ];
+  const [hospitalList, setHospitalList] = useState<IHospital[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch hospitals from the server
+  useEffect(() => {
+    const fetchData = async (): Promise<void> => {
+      setError(null)
+      try {
+        const data = await request('/api/hospital')
+        setHospitalList(data)
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch hospitals'
+        setError(errorMessage)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error}</div>
 
 return (
     <Box sx={{ padding: 2 }}>
   
-      <GenericListContainer<HospitalData>
+      <GenericListContainer<IHospital>
         key="hospitals"
         header="Hospitals"
         listProps={{
           items: hospitalList,
           loading: false,
-          getKey: (hospital: HospitalData): string => hospital.id,
-          renderItem: (hospital) => (
+          getKey: (hospital: IHospital): string => hospital.hospitalId,
+          renderItem: (hospital: IHospital) => (
             <Box sx={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr 1fr',
@@ -37,19 +56,31 @@ return (
                 padding: 1,
               }}>
                 <Typography variant="body2" sx={{ textAlign: 'left' }}>
-                  {hospital.name}
+                  {hospital.hospitalName}
                 </Typography>
                 <Typography variant="body2" sx={{ textAlign: 'center' }}>
-                  {hospital.totalBeds}
+                  {hospital.totalNumberERBeds}
                 </Typography>
                 <Typography variant="body2" sx={{ textAlign: 'center' }}>
-                  {hospital.availableBeds}
+                  {0}
                 </Typography>              
             </Box>
           ),
         }}
       />
+   <IconButton
+              sx={{
+                position: 'fixed',
+                bottom: 16,
+                right: 16,
+                width: 56,
+                height: 56,
+              }}
+            >
+              <Add fontSize="large" />
+            </IconButton>
     </Box>
+    
   );
 }
 

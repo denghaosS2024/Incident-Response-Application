@@ -43,11 +43,11 @@ class HospitalController {
 
   /**
    * Fetch all hospitals from the database
-   * @returns An array of hospital objects (empty array if none found)
+   * @returns An array of hospital objects (empty array if none found) sorted alphabetically
    */
   async getAllHospitals() {
     try {
-      const hospitals = await Hospital.find()
+      const hospitals = await Hospital.find().sort({hospitalName: 1})
       return hospitals
     } catch (error) {
       console.error('Error fetching hospitals:', error)
