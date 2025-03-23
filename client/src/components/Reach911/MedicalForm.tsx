@@ -49,6 +49,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
   const [usernameError, setUserNameError] = useState<string>('')
   const [ageError, setAgeError] = useState<string>('')
 
+  // Loads contacts upon page loading
   useEffect(() => {
     dispatch(loadContacts())
   }, [dispatch])
@@ -61,19 +62,14 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
   const userId = localStorage.getItem('uid')
   const currentUser = contacts.filter((user: IUser) => user._id === userId)[0]
 
+  // When any input changes, add the changes to the incident slice
   const onChange = (
     field: string,
     e:
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
       | SelectChangeEvent<string>,
   ) => {
-    const { type, checked } = e.target as HTMLInputElement
-    let { value } = e.target;
-
-    if (field === 'age') {
-      value = value.replace(/[^0-9]/g, ''); // Only allow digits
-    }
-
+    const { type, value, checked } = e.target as HTMLInputElement
     const newValue: string | boolean = type === 'checkbox' ? checked : value
 
     dispatch(
@@ -90,6 +86,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     validateField(field, newValue)
   }
 
+  // Validates field to set certain error messages
   const validateField = (field: string, value: string | boolean) => {
     if (field === 'username') {
       setUserNameError(
@@ -97,6 +94,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
       )
     }
 
+    // Checks that the age is between 1 and 110
     if (field === 'age') {
       const parsedAge = Number(value) // Convert to number
 
@@ -117,6 +115,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
         alignItems="center"
         paddingX="32px"
       >
+        {/**If not created by a first responder then show a checkbox asking if they are the patient */}
         {!isCreatedByFirstResponder && (
           <Box width="100%" maxWidth="500px" my={2}>
             <FormControlLabel
@@ -140,11 +139,11 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             color: 'rgba(0, 0, 0, 0.6)',
           }}
         >
-          {' '}
           {/**TODO: Add colors to style guide */}
           <Typography>Username:</Typography>
         </Box>
 
+        {/**Asks the user for a username */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl fullWidth error={!!usernameError}>
             <InputLabel id="username-label">Select One</InputLabel>
@@ -164,6 +163,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             <FormHelperText>{usernameError}</FormHelperText>
           </FormControl>
         </Box>
+
+        {/**Asks the user their age */}
         <Box width="100%" maxWidth="500px" my={2}>
           <TextField
             variant="outlined"
@@ -183,6 +184,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             onChange={(e) => onChange('age', e)}
           />
         </Box>
+
+        {/**Asks the user their sex */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl>
             <FormLabel id="sex-label">Sex:</FormLabel>
@@ -207,6 +210,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             </RadioGroup>
           </FormControl>
         </Box>
+
+        {/**Asks the user if the patient is conscious */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl>
             <FormLabel id="conscious-label">Conscious:</FormLabel>
@@ -222,6 +227,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             </RadioGroup>
           </FormControl>
         </Box>
+
+        {/**Asks the user what the chief complaint is */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl>
             <FormLabel id="breathing-label">Breathing:</FormLabel>
@@ -237,6 +244,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             </RadioGroup>
           </FormControl>
         </Box>
+
+        {/**Chief complaint question*/}
         <Box width="100%" maxWidth="500px" my={2}>
           <TextField
             variant="outlined"

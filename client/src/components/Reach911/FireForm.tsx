@@ -23,6 +23,7 @@ const FireForm: React.FC = () => {
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
   )
+  
   const fireQuestions = (incident.questions as FireQuestions) ?? {}
 
   const fireType = fireQuestions.fireType ?? ''
@@ -38,6 +39,8 @@ const FireForm: React.FC = () => {
     dispatch(loadContacts())
   }, [dispatch])
 
+
+  // When any input changes, add the changes to the incident slice
   const onChange = (
     field: string,
     e:
@@ -45,13 +48,6 @@ const FireForm: React.FC = () => {
       | SelectChangeEvent<string>,
   ) => {
     const { value } = e.target as HTMLInputElement
-
-    if (
-      field === 'numPeople' &&
-      (Number.isNaN(Number(value)) || value.includes(' '))
-    ) {
-      return
-    }
 
     dispatch(
       updateIncident({
@@ -67,6 +63,7 @@ const FireForm: React.FC = () => {
     validateField(field, value)
   }
 
+  // Validates field to set certain error messages
   const validateField = (field: string, value: string) => {
     if (field === 'numPeople') {
       const parsedValue = Number(value)
@@ -87,6 +84,7 @@ const FireForm: React.FC = () => {
         alignItems="center"
         paddingX="32px"
       >
+        {/**Fire Type */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl>
             <FormLabel id="fireType-label">
@@ -113,6 +111,7 @@ const FireForm: React.FC = () => {
           </FormControl>
         </Box>
 
+        {/**Smoke */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl>
             <FormLabel id="hasSmoke-label">Do you smell smoke?</FormLabel>
@@ -129,6 +128,7 @@ const FireForm: React.FC = () => {
           </FormControl>
         </Box>
 
+        {/**Flames */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl>
             <FormLabel id="hasFlames-label">Do you see flames?</FormLabel>
@@ -145,6 +145,7 @@ const FireForm: React.FC = () => {
           </FormControl>
         </Box>
 
+        {/**Hazardous materials */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl>
             <FormLabel id="hasHazards-label">
@@ -163,6 +164,7 @@ const FireForm: React.FC = () => {
           </FormControl>
         </Box>
 
+        {/**Number of people in fire perimeter */}
         <Box
           sx={{
             display: 'flex',
@@ -200,6 +202,7 @@ const FireForm: React.FC = () => {
           />
         </Box>
 
+        {/**Other Details */}
         <Box width="100%" maxWidth="500px" my={2}>
           <TextField
             variant="outlined"

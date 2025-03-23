@@ -29,10 +29,12 @@ const FireForm: React.FC = () => {
   const suspectDescription = policeQuestions.suspectDescription ?? ''
   const crimeDetails = policeQuestions.crimeDetails ?? ''
 
+  // Loads contacts upon page loading
   useEffect(() => {
     dispatch(loadContacts())
   }, [dispatch])
 
+  // When any input changes, add the changes to the incident slice
   const onChange = (
     field: string,
     e:
@@ -60,6 +62,7 @@ const FireForm: React.FC = () => {
         alignItems="center"
         paddingX="32px"
       >
+        {/**Safety */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl>
             <FormLabel id="isSafe-label">Are you safe?</FormLabel>
@@ -76,6 +79,7 @@ const FireForm: React.FC = () => {
           </FormControl>
         </Box>
 
+        {/**Weapon Involvement */}
         <Box width="100%" maxWidth="500px" my={2}>
           <FormControl>
             <FormLabel id="hasWeapons-label">
@@ -94,6 +98,7 @@ const FireForm: React.FC = () => {
           </FormControl>
         </Box>
 
+        {/**Suspect Description */}
         <Box width="100%" maxWidth="500px" my={2}>
           <TextField
             variant="outlined"
@@ -105,6 +110,7 @@ const FireForm: React.FC = () => {
           />
         </Box>
 
+        {/**Crime Details */}
         <Box width="100%" maxWidth="500px" my={2}>
           <TextField
             variant="outlined"

@@ -17,6 +17,7 @@ const Step3Form: React.FC<Reach911Step3Props> = ({
     (state: RootState) => state.incidentState.incident.type,
   )
 
+  /// Renders the correct form based on the type obtained from step 2
   const renderForm = () => {
     switch (type) {
       case IncidentType.Medical:
