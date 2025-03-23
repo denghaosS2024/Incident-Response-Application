@@ -59,7 +59,8 @@ class AirQualityController {
         try {
           // Get fresh air quality data
           const airQualityData = await this.getAirQuality(latitude, longitude)
-          const currentTime = airQualityData?.time_stamp || Date.now()
+          const currentTime =
+            (airQualityData?.time_stamp as number | undefined) || Date.now()
 
           // Update the database with new reading
           const location = await AirQuality.findOne({ locationId })
@@ -157,10 +158,10 @@ class AirQualityController {
       throw new Error(`PurpleAir API returned status: ${response.status}`)
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as Record<string, unknown>
     // console.log(data);
     // fields: [ 'sensor_index', 'latitude', 'longitude', 'pm2.5_atm' ]
-    const sensors = data.data
+    const sensors = data.data as Array<unknown>
 
     if (!sensors || sensors.length === 0) {
       return {
@@ -171,7 +172,12 @@ class AirQualityController {
 
     // Map sensors with distance from target location
     const sensorsWithDistance = sensors.map((sensor) => {
-      const [, sensorLat, sensorLon, pm25] = sensor
+      const [, sensorLat, sensorLon, pm25] = sensor as [
+        number,
+        number,
+        number,
+        number,
+      ]
       const distance = calculateDistance(
         latitude,
         longitude,
@@ -377,10 +383,10 @@ class AirQualityController {
       throw new Error(`PurpleAir API returned status: ${response.status}`)
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as Record<string, unknown>
     // console.log(data);
     // fields: [ 'sensor_index', 'latitude', 'longitude', 'pm2.5_atm' ]
-    const sensors = data.data
+    const sensors = data.data as Array<unknown>
 
     if (!sensors || sensors.length === 0) {
       return {
@@ -391,7 +397,12 @@ class AirQualityController {
 
     // Map sensors with distance from target location
     const sensorsWithDistance = sensors.map((sensor) => {
-      const [, sensorLat, sensorLon] = sensor
+      const [, sensorLat, sensorLon] = sensor as [
+        number,
+        number,
+        number,
+        number,
+      ]
       const distance = calculateDistance(
         latitude,
         longitude,
