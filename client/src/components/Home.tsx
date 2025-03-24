@@ -37,7 +37,7 @@ const roleTabs: Record<string, ITab[]> = {
     // please add route here
     { text: 'Resource Allocation', link: '/resources' },
     { text: 'Patients', link: '/' },
-    { text: 'Find Hospital', link: '/' },
+    { text: 'Find Hospital', link: '/find-hospital' },
   ],
   Fire: [
     { text: 'Messages', link: '/messages', icon: <Message /> },
@@ -48,7 +48,7 @@ const roleTabs: Record<string, ITab[]> = {
     // please add route here
     { text: 'Resource Allocation', link: '/resources' },
     { text: 'Patients', link: '/' },
-    { text: 'Find Hospital', link: '/' },
+    { text: 'Find Hospital', link: '/find-hospital' },
   ],
   Nurse: [
     { text: 'Messages', link: '/messages', icon: <Message /> },
