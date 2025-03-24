@@ -8,6 +8,7 @@ export interface IPatient extends Document {
   hospitalId: string
   priority: string
   status: string
+  toObject(): Record<string, unknown>
 }
 
 export const PatientSchema = new Schema({

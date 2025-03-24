@@ -19,6 +19,7 @@ import user from './user'
 import airQuality from './airQuality'
 import carRouter from './car'
 import cityRouter from './city'
+import erBedRouter from './erbed'
 import patientRouter from './patient'
 import personnelRouter from './personnel'
 import profileRouter from './profile'
@@ -40,3 +41,17 @@ export default Router()
   .use('/wildfire', wildfireAreaRouter)
   .use('/hospital', HospitalRouter)
   .use('/patients', patientRouter)
+  .use('/users', user)
+  .use('/login', login)
+  .use('/channels', channel)
+  .use('/incidents', incident)
+  .use('/map', map)
+  .use('/airQuality', airQuality)
+  .use('/cars', carRouter)
+  .use('/trucks', truckRouter)
+  .use('/cities', cityRouter)
+  .use('/personnel', personnelRouter)
+  .use('/profiles', profileRouter)
+  .use('/wildfire', wildfireAreaRouter)
+  .use('/hospital', HospitalRouter)
+  .use('/erbed', erBedRouter)
