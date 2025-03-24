@@ -41,7 +41,8 @@ export default Router()
    */
   .post('/', async (request, response) => {
     try {
-      const result = await PatientController.createPatient(request.body)
+      console.log('Here!')
+      const result = await PatientController.create(request.body)
       response.status(201).send(result)
     } catch (e) {
       const error = e as Error
@@ -72,14 +73,62 @@ export default Router()
     const { patientId } = request.body
 
     try {
-      const result = await PatientController.updatePatient(
-        patientId,
-        request.body,
-      )
+      const result = await PatientController.update(patientId, request.body)
       if (!result) {
         response.status(404).json({ message: 'the update operation failed' })
         return
       }
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
+    }
+  })
+
+  .put('/priority', async (request, response) => {
+    const { patientId, priority } = request.body
+
+    try {
+      const result = await PatientController.setPriority(patientId, priority)
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/status:
+   *   put:
+   *     summary: Update a patient's status
+   *     description: Update a patient's status
+   *     tags: [Patient]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - patientId
+   *               - status
+   *             properties:
+   *               patientId:
+   *                 type: string
+   *               status:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Patient status updated
+   *       400:
+   *         description: Bad request
+   */
+  .put('/status', async (request, response) => {
+    const { patientId, status } = request.body
+
+    try {
+      const result = await PatientController.setERStatus(patientId, status)
       response.json(result)
     } catch (e) {
       const error = e as Error
@@ -119,7 +168,7 @@ export default Router()
         return
       }
 
-      const result = await PatientController.deletePatient(patientId.toString())
+      const result = await PatientController.delete(patientId.toString())
       if (!result) {
         response.status(404).json({ message: 'Patient not found' })
         return
@@ -158,9 +207,7 @@ export default Router()
       const patientId = request.query['patientId']
 
       if (patientId !== undefined && patientId !== '' && patientId !== null) {
-        const result = await PatientController.getPatientById(
-          patientId as string,
-        )
+        const result = await PatientController.findById(patientId as string)
         response.json(result)
       } else {
         const result = await PatientController.getAllPatients()
