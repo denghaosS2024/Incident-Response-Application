@@ -1,11 +1,10 @@
 import IHospital from '@/models/Hospital'
 import request from '@/utils/request'
-import { Add, NavigateNext as Arrow, Map as MapIcon } from '@mui/icons-material'
-import { Box, Button, IconButton, Typography } from '@mui/material'
+import { Add, NavigateNext as Arrow } from '@mui/icons-material'
+import { Box, IconButton, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import GenericListContainer from '../components/GenericListContainer'
-import eventEmitter from '../utils/eventEmitter'
 
 const HospitalsDirectory: React.FC = () => {
   const [hospitalList, setHospitalList] = useState<IHospital[]>([])
@@ -42,19 +41,6 @@ const HospitalsDirectory: React.FC = () => {
     navigate(`/register-hospital/${hospital.hospitalId}`)
   }
 
-  // Handle redirection to map page and activate hospital layer
-  const redirectToMapWithHospitals = () => {
-    // Navigate to the map page
-    navigate('/map')
-
-    // Emit event to activate the hospital layer after a small delay to ensure
-    // the map component is loaded and event listeners are attached
-    setTimeout(() => {
-      eventEmitter.emit('selectUtil', { layer: 'Util', visible: true })
-      eventEmitter.emit('selectUtil', { layer: 'Hospitals', visible: true })
-    }, 500)
-  }
-
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 
@@ -62,15 +48,6 @@ const HospitalsDirectory: React.FC = () => {
     <Box sx={{ padding: 2 }}>
       <Box className="flex justify-between items-center w-full mb-2">
         <Typography variant="h6">Hospitals</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<MapIcon />}
-          onClick={redirectToMapWithHospitals}
-          size="small"
-        >
-          See on Map
-        </Button>
       </Box>
 
       <GenericListContainer<IHospital>
