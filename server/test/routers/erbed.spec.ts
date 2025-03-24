@@ -205,8 +205,6 @@ describe('ERBed Routes', () => {
         .send({})
         .expect(201)
 
-      const bedId = bedResponse.body.bedId
-
       // Assign a patient to the bed and move to REQUESTED status
       await request(app)
         .post(
