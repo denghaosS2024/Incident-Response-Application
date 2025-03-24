@@ -2113,6 +2113,10 @@ const Mapbox: React.FC<MapboxProps> = ({
       // Mark hospitals layer as active if any hospitals are displayed
       if (hospitalRef.current.size > 0) {
         eventEmitter.emit('selectUtil', { layer: 'Hospitals', visible: true })
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Hospitals',
+          visible: true,
+        })
       }
     } catch (error) {
       console.error('Error fetching hospitals:', error)
