@@ -17,6 +17,7 @@ import Reach911Page from './pages/Reach911Page'
 import RegisterHospital from './pages/RegisterHospital'
 import RegisterPage from './pages/RegisterPage'
 import ViewOrganization from './pages/ViewOrganization'
+import ResourcesPage from './pages/ResourcesPage'
 import RoutedHome from './routing/RoutedHome'
 import './styles/globals.css'
 import './styles/tailwind.css'
@@ -37,9 +38,9 @@ export default function App() {
   //     )
   //   }, 3000)
   // })
-  
+
   //Feature toggling: show the hospitals directory page only when the flag is enabled
-  const { ['hospitalsDirectory']: hospitalsDirectory } = useFlags();
+  const { ['hospitalsDirectory']: hospitalsDirectory } = useFlags()
 
   return (
     <StyledEngineProvider injectFirst>
@@ -59,10 +60,14 @@ export default function App() {
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/register-hospital" element={<RegisterHospital />} />
-            <Route path="/register-hospital/:hospitalId" element={<RegisterHospital />} />
-            {hospitalsDirectory &&
-            <Route path="/hospitals" element={<HospitalsDirectory />} />  
-            }
+            <Route
+              path="/register-hospital/:hospitalId"
+              element={<RegisterHospital />}
+            />
+            <Route path="/resources" element={<ResourcesPage />} />
+            {hospitalsDirectory && (
+              <Route path="/hospitals" element={<HospitalsDirectory />} />
+            )}
           </Route>
           <Route element={<RoutedHome showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />

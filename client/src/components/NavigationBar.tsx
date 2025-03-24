@@ -60,6 +60,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     '/map': 'Map',
     '/register-hospital': 'Hospital',
     '/hospitals': 'Hospitals',
+    '/resources': 'Resources',
   }
 
   const roleTitles: Record<string, string> = {
@@ -176,11 +177,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
             role === 'Administrator') && (
             <MenuItem onClick={navigateToOrganization}>Organization</MenuItem>
           )}
-          {(role === 'Nurse' ||
-            role === 'Police' ||
-            role === 'Fire') && (
-              <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
-            )}
+          {(role === 'Nurse' || role === 'Police' || role === 'Fire') && (
+            <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
+          )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
         </Menu>

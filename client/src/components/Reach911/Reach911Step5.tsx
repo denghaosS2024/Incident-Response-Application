@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   CircularProgress,
   FormControl,
   InputLabel,
@@ -10,6 +11,7 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import type IIncident from '../../models/Incident'
 import { IncidentPriority } from '../../models/Incident'
 import { updateIncident } from '../../redux/incidentSlice'
@@ -26,6 +28,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
   const [incidentData, setIncidentData] = useState<IIncident | null>(null)
   const [priority, setPriority] = useState<string>('E')
   const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
 
   // Two-way mapping between UI and backend values for priority.
   const displayToBackend: Record<string, IncidentPriority> = {
@@ -121,6 +124,11 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     }
   }
 
+  // Navigation handler to resources page
+  const handleNavigateToResources = () => {
+    navigate(`/resources`)
+  }
+
   if (loading) {
     return (
       <Paper elevation={3} sx={{ p: 2, m: 2 }}>
@@ -190,6 +198,15 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         <Typography>Owner: {incidentData.owner}</Typography>
         <Typography>Commander: {incidentData.commander}</Typography>
       </Box>
+
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleNavigateToResources}
+      >
+        {' '}
+        Allocate Resources
+      </Button>
     </Paper>
   )
 }
