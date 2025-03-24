@@ -558,5 +558,28 @@ it('can get closed groups sorted by name', async () => {
     expect(updatedChannel.owner?.['_id']).toEqual(userC._id);
   });
 
+  it('should start a video conference and notify only other online users', async () => {
+    const testChannel = await ChannelController.create({
+      name: 'Video Conference Test Channel',
+      userIds: [userA._id, userB._id],
+    });
+
+    const socketA = mock<SocketIO.Socket>();
+    const socketB = mock<SocketIO.Socket>();
+  
+    UserConnections.addUserConnection(userA.id, socketA, ROLES.CITIZEN);
+    UserConnections.addUserConnection(userB.id, socketB, ROLES.CITIZEN);
+  
+    const message = await ChannelController.startVideoConference(testChannel._id, userA._id);
+  
+    expect(message.content).toMatch(/^Video conference started! Join here: https:\/\/meet\.jit\.si\/.+/);
+    expect(message.sender._id).toEqual(userA._id);
+    expect(message.channelId).toEqual(testChannel._id);
+  
+    expect(socketB.emit).toHaveBeenCalledWith('new-message', message);
+    expect(socketA.emit).not.toHaveBeenCalled();
+  });
+  
+
   afterAll(TestDatabase.close)
 })
