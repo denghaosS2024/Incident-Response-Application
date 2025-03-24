@@ -1,11 +1,10 @@
+import GenericItemizeContainer from '@/components/GenericItemizeContainer'
 import IHospital from '@/models/Hospital'
 import request from '@/utils/request'
-import { Add, NavigateNext as Arrow, Map as MapIcon } from '@mui/icons-material'
-import { Box, Button, IconButton, Typography } from '@mui/material'
+import { Add, NavigateNext as Arrow } from '@mui/icons-material'
+import { Box, IconButton } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import GenericListContainer from '../components/GenericListContainer'
-import eventEmitter from '../utils/eventEmitter'
 
 const HospitalsDirectory: React.FC = () => {
   const [hospitalList, setHospitalList] = useState<IHospital[]>([])
@@ -42,80 +41,64 @@ const HospitalsDirectory: React.FC = () => {
     navigate(`/register-hospital/${hospital.hospitalId}`)
   }
 
-  // Handle redirection to map page and activate hospital layer
-  const redirectToMapWithHospitals = () => {
-    // Navigate to the map page
-    navigate('/map')
-
-    // Emit event to activate the hospital layer after a small delay to ensure
-    // the map component is loaded and event listeners are attached
-    setTimeout(() => {
-      eventEmitter.emit('selectUtil', { layer: 'Util', visible: true })
-      eventEmitter.emit('selectUtil', { layer: 'Hospitals', visible: true })
-    }, 500)
-  }
-
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Box className="flex justify-between items-center w-full mb-2">
-        <Typography variant="h6">Hospitals</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<MapIcon />}
-          onClick={redirectToMapWithHospitals}
-          size="small"
-        >
-          See on Map
-        </Button>
-      </Box>
-
-      <GenericListContainer<IHospital>
-        key="hospitals"
-        header="Hospitals"
-        listProps={{
-          items: hospitalList,
-          loading: false,
-          getKey: (hospital: IHospital): string => hospital.hospitalId,
-          renderItem: (hospital: IHospital) => (
-            <Box className="flex items-center justify-between gap-2 p-1">
-              <Box className="grid grid-cols-[2fr_1fr_1fr] gap-2 items-center flex-grow">
-                <Typography variant="body2" className="text-left">
-                  {hospital.hospitalName}
-                </Typography>
-                <Typography variant="body2" className="text-center">
-                  {hospital.totalNumberERBeds}
-                </Typography>
-                <Typography variant="body2" className="text-center">
-                  {0}
-                </Typography>
-              </Box>
-              <IconButton
-                edge="end"
-                size="large"
-                onClick={(): void => redirectToHospitalDescription(hospital)}
-              >
-                <Arrow />
-              </IconButton>
-            </Box>
-          ),
-        }}
-      />
-      <IconButton
-        sx={{
-          position: 'fixed',
-          bottom: 16,
-          right: 16,
-          width: 56,
-          height: 56,
-        }}
-        onClick={redirectToRegisterHospital}
-      >
-        <Add fontSize="large" />
-      </IconButton>
+        <GenericItemizeContainer<IHospital>
+          items={hospitalList}
+          getKey={(hospital: IHospital): string => hospital.hospitalId}
+          showHeader={true}
+          emptyMessage="No hospitals available"
+          columns={[
+            {
+              key: 'hospitalName',
+              align: 'center',
+              label: 'Name',
+              render: (hospital: IHospital):string => hospital.hospitalName,
+            },
+            {
+              key: 'totalNumberERBeds',
+              align: 'center',
+              label: 'ER beds: Total',
+              render: (hospital:IHospital): number => hospital.totalNumberERBeds,
+            },
+            {
+              key: 'totalNumberOfPatients',
+              align: 'center',
+              label: 'ER beds: Available',
+              // TODO: update this logic to display available beds
+              render: (hospital:IHospital): number => hospital.totalNumberERBeds,
+            },
+            {
+              key: 'hospitalId',
+              align: 'center',
+              label: '',
+              render: (hospital) => (
+                <IconButton
+                  edge="end"
+                  size="large"
+                  onClick={() => redirectToHospitalDescription(hospital)}
+                >
+                  <Arrow />
+                </IconButton>
+              ),
+            },
+          ]}
+        />
+   <IconButton
+              sx={{
+                position: 'fixed',
+                bottom: 16,
+                right: 16,
+                width: 56,
+                height: 56,
+              }}
+              onClick={redirectToRegisterHospital}
+            >
+              <Add fontSize="large" />
+            </IconButton>
     </Box>
   )
 }

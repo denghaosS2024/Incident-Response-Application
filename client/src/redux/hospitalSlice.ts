@@ -41,6 +41,8 @@ const hospitalSlice = createSlice({
       state.error = action.payload
     },
   },
+
+  
 })
 
 /* ---------------------- Export Actions & Reducer ---------------------- */

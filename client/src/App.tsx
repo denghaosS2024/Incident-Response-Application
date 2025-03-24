@@ -3,6 +3,7 @@ import { useFlags } from 'launchdarkly-react-client-sdk'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import ChatRoomPage from './pages/ChatRoomPage'
 import Contacts from './pages/Contacts'
+import FindHospital from './pages/FindHospital'
 import GroupInformationPage from './pages/GroupInformationPage'
 import GroupsPage from './pages/GroupsPage'
 import HomePage from './pages/HomePage'
@@ -16,6 +17,7 @@ import ProfilePage from './pages/ProfilePage'
 import Reach911Page from './pages/Reach911Page'
 import RegisterHospital from './pages/RegisterHospital'
 import RegisterPage from './pages/RegisterPage'
+import ResourcesPage from './pages/ResourcesPage'
 import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
 import './styles/globals.css'
@@ -37,9 +39,9 @@ export default function App() {
   //     )
   //   }, 3000)
   // })
-  
+
   //Feature toggling: show the hospitals directory page only when the flag is enabled
-  const { ['hospitalsDirectory']: hospitalsDirectory } = useFlags();
+  const { ['hospitalsDirectory']: hospitalsDirectory } = useFlags()
 
   return (
     <StyledEngineProvider injectFirst>
@@ -59,10 +61,15 @@ export default function App() {
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/register-hospital" element={<RegisterHospital />} />
-            <Route path="/register-hospital/:hospitalId" element={<RegisterHospital />} />
-            {hospitalsDirectory &&
-            <Route path="/hospitals" element={<HospitalsDirectory />} />  
-            }
+            <Route
+              path="/register-hospital/:hospitalId"
+              element={<RegisterHospital />}
+            />
+            <Route path="/resources" element={<ResourcesPage />} />
+            {hospitalsDirectory && (
+              <Route path="/hospitals" element={<HospitalsDirectory />} />
+            )}
+            <Route path="/find-hospital" element={<FindHospital />}/>
           </Route>
           <Route element={<RoutedHome showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
