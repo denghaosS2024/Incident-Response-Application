@@ -2,6 +2,8 @@ import ERBedController from '../../src/controllers/ERBedController'
 import ERBed, { ERBedStatus } from '../../src/models/ERBed'
 import Hospital from '../../src/models/Hospital'
 import Patient from '../../src/models/Patient'
+import { ROLES } from '../../src/utils/Roles'
+import UserConnections from '../../src/utils/UserConnections'
 
 // Mock dependencies
 jest.mock('../../src/models/ERBed')
@@ -24,7 +26,7 @@ interface MockBed {
   dischargedAt?: Date
   save: jest.Mock
   populate?: jest.Mock
-  toObject?: () => any
+  toObject?: () => Record<string, unknown>
 }
 
 interface MockHospital {
@@ -40,7 +42,7 @@ interface MockPatient {
   location?: string
   priority?: string
   save: jest.Mock
-  toObject?: () => any
+  toObject?: () => Record<string, unknown>
 }
 
 describe('ERBedController', () => {
@@ -52,36 +54,55 @@ describe('ERBedController', () => {
     it('should create a new ER bed', async () => {
       // Mock data
       const hospitalId = 'hospital123'
-      const mockHospital: MockHospital = {
+
+      // Create mock hospital
+      const mockHospital = {
         hospitalId,
         totalNumberERBeds: 5,
-        save: jest.fn(),
+        save: jest.fn().mockResolvedValue(undefined),
       }
 
-      const mockBed: MockBed = {
+      // Create mock ER bed
+      const mockBed = {
         hospitalId,
         status: ERBedStatus.READY,
-        readyAt: expect.any(Date),
-        save: jest.fn(),
+        readyAt: new Date(),
+        save: jest.fn().mockResolvedValue(undefined),
       }
 
-      // Setup mocks
-      Hospital.findOne = jest.fn().mockResolvedValue(mockHospital)
-      ERBed.prototype.save = jest.fn().mockResolvedValue(mockBed)
+      // Setup Hospital.findOne mock
+      jest.spyOn(Hospital, 'findOne').mockResolvedValue(mockHospital as any)
+
+      // Setup ERBed constructor and save method
+      const mockERBedInstance = mockBed
+      jest
+        .spyOn(ERBed.prototype, 'save')
+        .mockResolvedValue(mockERBedInstance as any)
+      jest
+        .spyOn(ERBed.prototype, 'constructor')
+        .mockReturnValue(mockERBedInstance as any)
+
+      // Mock UserConnections.broadcaseToRole
+      jest.spyOn(UserConnections, 'broadcaseToRole').mockImplementation()
 
       // Execute
       const result = await ERBedController.createBed(hospitalId)
 
       // Verify
       expect(Hospital.findOne).toHaveBeenCalledWith({ hospitalId })
-      expect(ERBed).toHaveBeenCalledWith({
-        hospitalId,
-        status: ERBedStatus.READY,
-        readyAt: expect.any(Date),
-      })
       expect(mockHospital.totalNumberERBeds).toBe(6)
       expect(mockHospital.save).toHaveBeenCalled()
-      expect(result).toEqual(mockBed)
+      expect(result).toBeDefined()
+      expect(result.hospitalId).toBe(hospitalId)
+      expect(result.status).toBe(ERBedStatus.READY)
+      expect(UserConnections.broadcaseToRole).toHaveBeenCalledWith(
+        ROLES.NURSE,
+        'erbed-update',
+        expect.objectContaining({
+          action: 'created',
+          bed: expect.anything(),
+        }),
+      )
     })
 
     it('should throw an error if hospital not found', async () => {

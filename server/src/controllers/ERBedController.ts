@@ -184,57 +184,35 @@ class ERBedController {
         throw new Error('ER bed not found')
       }
 
-      const oldStatus = bed.status
-
-      // Validate status transitions based on the bed's current status
-      if (!this.isValidStatusTransition(oldStatus, status)) {
+      // Validate status transition
+      if (!this.isValidStatusTransition(bed.status, status)) {
         throw new Error(
-          `Invalid status transition from ${oldStatus} to ${status}`,
+          `Invalid status transition from ${bed.status} to ${status}`,
         )
       }
 
-      // Update status and relevant timestamps
+      // Update the status and timestamps
       bed.status = status
-      switch (status) {
-        case ERBedStatus.READY:
-          bed.readyAt = new Date()
-          break
-        case ERBedStatus.IN_USE:
-          bed.occupiedAt = new Date()
-          break
-        case ERBedStatus.DISCHARGED:
-          bed.dischargedAt = new Date()
-          // When discharged, we keep the patient ID for record-keeping
-          break
+
+      if (status === ERBedStatus.READY) {
+        bed.readyAt = new Date()
+        bed.patientId = undefined // Clear the patient ID when marking as READY
+      } else if (status === ERBedStatus.IN_USE) {
+        bed.occupiedAt = new Date()
+      } else if (status === ERBedStatus.DISCHARGED) {
+        bed.dischargedAt = new Date()
+      } else if (status === ERBedStatus.REQUESTED) {
+        bed.requestedAt = new Date()
       }
 
       await bed.save()
 
-      // Update hospital available beds count if discharged
-      if (status === ERBedStatus.DISCHARGED) {
-        // Get hospital and increase available beds
-        const hospital = await Hospital.findOne({ hospitalId: bed.hospitalId })
-        if (hospital) {
-          // The bed is still counted in totalNumberERBeds, but now it's available again
-          await hospital.save()
-        }
-
-        // Find the patient and update their record
-        if (bed.patientId) {
-          const patient = await Patient.findOne({ patientId: bed.patientId })
-          if (patient) {
-            // Update patient status to discharged or similar
-            patient.status = 'others' // Update to appropriate status for discharged patients
-            await patient.save()
-          }
-        }
-      }
-
-      // Notify nurses about the status change
+      // Broadcast to relevant roles
       UserConnections.broadcaseToRole(ROLES.NURSE, 'erbed-update', {
-        action: 'statusUpdated',
-        bed,
-        previousStatus: oldStatus,
+        bed: bed.toObject(),
+      })
+      UserConnections.broadcaseToRole(ROLES.ADMINISTRATOR, 'erbed-update', {
+        bed: bed.toObject(),
       })
 
       return bed
@@ -243,7 +221,7 @@ class ERBedController {
       if (error instanceof Error) {
         throw new Error(`Failed to update bed status: ${error.message}`)
       }
-      throw new Error('Failed to update bed status')
+      throw new Error('Failed to update bed status: Unknown error')
     }
   }
 
@@ -504,15 +482,32 @@ class ERBedController {
     discharged: PatientWithBedInfo[]
   }> {
     try {
-      // Get all beds for this hospital with populated patient data
-      const beds = await ERBed.find({ hospitalId }).populate('patientId')
+      // Get all beds for this hospital
+      const beds = await ERBed.find({ hospitalId })
 
-      // Group patients by bed status
+      // Get all patient IDs from the beds
+      const patientIds = beds
+        .filter((bed) => bed.patientId)
+        .map((bed) => bed.patientId)
+        .filter(Boolean) as string[]
+
+      // Get all the patients in one query
+      const patients =
+        patientIds.length > 0
+          ? await Patient.find({ patientId: { $in: patientIds } })
+          : []
+
+      // Create a map of patientId to patient data for quick lookups
+      const patientMap = new Map<string, IPatient>()
+      patients.forEach((patient) => {
+        patientMap.set(patient.patientId, patient)
+      })
+
       const requesting = beds
         .filter((bed) => bed.status === ERBedStatus.REQUESTED && bed.patientId)
         .map((bed) => {
-          const patientData =
-            (bed.patientId as unknown as IPatient)?.toObject() || {}
+          const patient = patientMap.get(bed.patientId as string)
+          const patientData = patient ? patient.toObject() : {}
           return {
             ...patientData,
             bedId: bed.bedId,
@@ -524,8 +519,8 @@ class ERBedController {
       const ready = beds
         .filter((bed) => bed.status === ERBedStatus.READY && bed.patientId)
         .map((bed) => {
-          const patientData =
-            (bed.patientId as unknown as IPatient)?.toObject() || {}
+          const patient = patientMap.get(bed.patientId as string)
+          const patientData = patient ? patient.toObject() : {}
           return {
             ...patientData,
             bedId: bed.bedId,
@@ -537,8 +532,8 @@ class ERBedController {
       const inUse = beds
         .filter((bed) => bed.status === ERBedStatus.IN_USE && bed.patientId)
         .map((bed) => {
-          const patientData =
-            (bed.patientId as unknown as IPatient)?.toObject() || {}
+          const patient = patientMap.get(bed.patientId as string)
+          const patientData = patient ? patient.toObject() : {}
           return {
             ...patientData,
             bedId: bed.bedId,
@@ -550,8 +545,8 @@ class ERBedController {
       const discharged = beds
         .filter((bed) => bed.status === ERBedStatus.DISCHARGED && bed.patientId)
         .map((bed) => {
-          const patientData =
-            (bed.patientId as unknown as IPatient)?.toObject() || {}
+          const patient = patientMap.get(bed.patientId as string)
+          const patientData = patient ? patient.toObject() : {}
           return {
             ...patientData,
             bedId: bed.bedId,
@@ -610,6 +605,19 @@ class ERBedController {
       const oldStatus = bed.status
       bed.status = targetStatus
 
+      // Update patient data based on new status
+      if (targetStatus === ERBedStatus.IN_USE) {
+        // Update patient location to ER when moved to IN_USE
+        patient.location = 'ER'
+        await patient.save()
+      } else if (targetStatus === ERBedStatus.DISCHARGED) {
+        // Update any patient fields needed for discharge
+        if (patient.status === 'at_er') {
+          patient.status = 'others'
+          await patient.save()
+        }
+      }
+
       switch (targetStatus) {
         case ERBedStatus.READY:
           bed.readyAt = new Date()
@@ -620,30 +628,19 @@ class ERBedController {
           break
         case ERBedStatus.IN_USE:
           bed.occupiedAt = new Date()
-          // When moving a patient to IN_USE, set their hospital and location
-          patient.hospitalId = bed.hospitalId
-          patient.location = 'ER'
-          await patient.save()
           break
         case ERBedStatus.DISCHARGED:
           bed.dischargedAt = new Date()
-          // Update available beds count in hospital
-          const hospital = await Hospital.findOne({
-            hospitalId: bed.hospitalId,
-          })
-          if (hospital) {
-            await hospital.save()
-          }
           break
       }
 
       await bed.save()
 
-      // Notify nurses about the status change
-      UserConnections.broadcaseToRole(ROLES.NURSE, 'erbed-update', {
-        action: 'patientCategoryChanged',
-        bed,
-        previousStatus: oldStatus,
+      // Broadcast to roles
+      UserConnections.broadcaseToRole(ROLES.NURSE, 'bed_category_updated', {
+        bed: bed.toObject(),
+        patient: patient.toObject(),
+        oldStatus,
       })
 
       return bed

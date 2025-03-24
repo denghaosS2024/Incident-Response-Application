@@ -1,14 +1,27 @@
-import mongoose, { Schema } from 'mongoose'
+import mongoose, { Document, Schema } from 'mongoose'
 
+// Base interface without Document extension
+export interface IPatientBase {
+  patientId: string
+  name: string
+  nameLower: string
+  nurseId?: string
+  hospitalId?: string
+  priority?: string
+  status?: string
+  location?: string
+}
+
+// Document interface for Mongoose
 export interface IPatient extends Document {
   patientId: string
   name: string
   nameLower: string
-  nurseId: string
-  hospitalId: string
-  priority: string
-  status: string
-  toObject(): Record<string, unknown>
+  nurseId?: string
+  hospitalId?: string
+  priority?: string
+  status?: string
+  location?: string
 }
 
 export const PatientSchema = new Schema({
@@ -44,6 +57,13 @@ export const PatientSchema = new Schema({
    * Hospital ID, should be a hospital's _id
    */
   hospitalId: {
+    type: String,
+  },
+
+  /**
+   * Location of the patient, e.g., 'ER', 'Hospital', etc.
+   */
+  location: {
     type: String,
   },
 
