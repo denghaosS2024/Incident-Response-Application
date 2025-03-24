@@ -5,17 +5,17 @@ describe('ERBed Model', () => {
   beforeAll(async () => {
     // Connect to a test database
     await mongoose.connect('mongodb://localhost:27017/erbed-test')
-  })
+  }, 10000) // 10 second timeout for database connection
 
   afterAll(async () => {
     // Disconnect after tests
     await mongoose.connection.close()
-  })
+  }, 10000) // 10 second timeout for database disconnection
 
   beforeEach(async () => {
     // Clear the database before each test
     await ERBed.deleteMany({})
-  })
+  }, 10000) // 10 second timeout for database cleanup
 
   it('should create a new ER bed with default values', async () => {
     const erBed = new ERBed({
@@ -30,7 +30,7 @@ describe('ERBed Model', () => {
     expect(savedBed.status).toBe(ERBedStatus.READY)
     expect(savedBed.patientId).toBeUndefined()
     expect(savedBed.requestedBy).toBeUndefined()
-  })
+  }, 10000) // 10 second timeout for test
 
   it('should create a new ER bed with all values provided', async () => {
     const now = new Date()
@@ -53,7 +53,7 @@ describe('ERBed Model', () => {
     expect(savedBed.status).toBe(ERBedStatus.REQUESTED)
     expect(savedBed.requestedAt).toEqual(now)
     expect(savedBed.requestedBy).toBe('user123')
-  })
+  }, 10000) // 10 second timeout for test
 
   it('should not create an ER bed without a hospital ID', async () => {
     const erBed = new ERBed({
@@ -61,7 +61,7 @@ describe('ERBed Model', () => {
     })
 
     await expect(erBed.save()).rejects.toThrow()
-  })
+  }, 10000) // 10 second timeout for test
 
   it('should not create an ER bed with an invalid status', async () => {
     const erBed = new ERBed({
@@ -70,7 +70,7 @@ describe('ERBed Model', () => {
     })
 
     await expect(erBed.save()).rejects.toThrow()
-  })
+  }, 10000) // 10 second timeout for test
 
   it('should update an ER bed status correctly', async () => {
     const erBed = new ERBed({
@@ -92,7 +92,7 @@ describe('ERBed Model', () => {
     expect(updatedBed).toBeTruthy()
     expect(updatedBed?.status).toBe(ERBedStatus.IN_USE)
     expect(updatedBed?.occupiedAt).toBeDefined()
-  })
+  }, 10000) // 10 second timeout for test
 
   it('should remove patient from an ER bed', async () => {
     const erBed = new ERBed({
@@ -116,7 +116,7 @@ describe('ERBed Model', () => {
     expect(updatedBed?.patientId).toBeUndefined()
     expect(updatedBed?.status).toBe(ERBedStatus.READY)
     expect(updatedBed?.readyAt).toBeDefined()
-  })
+  }, 10000) // 10 second timeout for test
 
   it('should discharge a patient from an ER bed', async () => {
     const erBed = new ERBed({
@@ -139,5 +139,5 @@ describe('ERBed Model', () => {
     expect(updatedBed?.patientId).toBe('patient123') // Keep patient ID for record
     expect(updatedBed?.status).toBe(ERBedStatus.DISCHARGED)
     expect(updatedBed?.dischargedAt).toBeDefined()
-  })
+  }, 10000) // 10 second timeout for test
 })

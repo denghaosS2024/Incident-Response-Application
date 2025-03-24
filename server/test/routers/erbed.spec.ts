@@ -200,7 +200,7 @@ describe('ERBed Routes', () => {
   describe('GET /api/erbed/hospital/:hospitalId/patients', () => {
     it('should get patients grouped by category', async () => {
       // First create a bed and assign a patient to test the categorization
-      const bedResponse = await request(app)
+      await request(app)
         .post(`/api/erbed/${testHospital.hospitalId}`)
         .send({})
         .expect(201)
