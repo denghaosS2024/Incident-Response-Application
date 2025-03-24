@@ -90,7 +90,7 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
             }),
           })
 
-          if (channel && channel._id) {
+          if (channel?._id) {
             // Update incident with new channel
             await request(`/api/incidents/${incident._id}/chat-group`, {
               method: 'PUT',
