@@ -1,5 +1,15 @@
 import { uuidv4 } from 'mongodb-memory-server-core/lib/util/utils'
-import Patient, { PatientSchema } from '../models/Patient'
+import { IHospital } from '../models/Hospital'
+import Patient, { IPatientBase, PatientSchema } from '../models/Patient'
+import { IUser } from '../models/User'
+import ROLES from '../utils/Roles'
+import HospitalController from './HospitalController'
+import UserController from './UserController'
+
+export interface IExpandedPatientInfo extends IPatientBase {
+  nurse?: IUser
+  hospital?: IHospital
+}
 
 class PatientController {
   async getAllPatients() {
@@ -9,7 +19,49 @@ class PatientController {
 
   // Get a single patient by ID
   async findById(patientId: string) {
-    return await Patient.findOne({ patientId })
+    return await Patient.findOne({ patientId }).lean()
+  }
+
+  /**
+   * Get the expanded patient info by patientId, no more joining in the frontend
+   * @param patientId - The ID of the patient
+   * @returns The expanded patient info
+   */
+  async getExpandedPatientInfo(patientId: string) {
+    const patient = await this.findById(patientId)
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`)
+    }
+
+    //Turn patient into IExpandedPatientInfo
+    const expandedPatientInfo: IExpandedPatientInfo = {
+      ...patient,
+    }
+
+    if (Object.keys(expandedPatientInfo).includes('hospitalId')) {
+      const hospital = await HospitalController.getHospitalById(
+        expandedPatientInfo.hospitalId ?? '',
+      )
+      if (!hospital) {
+        throw new Error(`Hospital with ID ${patient.hospitalId} does not exist`)
+      }
+      expandedPatientInfo.hospital = hospital
+    }
+
+    if (Object.keys(expandedPatientInfo).includes('nurseId')) {
+      const nurse = await UserController.getUserById(
+        expandedPatientInfo.nurseId ?? '',
+      )
+      if (!nurse) {
+        throw new Error(`User with ID ${patient.nurseId} does not exist`)
+      } else if ((await UserController.getUserRole(nurse.id)) !== ROLES.NURSE) {
+        throw new Error(`User with ID ${patient.nurseId} is not a nurse`)
+      }
+
+      expandedPatientInfo.nurse = nurse
+    }
+
+    return expandedPatientInfo
   }
 
   /**
@@ -124,6 +176,66 @@ class PatientController {
       throw new Error(`Patient "${patientId}" does not exist`)
     }
     return patient
+  }
+
+  /**
+   * Set the nurse of a patient
+   * @param patientId - The ID of the patient
+   * @param nurseId - The ID of the nurse
+   * @returns The updated patient
+   *
+   */
+  async setNurse(patientId: string, nurseId: string) {
+    // Check if the user exists and is a nurse
+    if ((await UserController.getUserRole(nurseId)) !== ROLES.NURSE) {
+      throw new Error(`User with ID ${nurseId} is not a nurse`)
+    }
+
+    // Check if the patient exists
+    const patient = await this.findById(patientId)
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`)
+    }
+
+    const res = await Patient.findOneAndUpdate(
+      { patientId },
+      { nurseId },
+      { new: true },
+    )
+    if (res === null) {
+      throw new Error(`Patient "${patientId}" does not exist`)
+    }
+    return res
+  }
+
+  /**
+   * Set the hospital of a patient
+   * @param patientId - The ID of the patient
+   * @param hospitalId - The ID of the hospital
+   * @returns The updated patient
+   */
+  async setHospital(patientId: string, hospitalId: string) {
+    // Check if the hospital exists
+    const hospital = await HospitalController.getHospitalById(hospitalId)
+    if (!hospital) {
+      throw new Error(`Hospital with ID ${hospitalId} does not exist`)
+    }
+
+    // Check if the patient exists
+    const patient = await this.findById(patientId)
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`)
+    }
+
+    const res = await Patient.findOneAndUpdate(
+      { patientId },
+      { hospitalId },
+      { new: true },
+    )
+    if (res === null) {
+      throw new Error(`Patient "${patientId}" does not exist`)
+    }
+    return res
   }
 
   /**

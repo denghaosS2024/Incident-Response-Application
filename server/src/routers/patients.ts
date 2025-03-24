@@ -1,12 +1,7 @@
 import { Router } from 'express'
 
 import PatientController from '../controllers/PatientController'
-/**
- * @swagger
- * tags:
- *   name: patient
- *   description: patient management API
- */
+
 export default Router()
   /**
    * @swagger
@@ -177,6 +172,113 @@ export default Router()
     } catch (e) {
       const error = e as Error
       response.status(400).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/nurse:
+   *   post:
+   *     summary: Set a patient's nurse
+   *     description: Set a patient's nurse
+   *     tags: [Patient]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - patientId
+   *               - nurseId
+   *             properties:
+   *               patientId:
+   *                 type: string
+   *               nurseId:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Patient nurse updated
+   *       400:
+   *         description: Bad request
+   *       500:
+   *         description: Internal server error
+   */
+  .post('/nurse', async (request, response) => {
+    const { patientId, nurseId } = request.body
+
+    try {
+      const result = await PatientController.setNurse(patientId, nurseId)
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/hospital:
+   *   post:
+   *     summary: Set a patient's hospital
+   *     description: Set a patient's hospital
+   *     tags: [Patient]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - patientId
+   */
+  .post('/hospital', async (request, response) => {
+    const { patientId, hospitalId } = request.body
+
+    try {
+      const result = await PatientController.setHospital(patientId, hospitalId)
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/single:
+   *   get:
+   *     summary: Get a single patient
+   *     description: Get a single patient
+   *     tags: [Patient]
+   *     parameters:
+   *       - in: query
+   *         name: patientId
+   *         required: true
+   *         type: string
+   *     responses:
+   *       200:
+   *         description: Patient retrieved
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Patient'
+   *       400:
+   *         description: Bad request
+   *       500:
+   *         description: Internal server error
+   */
+  .get('/single', async (request, response) => {
+    const { patientId } = request.query
+
+    try {
+      const result = await PatientController.getExpandedPatientInfo(
+        patientId as string,
+      )
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
     }
   })
 

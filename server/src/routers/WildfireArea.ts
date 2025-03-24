@@ -1,12 +1,7 @@
 import { Router } from 'express'
 
 import WildfireAreaController from '../controllers/WildfireAreaController'
-/**
- * @swagger
- * tags:
- *   name: WildfireArea
- *   description: WildfireArea management API
- */
+
 export default Router()
   /**
    * @swagger
