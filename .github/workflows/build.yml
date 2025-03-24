@@ -17,7 +17,7 @@ jobs:
         if: github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Merge')
         uses: gsactions/commit-message-checker@v2
         with:
-          pattern: '^(chore|ci|docs|feat|fix|perf|refactor|release|style|test)\s\((client|server|common|infra|config|deps|other)\):\s\[(SEM-\d{4}|--)\]\s.+$'
+          pattern: '^(chore|ci|docs|feat|fix|perf|refactor|release|style|test)\s\((client|server|common|infra|config|deps|other)\):\s\[(SEM-\d{4}(\s{1}SEM-\d{4})*|--)\]\s.+$'
           error: 'Commit message does not match the required format: {type} ({scope}): [{ticket_id}] {subject}'
 
   build-and-sonar:
