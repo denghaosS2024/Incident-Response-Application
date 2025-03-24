@@ -92,6 +92,7 @@ export default class MapOverlayUtil {
     Hydrants: () => eventEmitter.emit('toggle_fireHydrant'),
     Areas: () => eventEmitter.emit('area_util'),
     Pollution: () => eventEmitter.emit('toggle_airQuality'),
+    Hospitals: () => eventEmitter.emit('toggle_hospital'),
   }
 
   /**
