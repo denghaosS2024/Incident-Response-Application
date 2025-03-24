@@ -10,6 +10,7 @@ import ListItemText from '@mui/material/ListItemText'
 import React, { useEffect, useState } from 'react'
 import eventEmitter from '../../utils/eventEmitter'
 
+import CheckIcon from '@mui/icons-material/Check'
 import LayersIcon from '@mui/icons-material/Layers'
 import LayersClearIcon from '@mui/icons-material/LayersClear'
 import IconButton from '@mui/material/IconButton'
@@ -55,7 +56,9 @@ const MapOverlay: React.FC = () => {
     (state: RootState) => state.contactState,
   )
 
-  const utilLayers = MapOverlayUtil.getUtilItems().sort((a, b) => a.localeCompare(b))
+  const utilLayers = MapOverlayUtil.getUtilItems().sort((a, b) =>
+    a.localeCompare(b),
+  )
 
   const handleSelectUtil = (layer: string, visible: boolean) => {
     if (layer === 'Util') {
@@ -112,6 +115,25 @@ const MapOverlay: React.FC = () => {
 
     return () => {
       eventEmitter.removeListener('selectUtil', handleSelectUtil)
+    }
+  }, [])
+
+  // Listen for utilVisibility events from the map
+  useEffect(() => {
+    const handleUtilVisibility = (data: {
+      layer: string
+      visible: boolean
+    }) => {
+      setActiveUtil((prev) => ({
+        ...prev,
+        [data.layer]: data.visible,
+      }))
+    }
+
+    eventEmitter.on('utilVisibility', handleUtilVisibility)
+
+    return () => {
+      eventEmitter.removeListener('utilVisibility', handleUtilVisibility)
     }
   }, [])
 
@@ -343,6 +365,9 @@ const MapOverlay: React.FC = () => {
                       primary={layer}
                       sx={{ fontSize: '0.875rem' }}
                     />
+                    {activeUtil[layer] && (
+                      <CheckIcon fontSize="small" color="primary" />
+                    )}
                   </ListItemButton>
                 ))}
               </List>

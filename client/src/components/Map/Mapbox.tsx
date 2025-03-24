@@ -14,6 +14,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { useDispatch, useSelector } from 'react-redux'
+import IHospital from '../../models/Hospital'
 import IIncident from '../../models/Incident'
 import { updateIncident } from '../../redux/incidentSlice'
 import { AppDispatch, RootState } from '../../redux/store'
@@ -57,12 +58,14 @@ const Mapbox: React.FC<MapboxProps> = ({
   const roadblockRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const fireHydrantRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const airQualityRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const hospitalRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
 
   // Visibility states for the map layers
   const [pinsVisible, setPinsVisible] = useState(true)
   const [roadblocksVisible, setRoadblocksVisible] = useState(true)
   const [fireHydrantsVisible, setFireHydrantsVisible] = useState(true)
   const [airQualityVisible, setAirQualityVisible] = useState(true)
+  const [hospitalsVisible, setHospitalsVisible] = useState(true)
   const [userLocationVisible, setUserLocationVisible] = useState(true)
   const [isCreatingArea, setIsCreatingArea] = useState(false)
   const [isUnauthorized, setIsUnauthorized] = useState(false)
@@ -123,8 +126,9 @@ const Mapbox: React.FC<MapboxProps> = ({
     const hasPins = pinRef.current.size > 0
     const hasRoadblocks = roadblockRef.current.size > 0
     const hasHydrants = fireHydrantRef.current.size > 0
+    const hasHospitals = hospitalRef.current.size > 0
 
-    if (hasPins || hasRoadblocks || hasHydrants) {
+    if (hasPins || hasRoadblocks || hasHydrants || hasHospitals) {
       // Emit event to mark the main Util button as active
       eventEmitter.emit('selectUtil', { layer: 'Util', visible: true })
 
@@ -137,6 +141,9 @@ const Mapbox: React.FC<MapboxProps> = ({
       }
       if (hasHydrants) {
         eventEmitter.emit('selectUtil', { layer: 'Hydrants', visible: true })
+      }
+      if (hasHospitals) {
+        eventEmitter.emit('selectUtil', { layer: 'Hospitals', visible: true })
       }
     }
   }
@@ -1279,11 +1286,42 @@ const Mapbox: React.FC<MapboxProps> = ({
       })
     }
 
+    // Toggle hospitals visibility at the component level
+    const toggleHospitals = () => {
+      if (!mapRef.current) return
+      setHospitalsVisible((prev) => {
+        const newState = !prev
+
+        hospitalRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          // Handle popup visibility
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Hospitals',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
     eventEmitter.on('you_button_clicked', toggleUserLocation)
     eventEmitter.on('toggle_pin', togglePins)
     eventEmitter.on('toggle_roadblock', toggleRoadblocks)
     eventEmitter.on('toggle_fireHydrant', toggleFireHydrants)
     eventEmitter.on('toggle_airQuality', toggleAirQuality)
+    eventEmitter.on('toggle_hospital', toggleHospitals)
+    // Remove the area_util listener that's causing errors
+    // eventEmitter.on('area_util', toggleAreaUtil)
 
     return () => {
       eventEmitter.removeListener('you_button_clicked', toggleUserLocation)
@@ -1291,6 +1329,9 @@ const Mapbox: React.FC<MapboxProps> = ({
       eventEmitter.removeListener('toggle_roadblock', toggleRoadblocks)
       eventEmitter.removeListener('toggle_fireHydrant', toggleFireHydrants)
       eventEmitter.removeListener('toggle_airQuality', toggleAirQuality)
+      eventEmitter.off('toggle_hospital', toggleHospitals)
+      // Remove the area_util listener that's causing errors
+      // eventEmitter.off('area_util', toggleAreaUtil)
     }
   }, [])
 
@@ -1991,6 +2032,103 @@ const Mapbox: React.FC<MapboxProps> = ({
   }, [])
 
   // -------------------------------- wildfire features end --------------------------------
+
+  // Fetch all hospitals and display them on the map
+  const fetchAndDisplayHospitals = async () => {
+    try {
+      if (!mapRef.current) return
+
+      // Clear any existing hospital markers
+      hospitalRef.current.forEach((marker) => marker.remove())
+      hospitalRef.current.clear()
+
+      // Fetch hospitals from API
+      const response = await request('/api/hospital')
+      const hospitals = response as IHospital[]
+
+      for (const hospital of hospitals) {
+        // Skip if missing address
+        if (!hospital.hospitalAddress) continue
+
+        // Geocode hospital address to get coordinates
+        try {
+          const geocodeResponse = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(hospital.hospitalAddress)}.json?access_token=${mapboxgl.accessToken}`,
+          )
+          const geocodeData = await geocodeResponse.json()
+
+          if (geocodeData.features && geocodeData.features.length > 0) {
+            const [lng, lat] = geocodeData.features[0].center
+
+            // Create popup content
+            const popupContent = document.createElement('div')
+            popupContent.innerHTML = `
+              <h3 style="margin: 0 0 5px 0; font-size: 14px;">${hospital.hospitalName}</h3>
+              <p style="margin: 0 0 5px 0; font-size: 12px;">${hospital.hospitalAddress}</p>
+              <p style="margin: 0; font-size: 12px;">ER Beds: ${hospital.totalNumberERBeds || 0}</p>
+              <p style="margin: 0; font-size: 12px;">Available: ${(hospital.totalNumberERBeds || 0) - (hospital.totalNumberOfPatients || 0)}</p>
+            `
+
+            // Create popup
+            const popup = new mapboxgl.Popup({
+              offset: 25,
+              closeButton: true,
+              closeOnClick: true,
+            }).setDOMContent(popupContent)
+
+            // Create custom hospital marker element
+            const markerElement = document.createElement('div')
+            markerElement.className = 'hospital-marker'
+            markerElement.style.width = '35px'
+            markerElement.style.height = '35px'
+            markerElement.style.backgroundImage =
+              'url(https://cdn-icons-png.flaticon.com/512/33/33777.png)'
+            markerElement.style.backgroundSize = 'cover'
+            markerElement.style.borderRadius = '50%'
+            markerElement.style.cursor = 'pointer'
+
+            // Create and add the marker
+            const marker = new mapboxgl.Marker(markerElement)
+              .setLngLat([lng, lat])
+              .setPopup(popup)
+              .addTo(mapRef.current)
+
+            // Store marker reference
+            hospitalRef.current.set(hospital.hospitalId, marker)
+
+            // Set visibility based on current state
+            if (!hospitalsVisible) {
+              const markerElement = marker.getElement()
+              markerElement.style.visibility = 'hidden'
+            }
+          }
+        } catch (error) {
+          console.error(
+            `Error geocoding hospital address: ${hospital.hospitalAddress}`,
+            error,
+          )
+        }
+      }
+
+      // Mark hospitals layer as active if any hospitals are displayed
+      if (hospitalRef.current.size > 0) {
+        eventEmitter.emit('selectUtil', { layer: 'Hospitals', visible: true })
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Hospitals',
+          visible: true,
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error)
+    }
+  }
+
+  // Load hospitals when map initializes
+  useEffect(() => {
+    if (mapRef.current && isMapLoaded) {
+      fetchAndDisplayHospitals()
+    }
+  }, [isMapLoaded])
 
   // If there is a map error, display a fallback UI
   if (mapError) {
