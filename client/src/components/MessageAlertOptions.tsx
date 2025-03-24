@@ -7,6 +7,7 @@ import { AppDispatch } from '../redux/store'
 import request from '../utils/request'
 import SocketClient from '../utils/Socket'
 import AlertPanel from './AlertPanel'
+import IIncident from '@/models/Incident'
 
 interface MessageAlertOptionsProps {
   channelId: string
@@ -28,22 +29,32 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
   const [responders, setResponders] = useState<string[]>([])
   const [acknowledgedBy, setAcknowledgedBy] = useState<string[]>([])
-
-  // hardcode for test purpose
-  let isIncidentCommander = false
-  if (
-    currentUserId === '67cf2ea7882f62d18e656388' ||
-    currentUserId === '67cf427215bcff53008820e3'
-  ) {
-    isIncidentCommander = true
-  }
-  // const isFirstResponder = true;
-
   const [openAlertPanel, setOpenAlertPanel] = useState<boolean>(false)
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
     setOpenAlertPanel(true)
   }
+  const [isIncidentCommander, setIsIncidentCommander] = useState<boolean>(false)
+  const currentUsername = localStorage.getItem('username')
+  const checkIncidentCommander = async () => {
+    try {
+      const incidents: IIncident[] = await request('/api/incidents', {
+        method: 'GET',
+      })
+
+      const isCommander = incidents.some(
+        (incident: IIncident) => incident.commander === currentUsername,
+      )
+      setIsIncidentCommander(isCommander)
+    } catch (error) {
+      console.error('Error fetching incidents:', error)
+      setIsIncidentCommander(false)
+    }
+  }
+
+  useEffect(() => {
+    checkIncidentCommander()
+  }, [currentUsername])
 
   // Fetch the first resopnders
   const handleFetchResponders = async () => {
