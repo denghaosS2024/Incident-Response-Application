@@ -29,6 +29,30 @@ const Reach911Step2: React.FC = () => {
   // Helper function to determine if a card is selected
   const isSelected = (type: IncidentType) => incident.type === type
 
+  // Function for getting correct incident color
+  const getIncidentColor = (type: IncidentType) => {
+    switch (type) {
+      case IncidentType.Fire:
+        return '#f44336';
+      case IncidentType.Medical:
+        return '#2196f3';
+      default:
+        return '#4caf50';
+      }
+  };
+
+  // Function for getting the correct Incident Label
+  const getIncidentLabel = (type: IncidentType) => {
+    switch (type) {
+      case IncidentType.Fire:
+        return 'Fire';
+      case IncidentType.Medical:
+        return 'Medical';
+      default:
+        return 'Police';
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -329,21 +353,10 @@ const Reach911Step2: React.FC = () => {
             fontSize: '1rem',
             lineHeight: 1.2,
             p: '10px',
-            color:
-              incident.type === IncidentType.Fire
-                ? '#f44336'
-                : incident.type === IncidentType.Medical
-                  ? '#2196f3'
-                  : '#4caf50',
+            color: getIncidentColor(incident.type),
           }}
         >
-          You've selected:{' '}
-          {incident.type === IncidentType.Fire
-            ? 'Fire'
-            : incident.type === IncidentType.Medical
-              ? 'Medical'
-              : 'Police'}{' '}
-          emergency
+          You've selected: {getIncidentLabel(incident.type)} emergency
         </Typography>
       )}
     </Box>
