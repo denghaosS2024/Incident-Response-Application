@@ -40,16 +40,15 @@ const Icons = styled.div`
 `
 
 function bgcolorChange(props: ContainerProps): string {
-  return props.$isDragging
-    ? '#0288d1'
-    : props.$isDraggable
-      ? props.$isBacklog
-        ? '#F2D7D5'
-        : '#DCDCDC'
-      : props.$isBacklog
-        ? '#F2D7D5'
-        : '#EAF4FC'
+  if (props.$isDragging) return '#0288d1'
+
+  if (props.$isDraggable) {
+    return props.$isBacklog ? '#F2D7D5' : '#DCDCDC'
+  }
+
+  return props.$isBacklog ? '#F2D7D5' : '#EAF4FC'
 }
+
 const placeholder = { undefined }
 // Define types for the props of the Card component
 
