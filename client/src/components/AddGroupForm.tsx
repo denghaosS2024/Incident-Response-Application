@@ -34,8 +34,8 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
 
-  const [closed, setIsClosed] = useState<boolean>(false)
-  const [name, setGroupName] = useState('')
+  const [closed, setClosed] = useState<boolean>(false)
+  const [name, setName] = useState('')
   const [description, setDescription] = useState('')
 
   const [nameError, setNameError] = useState<string>('')
@@ -54,9 +54,9 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
     // set state in itself
     setNameError('')
 
-    setGroupName(channelProps.currentGroup?.name || '')
+    setName(channelProps.currentGroup?.name || '')
     setDescription(channelProps.currentGroup?.description || '')
-    setIsClosed(channelProps.currentGroup?.closed || false)
+    setClosed(channelProps.currentGroup?.closed || false)
 
     const isSysGroup = isSystemGroup(group)
     const isOwnerOfGroup = group != null && group.owner._id === owner
@@ -95,7 +95,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   }
 
   const handleToggleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIsClosed(event.target.checked)
+    setClosed(event.target.checked)
   }
 
   const handleDeleteClick = () => {
@@ -135,7 +135,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
           helperText={nameError}
           required
           value={name}
-          onChange={(e) => setGroupName(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
         />
         <TextField
           label="Description"
