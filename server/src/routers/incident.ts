@@ -316,13 +316,21 @@ export default Router()
     try {
       const { caller } = request.query
       const { incidentId } = request.query
-
+      const { channelId } = request.query
       let result
       if (caller) {
         result = await IncidentController.getIncidentsByCaller(caller as string)
       } else if (incidentId) {
         result = await IncidentController.getIncidentByIncidentId(
           incidentId as string,
+        )
+        if (!result || result.length === 0) {
+          response.status(404).json({ message: 'No incidents found' })
+          return
+        }
+      } else if (channelId) {
+        result = await IncidentController.getIncidentByChannelId(
+          channelId as string,
         )
         if (!result || result.length === 0) {
           response.status(404).json({ message: 'No incidents found' })
