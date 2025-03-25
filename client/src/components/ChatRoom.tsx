@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ChatBox from '../components/Chat/ChatBox'
-import IChannel, { resolveChannelName } from '../models/Channel'
+import { resolveChannelName } from '../models/Channel'
 import { addMessage, loadMessages } from '../redux/messageSlice'
 import { AppDispatch, RootState } from '../redux/store'
 import request from '../utils/request'
@@ -41,13 +41,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ channelId }) => {
 
   // Load channel info and set channel name
   const loadChannelInfo = async () => {
-    const channel = (await request(`/api/channels/${channelId}`)) as IChannel
+    const channel = await request(`/api/channels/${channelId}`)
     console.log('Channel:', channel)
     if (channel) {
       const resolvedChannel = resolveChannelName(channel)
       setChannelName(resolvedChannel.name)
     } else {
-      const channels = (await request('/api/channels')) as IChannel[]
+      const channels = await request('/api/channels')
       const publicChannel = channels.filter(
         (channel) => channel.name === 'Public',
       )[0]
