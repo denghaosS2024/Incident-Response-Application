@@ -3,7 +3,7 @@ import IUser from '../../models/User'
 import eventEmitter from '../../utils/eventEmitter'
 import request from '../../utils/request'
 
-export default class MapOverlayUtil {
+export default class MapOverlayHelper {
   static roleUtilMapping: Record<string, string[]> = {
     Citizen: ['Areas', 'Hospitals', 'Pins', 'Pollution'],
     Fire: [

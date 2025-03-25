@@ -248,7 +248,10 @@ export default Router()
    * @swagger
    * /api/patients/single:
    *   get:
-   *     summary: Get a single patient
+   *     summary: >
+   *       Get a single patient, if hospitalId or nurseId are present in the document,
+   *       their data will be embedded in the response
+   *       (So you don't have to join the IDs yourself)
    *     description: Get a single patient
    *     tags: [Patient]
    *     parameters:

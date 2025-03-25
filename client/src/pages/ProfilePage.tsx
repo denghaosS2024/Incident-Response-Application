@@ -9,11 +9,11 @@ import {
 } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useCallback, useEffect, useState } from 'react'
-import { getMapboxToken } from '../components/Map/Mapbox'
 import EmergencyContactField from '../components/Profile/EmergencyContactField'
 import MedicalInfoField from '../components/Profile/MedicalInfoField'
 import ProfileField from '../components/Profile/ProfileField'
 import { IEmergencyContact } from '../models/Profile'
+import Globals from '../utils/Globals'
 import request from '../utils/request'
 
 export default function ProfilePage() {
@@ -26,7 +26,7 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [addressOptions, setAddressOptions] = useState<string[]>([])
-  const mapboxToken = getMapboxToken()
+  const mapboxToken = Globals.getMapboxToken()
 
   const [emergencyContacts, setEmergencyContacts] = useState<
     IEmergencyContact[]

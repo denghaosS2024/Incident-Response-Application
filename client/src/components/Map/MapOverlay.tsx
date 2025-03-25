@@ -22,7 +22,7 @@ import { AppDispatch, RootState } from '../../redux/store'
 import styles from '../../styles/MapOverlay.module.css'
 import getRoleIcon from '../common/RoleIcon'
 import MapGroupItems from './MapGroupItems'
-import MapOverlayUtil from './MapOverlayUtil'
+import MapOverlayHelper from './MapOverlayUtil'
 
 const MapOverlay: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(3)
@@ -56,7 +56,7 @@ const MapOverlay: React.FC = () => {
     (state: RootState) => state.contactState,
   )
 
-  const utilLayers = MapOverlayUtil.getUtilItems().sort((a, b) =>
+  const utilLayers = MapOverlayHelper.getUtilItems().sort((a, b) =>
     a.localeCompare(b),
   )
 
@@ -92,7 +92,7 @@ const MapOverlay: React.FC = () => {
     //Fetch groups
     setGroupsLoading(true)
 
-    MapOverlayUtil.fetchGroups()
+    MapOverlayHelper.fetchGroups()
       .then((groups) => {
         if (groups) {
           setActiveGroups(groups.active)
@@ -178,7 +178,7 @@ const MapOverlay: React.FC = () => {
       ...prev,
       [layer]: !prev[layer],
     }))
-    MapOverlayUtil.onUtilLayerClick(layer)
+    MapOverlayHelper.onUtilLayerClick(layer)
   }
 
   const toggleVisibility = () => {
@@ -186,7 +186,7 @@ const MapOverlay: React.FC = () => {
     if (!isVisible) setSelectedIndex(null)
   }
 
-  const menuStyle = MapOverlayUtil.getMenuStyle(isFullPage, is911Page)
+  const menuStyle = MapOverlayHelper.getMenuStyle(isFullPage, is911Page)
 
   // change background color of selected item
   const getButtonStyle = (index: number) => ({
@@ -417,7 +417,7 @@ const MapOverlay: React.FC = () => {
                       sx={{ fontSize: '0.875rem' }}
                     />
                   </ListItemButton>
-                ) : MapOverlayUtil.getUsers(contacts).length === 0 ? (
+                ) : MapOverlayHelper.getUsers(contacts).length === 0 ? (
                   <ListItemButton>
                     <ListItemText
                       primary="No contacts"
@@ -425,7 +425,7 @@ const MapOverlay: React.FC = () => {
                     />
                   </ListItemButton>
                 ) : (
-                  MapOverlayUtil.getUsers(contacts).map((user: IUser) => (
+                  MapOverlayHelper.getUsers(contacts).map((user: IUser) => (
                     <ListItemButton
                       dense
                       key={user._id}
