@@ -5,7 +5,7 @@ import type { IHospital } from '../models/Hospital';
 export default Router()
   /**
    * @swagger
-   * /api/hospitals/register:
+   * /api/hospital/register:
    *   post:
    *     summary: Register a new hospital
    *     description: Register a new hospital
@@ -51,7 +51,7 @@ export default Router()
 
   /**
    * @swagger
-   * /api/hospitals:
+   * /api/hospital:
    *   get:
    *     summary: Get all hospitals
    *     description: Get all hospitals
@@ -90,6 +90,33 @@ export default Router()
     }
   })
 
+  /**
+   * @swagger
+   * /api/hospital:
+   *   put:
+   *     summary: Update a hospital
+   *     description: Update a hospital
+   *     tags: [Hospital]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               hospitalId:
+   *                 type: string
+   *                 description: ID of the hospital
+   *             required:
+   *               - hospitalId
+   *     responses:
+   *       200:
+   *         description: Hospital updated successfully
+   *       404:
+   *         description: No hospital found
+   *       500:
+   *         description: Server error
+   */
   .put('/', async (request, response) => {
     try {
       const hospitalData = request.body as Partial<IHospital>;
