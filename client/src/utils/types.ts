@@ -15,6 +15,7 @@ import IUser from '../models/User'
  */
 export interface HospitalState {
   hospitalData: IHospital | null
+  hospitals: IHospital[]
   loading: boolean
   error: string | null
 }

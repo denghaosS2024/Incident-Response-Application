@@ -1,13 +1,29 @@
 import IHospital from '@/models/Hospital'
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { HospitalState } from '../utils/types'
+import request from '@/utils/request'
 
 /* ---------------------- Initial State ---------------------- */
 const initialState: HospitalState = {
   hospitalData: null,
+  hospitals: [],
   loading: false,
   error: null,
 }
+
+/* ---------------------- Async Thunk to Fetch Hospitals ---------------------- */
+const fetchHospitals = createAsyncThunk('hospital/fetchHospitals', async () => {
+  try {
+    const response = await request('/api/hospital', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    return response 
+  } catch (error) {
+    console.error('Error fetching hostpitals:', error)
+    throw error
+  }
+})
 
 /* ---------------------- Redux Slice ---------------------- */
 const hospitalSlice = createSlice({
@@ -42,7 +58,20 @@ const hospitalSlice = createSlice({
     },
   },
 
-  
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchHospitals.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(
+        fetchHospitals.fulfilled,
+        (state, action: PayloadAction<IHospital[]>) => {
+          state.hospitals = action.payload
+          state.loading = false
+        },
+      )
+  },
 })
 
 /* ---------------------- Export Actions & Reducer ---------------------- */
@@ -52,5 +81,7 @@ export const {
   setHospitalLoading,
   setHospitalError,
 } = hospitalSlice.actions
+
+export { fetchHospitals }
 
 export default hospitalSlice.reducer

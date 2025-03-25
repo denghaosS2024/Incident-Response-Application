@@ -1,34 +1,31 @@
 import HospitalCard from '@/components/FindHospital/HospitalCard'
 import IHospital from '@/models/Hospital'
+import { fetchHospitals } from '@/redux/hospitalSlice'
+import { AppDispatch, RootState } from '@/redux/store'
 import eventEmitter from '@/utils/eventEmitter'
-import request from '@/utils/request'
 import { Map as MapIcon } from '@mui/icons-material'
-import { Box, Button, Card, CircularProgress, Typography } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import { Box, Button, CircularProgress, Typography } from '@mui/material'
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 const FindHospital: React.FC = () => {
-  const [hospitals, setHospitals] = useState<IHospital[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
+  const hospitals: IHospital[] = useSelector(
+    (state: RootState) => state.hospital.hospitals,
+  )
+
+  const loading: boolean = useSelector(
+    (state: RootState) => state.hospital.loading,
+  )
+
+  const error: string | null = useSelector((state: RootState) => state.hospital.error)
 
   useEffect(() => {
-    const fetchHospitals = async () => {
-      try {
-        const data = await request('/api/hospital')
-        setHospitals(data)
-        setLoading(false)
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to fetch hospitals'
-        setError(errorMessage)
-        setLoading(false)
-      }
-    }
+    dispatch(fetchHospitals())
+  }, [dispatch])
 
-    fetchHospitals()
-  }, [])
+  const navigate = useNavigate()
 
   // Navigate to map and activate hospital layer
   const redirectToMapWithHospitals = () => {
@@ -80,7 +77,6 @@ const FindHospital: React.FC = () => {
       <Box className="flex flex-row justify-between">
         <Box className="w-1/3">
           <Typography>Patients</Typography>
-          
         </Box>
         <Box className="w-2/3">
           {hospitals.length > 0 ? (
