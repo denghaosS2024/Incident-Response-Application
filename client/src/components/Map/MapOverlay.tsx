@@ -22,7 +22,7 @@ import { AppDispatch, RootState } from '../../redux/store'
 import styles from '../../styles/MapOverlay.module.css'
 import getRoleIcon from '../common/RoleIcon'
 import MapGroupItems from './MapGroupItems'
-import MapOverlayHelper from './MapOverlayUtil'
+import MapOverlayHelper from './MapOverlayHelper'
 
 const MapOverlay: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(3)
