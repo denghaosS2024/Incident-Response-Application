@@ -59,6 +59,8 @@ class HospitalController {
    * Update an existing Hospital
    */
      async updateHospital(hospital: Partial<IHospital>) {
+      if (!hospital.hospitalId) throw new Error("Invalid hospital data");
+
       try {
         const updatedHospital = await Hospital.findOneAndUpdate(
             { hospitalId: hospital.hospitalId},
