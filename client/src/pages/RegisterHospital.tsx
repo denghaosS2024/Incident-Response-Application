@@ -14,7 +14,7 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import request from '../utils/request'
 
 const RegisterHospital: React.FC = () => {
@@ -38,6 +38,7 @@ const RegisterHospital: React.FC = () => {
     hospitalAddress: false,
   })
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>(
@@ -103,9 +104,42 @@ const RegisterHospital: React.FC = () => {
   /* ------------------------------ FUNCTIONS ------------------------------ */
 
   /* Function to create or update the hospital discussion (SEM-2563) */
-  const updateHospitalDiscussion = (hospitalData: IHospital) => {
-    console.log('Updating hospital discussion.')
-    // TODO: Implement discussion update
+  const updateHospitalDiscussion = async (hospitalData: IHospital) => {
+    try {
+    const currentUserId = localStorage.getItem('uid')
+
+    // Check if the hospital already has a group
+    const hospital: IHospital =  await fetchHospitalDetails(hospitalData.hospitalId);
+    const hospitalGroup = hospital?.hospitalGroupId;
+
+    if (hospitalGroup) {
+      // If the hospital already has a discussion group, we only need make sure that new nurses are added to it 
+      await request(`/api/channels/${hospitalGroup}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          users: [...hospitalData.nurses]
+        }),
+      })
+      navigate(`/messages?channelId=${hospitalGroup}`)
+    } else {
+      // Create a new discussion group, where channelId=hospitalData._id (reason: the format of hospitalId does not match the format of channelId)
+      const newHospitalGroup  = await request('/api/channels', {
+        method: 'POST',
+        body: JSON.stringify({
+          _id: hospitalData._id,
+          owner: currentUserId,
+          name: hospitalData.hospitalName,         
+          users: [currentUserId, ...hospitalData.nurses]
+        }),
+      })
+      navigate(`/messages?channelId=${newHospitalGroup._id}`)
+
+      // TODO: Update the discussion group in the hospital model. Will be done in the next commit with TDD.
+
+      }
+    } catch (error) {
+    console.error('Error in updateHospitalDiscussion:', error)
+    } 
   }
 
   /* Function to show the alert */
@@ -128,7 +162,9 @@ const RegisterHospital: React.FC = () => {
     const response = await registerHospital(hospitalData)
     if (response) {
       showSnackbar('Hospital created successfully!', 'success')
-      updateHospitalDiscussion(response)
+      setTimeout(() => {
+        updateHospitalDiscussion(response);
+      }, 2000);
     } else {
       showSnackbar('Error registering hospital.', 'error')
     }

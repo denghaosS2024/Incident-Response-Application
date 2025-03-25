@@ -1,19 +1,33 @@
 import { Box } from '@mui/material'
 import React, { useEffect, useState } from 'react'
+import {
+  useLocation, useNavigate
+} from "react-router-dom"
 import ChannelList from '../components/ChannelList'
 import ChatRoom from '../components/ChatRoom'
 import IChannel, { resolveChannelName } from '../models/Channel'
 import request from '../utils/request'
 import SocketClient from '../utils/Socket'
 
+
 // Messages component: Displays a list of channels for the current user
 const Messages: React.FC = () => {
   const [channels, setChannels] = useState<IChannel[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [selectedChannel, setSelectedChannel] = useState<string | null>(null)
+  
+  const { search } = useLocation();
+  const navigate = useNavigate();
+  let query = new URLSearchParams(search); 
+
+  // query.get("channelId") allows us to enter the Messages by going into the specific channel. 
+  // If it is not provided, the existing functinality does not change.
+  const [selectedChannel, setSelectedChannel] = useState<string | null>(query.get("channelId"))
 
   const handleSelectChannel = (channelId: string) => {
     setSelectedChannel(channelId)
+    // Clearing the URL after selecting a different channel
+    navigate({ search: '' });
+
   }
 
   useEffect(() => {

@@ -53,6 +53,10 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/messages" element={<Messages />} />
+            {/* The path /messages/:id allows for passing channelId as a query parameter. 
+            This allow us to navigate to /messages but automatically into a specific channel chat. 
+            Please look into the implementation in Messages.tsx */}
+            <Route path="/messages/:id" element={<Messages />} />
             <Route path="/groups" element={<GroupsPage />} />
             <Route path="/reach911" element={<Reach911Page />} />
             <Route path="/map" element={<MapPage />} />

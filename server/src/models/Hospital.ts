@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { Document, Schema, Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
 export interface IHospital extends Document {
@@ -8,7 +8,8 @@ export interface IHospital extends Document {
   hospitalDescription: string
   totalNumberERBeds: number
   totalNumberOfPatients: number
-  nurses: string[]
+  nurses: Schema.Types.ObjectId[]
+  hospitalGroupId?: Types.ObjectId;  // Reference to Channel model
 }
 
 const HospitalSchema = new Schema({
@@ -45,11 +46,18 @@ const HospitalSchema = new Schema({
     unique: false,
   },
   nurses: {
-    type: [String],
+    type: [Schema.Types.ObjectId],
+    ref: 'User',
     required: false,
     unique: false,
     default: [],
   },
+  hospitalGroupId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Channel',
+    required: false,
+    default: null,
+},
 })
 
 export default mongoose.model<IHospital>('Hospital', HospitalSchema)

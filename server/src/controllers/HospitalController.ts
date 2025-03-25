@@ -14,6 +14,7 @@ class HospitalController {
         hospitalDescription: hospital.hospitalDescription,
         totalNumberERBeds: hospital.totalNumberERBeds,
         nurses: hospital.nurses,
+        hospitalGroupId: hospital.hospitalGroupId,
       })
       await newHospital.save()
       return newHospital
