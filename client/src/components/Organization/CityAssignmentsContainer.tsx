@@ -111,6 +111,23 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
           vehicleName,
         }),
       })
+      if (currentUserPersonnel?.role === 'Fire') {
+        await request('/api/trucks/usernames/release', {
+          method: 'PUT',
+          body: JSON.stringify({
+            truckName: vehicleName,
+            username: currentUser,
+          }),
+        })
+      } else if (currentUserPersonnel?.role === 'Police') {
+        await request('/api/cars/usernames/release', {
+          method: 'PUT',
+          body: JSON.stringify({
+            carName: vehicleName,
+            username: currentUser,
+          }),
+        })
+      }
       // After releasing, refresh
       refreshData()
       setSelectedVehicle(null)
@@ -131,6 +148,23 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
           vehicleName,
         }),
       })
+      if (currentUserPersonnel?.role === 'Fire') {
+        await request('/api/trucks/usernames', {
+          method: 'PUT',
+          body: JSON.stringify({
+            truckName: vehicleName,
+            username: currentUser,
+          }),
+        })
+      } else if (currentUserPersonnel?.role === 'Police') {
+        await request('/api/cars/usernames', {
+          method: 'PUT',
+          body: JSON.stringify({
+            carName: vehicleName,
+            username: currentUser,
+          }),
+        })
+      }
       // After assigning, refresh
       refreshData()
       setSelectedVehicle(vehicleName)

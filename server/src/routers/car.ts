@@ -180,4 +180,28 @@ carRouter.put('/cities', async (req: Request, res: Response) => {
   }
 })
 
+carRouter.put('/usernames', async (req: Request, res: Response) => {
+  try {
+    const { carName, username } = req.body
+    const updatedCar = await CarController.addUsernameToCar(carName, username)
+    res.status(200).json(updatedCar)
+  } catch (err) {
+    const error = err as Error
+    res.status(400).json({ error: error.message })
+  }
+})
+
+carRouter.put('/usernames/release', async (req: Request, res: Response) => {
+  try {
+    const { carName, username } = req.body
+    const updatedCar = await CarController.releaseUsernameFromCar(
+      carName,
+      username,
+    )
+    res.status(200).json(updatedCar)
+  } catch (err) {
+    const error = err as Error
+    res.status(400).json({ error: error.message })
+  }
+})
 export default carRouter

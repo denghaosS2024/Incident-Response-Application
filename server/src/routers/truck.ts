@@ -1,7 +1,7 @@
-import { Request, Response, Router } from 'express';
-import TruckController from '../controllers/TruckController';
+import { Request, Response, Router } from 'express'
+import TruckController from '../controllers/TruckController'
 
-const truckRouter = Router();
+const truckRouter = Router()
 
 /**
  * @swagger
@@ -29,13 +29,13 @@ const truckRouter = Router();
  */
 truckRouter.get('/', async (_req: Request, res: Response) => {
   try {
-    const trucks = await TruckController.getAllTrucks();
-    res.json(trucks);
+    const trucks = await TruckController.getAllTrucks()
+    res.json(trucks)
   } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
+    const error = err as Error
+    res.status(500).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -72,14 +72,14 @@ truckRouter.get('/', async (_req: Request, res: Response) => {
  */
 truckRouter.post('/', async (req: Request, res: Response) => {
   try {
-    const { name } = req.body;
-    const newTruck = await TruckController.createTruck(name);
-    res.status(201).json(newTruck);
+    const { name } = req.body
+    const newTruck = await TruckController.createTruck(name)
+    res.status(201).json(newTruck)
   } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    const error = err as Error
+    res.status(400).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -118,14 +118,14 @@ truckRouter.post('/', async (req: Request, res: Response) => {
  */
 truckRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const removedTruck = await TruckController.removeTruckById(id);
-    res.json({ message: 'Truck deleted', truck: removedTruck });
+    const { id } = req.params
+    const removedTruck = await TruckController.removeTruckById(id)
+    res.json({ message: 'Truck deleted', truck: removedTruck })
   } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    const error = err as Error
+    res.status(400).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -164,13 +164,44 @@ truckRouter.delete('/:id', async (req: Request, res: Response) => {
  */
 truckRouter.put('/cities', async (req: Request, res: Response) => {
   try {
-    const { truckName, cityName } = req.body;
-    const updatedTruck = await TruckController.updateTruckCity(truckName, cityName);
-    res.json(updatedTruck);
+    const { truckName, cityName } = req.body
+    const updatedTruck = await TruckController.updateTruckCity(
+      truckName,
+      cityName,
+    )
+    res.json(updatedTruck)
   } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    const error = err as Error
+    res.status(400).json({ error: error.message })
   }
-});
+})
 
-export default truckRouter;
+truckRouter.put('/usernames', async (req: Request, res: Response) => {
+  try {
+    const { truckName, username } = req.body
+    const updatedTruck = await TruckController.addUsernameToTruck(
+      truckName,
+      username,
+    )
+    res.status(200).json(updatedTruck)
+  } catch (err) {
+    const error = err as Error
+    res.status(400).json({ error: error.message })
+  }
+})
+
+truckRouter.put('/usernames/release', async (req: Request, res: Response) => {
+  try {
+    const { truckName, username } = req.body
+    const updatedTruck = await TruckController.releaseUsernameFromTruck(
+      truckName,
+      username,
+    )
+    res.status(200).json(updatedTruck)
+  } catch (err) {
+    const error = err as Error
+    res.status(400).json({ error: error.message })
+  }
+})
+
+export default truckRouter
