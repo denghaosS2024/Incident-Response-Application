@@ -37,10 +37,14 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
   const [isIncidentCommander, setIsIncidentCommander] = useState<boolean>(false)
   const currentUsername = localStorage.getItem('username')
   const checkIncidentCommander = async () => {
+    console.log(channelId)
     try {
-      const incidents: IIncident[] = await request('/api/incidents', {
-        method: 'GET',
-      })
+      const incidents: IIncident[] = await request(
+        `/api/incidents?channelId=${channelId}`,
+        {
+          method: 'GET',
+        },
+      )
 
       const isCommander = incidents.some(
         (incident: IIncident) => incident.commander === currentUsername,
