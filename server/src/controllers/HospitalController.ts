@@ -54,6 +54,23 @@ class HospitalController {
       throw new Error('Failed to fetch hospitals')
     }
   }
+
+    /**
+   * Update an existing Hospital
+   */
+     async updateHospital(hospital: Partial<IHospital>) {
+      try {
+        const updatedHospital = await Hospital.findOneAndUpdate(
+            { hospitalId: hospital.hospitalId},
+            { $set: hospital },
+            { new: true }
+        ).exec();
+        return updatedHospital;
+    } catch (error) {
+        console.error("Error updating hospital:", error);
+        throw error;
+    }
+  }
 }
 
 export default new HospitalController()

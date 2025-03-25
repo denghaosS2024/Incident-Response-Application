@@ -16,6 +16,7 @@ describe('Hospital Controller', () => {
   const createTestHospital = async () => {
     const newHospital = new Hospital(
         {
+          hospitalId: 'hospital123',
           hospitalName: 'Test Hospital',
           hospitalAddress: '123 Main St',
           hospitalDescription: 'Test hospital',
@@ -29,18 +30,17 @@ describe('Hospital Controller', () => {
     const hospital = await createTestHospital()
 
     const updatedData = {
+        hospitalId: hospital.hospitalId,
         hospitalName: 'El Camino Hospital',
         hospitalAddress: '123 New Street',
     };
 
     const result = await HospitalController.updateHospital(
-      hospital._id,
-      updatedData,
+      updatedData
     )
 
     expect(result).toBeDefined()
     expect(result?.hospitalName?.toString()).toBe(updatedData.hospitalName.toString())
     expect(result?.hospitalAddress?.toString()).toBe(updatedData.hospitalAddress.toString())
   })
-
 })
