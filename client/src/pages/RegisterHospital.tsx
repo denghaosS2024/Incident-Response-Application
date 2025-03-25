@@ -108,11 +108,18 @@ const RegisterHospital: React.FC = () => {
     try {
     const currentUserId = localStorage.getItem('uid')
 
-    // Check if the hospital already has a group
-    const hospital: IHospital =  await fetchHospitalDetails(hospitalData.hospitalId);
-    const hospitalGroup = hospital?.hospitalGroupId;
+    if (!currentUserId) {
+      console.error('User not logged in');
+      return;
+    }
 
-    if (hospitalGroup) {
+    // Check if the hospital already has a group
+    const hospital: IHospital | null =  await fetchHospitalDetails(hospitalData.hospitalId);
+    if (!hospital) return;
+    
+    const hospitalGroup = hospital.hospitalGroupId;
+    
+    if (hospitalGroup!=null) {
       // If the hospital already has a discussion group, we only need make sure that new nurses are added to it 
       await request(`/api/channels/${hospitalGroup}`, {
         method: 'PUT',
@@ -120,7 +127,6 @@ const RegisterHospital: React.FC = () => {
           users: [...hospitalData.nurses]
         }),
       })
-      navigate(`/messages?channelId=${hospitalGroup}`)
     } else {
       // Create a new discussion group, where channelId=hospitalData._id (reason: the format of hospitalId does not match the format of channelId)
       const newHospitalGroup  = await request('/api/channels', {
@@ -132,11 +138,21 @@ const RegisterHospital: React.FC = () => {
           users: [currentUserId, ...hospitalData.nurses]
         }),
       })
-      navigate(`/messages?channelId=${newHospitalGroup._id}`)
-
-      // TODO: Update the discussion group in the hospital model. Will be done in the next commit with TDD.
-
+      
+      // Update the hospital with the new hospitalGroupId
+      await request('/api/hospital', {
+        method: 'PUT',
+        body: JSON.stringify({
+          hospitalId: hospitalData.hospitalId,
+          hospitalGroupId: newHospitalGroup._id,
+          nurses: [...hospitalData.nurses]
+        }),
+      })
       }
+    
+      // Navigate back to the hospital directory -- confirmed with Cecile
+      navigate('/hospitals')
+
     } catch (error) {
     console.error('Error in updateHospitalDiscussion:', error)
     } 

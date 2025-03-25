@@ -18,7 +18,7 @@ const HospitalsDirectory: React.FC = () => {
       setError(null)
       try {
         const data = await request('/api/hospital')
-        setHospitalList(data)
+        setHospitalList(data.sort((a: IHospital, b: IHospital) => a.hospitalName.localeCompare(b.hospitalName)))
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch hospitals'
