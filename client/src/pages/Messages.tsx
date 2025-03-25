@@ -17,7 +17,7 @@ const Messages: React.FC = () => {
   
   const { search } = useLocation();
   const navigate = useNavigate();
-  let query = new URLSearchParams(search); 
+  const query = new URLSearchParams(search); 
 
   // query.get("channelId") allows us to enter the Messages by going into the specific channel. 
   // If it is not provided, the existing functinality does not change.
