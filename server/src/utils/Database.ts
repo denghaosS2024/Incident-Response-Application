@@ -68,5 +68,5 @@ export const connect = async (
  * Close the MongoDB connection
  */
 export const close = async () => {
-  mongoose.connection.close()
+  await mongoose.connection.close()
 }

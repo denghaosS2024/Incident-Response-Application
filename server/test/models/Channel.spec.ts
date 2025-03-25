@@ -9,6 +9,11 @@ describe('Channel model', () => {
   it('will get all system defined groups', async () => {
     const channels = await Channel.find().exec()
     expect(channels.length).toBe(SystemGroupConfigs.length)
+
+    // Insertion order is not guaranteed, so we need to sort the channels by name
+    channels.sort((a, b) => a.name.localeCompare(b.name))
+    SystemGroupConfigs.sort((a, b) => a.name.localeCompare(b.name))
+
     for (let i = 0; i < channels.length; i++) {
       expect(channels[i].name).toBe(SystemGroupConfigs[i].name)
       expect(channels[i].description).toBe(SystemGroupConfigs[i].description)
@@ -22,14 +27,16 @@ describe('Channel model', () => {
 
       // prove that no new channels are created
       expect(await Channel.find().exec()).toStrictEqual(channels)
-      expect(channels[0].id).toBe(publicChannel.id)
+
+      const ids = channels.map((c) => c.id)
+      expect(ids).toContain(publicChannel.id)
     })
 
     it('will create a new public channel if it does not exist', async () => {
       await Channel.deleteMany({ name: 'Public' }).exec()
-      const channelsBefore = await Channel.find().exec()
+      const channelsBefore = await Channel.find()
       const publicChannel = await Channel.getPublicChannel()
-      const channelsAfter = await Channel.find().exec()
+      const channelsAfter = await Channel.find()
       expect(channelsAfter.length).toBe(channelsBefore.length + 1)
       expect(publicChannel.name).toBe('Public')
     })

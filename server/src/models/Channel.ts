@@ -5,13 +5,15 @@
  * This model is similar to a Slack channel.
  */
 
-import mongoose, { Schema, Document, Model, Types } from 'mongoose'
+import mongoose, { Document, Model, Schema, Types } from 'mongoose'
 import AutoPopulate from 'mongoose-autopopulate'
 
-import User, { IUser } from './User'
-import { IMessage } from './Message'
 import UserController from '../controllers/UserController'
-import SystemGroupConfigs from '../utils/SystemDefinedGroups'
+import SystemGroupConfigs, {
+  ISystemGroupConfig,
+} from '../utils/SystemDefinedGroups'
+import { IMessage } from './Message'
+import User, { IUser } from './User'
 
 export const PUBLIC_CHANNEL_NAME = 'Public'
 
@@ -145,8 +147,8 @@ ChannelSchema.statics.ensureSystemDefinedGroup = async () => {
     return
   }
 
-  for (const config of SystemGroupConfigs) {
-    const channel = await Channel.findOne({ name: config.name }).exec()
+  async function ensureConfig(config: ISystemGroupConfig) {
+    const channel = await Channel.findOne({ name: config.name }).lean()
     if (!channel) {
       const users = await User.find({
         role: { $in: config.participantRole },
@@ -169,6 +171,12 @@ ChannelSchema.statics.ensureSystemDefinedGroup = async () => {
       )
     }
   }
+
+  await Promise.all(
+    SystemGroupConfigs.map(async (config) => {
+      await ensureConfig(config)
+    }),
+  )
 }
 
 const Channel = mongoose.model<IChannel, IChannleModel>(
