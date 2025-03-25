@@ -174,7 +174,9 @@ ChannelSchema.statics.ensureSystemDefinedGroup = async () => {
   }
 
   // Ensure all system defined groups are created in PARALLEL
-  await Promise.all(SystemGroupConfigs.map(ensureConfig))
+  for (const config of SystemGroupConfigs) {
+    await ensureConfig(config)
+  }
 }
 
 const Channel = mongoose.model<IChannel, IChannleModel>(
