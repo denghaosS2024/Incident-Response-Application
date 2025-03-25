@@ -33,11 +33,13 @@ interface Car {
   assignedCity: string
   _id: string
   name: string
+  usernames: string[]
 }
 interface Truck {
   assignedCity: string
   _id: string
   name: string
+  usernames: string[]
 }
 interface City {
   _id: string
