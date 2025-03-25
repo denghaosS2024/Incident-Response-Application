@@ -8,7 +8,7 @@
 import { Server as SocketIO } from 'socket.io'
 
 import * as Http from 'node:http'
-import { getApp } from './app'
+import app from './app'
 import Socket from './socket'
 import * as Database from './utils/Database'
 import Env from './utils/Env'
@@ -17,7 +17,6 @@ import Env from './utils/Env'
 const PORT = parseInt(Env.getParam('PORT', '3001'))
 
 async function getHttpServer() {
-  const app = await getApp()
   return Http.createServer(app)
 }
 
