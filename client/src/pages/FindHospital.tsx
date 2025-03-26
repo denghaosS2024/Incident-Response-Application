@@ -1,41 +1,14 @@
-import HospitalCard from '@/components/FindHospital/HospitalCard'
-import PatientCard from '@/components/FindHospital/PatientCard'
-import IHospital from '@/models/Hospital'
-import IUser from '@/models/User'
-import { loadContacts } from '@/redux/contactSlice'
-import { fetchHospitals } from '@/redux/hospitalSlice'
-import { AppDispatch, RootState } from '@/redux/store'
+import HospitalList from '@/components/FindHospital/HospitalList'
+import PatientList from '@/components/FindHospital/PatientList'
 import eventEmitter from '@/utils/eventEmitter'
 import { Map as MapIcon } from '@mui/icons-material'
-import { Box, Button, CircularProgress, Typography } from '@mui/material'
-import React, { useEffect } from 'react'
+import { Box, Button, Typography } from '@mui/material'
+import React from 'react'
 import { DragDropContext, DropResult } from 'react-beautiful-dnd'
-import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 const FindHospital: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
-  const hospitals: IHospital[] = useSelector(
-    (state: RootState) => state.hospital.hospitals,
-  )
-
-  const loading: boolean = useSelector(
-    (state: RootState) => state.hospital.loading,
-  )
-
-  const error: string | null = useSelector(
-    (state: RootState) => state.hospital.error,
-  )
-
-  const patients: IUser[] = useSelector(
-    (state: RootState) => state.contactState.contacts,
-  )
-
-  useEffect(() => {
-    dispatch(fetchHospitals())
-    dispatch(loadContacts())
-  }, [dispatch])
-
+  
   const navigate = useNavigate()
 
   // Navigate to map and activate hospital layer
@@ -55,15 +28,12 @@ const FindHospital: React.FC = () => {
     const { destination, source, draggableId } = result
     if (!destination || source.droppableId === destination.droppableId) return
 
-
-   
     if (draggableId.startsWith('patient-')) {
       // // Handle group card drop
       // const groupId = draggableId.slice(6) // Extract group ID from the draggableId
       // //handleGroupClick(groupId) // This will handle adding users of the group to the 'done' column
       // return
-       console.log('drag')
-      
+      console.log('drag')
     }
 
     //const task = findItemById(String(draggableId), [...todo, ...done]) // Ensure ID is a string
@@ -71,32 +41,6 @@ const FindHospital: React.FC = () => {
 
     //deletePreviousState(source.droppableId, draggableId)
     //setNewState(destination.droppableId, task)
-  }
-
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="50vh"
-      >
-        <CircularProgress />
-      </Box>
-    )
-  }
-
-  if (error) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="50vh"
-      >
-        <Typography color="error">Error: {error}</Typography>
-      </Box>
-    )
   }
 
   return (
@@ -109,43 +53,8 @@ const FindHospital: React.FC = () => {
 
       <Box className="flex flex-row justify-between gap-x-4">
         <DragDropContext onDragEnd={handleDragEnd} key={0}>
-          <Box className="w-1/3 border border-gray-300 rounded-lg mb-2">
-            <Typography className="text-center p-3 rounded-t-lg bg-mui-blue text-white">
-              Patients
-            </Typography>
-
-            <Box className="h-99 overflow-scroll">
-              {patients.length > 0 ? (
-                patients.map((patient, id) => (
-                  <PatientCard
-                    key={'patient-' + id}
-                    id={'patient-' + id}
-                    patient={patient}
-                    index={id}
-                  />
-                ))
-              ) : (
-                <Typography variant="body1" color="text.secondary">
-                  No patients found.
-                </Typography>
-              )}
-            </Box>
-          </Box>
-          <Box className="w-2/3">
-            {hospitals.length > 0 ? (
-              hospitals.map((hospital, id) => (
-                <HospitalCard
-                  key={'hospital-' + id}
-                  id={'hospital-' + id}
-                  hospital={hospital}
-                />
-              ))
-            ) : (
-              <Typography variant="body1" color="text.secondary">
-                No hospitals found. Please register hospitals first.
-              </Typography>
-            )}
-          </Box>
+          <PatientList></PatientList>
+          <HospitalList></HospitalList>
         </DragDropContext>
       </Box>
 
