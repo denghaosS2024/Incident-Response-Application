@@ -1,17 +1,17 @@
 import { Box, CircularProgress, Paper, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import ChatBox from '../Chat/ChatBox'
+import ChatBox from '../../Chat/ChatBox'
 
-import request from '../../utils/request'
+import request from '../../../utils/request'
 
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { addMessage, loadMessages } from '../../redux/messageSlice'
+import { addMessage, loadMessages } from '../../../redux/messageSlice'
 
-import type IChannel from '../../models/Channel'
-import type IIncident from '../../models/Incident'
-import type { AppDispatch, RootState } from '../../redux/store'
+import type IChannel from '../../../models/Channel'
+import type IIncident from '../../../models/Incident'
+import type { AppDispatch, RootState } from '../../../redux/store'
 
 interface Reach911Step4Props {
   isCreatedByFirstResponder?: boolean

@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react'
 import ClickableStepper from '../components/ClickableStepper'
 import styles from '../styles/Reach911Page.module.css'
 
-import Reach911Step1 from '../components/Reach911/Reach911Step1'
-import Reach911Step2 from '../components/Reach911/Reach911Step2'
-import Reach911Step3 from '../components/Reach911/Reach911Step3Form'
-import Reach911Step4 from '../components/Reach911/Reach911Step4'
-import Reach911Step5 from '../components/Reach911/Reach911Step5'
+import Reach911Step1 from '../components/feature/Reach911/Reach911Step1'
+import Reach911Step2 from '../components/feature/Reach911/Reach911Step2'
+import Reach911Step3 from '../components/feature/Reach911/Reach911Step3Form'
+import Reach911Step4 from '../components/feature/Reach911/Reach911Step4'
+import Reach911Step5 from '../components/feature/Reach911/Reach911Step5'
 
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
@@ -33,19 +33,95 @@ const Reach911Page: React.FC = () => {
     location.state || {}
   const role = localStorage.getItem('role')
 
-  // Get the current user's username when component mounts
   useEffect(() => {
-    const username = localStorage.getItem('username')
-    const uid = localStorage.getItem('uid')
-    if (username && uid) {
-      dispatch(
-        updateIncident({
-          ...incident,
-          caller: username, // Store username in the caller field
-        }),
-      )
+    const initializeIncident = async () => {
+      try {
+        const username = localStorage.getItem('username')
+        const token = localStorage.getItem('token')
+        const uid = localStorage.getItem('uid')
+
+        if (!username || !uid) {
+          setError('No username or uid found')
+          return
+        }
+
+        if (incidentId || isCreatedByFirstResponder) {
+          return
+        }
+
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/incidents/${username}/active`,
+          {
+            headers: {
+              'x-application-token': token || '',
+              'x-application-uid': uid || '',
+            },
+          },
+        )
+
+        if (response.status === 404) {
+          const createResponse = await fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/api/incidents/new`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-application-token': token || '',
+                'x-application-uid': uid || '',
+              },
+              body: JSON.stringify({
+                caller: username,
+                owner: username,
+                incidentState: 'Waiting',
+                openingDate: new Date().toISOString(),
+                commander: 'System',
+              }),
+            },
+          )
+
+          if (!createResponse.ok) {
+            throw new Error(
+              `Failed to create incident: ${createResponse.status}`,
+            )
+          }
+
+          const newIncident = await createResponse.json()
+          dispatch(updateIncident(newIncident))
+          console.log('Created new incident:', newIncident._id)
+          return
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to check active incidents: ${response.status}`,
+          )
+        }
+
+        const activeIncident = await response.json()
+        dispatch(updateIncident(activeIncident))
+        console.log('Found active incident:', activeIncident._id)
+      } catch (error) {
+        console.error('Error initializing incident:', error)
+        setError(
+          error instanceof Error
+            ? error.message
+            : 'Failed to initialize incident',
+        )
+      }
     }
-  }, [dispatch])
+
+    initializeIncident()
+  }, [dispatch, incidentId, isCreatedByFirstResponder])
+
+  useEffect(() => {
+    if (!incident._id) return
+
+    const timer = setTimeout(() => {
+      updateIncidentCall()
+    }, 3000) // Increased debounce time
+
+    return () => clearTimeout(timer)
+  }, [incident]) // Triggers on any incident data change
 
   // If the user is first responder and viewing an incident
   useEffect(() => {
@@ -94,126 +170,40 @@ const Reach911Page: React.FC = () => {
     contents.push(<Reach911Step5 incidentId={incidentId} />)
   }
 
-  // Function for submitting incident
-  const submitIncident = async () => {
-    try {
-      setError(null)
-
-      const username = localStorage.getItem('username')
-      const token = localStorage.getItem('token')
-      const uid = localStorage.getItem('uid')
-
-      if (!username || !uid) {
-        setError('No username or uid found')
-        console.error('No username or uid found')
-        return
-      }
-
-      // The backend expects an incident field
-      const requestBody = {
-        ...incident,
-        caller: username,
-        owner: username,
-      }
-
-      // Construct the URL and options
-      console.log('requestBody:', requestBody)
-      const url = `${import.meta.env.VITE__BACKEND_URL}/api/incidents/new`
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-application-token': token || '',
-          'x-application-uid': uid || '',
-        },
-        body: JSON.stringify(requestBody),
-      }
-
-      // Use fetch directly
-      const response = await fetch(url, options)
-
-      // Parse the response body
-      const responseText = await response.text()
-      let responseData
-
-      try {
-        responseData = JSON.parse(responseText)
-      } catch (e) {
-        console.error('Failed to parse response as JSON:', e)
-        throw new Error('Failed to parse response as JSON')
-      }
-
-      if (!response.ok) {
-        throw {
-          status: response.status,
-          message: responseData.message || 'Failed to submit incident',
-        }
-      }
-
-      // Move to next step
-      setActiveStep(3)
-      localStorage.setItem('911Step', '3')
-    } catch (error) {
-      console.error('Error submitting incident:', error)
-      // Add more detailed error logging
-      if (error && typeof error === 'object' && 'message' in error) {
-        const errorMessage = String(error.message)
-        console.error('Error details:', errorMessage)
-        setError(errorMessage)
-      } else {
-        setError('An unknown error occurred')
-      }
-    }
-  }
-
   const updateIncidentCall = async () => {
     try {
       const token = localStorage.getItem('token')
       const uid = localStorage.getItem('uid')
 
-      if (!token || !uid) {
-        setError('Authentication error: Missing token or UID.')
-        console.error('Authentication error: Missing token or UID.')
+      if (!token || !uid || !incident._id) {
+        setError('Authentication error: Missing token, UID, or incident ID.')
         return
       }
 
-      const cleanedIncident = { ...incident }
-      if (!cleanedIncident._id) delete (cleanedIncident as any)._id
-      if (!cleanedIncident.incidentCallGroup)
-        delete (cleanedIncident as any).incidentCallGroup
-
-      if (!cleanedIncident.openingDate)
-        delete (cleanedIncident as any).openingDate
-      if (!cleanedIncident.incidentState)
-        delete (cleanedIncident as any).incidentState
-      if (!cleanedIncident.owner) delete (cleanedIncident as any).owner
-      if (!cleanedIncident.commander) delete (cleanedIncident as any).commander
-      if (!cleanedIncident.caller) delete (cleanedIncident as any).caller
-
-      const requestBody = {
-        ...cleanedIncident,
-        incidentId: incidentId,
-      }
-
-      const url = `${import.meta.env.VITE__BACKEND_URL}/api/incidents/update`
-      const options = {
+      const url = `${import.meta.env.VITE_BACKEND_URL}/api/incidents/update`
+      const response = await fetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'x-application-token': token,
           'x-application-uid': uid,
         },
-        body: JSON.stringify(requestBody),
-      }
-
-      const response = await fetch(url, options)
+        body: JSON.stringify({
+          ...incident,
+          incidentState: incident.incidentState || 'Waiting',
+          openingDate: incident.openingDate || new Date().toISOString(),
+          owner: incident.owner || localStorage.getItem('username'),
+          commander: incident.commander || 'System',
+          caller: incident.caller || localStorage.getItem('username'),
+        }),
+      })
 
       if (response.status !== 204) {
-        throw new Error(`Unexpected response status: ${response.status}`)
+        const errorText = await response.text()
+        throw new Error(`Update failed: ${errorText}`)
       }
 
       console.log('Incident successfully updated.')
-      // window.alert('Incident updated successfully')
     } catch (error) {
       console.error('Error updating incident:', error)
 
@@ -231,24 +221,20 @@ const Reach911Page: React.FC = () => {
     const hasStep5 = contents.length === 5
 
     if (activeStep === 3 && hasStep5) {
+      // Keep special handling for first responders and auto-populated incidents
       if (
         isCreatedByFirstResponder === true ||
         (autoPopulateData === true && readOnly === false)
       ) {
         updateIncidentCall()
       }
-
       setActiveStep(activeStep + 1)
       setError(null)
     } else if (activeStep === contents.length - 2) {
-      if (
-        isCreatedByFirstResponder === true ||
-        (autoPopulateData === true && readOnly === false)
-      ) {
-        updateIncidentCall()
-      } else {
-        submitIncident()
-      }
+      // Always use updateIncidentCall since incident was created on page load
+      updateIncidentCall()
+      setActiveStep(activeStep + 1)
+      setError(null)
     } else if (activeStep < contents.length - 1) {
       setActiveStep(activeStep + 1)
       setError(null)

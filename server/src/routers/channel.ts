@@ -396,6 +396,8 @@ export default Router()
       response.status(404).send({ message: error.message })
     }
   })
+
+  // Wrong Route swagger Documentation in url
   /**
    * @swagger
    * /api/:id:
@@ -880,7 +882,7 @@ export default Router()
         messageId,
         senderId,
         channelId,
-        responseType
+        responseType,
       )
       response.send(updatedMessage)
     } catch (e) {

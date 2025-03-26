@@ -17,13 +17,13 @@ import {
 
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import IIncident from '../../models/Incident'
-import IUser from '../../models/User'
-import { loadContacts } from '../../redux/contactSlice'
-import { updateIncident } from '../../redux/incidentSlice'
-import { AppDispatch, RootState } from '../../redux/store'
-import { MedicalQuestions } from '../../utils/types'
-import Loading from '../common/Loading'
+import IIncident from '../../../models/Incident'
+import IUser from '../../../models/User'
+import { loadContacts } from '../../../redux/contactSlice'
+import { updateIncident } from '../../../redux/incidentSlice'
+import { AppDispatch, RootState } from '../../../redux/store'
+import { MedicalQuestions } from '../../../utils/types'
+import Loading from '../../common/Loading'
 
 interface MedicalFormProps {
   isCreatedByFirstResponder?: boolean

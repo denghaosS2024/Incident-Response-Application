@@ -1,9 +1,9 @@
 import { Box, Card, CardActionArea, Typography, Zoom } from '@mui/material'
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import IIncident, { IncidentType } from '../../models/Incident'
-import { updateIncident } from '../../redux/incidentSlice'
-import { AppDispatch, RootState } from '../../redux/store'
+import IIncident, { IncidentType } from '../../../models/Incident'
+import { updateIncident } from '../../../redux/incidentSlice'
+import { AppDispatch, RootState } from '../../../redux/store'
 
 // Icons for emergency types
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
