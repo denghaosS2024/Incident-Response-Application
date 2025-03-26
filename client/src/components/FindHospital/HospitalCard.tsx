@@ -9,23 +9,26 @@ interface HospitalProps {
 }
 
 const HospitalCard: React.FC<HospitalProps> = ({ hospital, id }) => {
+  const availableBeds =
+    hospital.totalNumberERBeds - hospital.totalNumberOfPatients || 0
   return (
     <Droppable droppableId={id}>
       {(provided, snapshot) => (
         <Box className="border border-gray-300 rounded-lg p-3 mb-2">
-          <Typography></Typography>
+          <Box className="flex flex-row justify-between">
+            <Typography className="font-extrabold" fontWeight="bold">
+              {hospital.hospitalName}
+            </Typography>
+            <Typography className="text-gray-500">
+              {availableBeds} - ({hospital.totalNumberERBeds || 0}) Beds
+            </Typography>
+          </Box>
 
-          <Typography className="font-extrabold" fontWeight="bold">
-            {hospital.hospitalName}
-          </Typography>
-          <Typography variant="body2" className="text-sm">
-            {hospital.hospitalAddress}
-          </Typography>
-          <Typography variant="body2" className="text-sm text-gray-500">
-            Total ER Beds: {hospital.totalNumberERBeds || 0}
-          </Typography>
-
-          <Box ref={provided.innerRef} {...provided.droppableProps}>
+          <Box
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="border-t border-gray-300 pt-3 mt-3"
+          >
             {provided.placeholder}
           </Box>
         </Box>

@@ -109,10 +109,12 @@ const FindHospital: React.FC = () => {
 
       <Box className="flex flex-row justify-between gap-x-4">
         <DragDropContext onDragEnd={handleDragEnd} key={0}>
-          <Box className="w-1/3">
-            <Typography>Patients</Typography>
+          <Box className="w-1/3 border border-gray-300 rounded-lg mb-2">
+            <Typography className="text-center p-3 rounded-t-lg bg-mui-blue text-white">
+              Patients
+            </Typography>
 
-            <Box>
+            <Box className="h-99 overflow-scroll">
               {patients.length > 0 ? (
                 patients.map((patient, id) => (
                   <PatientCard
