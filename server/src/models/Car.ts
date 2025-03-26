@@ -5,14 +5,14 @@ export interface ICar extends Document {
   name: string
   assignedCity?: string | null
   usernames?: string[] | []
-  assignedIncidents?: Schema.Types.ObjectId[] | []
+  assignedIncident: Schema.Types.ObjectId | null
 }
 
 const CarSchema = new Schema<ICar>({
   name: { type: String, required: true, unique: true },
   assignedCity: { type: String, default: null },
   usernames: { type: [String], default: [] },
-  assignedIncidents: { type: [Schema.Types.ObjectId], default: [] },
+  assignedIncident: { type: Schema.Types.ObjectId, default: null },
 })
 
 export default model<ICar>('Car', CarSchema)

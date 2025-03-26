@@ -20,7 +20,7 @@ class TruckController {
   async getAvailableTruckWithResponder() {
     try {
       const truck = await Truck.find({
-        assignedIncidents: { $eq: [] },
+        assignedIncident: null,
         usernames: { $ne: [] },
       })
         .sort({ name: 1 })

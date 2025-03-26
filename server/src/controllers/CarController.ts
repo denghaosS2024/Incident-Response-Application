@@ -19,7 +19,7 @@ class CarController {
   async getAvailableCarsWithResponder() {
     try {
       const cars = await Car.find({
-        assignedIncidents: { $eq: [] },
+        assignedIncident: null,
         usernames: { $ne: [] },
       })
         .sort({ name: 1 })
