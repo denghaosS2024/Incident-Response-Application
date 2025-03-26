@@ -122,29 +122,33 @@ const ResourcesPage: React.FC = () => {
       // Find the matching vehicle to get usernames
 
       const usernames: string[] = vehicle.usernames
-
+      const draggableId = `${vehicle.type}::${vehicle.name}`
       return (
-        <Draggable
-          key={`${vehicle.type}::${vehicle.name}`}
-          draggableId={`${vehicle.type}::${vehicle.name}`}
-          index={index}
-        >
+        <Draggable key={draggableId} draggableId={draggableId} index={index}>
           {(providedDrag) => (
-            <Box
+            <ListItem
               ref={providedDrag.innerRef}
               {...providedDrag.draggableProps}
               {...providedDrag.dragHandleProps}
               sx={{
+                touchAction: 'none',
                 display: 'flex',
-                alignItems: 'center',
-                border: '1px solid',
-                borderColor: 'divider',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
                 borderRadius: '4px',
                 mb: 1,
-                p: 1,
+                border: '1px solid',
+                borderColor: 'divider',
                 bgcolor: 'background.paper',
+                boxShadow: 1,
               }}
             >
+              <ListItemText
+                primary={vehicle.name}
+                primaryTypographyProps={{
+                  variant: 'body2',
+                }}
+              />
               <Box
                 sx={{
                   display: 'flex',
@@ -152,32 +156,46 @@ const ResourcesPage: React.FC = () => {
                   width: '100%',
                 }}
               >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                    {vehicle.name}
-                  </Typography>
-                  <Box>
-                    {getRoleIcon(vehicle.type === 'Car' ? 'Police' : 'Fire')}
-                  </Box>
-                </Box>
-
-                {usernames.length > 0 && (
+                {usernames && usernames.length > 0 ? (
+                  usernames.map((username, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        pl: 1,
+                        py: 0.5,
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar
+                          sx={{
+                            bgcolor: 'white',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            padding: 0,
+                          }}
+                        >
+                          {getRoleIcon('Police')}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <Typography variant="body2" color="text.secondary">
+                        {username}
+                      </Typography>
+                    </Box>
+                  ))
+                ) : (
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ mt: 0.5 }}
+                    sx={{ pl: 1, py: 0.5 }}
                   >
-                    {usernames.join(', ')}
+                    No personnel assigned
                   </Typography>
                 )}
               </Box>
-            </Box>
+            </ListItem>
           )}
         </Draggable>
       )
