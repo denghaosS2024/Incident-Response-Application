@@ -16,10 +16,10 @@ const parseAlertContent = (content: string) => {
 
   // Extract alert type (E, U, or regular HELP)
   let alertType = 'HELP'
-  if (content.startsWith('E HELP')) {
-    alertType = 'E_HELP'
-  } else if (content.startsWith('U HELP')) {
-    alertType = 'U_HELP'
+  if (content.includes('E HELP')) {
+    alertType = 'E HELP'
+  } else if (content.includes('U HELP')) {
+    alertType = 'U HELP'
   }
 
   // Handle both formats for patient name extraction
@@ -68,9 +68,9 @@ const NurseAlertMessage: React.FC<NurseAlertMessageProps> = ({ message }) => {
 
   // Determine background color by alert type
   let bgColor = '#2196F3' // Default blue for HELP
-  if (alertType === 'E_HELP' || content.startsWith('E HELP')) {
+  if (alertType === 'E HELP') {
     bgColor = '#f44336' // Red
-  } else if (alertType === 'U_HELP' || content.startsWith('U HELP')) {
+  } else if (alertType === 'U HELP') {
     bgColor = '#ff9800' // Orange
   }
   
@@ -181,11 +181,7 @@ const NurseAlertMessage: React.FC<NurseAlertMessageProps> = ({ message }) => {
         }}
       >
         <Typography variant="h6" fontWeight="bold">
-          {alertType === 'E_HELP'
-            ? 'E HELP'
-            : alertType === 'U_HELP'
-              ? 'U HELP'
-              : 'HELP'}
+          {alertType}
         </Typography>
         <Typography variant="body1" fontWeight="medium" sx={{ mt: 0.5 }}>
           Patient: {patientName}
@@ -214,18 +210,10 @@ const NurseAlertMessage: React.FC<NurseAlertMessageProps> = ({ message }) => {
             <Typography variant="body2" fontWeight="bold">
               Busy:
             </Typography>
-            {busy.map(({ user, timestamp }) => (
+            {busy.map(({ user }) => (
               <Box key={user._id} sx={{ mt: 0.5 }}>
                 <Typography variant="body2">{user.username}</Typography>
-                {timestamp && (
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: 'block', mt: 0.25 }}
-                  >
-                    {formatTime(timestamp)}
-                  </Typography>
-                )}
+                {/* Timestamp removed as per request */}
               </Box>
             ))}
           </Box>
@@ -237,18 +225,10 @@ const NurseAlertMessage: React.FC<NurseAlertMessageProps> = ({ message }) => {
             <Typography variant="body2" fontWeight="bold">
               Accept:
             </Typography>
-            {accepted.map(({ user, timestamp }) => (
+            {accepted.map(({ user }) => (
               <Box key={user._id} sx={{ mt: 0.5 }}>
                 <Typography variant="body2">{user.username}</Typography>
-                {timestamp && (
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: 'block', mt: 0.25 }}
-                  >
-                    {formatTime(timestamp)}
-                  </Typography>
-                )}
+                {/* Timestamp removed as per request */}
               </Box>
             ))}
           </Box>

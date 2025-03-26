@@ -177,7 +177,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         responders: responderIds, // Include all nurses as responders
         acknowledgedBy: [],
         acknowledgeAt: [],
-        alertType: alertType ? `${alertType}_HELP` : 'HELP',
+        alertType: alertType ? `${alertType} HELP` : 'HELP',
         patientUsername: selectedPatient,
         nursesNeeded: actualNurseCount,
       }
