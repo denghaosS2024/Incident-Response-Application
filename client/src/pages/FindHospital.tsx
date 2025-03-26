@@ -1,11 +1,15 @@
 import HospitalCard from '@/components/FindHospital/HospitalCard'
+import PatientCard from '@/components/FindHospital/PatientCard'
 import IHospital from '@/models/Hospital'
+import IUser from '@/models/User'
+import { loadContacts } from '@/redux/contactSlice'
 import { fetchHospitals } from '@/redux/hospitalSlice'
 import { AppDispatch, RootState } from '@/redux/store'
 import eventEmitter from '@/utils/eventEmitter'
 import { Map as MapIcon } from '@mui/icons-material'
 import { Box, Button, CircularProgress, Typography } from '@mui/material'
 import React, { useEffect } from 'react'
+import { DragDropContext, DropResult } from 'react-beautiful-dnd'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
@@ -19,10 +23,17 @@ const FindHospital: React.FC = () => {
     (state: RootState) => state.hospital.loading,
   )
 
-  const error: string | null = useSelector((state: RootState) => state.hospital.error)
+  const error: string | null = useSelector(
+    (state: RootState) => state.hospital.error,
+  )
+
+  const patients: IUser[] = useSelector(
+    (state: RootState) => state.contactState.contacts,
+  )
 
   useEffect(() => {
     dispatch(fetchHospitals())
+    dispatch(loadContacts())
   }, [dispatch])
 
   const navigate = useNavigate()
@@ -38,6 +49,28 @@ const FindHospital: React.FC = () => {
       eventEmitter.emit('selectUtil', { layer: 'Util', visible: true })
       eventEmitter.emit('selectUtil', { layer: 'Hospitals', visible: true })
     }, 500)
+  }
+
+  const handleDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result
+    if (!destination || source.droppableId === destination.droppableId) return
+
+
+   
+    if (draggableId.startsWith('patient-')) {
+      // // Handle group card drop
+      // const groupId = draggableId.slice(6) // Extract group ID from the draggableId
+      // //handleGroupClick(groupId) // This will handle adding users of the group to the 'done' column
+      // return
+       console.log('drag')
+      
+    }
+
+    //const task = findItemById(String(draggableId), [...todo, ...done]) // Ensure ID is a string
+    //if (!task) return // Prevent errors if the task is not found
+
+    //deletePreviousState(source.droppableId, draggableId)
+    //setNewState(destination.droppableId, task)
   }
 
   if (loading) {
@@ -74,26 +107,44 @@ const FindHospital: React.FC = () => {
         </Typography>
       </Box>
 
-      <Box className="flex flex-row justify-between">
-        <Box className="w-1/3">
-          <Typography>Patients</Typography>
-        </Box>
-        <Box className="w-2/3">
-          {hospitals.length > 0 ? (
+      <Box className="flex flex-row justify-between gap-x-4">
+        <DragDropContext onDragEnd={handleDragEnd} key={0}>
+          <Box className="w-1/3">
+            <Typography>Patients</Typography>
+
             <Box>
-              {hospitals.map((hospital, id) => (
+              {patients.length > 0 ? (
+                patients.map((patient, id) => (
+                  <PatientCard
+                    key={'patient-' + id}
+                    id={'patient-' + id}
+                    patient={patient}
+                    index={id}
+                  />
+                ))
+              ) : (
+                <Typography variant="body1" color="text.secondary">
+                  No patients found.
+                </Typography>
+              )}
+            </Box>
+          </Box>
+          <Box className="w-2/3">
+            {hospitals.length > 0 ? (
+              hospitals.map((hospital, id) => (
                 <HospitalCard
                   key={'hospital-' + id}
+                  id={'hospital-' + id}
                   hospital={hospital}
-                ></HospitalCard>
-              ))}
-            </Box>
-          ) : (
-            <Typography variant="body1" color="text.secondary">
-              No hospitals found. Please register hospitals first.
-            </Typography>
-          )}
-        </Box>
+                />
+              ))
+            ) : (
+              <Typography variant="body1" color="text.secondary">
+                No hospitals found. Please register hospitals first.
+              </Typography>
+            )}
+          </Box>
+        </DragDropContext>
       </Box>
 
       <Box display="flex" justifyContent="center" marginY={3}>
