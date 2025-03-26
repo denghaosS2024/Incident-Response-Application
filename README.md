@@ -179,6 +179,7 @@ docker compose logs -f server
    ```
 
    **\*Note**: Node Version Manager should be installed as mentioned in Prerequisites section of readme\*
+   
 
 2. **Install dependencies**:
 

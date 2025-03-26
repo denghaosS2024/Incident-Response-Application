@@ -1,26 +1,25 @@
-import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
-import BlockIcon from '@mui/icons-material/Block'
-import CloudIcon from '@mui/icons-material/Cloud'
-import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt'
-import LocationOnIcon from '@mui/icons-material/LocationOn'
-import PushPinIcon from '@mui/icons-material/PushPin'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
-import { Alert, Box, Snackbar, Typography } from '@mui/material'
+import { Snackbar } from '@mui/material'
 import { Geometry } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { useDispatch, useSelector } from 'react-redux'
+import IHospital from '../../models/Hospital'
 import IIncident from '../../models/Incident'
 import { updateIncident } from '../../redux/incidentSlice'
-import { AppDispatch } from '../../redux/store'
+import { AppDispatch, RootState } from '../../redux/store'
 import eventEmitter from '../../utils/eventEmitter'
+import Globals from '../../utils/Globals'
 import request from '../../utils/request'
 import SocketClient from '../../utils/Socket'
-import { RootState, WildfireArea } from '../../utils/types'
+import { WildfireArea } from '../../utils/types'
+import AQIData from './AQIData'
+import LocationError from './LocationError'
+import MapBoxHelper from './MapBoxHelper'
 import MapDrop from './MapDrop'
 import MapLoading from './MapLoading'
 
@@ -31,16 +30,6 @@ interface MapboxProps {
 }
 
 // Define interface for AQI data
-interface AQIData {
-  value: number | null
-  level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous'
-  color: string
-  timeStamp?: number
-  measurementQuality?: string
-}
-
-const url_prefix = process.env.REACT_APP_BACKEND_URL
-
 const Mapbox: React.FC<MapboxProps> = ({
   showMarker = true,
   disableGeolocation = false,
@@ -56,11 +45,14 @@ const Mapbox: React.FC<MapboxProps> = ({
   const roadblockRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const fireHydrantRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const airQualityRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const hospitalRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
 
   // Visibility states for the map layers
   const [pinsVisible, setPinsVisible] = useState(true)
   const [roadblocksVisible, setRoadblocksVisible] = useState(true)
   const [fireHydrantsVisible, setFireHydrantsVisible] = useState(true)
+  const [airQualityVisible, setAirQualityVisible] = useState(true)
+  const [hospitalsVisible, setHospitalsVisible] = useState(true)
   const [userLocationVisible, setUserLocationVisible] = useState(true)
   const [isCreatingArea, setIsCreatingArea] = useState(false)
   const [isUnauthorized, setIsUnauthorized] = useState(false)
@@ -121,8 +113,9 @@ const Mapbox: React.FC<MapboxProps> = ({
     const hasPins = pinRef.current.size > 0
     const hasRoadblocks = roadblockRef.current.size > 0
     const hasHydrants = fireHydrantRef.current.size > 0
+    const hasHospitals = hospitalRef.current.size > 0
 
-    if (hasPins || hasRoadblocks || hasHydrants) {
+    if (hasPins || hasRoadblocks || hasHydrants || hasHospitals) {
       // Emit event to mark the main Util button as active
       eventEmitter.emit('selectUtil', { layer: 'Util', visible: true })
 
@@ -135,6 +128,9 @@ const Mapbox: React.FC<MapboxProps> = ({
       }
       if (hasHydrants) {
         eventEmitter.emit('selectUtil', { layer: 'Hydrants', visible: true })
+      }
+      if (hasHospitals) {
+        eventEmitter.emit('selectUtil', { layer: 'Hospitals', visible: true })
       }
     }
   }
@@ -260,71 +256,10 @@ const Mapbox: React.FC<MapboxProps> = ({
     markerElement.style.alignItems = 'center'
     markerElement.style.justifyContent = 'center'
 
-    // Choose the correct Material UI icon
-    let iconComponent
-    // Pre-define variables used in the switch cases
-    let markerColor = ''
-
-    switch (type) {
-      case 'pin':
-        iconComponent = (
-          <PushPinIcon
-            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
-          />
-        )
-        break
-      case 'roadblock':
-        iconComponent = (
-          <BlockIcon
-            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
-          />
-        )
-        break
-      case 'fireHydrant':
-        iconComponent = (
-          <FireHydrantAltIcon
-            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
-          />
-        )
-        break
-      case 'airQuality':
-        // Use the AQI data to determine the marker color, default to black for no data
-        markerColor = aqiData ? aqiData.color : '#000000'
-
-        iconComponent = (
-          <div style={{ position: 'relative' }}>
-            <CloudIcon
-              style={{ color: markerColor, fontSize: '32px', opacity: '80%' }}
-            />
-            {aqiData && aqiData.value !== null && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  color: '#ffffff',
-                  textShadow: '0px 0px 2px rgba(0,0,0,0.8)',
-                }}
-              >
-                {aqiData.value}
-              </div>
-            )}
-          </div>
-        )
-        break
-      default:
-        iconComponent = (
-          <PushPinIcon
-            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
-          />
-        )
-    }
-
     // Convert the React component into a string and insert into the marker
-    markerElement.innerHTML = ReactDOMServer.renderToString(iconComponent)
+    markerElement.innerHTML = ReactDOMServer.renderToString(
+      MapBoxHelper.getMarkerIcon(type, aqiData),
+    )
 
     return markerElement
   }
@@ -343,7 +278,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         // If it's an air quality marker, fetch AQI data
         let aqiData: AQIData | undefined
         if (type === 'airQuality') {
-          aqiData = await fetchAQIData(longitude, latitude)
+          aqiData = await MapBoxHelper.fetchAQIData(longitude, latitude)
         }
 
         // Create popup content with buttons
@@ -447,7 +382,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           navigateButton.addEventListener('click', () => {
             if (mapRef.current) {
               setIsNaviLoaded(true)
-              navigateToMarker(
+              MapBoxHelper.navigateToMarker(
                 mapRef.current,
                 item.longitude,
                 item.latitude,
@@ -478,161 +413,14 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
   }
 
-  const accessToken =
-    'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
-
-  const navigateToMarker = async (
-    map: mapboxgl.Map | null,
-    lng: number,
-    lat: number,
-    stopLoading: () => void, // ✅ Pass function instead of state setter
-  ) => {
-    if (!map) {
-      console.error('Map instance is not available.')
-      stopLoading() // ✅ Ensure loading is stopped if there's an error
-      return
-    }
-
-    console.log('Loading started')
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const userLng = position.coords.longitude
-        const userLat = position.coords.latitude
-
-        const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${lng},${lat}?alternatives=true&geometries=geojson&language=en&overview=full&steps=true&access_token=${accessToken}`
-        try {
-          const query = await fetch(
-            routeUrl,
-
-            { method: 'GET' },
-          )
-
-          const json = await query.json()
-          const data = json.routes[0]
-          const route = data.geometry
-
-          if (map.getSource('route')) {
-            map.removeLayer('route')
-            map.removeSource('route')
-          }
-
-          map.addSource('route', {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {},
-              geometry: route,
-            },
-          })
-
-          map.addLayer({
-            id: 'route',
-            type: 'line',
-            source: 'route',
-            layout: {
-              'line-join': 'round',
-              'line-cap': 'round',
-            },
-            paint: {
-              'line-color': '#007aff',
-              'line-width': 4,
-            },
-          })
-
-          const bounds = new mapboxgl.LngLatBounds()
-          route.coordinates.forEach((coord: [number, number]) =>
-            bounds.extend(coord),
-          )
-
-          map.fitBounds(bounds, { padding: 50 })
-        } catch (error) {
-          console.error('Error fetching directions:', error)
-        } finally {
-          console.log('Loading stopped')
-          stopLoading() // ✅ Ensure loading stops after fetching
-        }
-      },
-      (error) => {
-        console.error('Error getting user location:', error)
-        stopLoading()
-      },
-    )
-  }
-
   // Function to fetch AQI data
-  const fetchAQIData = async (lng: number, lat: number): Promise<AQIData> => {
-    try {
-      // Get AQI data from the backend
-      const response = await fetch(
-        `${url_prefix}/api/airQuality?latitude=${lat}&longitude=${lng}`,
-      )
-      const data = await response.json()
-      const { air_quality } = data
-
-      const response1 = await fetch(
-        `${url_prefix}/api/airQuality/MeasurementQuality?latitude=${lat}&longitude=${lng}`,
-      )
-      const data1 = await response1.json()
-      const { measurement_quality } = data1
-
-      // Determine AQI level and color based on value
-      const aqiLevel = aqiToLevel(air_quality)
-      const aqiColor = aqiLevelToColor(aqiLevel)
-      return {
-        value: air_quality,
-        level: aqiLevel,
-        color: aqiColor,
-        measurementQuality: measurement_quality,
-        timeStamp: data.timeStamp,
-      }
-    } catch (error) {
-      console.error('Error fetching AQI data:', error)
-      return { value: null, level: 'Unknown', color: '#000000' } // Black for no data
-    }
-  }
-
-  // Funtion to Convert US EPA AQI to AQI level
-  // Unknown when no data is available; Good (<50); Moderate (50-100); Poor (101-300); Hazardous (>300)
-  const aqiToLevel = (
-    aqi: number | string,
-  ): 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous' => {
-    if (typeof aqi === 'number') {
-      if (aqi < 50) return 'Good'
-      if (aqi <= 100) return 'Moderate'
-      if (aqi <= 300) return 'Poor'
-      return 'Hazardous'
-    } else {
-      return 'Unknown'
-    }
-  }
-
-  // Function to convert AQI level to color
-  // Black for Unknown air quality; Green for Good (<50); Orange for Moderate (50-100); Red for Poor (101-300); Dark Purple for Hazardous (>300)
-  const aqiLevelToColor = (
-    level: 'Unknown' | 'Good' | 'Moderate' | 'Poor' | 'Hazardous',
-  ): string => {
-    switch (level) {
-      case 'Good':
-        return '#00e400' // Green
-      case 'Moderate':
-        return '#ff7e00' // Orange
-      case 'Poor':
-        return '#ff0000' // Red
-      case 'Hazardous':
-        return '#8f3f97' // Dark purple
-      default:
-        return '#000000' // Black
-    }
-  }
 
   // -------------------------------- helper function end --------------------------------
 
   // -------------------------------- map init start --------------------------------
 
   useEffect(() => {
-    mapboxgl.accessToken =
-      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
+    mapboxgl.accessToken = Globals.getMapboxToken()
 
     // For main map page (/map), always prioritize geolocation
     if (isMapPage) {
@@ -881,20 +669,13 @@ const Mapbox: React.FC<MapboxProps> = ({
           case 'airQuality':
             // For air quality markers, now we fetch the AQI data
             finalLngLat = marker.getLngLat()
-            finalAqiData = await fetchAQIData(finalLngLat.lng, finalLngLat.lat)
+            finalAqiData = await MapBoxHelper.fetchAQIData(
+              finalLngLat.lng,
+              finalLngLat.lat,
+            )
             // Store the AQI data of the marker to the backend
             // const { locationId, latitude, longitude, air_quality, timeStamp } = req.body;
-            await fetch(`${url_prefix}/api/airQuality`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                locationId: id,
-                latitude: finalLngLat.lat,
-                longitude: finalLngLat.lng,
-                air_quality: finalAqiData.value,
-                timeStamp: finalAqiData?.timeStamp ?? Date.now(),
-              }),
-            })
+            await MapBoxHelper.storeAQIData(id, finalLngLat, finalAqiData)
 
             // Create specialized popup content for confirmed air quality marker
             popupContent.innerHTML = `
@@ -958,7 +739,7 @@ const Mapbox: React.FC<MapboxProps> = ({
                 navigateButton.addEventListener('click', () => {
                   if (mapRef.current) {
                     setIsNaviLoaded(true)
-                    navigateToMarker(
+                    MapBoxHelper.navigateToMarker(
                       mapRef.current,
                       marker.getLngLat().lng,
                       marker.getLngLat().lat,
@@ -1028,7 +809,7 @@ const Mapbox: React.FC<MapboxProps> = ({
               navigateButton.addEventListener('click', () => {
                 if (mapRef.current) {
                   setIsNaviLoaded(true)
-                  navigateToMarker(
+                  MapBoxHelper.navigateToMarker(
                     mapRef.current,
                     marker.getLngLat().lng,
                     marker.getLngLat().lat,
@@ -1063,11 +844,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       case 'airQuality':
         marker = airQualityRef.current.get(id)
         airQualityRef.current.delete(id)
-        await fetch(`${url_prefix}/api/airQuality/`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ locationId: id }),
-        })
+        await MapBoxHelper.deleteAQIData(id)
         break
       default:
         marker = pinRef.current.get(id)
@@ -1176,6 +953,34 @@ const Mapbox: React.FC<MapboxProps> = ({
       })
     }
 
+    // Toggle air quality visibility at the component level
+    const toggleAirQuality = () => {
+      if (!mapRef.current) return
+      setAirQualityVisible((prev) => {
+        const newState = !prev
+
+        airQualityRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          // Handle popup visibility
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Pollution',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
     const toggleRoadblocks = () => {
       if (!mapRef.current) return
       setRoadblocksVisible((prev) => {
@@ -1251,16 +1056,52 @@ const Mapbox: React.FC<MapboxProps> = ({
       })
     }
 
+    // Toggle hospitals visibility at the component level
+    const toggleHospitals = () => {
+      if (!mapRef.current) return
+      setHospitalsVisible((prev) => {
+        const newState = !prev
+
+        hospitalRef.current.forEach((marker) => {
+          const markerElement = marker.getElement()
+          markerElement.style.visibility = newState ? 'visible' : 'hidden'
+
+          // Handle popup visibility
+          const popup = marker.getPopup()
+          if (!newState && popup) {
+            if (popup.isOpen()) {
+              marker.togglePopup()
+            }
+          }
+        })
+
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Hospitals',
+          visible: newState,
+        })
+
+        return newState
+      })
+    }
+
     eventEmitter.on('you_button_clicked', toggleUserLocation)
     eventEmitter.on('toggle_pin', togglePins)
     eventEmitter.on('toggle_roadblock', toggleRoadblocks)
     eventEmitter.on('toggle_fireHydrant', toggleFireHydrants)
+    eventEmitter.on('toggle_airQuality', toggleAirQuality)
+    eventEmitter.on('toggle_hospital', toggleHospitals)
+    // Remove the area_util listener that's causing errors
+    // eventEmitter.on('area_util', toggleAreaUtil)
 
     return () => {
       eventEmitter.removeListener('you_button_clicked', toggleUserLocation)
       eventEmitter.removeListener('toggle_pin', togglePins)
       eventEmitter.removeListener('toggle_roadblock', toggleRoadblocks)
       eventEmitter.removeListener('toggle_fireHydrant', toggleFireHydrants)
+      eventEmitter.removeListener('toggle_airQuality', toggleAirQuality)
+      eventEmitter.off('toggle_hospital', toggleHospitals)
+      // Remove the area_util listener that's causing errors
+      // eventEmitter.off('area_util', toggleAreaUtil)
     }
   }, [])
 
@@ -1392,93 +1233,10 @@ const Mapbox: React.FC<MapboxProps> = ({
 
   // -------------------------------- wildfire features start --------------------------------
 
-  const draw = new MapboxDraw({
-    displayControlsDefault: false,
-    controls: {
-      polygon: true,
-      trash: true,
-    },
-    defaultMode: 'simple_select',
-    styles: [
-      // line stroke
-      {
-        id: 'gl-draw-line',
-        type: 'line',
-        filter: ['all', ['==', '$type', 'LineString']],
-        layout: {
-          'line-cap': 'round',
-          'line-join': 'round',
-        },
-        paint: {
-          'line-color': '#D20C0C',
-          'line-dasharray': [0.2, 2],
-          'line-width': 2,
-        },
-      },
-      // polygon fill
-      {
-        id: 'gl-draw-polygon-fill',
-        type: 'fill',
-        filter: ['all', ['==', '$type', 'Polygon']],
-        paint: {
-          'fill-color': 'transparent',
-          'fill-outline-color': '#D20C0C',
-          'fill-opacity': 0,
-        },
-      },
-      // polygon mid points
-      {
-        id: 'gl-draw-polygon-midpoint',
-        type: 'circle',
-        filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'midpoint']],
-        paint: {
-          'circle-radius': 3,
-          'circle-color': '#fbb03b',
-        },
-      },
-      // polygon outline stroke
-      // This doesn't style the first edge of the polygon, which uses the line stroke styling instead
-      {
-        id: 'gl-draw-polygon-stroke-active',
-        type: 'line',
-        filter: ['all', ['==', '$type', 'Polygon']],
-        layout: {
-          'line-cap': 'round',
-          'line-join': 'round',
-        },
-        paint: {
-          'line-color': '#D20C0C',
-          'line-dasharray': [0.2, 2],
-          'line-width': 2,
-        },
-      },
-      // vertex point halos
-      {
-        id: 'gl-draw-polygon-and-line-vertex-halo-active',
-        type: 'circle',
-        filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],
-        paint: {
-          'circle-radius': 5,
-          'circle-color': '#FFF',
-        },
-      },
-      // vertex points
-      {
-        id: 'gl-draw-polygon-and-line-vertex-active',
-        type: 'circle',
-        filter: ['all', ['==', 'meta', 'vertex'], ['==', '$type', 'Point']],
-        paint: {
-          'circle-radius': 3,
-          'circle-color': '#D20C0C',
-        },
-      },
-    ],
-  })
-
   const createArea = (
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
-    const data = draw.getAll()
+    const data = MapBoxHelper.getMapboxDraw().getAll()
     if (data.features.length > 0 && mapRef.current) {
       const areaId: string = e.features[0]?.id?.toString() || ''
       if (areaId == '') return
@@ -1525,7 +1283,11 @@ const Mapbox: React.FC<MapboxProps> = ({
         .catch((error) => {
           console.error('Error posting WildfireArea:', error)
         })
-      createPopup({ areaId, coordinates: coordinates[0], name: areaName })
+      createWildfirePopup({
+        areaId,
+        coordinates: coordinates[0],
+        name: areaName,
+      })
     }
   }
 
@@ -1537,10 +1299,10 @@ const Mapbox: React.FC<MapboxProps> = ({
     if (popupRef.current.has(areaId)) {
       deletePopup(wildfireArea.areaId)
     }
-    createPopup(wildfireArea)
+    createWildfirePopup(wildfireArea)
   }
 
-  const createPopup = (wildfireArea: WildfireArea) => {
+  const createWildfirePopup = (wildfireArea: WildfireArea) => {
     const areaId = wildfireArea.areaId
     const coordinates = wildfireArea.coordinates
     const areaName = wildfireArea.name
@@ -1609,13 +1371,8 @@ const Mapbox: React.FC<MapboxProps> = ({
       if (nameDisplay) {
         if (newName != previousName) {
           nameDisplay.innerText = newName || previousName
-          request('/api/wildfire/areas', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ...wildfireArea, name: newName }),
-          })
+
+          MapBoxHelper.updateWildfireArea(wildfireArea, newName)
             .then((data) => {
               console.log('Successfully updated WildfireArea name:', data)
             })
@@ -1646,6 +1403,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   const deleteArea = (
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
+    const draw = MapBoxHelper.getMapboxDraw()
     const data = draw.getAll()
     // delete the popup as well
 
@@ -1658,10 +1416,8 @@ const Mapbox: React.FC<MapboxProps> = ({
     const areaId: string = e.features[0]?.id?.toString() || ''
     if (areaId == '') return
 
-    request(`/api/wildfire/areas?areaId=${areaId}`, {
-      method: 'DELETE',
-    })
-      .then((response) => {
+    MapBoxHelper.deleteWildfireArea(areaId)
+      .then(() => {
         console.log('Successfully deleted WildfireArea:', areaId)
         deletePopup(areaId)
       })
@@ -1679,6 +1435,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   const displayHint = (
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
+    const draw = MapBoxHelper.getMapboxDraw()
+
     // const data = draw.getAll();
     const mode = draw.getMode()
     console.log(mode)
@@ -1702,14 +1460,14 @@ const Mapbox: React.FC<MapboxProps> = ({
     // const data = draw.getAll();
     if (role !== 'Fire') {
       setIsUnauthorized(true)
-      draw.changeMode('simple_select')
+      MapBoxHelper.getMapboxDraw().changeMode('simple_select')
     }
   }
 
   const addDrawControls = () => {
     if (!mapRef.current) return
 
-    mapRef.current.addControl(draw)
+    mapRef.current.addControl(MapBoxHelper.getMapboxDraw())
 
     mapRef.current.on('draw.create', createArea)
     mapRef.current.on('draw.delete', deleteArea)
@@ -1732,7 +1490,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   const removeDrawControls = () => {
     if (!mapRef.current) return
 
-    mapRef.current.removeControl(draw)
+    mapRef.current.removeControl(MapBoxHelper.getMapboxDraw())
 
     mapRef.current.off('draw.create', createArea)
     mapRef.current.off('draw.delete', deleteArea)
@@ -1765,6 +1523,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   }
 
   const drawArea = (wildfireArea: WildfireArea) => {
+    const draw = MapBoxHelper.getMapboxDraw()
+
     const existingPolygon = draw.get(wildfireArea.areaId)
     if (!existingPolygon) {
       const newPolygon = draw.add({
@@ -1785,6 +1545,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   }
 
   const removeArea = () => {
+    const draw = MapBoxHelper.getMapboxDraw()
+
     const data = draw.getAll()
     if (data.features.length > 0) {
       data.features.forEach((feature) => {
@@ -1797,6 +1559,8 @@ const Mapbox: React.FC<MapboxProps> = ({
   }
 
   const removeAreaById = (areaId: string) => {
+    const draw = MapBoxHelper.getMapboxDraw()
+
     draw.delete(areaId)
     deletePopup(areaId)
   }
@@ -1823,18 +1587,17 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
 
     // Create new AQI data object
-    const aqiLevel = aqiToLevel(newAqi)
-    const aqiColor = aqiLevelToColor(aqiLevel)
-    const response = await fetch(
-      `${url_prefix}/api/airQuality/MeasurementQuality?latitude=${latitude}&longitude=${longitude}`,
-    )
-    const data = await response.json()
+    const aqiLevel = MapBoxHelper.aqiToLevel(newAqi)
+    const aqiColor = MapBoxHelper.aqiLevelToColor(aqiLevel)
     const aqiData = {
       value: newAqi,
       level: aqiLevel,
       color: aqiColor,
       timeStamp: timestamp,
-      measurementQuality: data.measurement_quality,
+      measurementQuality: await MapBoxHelper.getMeasurementQuality(
+        longitude,
+        latitude,
+      ),
     } as AQIData
 
     // Update marker appearance
@@ -1857,31 +1620,15 @@ const Mapbox: React.FC<MapboxProps> = ({
       )
       const addressText = addressElement?.textContent || ''
 
-      popupContent.innerHTML = `
-        <div style="min-width: 200px;">
-          <div style="background-color: #f0f0f0; padding: 8px; margin-bottom: 8px;">
-            <p style="margin: 0;">US EPA PM2.5 AQI is now ${newAqi}</p>
-            <p style="margin: 0; font-size: 0.8em;">Updated: ${new Date(timestamp * 1000).toLocaleString()}</p>
-          </div>
-          <div style="background-color: ${aqiColor}; color: white; padding: 8px; margin-bottom: 8px;">
-            <p style="margin: 0 0 5px 0;">Air quality is ${aqiLevel}</p>
-            <p style="margin: 0 0 5px 0;">Measurement quality is ${aqiData?.measurementQuality ?? 'no data'}</p>
-            <p style="margin: 0 0 5px 0;">Evolution over the last 24 hours:</p>
-            <div id="trending-icon-${locationId}" style="cursor: pointer;">
-              ${ReactDOMServer.renderToString(<TrendingUpIcon style={{ color: 'white' }} />)}
-            </div>
-          </div>
-          ${addressText ? `<p id="popup-address-${locationId}">${addressText}</p>` : ''}
-          <div style="display: flex; justify-content: space-between;">
-            <button id="edit-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: blue; color: white;">Edit</button>
-            <button id="delete-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: red; color: white;">Delete</button>
-            <button id="navigate-pin-${locationId}" style="padding:5px 10px; margin-top:5px; cursor:pointer; background-color: green; color: white;">Navigate</button>
-          </div>
-        </div>
-      `
+      const aqiPopup = MapBoxHelper.spawnAqiPopup(
+        aqiData,
+        locationId,
+        addressText,
+        timestamp,
+      )
 
       // Replace popup content
-      popup.setDOMContent(popupContent)
+      popup.setDOMContent(aqiPopup)
 
       // Reattach event listeners
       const editButton = document.getElementById(`edit-pin-${locationId}`)
@@ -1906,7 +1653,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         navigateButton.addEventListener('click', () => {
           if (mapRef.current) {
             setIsNaviLoaded(true)
-            navigateToMarker(
+            MapBoxHelper.navigateToMarker(
               mapRef.current,
               marker.getLngLat().lng,
               marker.getLngLat().lat,
@@ -1962,39 +1709,106 @@ const Mapbox: React.FC<MapboxProps> = ({
 
   // -------------------------------- wildfire features end --------------------------------
 
+  // Fetch all hospitals and display them on the map
+  const fetchAndDisplayHospitals = async () => {
+    try {
+      if (!mapRef.current) return
+
+      // Clear any existing hospital markers
+      hospitalRef.current.forEach((marker) => marker.remove())
+      hospitalRef.current.clear()
+
+      // Fetch hospitals from API
+      const response = await request('/api/hospital')
+      const hospitals = response as IHospital[]
+
+      for (const hospital of hospitals) {
+        // Skip if missing address
+        if (!hospital.hospitalAddress) continue
+
+        // Geocode hospital address to get coordinates
+        try {
+          const geocodeResponse = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(hospital.hospitalAddress)}.json?access_token=${mapboxgl.accessToken}`,
+          )
+          const geocodeData = await geocodeResponse.json()
+
+          if (geocodeData.features && geocodeData.features.length > 0) {
+            const [lng, lat] = geocodeData.features[0].center
+
+            // Create popup content
+            const popupContent = document.createElement('div')
+            popupContent.innerHTML = `
+              <h3 style="margin: 0 0 5px 0; font-size: 14px;">${hospital.hospitalName}</h3>
+              <p style="margin: 0 0 5px 0; font-size: 12px;">${hospital.hospitalAddress}</p>
+              <p style="margin: 0; font-size: 12px;">ER Beds: ${hospital.totalNumberERBeds || 0}</p>
+              <p style="margin: 0; font-size: 12px;">Available: ${(hospital.totalNumberERBeds || 0) - (hospital.totalNumberOfPatients || 0)}</p>
+            `
+
+            // Create popup
+            const popup = new mapboxgl.Popup({
+              offset: 25,
+              closeButton: true,
+              closeOnClick: true,
+            }).setDOMContent(popupContent)
+
+            // Create custom hospital marker element
+            const markerElement = document.createElement('div')
+            markerElement.className = 'hospital-marker'
+            markerElement.style.width = '35px'
+            markerElement.style.height = '35px'
+            markerElement.style.backgroundImage =
+              'url(https://cdn-icons-png.flaticon.com/512/33/33777.png)'
+            markerElement.style.backgroundSize = 'cover'
+            markerElement.style.borderRadius = '50%'
+            markerElement.style.cursor = 'pointer'
+
+            // Create and add the marker
+            const marker = new mapboxgl.Marker(markerElement)
+              .setLngLat([lng, lat])
+              .setPopup(popup)
+              .addTo(mapRef.current)
+
+            // Store marker reference
+            hospitalRef.current.set(hospital.hospitalId, marker)
+
+            // Set visibility based on current state
+            if (!hospitalsVisible) {
+              const markerElement = marker.getElement()
+              markerElement.style.visibility = 'hidden'
+            }
+          }
+        } catch (error) {
+          console.error(
+            `Error geocoding hospital address: ${hospital.hospitalAddress}`,
+            error,
+          )
+        }
+      }
+
+      // Mark hospitals layer as active if any hospitals are displayed
+      if (hospitalRef.current.size > 0) {
+        eventEmitter.emit('selectUtil', { layer: 'Hospitals', visible: true })
+        eventEmitter.emit('utilVisibility', {
+          layer: 'Hospitals',
+          visible: true,
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error)
+    }
+  }
+
+  // Load hospitals when map initializes
+  useEffect(() => {
+    if (mapRef.current && isMapLoaded) {
+      fetchAndDisplayHospitals()
+    }
+  }, [isMapLoaded])
+
   // If there is a map error, display a fallback UI
   if (mapError) {
-    return (
-      <Box
-        sx={{
-          width: '100%',
-          height: '100%',
-          minHeight: '400px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          border: '1px solid #e0e0e0',
-          borderRadius: '8px',
-          padding: 2,
-          backgroundColor: '#f5f5f5',
-          maxWidth: '100%',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-        }}
-      >
-        <Alert
-          severity="warning"
-          sx={{ mb: 2, width: '100%', boxSizing: 'border-box' }}
-        >
-          {mapError}
-        </Alert>
-        <LocationOnIcon color="error" sx={{ fontSize: 60, mb: 2 }} />
-        <Typography variant="body1" align="center">
-          Please enter your address in the field above.
-        </Typography>
-      </Box>
-    )
+    return <LocationError errorText={mapError} />
   }
 
   return (
@@ -2078,10 +1892,3 @@ const Mapbox: React.FC<MapboxProps> = ({
 }
 
 export default Mapbox
-export const getMapboxToken = () => {
-  if (!mapboxgl.accessToken) {
-    mapboxgl.accessToken =
-      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
-  }
-  return mapboxgl.accessToken
-}

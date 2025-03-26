@@ -1,5 +1,5 @@
-import { Meta, StoryObj } from '@storybook/react'
 import { Button, ButtonProps } from '@mui/material'
+import { Meta, StoryObj } from '@storybook/react'
 
 const meta = {
   title: 'Material UI/Button',

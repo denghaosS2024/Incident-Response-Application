@@ -1,11 +1,10 @@
-import IChannel from '@/models/Channel'
-import IUser from '@/models/User'
-import { AppDispatch } from '@/redux/store'
-import { RootState } from '@/utils/types'
 import { useEffect, useState } from 'react'
 import { DragDropContext, DropResult } from 'react-beautiful-dnd'
 import { useDispatch, useSelector } from 'react-redux'
-import { loadContacts } from '../redux/contactSlice'
+import IChannel from '../models/Channel'
+import IUser from '../models/User'
+import { loadFilteredContacts } from '../redux/contactSlice'
+import { AppDispatch, RootState } from '../redux/store'
 import request from '../utils/request'
 import SocketClient from '../utils/Socket'
 import Column from './Column'
@@ -28,9 +27,10 @@ export default function Board({
   const [groups, setGroups] = useState<any[]>([]) // Store the groups
   const [colSubtitle, setColSubtitle] = useState<string>('')
   const owner = localStorage.getItem('uid') || ''
+  const currentUserRole = localStorage.getItem('role') || ''
+
   useEffect(() => {
-    // dispatch(loadMockContacts());
-    dispatch(loadContacts())
+    dispatch(loadFilteredContacts(currentUserRole))
   }, [dispatch]) // Only dispatch when the component mounts
 
   useEffect(() => {

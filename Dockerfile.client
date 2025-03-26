@@ -14,4 +14,5 @@ ENV WDS_SOCKET_PORT=0
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Simply use the dev script since we've set host in vite.config.mjs
+CMD ["npm", "run", "dev"]

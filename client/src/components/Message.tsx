@@ -6,6 +6,7 @@ import Linkify from 'react-linkify'
 import IMessage from '../models/Message'
 import styles from '../styles/Message.module.css'
 import getRoleIcon from './common/RoleIcon'
+import NurseAlertMessage from './NurseAlertMessage'
 
 export interface IMessageProps {
   /**
@@ -35,7 +36,19 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
 
   const isAlert = message.isAlert
   const senderId = message.sender._id
-  const [text, bgColor, textColor] = message.content.split('-')
+
+  // Check if this is a nurse alert by looking at the content format
+  const isNurseAlert =
+    isAlert &&
+    (message.content.includes('HELP') &&
+      (message.content.includes('Patient:') ||
+       message.content.startsWith('E HELP') ||
+       message.content.startsWith('U HELP')))
+
+  // For regular alerts
+  const [text, bgColor, textColor] = !isNurseAlert
+    ? message.content.split('-')
+    : ['', '', '']
 
   // If the message has responders, acknowledgedBy, and acknowledgedAt:
   const responders = message.responders || []
@@ -52,6 +65,11 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
     acknowledgedBy.length === 0
       ? message.timestamp
       : acknowledgedAt[acknowledgedAt.length - 1]
+
+  // For nurse alerts, render using the specialized component
+  if (isNurseAlert) {
+    return <NurseAlertMessage message={message} />
+  }
 
   return (
     <Box className={styles.root}>
@@ -165,13 +183,15 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
                 <Box mt={1}>
                   <Typography variant="caption" display="block">
                     Acknowledged at{' '}
-                    {moment(latestAckTime).format('MM/DD/YY HH:mm')}
+                    {latestAckTime && moment(latestAckTime).isValid()
+                      ? moment(latestAckTime).format('MM/DD/YY HH:mm')
+                      : 'Invalid date'}
                   </Typography>
                   {/* {acknowledgedBy.map((ackUser: any, index: number) => {
                     const ackTime = acknowledgedAt[index]
                     return (
                       <Typography key={ackUser} variant="caption" display="block">
-                        acknowledged at {moment(ackTime).format('MM/DD/YY HH:mm')}
+                        acknowledged at {ackTime && moment(ackTime).isValid() ? moment(ackTime).format('MM/DD/YY HH:mm') : 'Invalid date'}
                       </Typography>
                     )
                   })} */}
@@ -179,7 +199,10 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
               )}
               {acknowledgedBy.length === 0 && (
                 <Typography variant="caption" display="block">
-                  Acknowledged at {message.timestamp}
+                  Acknowledged at{' '}
+                  {message.timestamp && moment(message.timestamp).isValid()
+                    ? moment(message.timestamp).format('MM/DD/YY HH:mm')
+                    : 'Invalid date'}
                 </Typography>
               )}
             </>

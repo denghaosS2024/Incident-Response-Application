@@ -65,12 +65,12 @@
         "other"
     ],
     "skipScope": false,
-    "ticketIdQuestion": "Enter the JIRA ticket ID (format: SEM-XXXX) or type \"--\" if not applicable:\n",
+    "ticketIdQuestion": "Enter the JIRA ticket ID(s) (format: SEM-XXXX) or type \"--\" if not applicable:\n",
     "skipTicketId": false,
     "subjectQuestion": "Write a short, imperative mood description of the change:\n",
     "subjectMaxLength": 70,
     "subjectMinLength": 3,
     "bodyQuestion": "Provide a longer description of the change (Skippable):\n",
     "skipBody": true,
-    "ticketIdRegex": "((?<!([A-Z]{1,10})-?)SEM-\\d{4}(?!\\d)|^--$)"
+    "ticketIdRegex": "((?<!([A-Z]{1,10})-?)SEM-\\d{4}(\\s{1}SEM-\\d{4})*(?!\\d)|^--$)"
 }

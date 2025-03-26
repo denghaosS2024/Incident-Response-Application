@@ -1,11 +1,11 @@
 import { Box, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
+import AlertSnackbar from '../components/common/AlertSnackbar'
 import RegisterForm, {
   IProps as IRegisterFormProps,
 } from '../components/RegisterForm'
 import request, { IRequestError } from '../utils/request'
-import AlertSnackbar from '../components/common/AlertSnackbar'
 
 // RegisterPage component: Handles user registration
 const RegisterPage: React.FC = () => {

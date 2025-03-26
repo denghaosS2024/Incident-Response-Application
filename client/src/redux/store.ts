@@ -1,7 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
 import contactReducer from './contactSlice'
+import hospitalReducer from './hospitalSlice'
 import incidentReducer from './incidentSlice'
 import messageReducer from './messageSlice'
+import notifyReducer from './notifySlice'
 import profileReducer from './profileSlice'
 import snackbarReducer from './snackbarSlice'
 import storageReducer from './storageSlice'
@@ -37,6 +39,8 @@ export const store = configureStore({
     profileState: profileReducer, // Reducer for managing profile state
     snackbarState: snackbarReducer, // Reducer for managing snackbar state
     storage: storageReducer, // Reducer for managing storage state
+    hospital: hospitalReducer, // Reducer for managing hospital state
+    notifyState: notifyReducer, // Reducer for managing notification state
   },
 })
 

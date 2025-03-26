@@ -1,4 +1,5 @@
-import { Add, NavigateNext as Arrow, Settings } from '@mui/icons-material'
+import GenericItemizeContainer from '@/components/GenericItemizeContainer'
+import { Add, NavigateNext as Arrow, Settings, Close as X } from '@mui/icons-material'
 import {
   Box,
   FormControl,
@@ -6,12 +7,12 @@ import {
   Menu,
   MenuItem,
   Select,
-  Typography,
+  Tooltip,
+  Typography
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import GenericListContainer from '../components/GenericListContainer'
 import { IncidentType } from '../models/Incident'
 import { resetIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
@@ -134,15 +135,22 @@ function IncidentsPage() {
         filteredData.filter((incident) => incident.incidentState === 'Waiting'),
       ),
       Triage: sortByOpeningDate(
-        filteredData.filter((incident) => incident.incidentState === 'Triage'),
+        filteredData.filter(
+          (incident) =>
+            incident.incidentState === 'Triage' && incident.owner === userId,
+        ),
       ),
       Assigned: sortByOpeningDate(
         filteredData.filter(
-          (incident) => incident.incidentState === 'Assigned',
+          (incident) =>
+            incident.incidentState === 'Assigned' && incident.owner === userId,
         ),
       ),
       Closed: sortByOpeningDate(
-        filteredData.filter((incident) => incident.incidentState === 'Closed'),
+        filteredData.filter(
+          (incident) =>
+            incident.incidentState === 'Closed' && incident.owner === userId,
+        ),
       ),
     }
   }
@@ -197,6 +205,59 @@ function IncidentsPage() {
     }
   }
 
+   const handleAddSARIncident = async () => {
+    try {
+      const username = localStorage.getItem('username')
+      if (!username) throw new Error('Username not found in local storage.')
+
+      // Count existing SAR incidents for this user to determine the sequence number
+      let sarIncidentCount = 1
+      try {
+        const userIncidents = await request(`/api/incidents?caller=${username}`)
+        if (Array.isArray(userIncidents)) {
+          // Filter to count only SAR incidents
+          const sarIncidents = userIncidents.filter(
+            (incident) => incident.type === 'S'
+          )
+          sarIncidentCount = sarIncidents.length + 1
+        }
+      } catch (error: any) {
+        if (
+          error &&
+          error.message &&
+          error.message.includes('Unexpected end of JSON input')
+        ) {
+          sarIncidentCount = 1
+        } else {
+          throw error
+        }
+      }
+
+      // Create unique SAR incident ID (e.g. "SDena12")
+      const incidentId = `S${username}${sarIncidentCount}`
+      
+      // Create the new SAR incident
+      const newSARIncident = {
+        incidentId,
+        caller: username,
+        openingDate: new Date().toISOString(),
+        incidentState: 'Assigned',
+        owner: username,
+        commander: username,
+        type: 'S'
+      }
+
+      await request('/api/incidents/new', {
+        method: 'POST',
+        body: JSON.stringify(newSARIncident),
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+    } catch (error) {
+      console.error('Error creating new SAR incident:', error)
+    }
+  }
+
   // Check if the user has an active incident (not closed)
   const hasActiveResponderIncident = data.some(
     (incident) =>
@@ -230,53 +291,59 @@ function IncidentsPage() {
         Incidents Dashboard
       </Typography>
       {Object.entries(incidentGroups).map(([header, incidents]) => (
-        <GenericListContainer<IncidentData>
+        <GenericItemizeContainer<IncidentData>
           key={header}
-          header={header}
-          listProps={{
-            items: incidents,
-            loading: false,
-            getKey: (incident) => incident.incidentId,
-            renderItem: (incident) => (
-              <Box sx={{ display: 'flex', alignItems: 'center', padding: 1 }}>
-                <Box sx={{ flex: 3, display: 'flex', flexDirection: 'row' }}>
-                  <Typography variant="body2" sx={{ flex: 1 }}>
-                    {incident.incidentId}
-                  </Typography>
-                  <Typography variant="body2" sx={{ flex: 1 }}>
-                    {new Date(incident.openingDate).toLocaleString('en-US', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      hour12: false,
-                    })}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                  }}
-                >
-                  <Typography variant="body2" sx={{ marginRight: 1 }}>
-                    {incident.type}
-                  </Typography>
-                  <Typography variant="body2">
-                    {(() => {
-                      const priorityMap: Record<string, string> = {
-                        One: '1',
-                        Two: '2',
-                        Three: '3',
-                      }
-                      return priorityMap[incident.priority] || incident.priority // Default to original value if not found
-                    })()}
-                  </Typography>
-                </Box>
+          items={incidents}
+          getKey={(incident) => incident.incidentId}
+          title={header}
+          showHeader={false}
+          emptyMessage="No incidents available"
+          columns={[
+            {
+              key: 'incidentId',
+              align: 'center',
+              label: 'Incident ID',
+              render: (incident) => incident.incidentId,
+            },
+            {
+              key: 'openingDate',
+              align: 'center',
+              label: 'Opening Date',
+              render: (incident) =>
+                new Date(incident.openingDate).toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: false,
+                }),
+            },
+            {
+              key: 'type',
+              align: 'center',
+              label: 'Type',
+              render: (incident) => incident.type,
+            },
+            {
+              key: 'priority',
+              align: 'center',
+              label: 'Priority',
+              render: (incident) => {
+                const priorityMap: Record<string, string> = {
+                  One: '1',
+                  Two: '2',
+                  Three: '3',
+                }
+                return priorityMap[incident.priority] || incident.priority // Default to original value if not found
+              },
+            },
+            {
+              key: 'incidentId',
+              align: 'center',
+              label: 'Action',
+              render: (incident) => (
                 <IconButton
                   edge="end"
                   size="large"
@@ -284,9 +351,9 @@ function IncidentsPage() {
                 >
                   <Arrow />
                 </IconButton>
-              </Box>
-            ),
-          }}
+              ),
+            },
+          ]}
         />
       ))}
       {role === 'Fire' || role === 'Police' ? (
@@ -327,11 +394,29 @@ function IncidentsPage() {
                   <MenuItem value="Fire">Fire</MenuItem>
                   <MenuItem value="Medical">Medical</MenuItem>
                   <MenuItem value="Police">Police</MenuItem>
+                  <MenuItem value="SAR">SAR</MenuItem>
                 </Select>
               </FormControl>
             </MenuItem>
           </Menu>
-          {!hasActiveResponderIncident && (
+          {!hasActiveResponderIncident && 
+          (
+            <>
+              <Tooltip title="Create new SAR incident">
+                <IconButton
+                  sx={{
+                    position: 'fixed',
+                    bottom: 16,
+                    left: 250,
+                    width: 56,
+                    height: 56,
+                  }}
+                  onClick={handleAddSARIncident}
+                >
+                  <X fontSize="large" />
+                </IconButton>
+              </Tooltip>
+            
             <IconButton
               sx={{
                 position: 'fixed',
@@ -344,7 +429,9 @@ function IncidentsPage() {
             >
               <Add fontSize="large" />
             </IconButton>
-          )}
+            </>
+          )
+          }
         </>
       ) : null}
     </Box>

@@ -56,7 +56,12 @@ const NavigationBar: FunctionComponent<IProps> = ({
     '/reach911': '911 Call',
     '/incidents': 'Incidents',
     '/organization': 'Organization',
+    '/organization/view': 'Organization',
     '/map': 'Map',
+    '/register-hospital': 'Hospital',
+    '/hospitals': 'Hospitals',
+    '/resources': 'Resources',
+    '/find-hospital': 'Find Hospital',
   }
 
   const roleTitles: Record<string, string> = {
@@ -119,6 +124,14 @@ const NavigationBar: FunctionComponent<IProps> = ({
     navigate('/profile')
   }
 
+  const hospitalsDirectory = () => {
+    navigate('/hospitals')
+  }
+
+  const findHospital = () => {
+    navigate('/find-hospital')
+  }
+
   const navigateToOrganization = () => {
     // Get the user's role from localStorage
     const userRole = localStorage.getItem('role') || ''
@@ -168,6 +181,12 @@ const NavigationBar: FunctionComponent<IProps> = ({
             role === 'Fire' ||
             role === 'Administrator') && (
             <MenuItem onClick={navigateToOrganization}>Organization</MenuItem>
+          )}
+          {(role === 'Nurse' || role === 'Police' || role === 'Fire') && (
+            <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
+          )}
+           {(role === 'Police' || role === 'Fire') && (
+            <MenuItem onClick={findHospital}>Find Hospital</MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>

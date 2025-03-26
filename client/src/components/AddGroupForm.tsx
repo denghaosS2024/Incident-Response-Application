@@ -10,9 +10,8 @@ import {
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import ConfirmationDialog from '../components/common/ConfirmationDialog'
 import IChannel from '../models/Channel'
-import { isSystemGroup } from "../utils/SystemDefinedGroups"
-import Board from "./Board"
-
+import { isSystemGroup } from '../utils/SystemDefinedGroups'
+import Board from './Board'
 
 interface IFormData {
   name: string
@@ -23,12 +22,11 @@ interface IFormData {
 }
 
 export interface IAddGroupFormProps {
-  createChannel: (data: IFormData) => void;
+  createChannel: (data: IFormData) => void
   deleteChannel: () => void
-  removeCurrentUserFromGroup: () => void;
-  currentGroup: IChannel | null;
+  removeCurrentUserFromGroup: () => void
+  currentGroup: IChannel | null
 }
-
 
 const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   channelProps: IAddGroupFormProps,
@@ -36,42 +34,44 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   const owner = localStorage.getItem('uid') || ''
   const currentUsername = localStorage.getItem('username')
 
-  const [closed, setIsClosed] = useState<boolean>(false)
-  const [name, setGroupName] = useState('')
+  const [closed, setClosed] = useState<boolean>(false)
+  const [name, setName] = useState('')
   const [description, setDescription] = useState('')
 
   const [nameError, setNameError] = useState<string>('')
-  const [allowEdit, setAllowEdit] = useState(true)  // whether allow current user to edit selected channel (use this state to update UI)
+  const [allowEdit, setAllowEdit] = useState(true) // whether allow current user to edit selected channel (use this state to update UI)
   const [allowDelete, setAllowDelete] = useState(true)
-  const [allowRemoveSelf, setAllowRemoveSelf] = useState(false)  // whether allow current user to remove herself from channel (use this state to update UI)
+  const [allowRemoveSelf, setAllowRemoveSelf] = useState(false) // whether allow current user to remove herself from channel (use this state to update UI)
 
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [users, setUsers] = useState<string[]>([owner])
 
   useEffect(() => {
-    setUsers((prev) => (prev.includes(owner) ? prev : [owner, ...prev]));
-  }, [owner]); // Runs only when the owner changes
+    setUsers((prev) => (prev.includes(owner) ? prev : [owner, ...prev]))
+  }, [owner]) // Runs only when the owner changes
 
   const reloadForm = (group: IChannel | null) => {
     // set state in itself
     setNameError('')
 
-    setGroupName(channelProps.currentGroup?.name || '')
+    setName(channelProps.currentGroup?.name || '')
     setDescription(channelProps.currentGroup?.description || '')
-    setIsClosed(channelProps.currentGroup?.closed || false)
+    setClosed(channelProps.currentGroup?.closed || false)
 
     const isSysGroup = isSystemGroup(group)
-    const isOwnerOfGroup = (group != null) && (group.owner._id === owner)
-    const isParticipantOfGroup = (group != null) && group.users.some(user => user._id === owner)
-    setAllowEdit((group == null) || isOwnerOfGroup)
-    setAllowRemoveSelf((group != null) && isParticipantOfGroup && !isOwnerOfGroup && !isSysGroup)
+    const isOwnerOfGroup = group != null && group.owner._id === owner
+    const isParticipantOfGroup =
+      group != null && group.users.some((user) => user._id === owner)
+    setAllowEdit(group == null || isOwnerOfGroup)
+    setAllowRemoveSelf(
+      group != null && isParticipantOfGroup && !isOwnerOfGroup && !isSysGroup,
+    )
     setAllowDelete(isOwnerOfGroup)
   }
 
   useEffect(() => {
     reloadForm(channelProps.currentGroup)
   }, [channelProps.currentGroup])
-
 
   const handleSubmit = () => {
     let hasError = false
@@ -95,7 +95,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   }
 
   const handleToggleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIsClosed(event.target.checked)
+    setClosed(event.target.checked)
   }
 
   const handleDeleteClick = () => {
@@ -117,12 +117,14 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   }
 
   return (
-    <Box sx={{
-      border: '1px solid #e0e0e0',
-      borderRadius: '4px',
-      width: "100%",
-      mx: "auto"
-    }}>
+    <Box
+      sx={{
+        border: '1px solid #e0e0e0',
+        borderRadius: '4px',
+        width: '100%',
+        mx: 'auto',
+      }}
+    >
       <Box component="form" sx={{ mt: 2, mx: 2, mb: 2 }}>
         <TextField
           label="Group Name"
@@ -133,7 +135,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
           helperText={nameError}
           required
           value={name}
-          onChange={(e) => setGroupName(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
         />
         <TextField
           label="Description"
@@ -143,53 +145,63 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
           margin="normal"
           onChange={(e) => setDescription(e.target.value)}
         />
-        {allowEdit && <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mt={2}
-        >
-          <Typography variant="body1" sx={{mr: 2}}>
-            Owner: {currentUsername}
-          </Typography>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={closed}
-                onChange={handleToggleChange}
-                name="closed"
-                color="primary"
-              />
-            }
-            label="Closed"
-          />
-        </Box>}
-        <Board setUsers={setUsers} canDrag={allowEdit} currentGroup={channelProps.currentGroup}/>
+        {allowEdit && (
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            mt={2}
+          >
+            <Typography variant="body1" sx={{ mr: 2 }}>
+              Owner: {currentUsername}
+            </Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={closed}
+                  onChange={handleToggleChange}
+                  name="closed"
+                  color="primary"
+                />
+              }
+              label="Closed"
+            />
+          </Box>
+        )}
+        <Board
+          setUsers={setUsers}
+          canDrag={allowEdit}
+          currentGroup={channelProps.currentGroup}
+        />
         <Box display="flex" justifyContent="center" mt={2}>
-          {allowRemoveSelf && <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            onClick={(e) => {
-              e.preventDefault()
-              handleRemoveCurrentUserFromGroup()
-            }}
-            sx={{mt: 2, mx: 1}}
-          >
-            Remove Self
-          </Button>}
-          {allowEdit && <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            onClick={(e) => {
-              e.preventDefault()
-              handleSubmit()
-            }}
-            sx={{mt: 2, mx: 1}}
-          >
-            {(channelProps.currentGroup == null) ? "Create" : "Save"}
-          </Button>}
+          {allowRemoveSelf && (
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              onClick={(e) => {
+                e.preventDefault()
+                handleRemoveCurrentUserFromGroup()
+              }}
+              sx={{ mt: 2, mx: 1 }}
+            >
+              Remove Self
+            </Button>
+          )}
+          {allowEdit && (
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              onClick={(e) => {
+                e.preventDefault()
+                handleSubmit()
+              }}
+              sx={{ mt: 2, mx: 1 }}
+            >
+              {channelProps.currentGroup == null ? 'Create' : 'Save'}
+            </Button>
+          )}
           <Button
             component={Link}
             href="/groups"
@@ -199,14 +211,16 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
           >
             Cancel
           </Button>
-          {allowDelete && <Button
-            variant="outlined"
-            color="primary"
-            onClick={handleDeleteClick}
-            sx={{mt: 2, mx: 1}}
-          >
-            Delete
-          </Button>}
+          {allowDelete && (
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleDeleteClick}
+              sx={{ mt: 2, mx: 1 }}
+            >
+              Delete
+            </Button>
+          )}
           <ConfirmationDialog
             open={openConfirmDialog}
             title="Delete Group"

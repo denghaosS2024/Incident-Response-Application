@@ -15,4 +15,9 @@ export default interface IMessage {
   responders?: IUser[] // List of user IDs who have responded to the message
   acknowledgedBy?: IUser[] // List of user IDs who have acknowledged the message
   acknowledgedAt?: string[] // List of timestamps when the message was acknowledged
+  responses?: {
+    userId: string | IUser
+    response: string
+    timestamp: string
+  }[] // List of responses to the message (ACCEPT/BUSY)
 }

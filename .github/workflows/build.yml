@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - fix-server
 
   pull_request:
     types: [opened, synchronize, reopened]
@@ -14,25 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Commit Message Format for Push
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Merge')
         uses: gsactions/commit-message-checker@v2
         with:
-          pattern: '^(chore|ci|docs|feat|fix|perf|refactor|release|style|test)\s\((client|server|common|infra|config|deps|other)\):\s\[(SEM-\d{4}|--)\]\s.+$'
+          pattern: '^(chore|ci|docs|feat|fix|perf|refactor|release|style|test)\s\((client|server|common|infra|config|deps|other)\):\s\[(SEM-\d{4}(\s{1}SEM-\d{4})*|--)\]\s.+$'
           error: 'Commit message does not match the required format: {type} ({scope}): [{ticket_id}] {subject}'
 
-  sonarqube:
-    name: SonarQube
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-  build:
+  build-and-sonar:
     needs: check-commits
     name: Build & Test
     runs-on: ubuntu-latest
@@ -63,13 +52,22 @@ jobs:
           npm run test       # Runs the test script defined in package.json (npm jest --coverage --coverageReporters=lcov --coverageDirectory=coverage)
           ls -R coverage/
 
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v4
+      # - name: Upload Coverage Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage
+      #     path: coverage/
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
         with:
-          name: coverage
-          path: coverage/
-
-
+          args: >
+            -Dsonar.qualitygate.wait=false
+            -Dsonar.projectKey=cmusv-sem_S25-SEM-Incident-Response-Application
+            -Dsonar.organization=cmusv-sem
+            -Dsonar.javascript.lcov.reportPaths=server/coverage/lcov.info
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   # sonarqube:
   #   needs: build
   #   runs-on: ubuntu-latest
@@ -101,14 +99,17 @@ jobs:
   #           -Dsonar.sources=server,client
   #           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
 
-
   deploy:
-    needs: build  # comment out to bypass previous stages
+    needs: build-and-sonar # comment out to bypass previous stages
     name: Deploy Client & Server
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' # Only deploy on master branch
     steps:
-      - name: Deploy Server
-        run: curl "https://api.render.com/deploy/srv-curdjvjqf0us73fijapg?key=JcOMQ1ytI9c"
-      - name: Deploy Client
-        run: curl "https://api.render.com/deploy/srv-cuuarthopnds739vidb0?key=g7rBrnrhQIk"
+      #      - name: Deploy Server
+      #        run: curl "https://api.render.com/deploy/srv-curdjvjqf0us73fijapg?key=JcOMQ1ytI9c"
+      #      - name: Deploy Client
+      #        run: curl "https://api.render.com/deploy/srv-cuuarthopnds739vidb0?key=g7rBrnrhQIk"
+      - name: Deploy Server 2
+        run: curl "https://api.render.com/deploy/srv-cvb74tvnoe9s73fi4lug?key=MkoEGsRIocc"
+      - name: Deploy Client 2
+        run: curl "https://api.render.com/deploy/srv-cvb714an91rc739dlcl0?key=ubuWv2lQm_I"

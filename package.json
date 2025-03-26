@@ -15,36 +15,20 @@
     "clean": "rm -rf node_modules && cd client && rm -rf node_modules && cd .. && cd server && rm -rf node_modules && cd ..",
     "reinstall": "npm run clean && npm install",
     "format": "cd client && npm run format && cd .. && cd server && npm run format && cd ..",
-    "commit": "git-cz"
-  },
-  "dependencies": {
-    "@base-ui-components/react": "^1.0.0-alpha.6",
-    "@google-cloud/storage": "^7.15.2",
-    "@mapbox/mapbox-gl-draw": "^1.5.0",
-    "@mapbox/search-js-react": "^1.0.0",
-    "@types/mapbox-gl": "^3.4.1",
-    "commitizen": "^4.3.1",
-    "concurrently": "^5.3.0",
-    "launchdarkly-react-client-sdk": "^3.6.1",
-    "mapbox-gl": "^3.10.0",
-    "react-beautiful-dnd": "^13.1.1",
-    "styled-components": "^6.0.7"
+    "commit": "CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E \"\\.(js|ts|tsx|json|md)$\"); if [ -n \"$CHANGED_FILES\" ]; then npx prettier --write $CHANGED_FILES && git add $CHANGED_FILES; fi && git-cz",
+    "commit-cz": "git-cz"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.14",
-    "@types/react-beautiful-dnd": "^13.1.4",
-    "@types/styled-components": "^5.1.26",
-    "cz-vinyl": "^2.5.4",
-    "eslint": "^9.21.0",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
-    "typescript": "^5.7.3"
+    "commitizen": "^4.3.1",
+    "concurrently": "^5.3.0",
+    "cz-vinyl": "^2.5.4"
   },
   "config": {
     "commitizen": {
       "path": "cz-vinyl"
     }
+  },
+  "dependencies": {
+    "@types/react": "^19.0.11"
   }
 }

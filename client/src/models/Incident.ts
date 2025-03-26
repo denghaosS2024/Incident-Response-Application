@@ -3,7 +3,7 @@ import {
   FireQuestions,
   MedicalQuestions,
   PoliceQuestions,
-} from '@/utils/types'
+} from '../utils/types'
 
 /**
  * Incident Interface

@@ -1,10 +1,10 @@
-import { AppDispatch } from '@/redux/store'
 import { Box, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router'
 import AlertSnackbar from '../components/common/AlertSnackbar'
 import LoginForm, { IProps as ILoginFormProps } from '../components/LoginForm'
+import { AppDispatch } from '../redux/store'
 import request, { IRequestError } from '../utils/request'
 
 // LoginPage component: Handles user authentication

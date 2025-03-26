@@ -1,30 +1,7 @@
 import { Router } from 'express'
 
 import WildfireAreaController from '../controllers/WildfireAreaController'
-/**
- * @swagger
- * components:
- *   schemas:
- *     Incident:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *           description: name for the selected wildfire area
- *           example: Danger Zone 1
- *         coordinates:
- *           type: number[][]
- *           description:
- *           example: [[124.32847, -110.186261], [124.31827, -110.112861], [124.30527, -110.107161]]
- *       required:
- *         - coordinates
 
-/**
- * @swagger
- * tags:
- *   name: WildfireArea
- *   description: WildfireArea management API
- */
 export default Router()
   /**
    * @swagger
@@ -104,7 +81,7 @@ export default Router()
     try {
       const result = await WildfireAreaController.update(areaId, name)
       if (!result) {
-        response.status(404).json({ message: 'the update operation failed' })
+        response.status(404).json({ message: 'Wildfire Area is not found' })
         return
       }
       response.json(result)
@@ -184,6 +161,8 @@ export default Router()
    *         description: Wildfire area deleted
    *       400:
    *         description: Bad request
+   *       500:
+   *         description: Internal Server Error
    */
   .delete('/areas', async (request, response) => {
     try {
@@ -192,7 +171,9 @@ export default Router()
         return
       }
 
-      const result = await WildfireAreaController.delete(request.query['areaId'].toString())
+      const result = await WildfireAreaController.delete(
+        request.query['areaId'].toString(),
+      )
       if (!result) {
         response.status(404).json({ message: 'Wildfire Area not found' })
         return
@@ -200,7 +181,7 @@ export default Router()
       response.json(result)
     } catch (e) {
       const error = e as Error
-      response.status(400).json({ message: error.message })
+      response.status(500).json({ message: error.message })
     }
   })
 
@@ -234,6 +215,10 @@ export default Router()
       // In case the user sends malicious param, ignore such param
       if (areaId !== undefined && areaId !== '' && areaId !== null) {
         const result = await WildfireAreaController.findById(areaId as string)
+        if (!result) {
+          response.status(404).json({ message: 'area is not found' })
+          return
+        }
         response.json(result)
       } else {
         const result = await WildfireAreaController.listWildfireAreas()
@@ -241,6 +226,6 @@ export default Router()
       }
     } catch (e) {
       const error = e as Error
-      response.status(400).json({ message: error.message })
+      response.status(500).json({ message: error.message })
     }
   })

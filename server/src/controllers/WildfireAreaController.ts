@@ -12,7 +12,7 @@ class WildfireAreaController {
    */
   async add(areaId: string, coordinates: number[][], name?: string) {
     // Check if the wildfire area already exists
-    let wildfireArea = await WildfireArea.findOne({ areaId }).exec()
+    const wildfireArea = await WildfireArea.findOne({ areaId }).exec()
 
     if (wildfireArea) {
       throw new Error(`WildfireArea "${areaId}" already exists`)
@@ -44,7 +44,7 @@ class WildfireAreaController {
     const target = await WildfireArea.findOne({ areaId })
 
     if (target === null || target === undefined) {
-      throw new Error(`WildfireArea by ID "${areaId}" does not exist`)
+      return null
     }
 
     return target
@@ -71,7 +71,7 @@ class WildfireAreaController {
       return wildfireArea
     }
 
-    throw new Error(`WildfireArea "${areaId}" does not exist`)
+    return null
   }
 
   /**
@@ -110,7 +110,7 @@ class WildfireAreaController {
       return { message: `WildfireArea "${areaId}" has been deleted` }
     }
 
-    throw new Error(`WildfireArea "${areaId}" does not exist`)
+    return null
   }
 
   /**

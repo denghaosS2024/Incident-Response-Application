@@ -15,7 +15,6 @@ export default interface IChannel {
   users: IUser[] // Array of users participating in the channel
 }
 
-
 /**
  * Resolves the channel name
  *
@@ -26,13 +25,13 @@ export default interface IChannel {
  * @returns The channel object with a resolved name
  */
 export const resolveChannelName = (channel: IChannel) => {
-  if (channel.name === "PrivateContact") {
+  if (channel.name === 'PrivateContact') {
     const uid = localStorage.getItem('uid')
     const others = channel.users.filter((user) => user._id !== uid)
 
     channel.name = others
       .map(({ username }) => username)
-      .sort()
+      .sort((a , b) => a.localeCompare(b))
       .join(',')
   }
 

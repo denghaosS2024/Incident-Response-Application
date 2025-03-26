@@ -1,12 +1,13 @@
-import { AppDispatch } from '@/redux/store'
 import { Warning } from '@mui/icons-material'
 import { Box, IconButton, Popover } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { addMessage } from '../redux/messageSlice'
+import { AppDispatch } from '../redux/store'
 import request from '../utils/request'
 import SocketClient from '../utils/Socket'
 import AlertPanel from './AlertPanel'
+import IIncident from '@/models/Incident'
 
 interface MessageAlertOptionsProps {
   channelId: string
@@ -28,28 +29,43 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
   const [responders, setResponders] = useState<string[]>([])
   const [acknowledgedBy, setAcknowledgedBy] = useState<string[]>([])
-
-  // hardcode for test purpose
-  let isIncidentCommander = false
-  if (
-    currentUserId === '67cf2ea7882f62d18e656388' ||
-    currentUserId === '67cf427215bcff53008820e3'
-  ) {
-    isIncidentCommander = true
-  }
-  // const isFirstResponder = true;
-
   const [openAlertPanel, setOpenAlertPanel] = useState<boolean>(false)
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
     setOpenAlertPanel(true)
   }
+  const [isIncidentCommander, setIsIncidentCommander] = useState<boolean>(false)
+  const currentUsername = localStorage.getItem('username')
+  const checkIncidentCommander = async () => {
+    console.log(channelId)
+    try {
+      const incidents: IIncident[] = await request(
+        `/api/incidents?channelId=${channelId}`,
+        {
+          method: 'GET',
+        },
+      )
+
+      const isCommander = incidents.some(
+        (incident: IIncident) => incident.commander === currentUsername,
+      )
+      setIsIncidentCommander(isCommander)
+    } catch (error) {
+      console.error('Error fetching incidents:', error)
+      setIsIncidentCommander(false)
+    }
+  }
+
+  useEffect(() => {
+    checkIncidentCommander()
+  }, [currentUsername])
 
   // Fetch the first resopnders
   const handleFetchResponders = async () => {
-    const users = await request(`/api/users`, {
+    const users = await request(`/api/channels/${channelId}`, {
       method: 'GET',
     })
+    console.log(users)
     // const responders = users.filter((user: any) => user._id !== currentUserId && (user.role === 'Fire' || user.role === 'Police'));
     const responders = users.filter(
       (user: any) =>

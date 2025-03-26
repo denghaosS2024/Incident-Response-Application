@@ -545,5 +545,41 @@ it('can get closed groups sorted by name', async () => {
     expect(updatedChannel.users.some((u) => u._id.equals(userB._id))).toBe(false);
   });
 
+  it('can update the owner of the channel when owner is provided', async () => {
+    expect(channel).toBeDefined();
+
+    const updatedChannel = await ChannelController.updateChannel({
+      _id: channel._id,
+      name: channel.name,
+      userIds: channel.users.map((u) => u._id),
+      ownerId: userC._id,
+    });
+    expect(updatedChannel.owner).toBeDefined();
+    expect(updatedChannel.owner?.['_id']).toEqual(userC._id);
+  });
+
+  it('should start a video conference and notify only other online users', async () => {
+    const testChannel = await ChannelController.create({
+      name: 'Video Conference Test Channel',
+      userIds: [userA._id, userB._id],
+    });
+
+    const socketA = mock<SocketIO.Socket>();
+    const socketB = mock<SocketIO.Socket>();
+  
+    UserConnections.addUserConnection(userA.id, socketA, ROLES.CITIZEN);
+    UserConnections.addUserConnection(userB.id, socketB, ROLES.CITIZEN);
+  
+    const message = await ChannelController.startVideoConference(testChannel._id, userA._id);
+  
+    expect(message.content).toMatch(/^Video conference started! Join here: https:\/\/meet\.jit\.si\/.+/);
+    expect(message.sender._id).toEqual(userA._id);
+    expect(message.channelId).toEqual(testChannel._id);
+  
+    expect(socketB.emit).toHaveBeenCalledWith('new-message', message);
+    expect(socketA.emit).not.toHaveBeenCalled();
+  });
+  
+
   afterAll(TestDatabase.close)
 })
