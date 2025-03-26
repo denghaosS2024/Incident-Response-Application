@@ -1,8 +1,11 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import React, { useEffect, useState } from 'react'
+import IIncident from '@/models/Incident'
+import getRoleIcon from '@/components/common/RoleIcon'
 
 // import { Add, Delete } from '@mui/icons-material'
 import {
+  Avatar,
   Box,
   Card,
   CardContent,
@@ -10,6 +13,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemAvatar,
   Typography,
   useMediaQuery,
 } from '@mui/material'
@@ -31,12 +35,14 @@ interface Car {
   _id: string
   name: string
   usernames: string[]
+  assignedIncidents: IIncident[]
 }
 interface Truck {
   assignedCity: string
   _id: string
   name: string
   usernames: string[]
+  assignedIncidents: IIncident[]
 }
 
 interface Incident {
@@ -155,6 +161,12 @@ const ResourcesPage: React.FC = () => {
                     >
                       {sortedCars.map((car, index) => {
                         const draggableId = `Car::${car.name}`
+                        const sortedUsernames = [...(car.usernames || [])].sort(
+                          (a, b) =>
+                            a.localeCompare(b, undefined, {
+                              sensitivity: 'base',
+                            }),
+                        )
                         return (
                           <Draggable
                             key={draggableId}
@@ -166,7 +178,18 @@ const ResourcesPage: React.FC = () => {
                                 ref={providedDrag.innerRef}
                                 {...providedDrag.draggableProps}
                                 {...providedDrag.dragHandleProps}
-                                sx={{ touchAction: 'none' }}
+                                sx={{
+                                  touchAction: 'none',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'flex-start',
+                                  borderRadius: '4px',
+                                  mb: 1,
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                  bgcolor: 'background.paper',
+                                  boxShadow: 1,
+                                }}
                               >
                                 <ListItemText
                                   primary={car.name}
@@ -174,6 +197,56 @@ const ResourcesPage: React.FC = () => {
                                     variant: 'body2',
                                   }}
                                 />
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    width: '100%',
+                                  }}
+                                >
+                                  {sortedUsernames &&
+                                  sortedUsernames.length > 0 ? (
+                                    sortedUsernames.map((username, i) => (
+                                      <Box
+                                        key={i}
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          pl: 1,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <ListItemAvatar>
+                                          <Avatar
+                                            sx={{
+                                              bgcolor: 'white',
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              padding: 0,
+                                            }}
+                                          >
+                                            {getRoleIcon('Police')}
+                                          </Avatar>
+                                        </ListItemAvatar>
+                                        <Typography
+                                          variant="body2"
+                                          color="text.secondary"
+                                        >
+                                          {username}
+                                        </Typography>
+                                      </Box>
+                                    ))
+                                  ) : (
+                                    <Typography
+                                      variant="body2"
+                                      color="text.secondary"
+                                      sx={{ pl: 1, py: 0.5 }}
+                                    >
+                                      No personnel assigned
+                                    </Typography>
+                                  )}
+                                </Box>
                               </ListItem>
                             )}
                           </Draggable>
@@ -198,6 +271,13 @@ const ResourcesPage: React.FC = () => {
                     >
                       {sortedTrucks.map((truck, index) => {
                         const draggableId = `Truck::${truck.name}`
+                        const sortedUsernames = [
+                          ...(truck.usernames || []),
+                        ].sort((a, b) =>
+                          a.localeCompare(b, undefined, {
+                            sensitivity: 'base',
+                          }),
+                        )
                         return (
                           <Draggable
                             key={draggableId}
@@ -209,7 +289,18 @@ const ResourcesPage: React.FC = () => {
                                 ref={providedDrag.innerRef}
                                 {...providedDrag.draggableProps}
                                 {...providedDrag.dragHandleProps}
-                                sx={{ touchAction: 'none' }}
+                                sx={{
+                                  touchAction: 'none',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'flex-start',
+                                  borderRadius: '4px',
+                                  mb: 1,
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                  bgcolor: 'background.paper',
+                                  boxShadow: 1,
+                                }}
                               >
                                 <ListItemText
                                   primary={truck.name}
@@ -217,6 +308,56 @@ const ResourcesPage: React.FC = () => {
                                     variant: 'body2',
                                   }}
                                 />
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    width: '100%',
+                                  }}
+                                >
+                                  {sortedUsernames &&
+                                  sortedUsernames.length > 0 ? (
+                                    sortedUsernames.map((username, i) => (
+                                      <Box
+                                        key={i}
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          pl: 1,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <ListItemAvatar>
+                                          <Avatar
+                                            sx={{
+                                              bgcolor: 'white',
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              padding: 0,
+                                            }}
+                                          >
+                                            {getRoleIcon('Fire')}
+                                          </Avatar>
+                                        </ListItemAvatar>
+                                        <Typography
+                                          variant="body2"
+                                          color="text.secondary"
+                                        >
+                                          {username}
+                                        </Typography>
+                                      </Box>
+                                    ))
+                                  ) : (
+                                    <Typography
+                                      variant="body2"
+                                      color="text.secondary"
+                                      sx={{ pl: 1, py: 0.5 }}
+                                    >
+                                      No personnel assigned
+                                    </Typography>
+                                  )}
+                                </Box>
                               </ListItem>
                             )}
                           </Draggable>
@@ -230,7 +371,7 @@ const ResourcesPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* RIGHT SIDE: CITIES */}
+          {/* RIGHT SIDE: Incidents */}
           <div className="col-12 col-md-8 mb-3">
             <Card className="shadow-sm">
               <CardContent>
