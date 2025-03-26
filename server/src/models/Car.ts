@@ -12,7 +12,7 @@ const CarSchema = new Schema<ICar>({
   name: { type: String, required: true, unique: true },
   assignedCity: { type: String, default: null },
   usernames: { type: [String], default: [] },
-  assignedIncident: { type: Schema.Types.ObjectId, default: null },
+  assignedIncident: { type: String, default: null },
 })
 
 export default model<ICar>('Car', CarSchema)

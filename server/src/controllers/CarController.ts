@@ -79,13 +79,13 @@ class CarController {
   }
 
   async addUsernameToCar(carName: string, username: string) {
-    const car = await Car.findOne({
+    const car: ICar | null = await Car.findOne({
       name: carName,
     })
     if (!car) {
       throw new Error(`Car with name '${carName}' does not exist`)
     }
-    const updatedCar = await Car.findOneAndUpdate(
+    const updatedCar: ICar | null = await Car.findOneAndUpdate(
       { name: carName },
       { $addToSet: { usernames: username } },
       { new: true },
@@ -94,13 +94,13 @@ class CarController {
   }
 
   async releaseUsernameFromCar(carName: string, username: string) {
-    const car = await Car.findOne({
+    const car: ICar | null = await Car.findOne({
       name: carName,
     })
     if (!car) {
       throw new Error(`Car with name '${carName}' does not exist`)
     }
-    const updatedCar = await Car.findOneAndUpdate(
+    const updatedCar: ICar | null = await Car.findOneAndUpdate(
       { name: carName },
       { $pull: { usernames: username } },
       { new: true },
