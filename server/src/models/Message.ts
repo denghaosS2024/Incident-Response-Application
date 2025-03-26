@@ -4,7 +4,7 @@
  * Represents a message sent by a user in a channel.
  */
 
-import mongoose, { Schema, Document, Types } from 'mongoose'
+import mongoose, { Document, Schema, Types } from 'mongoose'
 import AutoPopulate from 'mongoose-autopopulate'
 
 import { IUser } from './User'
@@ -23,6 +23,11 @@ export interface IMessage extends Document {
   acknowledgedBy: IUser[]
   acknowledgedAt: string[]
   // acknowledgedAt?: string
+  responses?: {
+    userId: Types.ObjectId | IUser
+    response: string
+    timestamp: string
+  }[]
 }
 
 /**
@@ -65,6 +70,23 @@ const MessageSchema = new Schema(
     acknowledgedAt: [
       {
         type: Date,
+      },
+    ],
+    responses: [
+      {
+        userId: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+          autopopulate: true,
+        },
+        response: {
+          type: String,
+          enum: ['ACCEPT', 'BUSY'],
+        },
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
   },

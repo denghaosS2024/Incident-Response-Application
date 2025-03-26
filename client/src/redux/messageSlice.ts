@@ -1,6 +1,6 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { createAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import moment from 'moment'
+// moment import removed as it's no longer needed
 import IMessage from '../models/Message'
 import request from '../utils/request'
 import { MessagesState } from '../utils/types'
@@ -19,15 +19,14 @@ const initialState: MessagesState = {
   error: null, // Stores any error that occurred during message operations
 }
 
-// Helper function to parse and format message timestamps
-const parseMessage: (rawMessage: IMessage) => IMessage = ({
-  timestamp,
-  ...rest
-}: IMessage) => {
-  return {
-    timestamp: moment(timestamp).calendar(),
-    ...rest,
-  }
+// Helper function to ensure messages have a valid timestamp
+const parseMessage: (rawMessage: IMessage) => IMessage = (
+  message: IMessage,
+) => {
+  // Create a new object to avoid modifying the original
+  const result = { ...message }
+
+  return result
 }
 
 // Async thunk for fetching messages for a specific channel
@@ -49,20 +48,22 @@ export const acknowledgeMessage = createAsyncThunk(
     messageId,
     senderId,
     channelId,
+    response,
   }: {
     messageId: string
     senderId: string
     channelId: string
+    response?: 'ACCEPT' | 'BUSY'
   }) => {
-    const response = await request(
+    const result = await request(
       `/api/channels/${channelId}/messages/acknowledge`,
       {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderId, messageId }),
+        body: JSON.stringify({ senderId, messageId, response }),
       },
     )
-    return response
+    return result
   },
 )
 

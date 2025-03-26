@@ -13,6 +13,7 @@ import {
   setShowIncidentAlert,
 } from '@/redux/notifySlice'
 import IrSnackbar from '../components/common/IrSnackbar'
+import DirectNurseAlert from '../components/DirectNurseAlert'
 import ManagedTabBar from '../components/layout/ManagedTabBar'
 import NavigationBar from '../components/NavigationBar'
 import { loadContacts } from '../redux/contactSlice'
@@ -49,6 +50,15 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
   // const [hasNewIncident, setHasNewIncident] = useState<boolean>(false)
   // const [showIncidentAlert, setShowIncidentAlert] = useState<boolean>(false)
   // const [incidentAlertMessage, setIncidentAlertMessage] = useState<string>('')
+
+  // Nurse alert state
+  const [nurseAlertVisible, setNurseAlertVisible] = useState(false)
+  const [nurseAlertData, setNurseAlertData] = useState<{
+    alertType: 'E' | 'U' | ''
+    patientName: string
+    messageId: string
+    channelId: string
+  }>({ alertType: '', patientName: '', messageId: '', channelId: '' })
 
   const useFlashAnimation = (bgColor: string) => {
     return useMemo(
@@ -92,6 +102,52 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
         })
     }
     lastTap.current = now
+  }
+
+  // Handle nurse alert accept
+  const handleNurseAlertAccept = async () => {
+    console.log('Nurse alert accepted')
+    try {
+      const senderId = localStorage.getItem('uid')
+      if (!senderId || !nurseAlertData.messageId || !nurseAlertData.channelId)
+        return
+
+      await dispatch(
+        acknowledgeMessage({
+          messageId: nurseAlertData.messageId,
+          senderId,
+          channelId: nurseAlertData.channelId,
+          response: 'ACCEPT',
+        }),
+      ).unwrap()
+
+      setNurseAlertVisible(false)
+    } catch (error) {
+      console.error('Error accepting nurse alert:', error)
+    }
+  }
+
+  // Handle nurse alert busy
+  const handleNurseAlertBusy = async () => {
+    console.log('Nurse alert marked as busy')
+    try {
+      const senderId = localStorage.getItem('uid')
+      if (!senderId || !nurseAlertData.messageId || !nurseAlertData.channelId)
+        return
+
+      await dispatch(
+        acknowledgeMessage({
+          messageId: nurseAlertData.messageId,
+          senderId,
+          channelId: nurseAlertData.channelId,
+          response: 'BUSY',
+        }),
+      ).unwrap()
+
+      setNurseAlertVisible(false)
+    } catch (error) {
+      console.error('Error marking nurse alert as busy:', error)
+    }
   }
 
   useEffect(() => {
@@ -139,6 +195,63 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       setCurrentAlertMessageId(message._id)
       setCurrentChannelId(message.channelId)
     })
+    socket.on('nurse-alert', (message: IMessage) => {
+      console.log('[DEBUG] Received nurse-alert:', message)
+      dispatch(addMessage(message))
+
+      // Only show the alert for nurses that are in the responders list
+      const currentUserId = localStorage.getItem('uid')
+      const isResponder = message.responders?.some(
+        (responder) =>
+          responder._id === currentUserId ||
+          (typeof responder === 'string' && responder === currentUserId),
+      )
+
+      console.log('[DEBUG] Nurse alert checks:', {
+        currentUserId,
+        role,
+        isNurse: role === 'Nurse',
+        isResponder,
+        responders: message.responders,
+        content: message.content,
+      })
+
+      if (isResponder && role === 'Nurse') {
+        // Parse the alert content to get the type and patient name
+        const content = message.content || ''
+        let alertType: 'E' | 'U' | '' = ''
+        let patientName = ''
+
+        if (content.startsWith('E HELP-')) {
+          alertType = 'E'
+          patientName = content.split('-')[1] || ''
+        } else if (content.startsWith('U HELP-')) {
+          alertType = 'U'
+          patientName = content.split('-')[1] || ''
+        } else if (content.includes(' HELP-')) {
+          alertType = ''
+          patientName = content.split('-')[1] || ''
+        }
+
+        console.log('[DEBUG] Setting nurse alert with:', {
+          alertType,
+          patientName,
+          messageId: message._id,
+        })
+
+        // Update state with alert data
+        setNurseAlertData({
+          alertType,
+          patientName,
+          messageId: message._id,
+          channelId: message.channelId,
+        })
+
+        // Show the alert
+        console.log('[DEBUG] Setting nurse alert visible to true')
+        setNurseAlertVisible(true)
+      }
+    })
     socket.on('send-mayday', handleMaydayReceived)
     socket.on('user-status-changed', () => {
       dispatch(loadContacts())
@@ -168,6 +281,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       socket.off('acknowledge-alert')
       socket.off('new-fire-alert')
       socket.off('new-police-alert')
+      socket.off('nurse-alert')
       socket.off('send-mayday')
       socket.off('user-status-changed')
       socket.off('group-member-added')
@@ -236,6 +350,15 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
               </Typography>
             </Box>
           </Modal>
+
+          {nurseAlertVisible && (
+            <DirectNurseAlert
+              alertType={nurseAlertData.alertType}
+              patientName={nurseAlertData.patientName}
+              onAccept={handleNurseAlertAccept}
+              onBusy={handleNurseAlertBusy}
+            />
+          )}
         </>
       ) : (
         <Navigate to="/login" />

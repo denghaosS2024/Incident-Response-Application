@@ -231,6 +231,9 @@ class ChannelController {
         connection.emit('new-fire-alert', message)
       } else if (isAlert && user.role == 'Police') {
         connection.emit('new-police-alert', message)
+      } else if (isAlert && user.role == 'Nurse' && content.includes('HELP-')) {
+        // Add specific case for nurse alerts
+        connection.emit('nurse-alert', message)
       } else {
         connection.emit('new-message', message)
       }
@@ -573,6 +576,7 @@ class ChannelController {
     messageId: Types.ObjectId,
     senderId: Types.ObjectId,
     channelId: Types.ObjectId,
+    response?: 'ACCEPT' | 'BUSY'
   ) => {
     const sender = await User.findById(senderId).exec()
     if (!sender) {
@@ -585,21 +589,30 @@ class ChannelController {
     }
 
     try {
+      const updateObj: any = {
+        $push: {
+          acknowledgedBy: senderId,
+          acknowledgedAt: new Date().toISOString(),
+        }
+      };
+      
+      if (response) {
+        updateObj.$push.responses = {
+          userId: senderId,
+          response,
+          timestamp: new Date().toISOString()
+        };
+      }
+      
       const message = await Message.findByIdAndUpdate(
         messageId,
-        {
-          $push: {
-            acknowledgedBy: senderId,
-            acknowledgedAt: new Date().toISOString(),
-          },
-        },
+        updateObj,
         { new: true },
       ).exec()
       if (!message) {
         throw new Error(`Message(${messageId.toHexString()}) not found.`)
       }
 
-      // Notify commend for acknowledgment
       channel.users.forEach((user) => {
         if (user._id.equals(senderId)) return
 

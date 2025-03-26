@@ -850,6 +850,7 @@ export default Router()
    *             required:
    *               - senderId
    *               - messageId
+   *               - response
    *             properties:
    *               senderId:
    *                 type: string
@@ -857,6 +858,9 @@ export default Router()
    *               messageId:
    *                 type: string
    *                 description: The ID of the message to acknowledge.
+   *               response:
+   *                 type: string
+   *                 description: The response to the message.
    *     responses:
    *       200:
    *         description: The updated message object.
@@ -869,13 +873,14 @@ export default Router()
    */
   .patch('/:id/messages/acknowledge', async (request, response) => {
     const channelId = new Types.ObjectId(request.params.id)
-    const { senderId, messageId } = request.body
+    const { senderId, messageId, response: responseType } = request.body
     // const messageId = new Types.ObjectId(request.params.messageId)
     try {
       const updatedMessage = await ChannelController.acknowledgeMessage(
         messageId,
         senderId,
         channelId,
+        responseType
       )
       response.send(updatedMessage)
     } catch (e) {
