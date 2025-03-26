@@ -221,14 +221,28 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
         const content = message.content || ''
         let alertType: 'E' | 'U' | '' = ''
         let patientName = ''
-
-        if (content.startsWith('E HELP-')) {
+        
+        // Support both new format "E HELP - Patient: PatientName - Nurses: X"
+        // and old format "E HELP-PatientName"
+        const patientMatch = content.match(/Patient:\s*([^-]+)/)
+        
+        if (content.startsWith('E HELP')) {
           alertType = 'E'
-          patientName = content.split('-')[1] || ''
-        } else if (content.startsWith('U HELP-')) {
+          if (patientMatch && patientMatch[1]) {
+            patientName = patientMatch[1].trim()
+          } else if (content.includes('-')) {
+            // Fallback to old format
+            patientName = content.split('-')[1] || ''
+          }
+        } else if (content.startsWith('U HELP')) {
           alertType = 'U'
-          patientName = content.split('-')[1] || ''
-        } else if (content.includes(' HELP-')) {
+          if (patientMatch && patientMatch[1]) {
+            patientName = patientMatch[1].trim()
+          } else if (content.includes('-')) {
+            // Fallback to old format
+            patientName = content.split('-')[1] || ''
+          }
+        } else if (content.includes(' HELP')) {
           alertType = ''
           patientName = content.split('-')[1] || ''
         }
