@@ -37,6 +37,16 @@ carRouter.get('/', async (_req: Request, res: Response) => {
   }
 })
 
+carRouter.get('/availability', async (_req: Request, res: Response) => {
+  try {
+    const cars = await CarController.getAvailableCarsWithResponder()
+    res.json(cars)
+  } catch (err) {
+    const error = err as Error
+    res.status(500).json({ error: error.message })
+  }
+})
+
 /**
  * @swagger
  * /api/cars:

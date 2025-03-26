@@ -15,6 +15,24 @@ class CarController {
       throw error
     }
   }
+  // Get cars that not assigned to an incident and has at least one responder onboard
+  async getAvailableCarsWithResponder() {
+    try {
+      const cars = await Car.find({
+        assignedIncidents: { $eq: [] },
+        usernames: { $ne: [] },
+      })
+        .sort({ name: 1 })
+        .select('-__v')
+        .exec()
+
+      return cars
+    } catch (error) {
+      console.error('Error fetching cars:', error)
+      throw error
+    }
+  }
+
   async createCar(name: string) {
     if (!name.trim()) {
       throw new Error('Car name is required')

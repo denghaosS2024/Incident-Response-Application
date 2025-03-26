@@ -16,6 +16,24 @@ class TruckController {
     }
   }
 
+  // Get cars that not assigned to an incident and has at least one responder onboard
+  async getAvailableTruckWithResponder() {
+    try {
+      const truck = await Truck.find({
+        assignedIncidents: { $eq: [] },
+        usernames: { $ne: [] },
+      })
+        .sort({ name: 1 })
+        .select('-__v')
+        .exec()
+
+      return truck
+    } catch (error) {
+      console.error('Error fetching truck:', error)
+      throw error
+    }
+  }
+
   async createTruck(name: string) {
     if (!name.trim()) {
       throw new Error('Truck name is required')

@@ -67,8 +67,8 @@ const ResourcesPage: React.FC = () => {
   const fetchAllData = async () => {
     try {
       const [carsData, trucksData, incidentData] = await Promise.all([
-        request<Car[]>('/api/cars'),
-        request<Truck[]>('/api/trucks'),
+        request<Car[]>('/api/cars/availability'),
+        request<Truck[]>('/api/trucks/availability'),
         // request<City[]>('/api/cities'),
         // request<Personnel[]>('/api/personnel'),
         request<Incident[]>('/api/incidents'),

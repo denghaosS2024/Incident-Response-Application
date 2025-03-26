@@ -37,6 +37,16 @@ truckRouter.get('/', async (_req: Request, res: Response) => {
   }
 })
 
+truckRouter.get('/availability', async (_req: Request, res: Response) => {
+  try {
+    const trucks = await TruckController.getAvailableTruckWithResponder()
+    res.json(trucks)
+  } catch (err) {
+    const error = err as Error
+    res.status(500).json({ error: error.message })
+  }
+})
+
 /**
  * @swagger
  * /api/trucks:
