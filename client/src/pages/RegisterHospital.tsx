@@ -46,7 +46,7 @@ const RegisterHospital: React.FC = () => {
   )
 
   const role = localStorage.getItem('role')
-  const username = localStorage.getItem('username')
+  const userId = localStorage.getItem('uid')
   const hospitalFromSlice = useSelector(
     (state: any) => state.hospital.hospitalData,
   )
@@ -172,7 +172,7 @@ const RegisterHospital: React.FC = () => {
       }
 
       // // Navigate back to the hospital directory -- confirmed with Cecile
-      // navigate('/hospitals')
+      navigate('/hospitals')
     } catch (error) {
       console.error('Error in updateHospitalDiscussion:', error)
     }
@@ -215,12 +215,9 @@ const RegisterHospital: React.FC = () => {
       console.log('The response after creating an incident is :' + response)
       dispatch(setHospital(response)) // update hospital slice on submit
 
-      // Only call updateHospitalDiscussion when registering a new hospital (i.e. hospitalId is not present)
-      if (!hospitalId) {
-        setTimeout(() => {
-          updateHospitalDiscussion(response)
-        }, 2000)
-      }
+      setTimeout(() => {
+        updateHospitalDiscussion(response)
+      }, 2000)
     } else {
       showSnackbar(
         hospitalId ? 'Error updating hospital.' : 'Error registering hospital.',
@@ -314,10 +311,10 @@ const RegisterHospital: React.FC = () => {
           control={
             <Checkbox
               onChange={(e) => {
-                if (e.target.checked && username) {
+                if (e.target.checked && userId) {
                   setHospitalData((prev) => ({
                     ...prev,
-                    nurses: [...prev.nurses, username],
+                    nurses: [...prev.nurses, userId],
                   }))
                 }
               }}
