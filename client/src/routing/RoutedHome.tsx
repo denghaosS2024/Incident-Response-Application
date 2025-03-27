@@ -82,6 +82,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
     if (lastTap.current && now - lastTap.current < 300) {
       setAlertOpen((prev) => false)
       setMaydayOpen((prev) => false)
+      clearAlertTimeout();
       const senderId = localStorage.getItem('uid')
 
       if (!senderId || !currentAlertMessageId || !currentChannelId) return
@@ -122,6 +123,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       ).unwrap()
 
       setNurseAlertVisible(false)
+      clearAlertTimeout();
     } catch (error) {
       console.error('Error accepting nurse alert:', error)
     }
@@ -145,10 +147,35 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       ).unwrap()
 
       setNurseAlertVisible(false)
+      clearAlertTimeout();
     } catch (error) {
       console.error('Error marking nurse alert as busy:', error)
     }
   }
+
+  // Timer ref to track and clean up alert timeouts
+  const alertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Function to clear any existing alert timeout
+  const clearAlertTimeout = () => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+      alertTimeoutRef.current = null;
+    }
+  };
+
+  // Function to set up a timeout to automatically dismiss alerts after 2 minutes
+  const setupAlertTimeout = () => {
+    clearAlertTimeout(); // Clear any existing timeout
+    
+    // Set up a new timeout - 2 minutes = 120000 ms
+    alertTimeoutRef.current = setTimeout(() => {
+      console.log('Alert timeout reached (2 minutes) - automatically dismissing');
+      setAlertOpen(false);
+      setMaydayOpen(false);
+      setNurseAlertVisible(false);
+    }, 120000);
+  };
 
   useEffect(() => {
     const handleMaydayReceived = (data: any) => {
@@ -156,6 +183,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       setMaydayOpen(true)
       setBgColor('red')
       setAlertMessage('MAYDAY')
+      setupAlertTimeout();
     }
 
     const socket = SocketClient
@@ -183,6 +211,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       setAlertOpen(true)
       setCurrentAlertMessageId(message._id)
       setCurrentChannelId(message.channelId)
+      setupAlertTimeout();
     })
     socket.on('new-police-alert', (message: IMessage) => {
       console.log('new-police-alert:', message)
@@ -194,6 +223,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       setAlertOpen(true)
       setCurrentAlertMessageId(message._id)
       setCurrentChannelId(message.channelId)
+      setupAlertTimeout();
     })
     socket.on('nurse-alert', (message: IMessage) => {
       console.log('[DEBUG] Received nurse-alert:', message)
@@ -264,6 +294,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
         // Show the alert
         console.log('[DEBUG] Setting nurse alert visible to true')
         setNurseAlertVisible(true)
+        setupAlertTimeout()
       }
     })
     socket.on('send-mayday', handleMaydayReceived)
@@ -303,6 +334,9 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       socket.off('map-area-update')
       socket.off('map-area-delete')
       socket.close()
+      
+      // Clear any active timeout when unmounting
+      clearAlertTimeout();
     }
   }, [role, dispatch])
 
