@@ -47,6 +47,7 @@ const RegisterHospital: React.FC = () => {
 
   const role = localStorage.getItem('role')
   const userId = localStorage.getItem('uid')
+  const username = localStorage.getItem('username')
   const hospitalFromSlice = useSelector(
     (state: any) => state.hospital.hospitalData,
   )
@@ -302,7 +303,10 @@ const RegisterHospital: React.FC = () => {
 
       {/* Total Nurses */}
       <Typography variant="body1" sx={{ mt: 2 }}>
-        Nurses: None Listed
+        Nurses:{' '}
+        {hospitalData.nurses && hospitalData.nurses.length > 0
+          ? hospitalData.nurses.map((nurse: any) => nurse.username).join(', ')
+          : 'None Listed'}
       </Typography>
 
       {/* Show checkbox only if role is 'Nurse' */}
