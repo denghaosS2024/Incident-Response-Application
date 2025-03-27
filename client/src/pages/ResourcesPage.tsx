@@ -276,6 +276,7 @@ const ResourcesPage: React.FC = () => {
         }
       } catch (e: any) {
         if (e.message && e.message.includes('Unexpected end of JSON input')) {
+            // Fix for Lint error
         } else {
           console.error('Error assigning item to incident:', e)
         }
