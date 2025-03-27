@@ -15,7 +15,7 @@
         "clean": "rm -rf node_modules && cd client && rm -rf node_modules && cd .. && cd server && rm -rf node_modules && cd ..",
         "reinstall": "npm run clean && npm install",
         "format": "cd client && npm run format && cd .. && cd server && npm run format && cd ..",
-        "commit": "node pre-commit.mjs && npm run commit-cz",
+        "commit": "node pre-commit.mjs && git-cz",
         "commit-cz": "git-cz"
     },
     "devDependencies": {
