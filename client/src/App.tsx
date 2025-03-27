@@ -3,6 +3,7 @@ import { useFlags } from 'launchdarkly-react-client-sdk'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import ChatRoomPage from './pages/ChatRoomPage'
 import Contacts from './pages/Contacts'
+import DashboardPage from './pages/DashboardPage'
 import FindHospital from './pages/FindHospital'
 import GroupInformationPage from './pages/GroupInformationPage'
 import GroupsPage from './pages/GroupsPage'
@@ -76,6 +77,7 @@ export default function App() {
               <Route path="/hospitals" element={<HospitalsDirectory />} />
             )}
             <Route path="/find-hospital" element={<FindHospital />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
           </Route>
           <Route element={<RoutedHome showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />
