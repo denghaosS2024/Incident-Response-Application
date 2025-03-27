@@ -13,7 +13,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import request from '../utils/request'
 
@@ -46,7 +46,10 @@ const RegisterHospital: React.FC = () => {
   )
 
   const role = localStorage.getItem('role')
-  const username = localStorage.getItem('username')
+  const userId = localStorage.getItem('uid')
+  const hospitalFromSlice = useSelector(
+    (state: any) => state.hospital.hospitalData,
+  )
 
   /* ------------------------------ USE EFFECTS ------------------------------ */
 
@@ -101,61 +104,78 @@ const RegisterHospital: React.FC = () => {
     }
   }
 
+  // API call to update an existing hospital
+  const updateHospital = async (hospitalData: IHospital) => {
+    console.log('Calling API to update hospital.')
+    try {
+      const response = await request('/api/hospital', {
+        method: 'PUT',
+        body: JSON.stringify(hospitalData),
+        headers: { 'Content-Type': 'application/json' },
+      })
+      console.log('Hospital updated successfully:', response)
+      return response
+    } catch (error) {
+      console.error('Error updating hospital:', error)
+      return null
+    }
+  }
+
   /* ------------------------------ FUNCTIONS ------------------------------ */
 
   /* Function to create or update the hospital discussion (SEM-2563) */
   const updateHospitalDiscussion = async (hospitalData: IHospital) => {
     try {
-    const currentUserId = localStorage.getItem('uid')
-
-    if (!currentUserId) {
-      console.error('User not logged in');
-      return;
-    }
-
-    // Check if the hospital already has a group
-    const hospital: IHospital | null =  await fetchHospitalDetails(hospitalData.hospitalId);
-    if (!hospital) return;
-    
-    const hospitalGroup = hospital.hospitalGroupId;
-    
-    if (hospitalGroup!=null) {
-      // If the hospital already has a discussion group, we only need make sure that new nurses are added to it 
-      await request(`/api/channels/${hospitalGroup}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          users: [...hospitalData.nurses]
-        }),
-      })
-    } else {
-      // Create a new discussion group, where channelId=hospitalData._id (reason: the format of hospitalId does not match the format of channelId)
-      const newHospitalGroup  = await request('/api/channels', {
-        method: 'POST',
-        body: JSON.stringify({
-          _id: hospitalData._id,
-          owner: currentUserId,
-          name: hospitalData.hospitalName,         
-          users: [currentUserId, ...hospitalData.nurses]
-        }),
-      })
-      
-      // Update the hospital with the new hospitalGroupId
-      await request('/api/hospital', {
-        method: 'PUT',
-        body: JSON.stringify({
-          hospitalId: hospitalData.hospitalId,
-          hospitalGroupId: newHospitalGroup._id,
-          nurses: [...hospitalData.nurses]
-        }),
-      })
+      const currentUserId = localStorage.getItem('uid')
+      if (!currentUserId) {
+        console.error('User not logged in')
+        return
       }
-    
-      // Navigate back to the hospital directory -- confirmed with Cecile
-      navigate('/hospitals')
 
+      // Check if the hospital already has a group
+      const hospital: IHospital | null = await fetchHospitalDetails(
+        hospitalData.hospitalId,
+      )
+      if (!hospital) return
+
+      const hospitalGroup = hospital.hospitalGroupId
+
+      if (hospitalGroup != null) {
+        // If the hospital already has a discussion group, we only need make sure that new nurses are added to it
+        await request(`/api/channels/${hospitalGroup}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            users: [...hospitalData.nurses],
+          }),
+        })
+      } else {
+        // Create a new discussion group, where channelId=hospitalData._id (reason: the format of hospitalId does not match the format of channelId)
+        const newHospitalGroup = await request('/api/channels', {
+          method: 'POST',
+          body: JSON.stringify({
+            _id: hospitalData._id,
+            owner: currentUserId,
+            name: hospitalData.hospitalName,
+            users: [currentUserId, ...hospitalData.nurses],
+          }),
+        })
+
+        // Update the hospital with the new hospitalGroupId
+        await request('/api/hospital', {
+          method: 'PUT',
+          body: JSON.stringify({
+            hospitalId: hospitalData.hospitalId,
+            hospitalGroupId: newHospitalGroup._id,
+            nurses: [...hospitalData.nurses],
+          }),
+        })
+      }
+
+      // // Navigate back to the hospital directory -- confirmed with Cecile
+      navigate('/hospitals')
     } catch (error) {
-    console.error('Error in updateHospitalDiscussion:', error)
-    } 
+      console.error('Error in updateHospitalDiscussion:', error)
+    }
   }
 
   /* Function to show the alert */
@@ -165,7 +185,7 @@ const RegisterHospital: React.FC = () => {
     setOpenSnackbar(true)
   }
 
-  /* Function to register a new hospital on submit*/
+  /* Function to register or update a new hospital on submit*/
   const handleSubmit = async () => {
     if (!hospitalData.hospitalName || !hospitalData.hospitalAddress) {
       setErrors({
@@ -175,20 +195,40 @@ const RegisterHospital: React.FC = () => {
       return
     }
     console.log('Submitting hospital:', hospitalData)
-    const response = await registerHospital(hospitalData)
-    if (response) {
-      showSnackbar('Hospital created successfully!', 'success')
-      setTimeout(() => {
-        updateHospitalDiscussion(response);
-      }, 2000);
+    let response
+
+    // Check if hospitalId exists: update if true, else register new hospital
+    if (hospitalId) {
+      response = await updateHospital(hospitalData)
     } else {
-      showSnackbar('Error registering hospital.', 'error')
+      response = await registerHospital(hospitalData)
+    }
+
+    if (response) {
+      showSnackbar(
+        hospitalId
+          ? 'Hospital updated successfully!'
+          : 'Hospital created successfully!',
+        'success',
+      )
+
+      console.log('The response after creating an incident is :' + response)
+      dispatch(setHospital(response)) // update hospital slice on submit
+
+      setTimeout(() => {
+        updateHospitalDiscussion(response)
+      }, 2000)
+    } else {
+      showSnackbar(
+        hospitalId ? 'Error updating hospital.' : 'Error registering hospital.',
+        'error',
+      )
     }
   }
 
   /* Handle cancellation of hospital registration (SEM-2564) */
   const handleCancel = () => {
-    // TODO : Revert back to previous values (GET API call) or use redux
+    setHospitalData({ ...hospitalFromSlice })
   }
 
   /* Handle deletion of existing hospital (SEM-2565) */
@@ -271,10 +311,10 @@ const RegisterHospital: React.FC = () => {
           control={
             <Checkbox
               onChange={(e) => {
-                if (e.target.checked && username) {
+                if (e.target.checked && userId) {
                   setHospitalData((prev) => ({
                     ...prev,
-                    nurses: [...prev.nurses, username],
+                    nurses: [...prev.nurses, userId],
                   }))
                 }
               }}

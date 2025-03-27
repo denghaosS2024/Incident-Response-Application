@@ -7,5 +7,5 @@ export default interface IHospital {
   totalNumberERBeds: number
   totalNumberOfPatients: number
   nurses: string[]
-  hospitalGroupId?:  string // id of the associated chat channel
+  hospitalGroupId?: string // id of the associated chat channel
 }

@@ -1,3 +1,4 @@
+import { NavigateNext } from '@mui/icons-material'
 import { Button, ButtonProps } from '@mui/material'
 import { Meta, StoryObj } from '@storybook/react'
 
@@ -56,5 +57,13 @@ export const RegisterLinkButton: Story = {
     variant: 'text',
     color: 'primary',
     children: 'Register',
+  },
+}
+
+export const navigateArrowButton: Story = {
+  args: {
+    variant: 'outlined',
+    color: 'info',
+    children: <NavigateNext />,
   },
 }

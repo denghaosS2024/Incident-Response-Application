@@ -11,7 +11,7 @@ const TruckSchema = new Schema<ITruck>({
   name: { type: String, required: true, unique: true },
   assignedCity: { type: String, default: null },
   usernames: { type: [String], default: [] },
-  assignedIncident: { type: Schema.Types.ObjectId, default: null },
+  assignedIncident: { type: String, default: null },
 })
 
 export default model<ITruck>('Truck', TruckSchema)
