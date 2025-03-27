@@ -589,7 +589,20 @@ class ChannelController {
     }
 
     try {
-      const updateObj: any = {
+      // Define an interface for the MongoDB update operation
+      interface MessageUpdateOperation {
+        $push: {
+          acknowledgedBy: Types.ObjectId;
+          acknowledgedAt: string;
+          responses?: {
+            userId: Types.ObjectId;
+            response: 'ACCEPT' | 'BUSY';
+            timestamp: string;
+          };
+        };
+      }
+
+      const updateObj: MessageUpdateOperation = {
         $push: {
           acknowledgedBy: senderId,
           acknowledgedAt: new Date().toISOString(),

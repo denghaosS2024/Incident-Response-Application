@@ -29,6 +29,7 @@ export const getPriorityLevel = (alertType: string): number => {
 class AlertPriorityQueue {
   private queues: Record<string, IMessage[]> = {} // Keyed by channelId
   private activeAlerts: Record<string, IMessage> = {} // Keyed by channelId
+  private initialized = false
 
   /**
    * Add an alert to the queue or handle it based on priority
@@ -193,7 +194,64 @@ class AlertPriorityQueue {
       return 'HELP'
     }
   }
+
+  /**
+   * Check if a message is one of our active alerts and remove it if it has been acknowledged
+   * This is crucial for handling cases where other nurses have responded to the alert
+   * @param message The message that might be an acknowledged alert
+   * @returns True if an alert was removed, false otherwise
+   */
+  checkAndRemoveAcknowledgedAlert(message: IMessage): boolean {
+    // If this message is an active alert in any channel
+    if (message && message._id && message.channelId) {
+      const channelId = message.channelId;
+      const activeAlert = this.activeAlerts[channelId];
+      
+      // If this is our active alert and it has acknowledgments
+      if (activeAlert && activeAlert._id === message._id && 
+          message.acknowledgedBy && message.acknowledgedBy.length > 0) {
+        
+        console.log(`Alert ${message._id} has been acknowledged, removing from active alerts`);
+        // Complete this alert since it's been acknowledged
+        this.completeActiveAlert(channelId);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Initialize listeners for alert acknowledgments if not already done
+   */
+  initializeListeners(): void {
+    // Prevent multiple initializations
+    if (this.initialized) return;
+    this.initialized = true;
+    
+    // Use dynamic import to avoid circular dependencies
+    import('../utils/Socket').then(({default: socket}) => {
+      // Listen for alert acknowledgments
+      socket.on('acknowledge-alert', (updatedMessage: IMessage) => {
+        console.log('AlertPriorityQueue received acknowledge-alert', updatedMessage);
+        const removed = this.checkAndRemoveAcknowledgedAlert(updatedMessage);
+        console.log('Alert removed from queue:', removed);
+
+        // If this message has responses, also complete it
+        if (updatedMessage.responses && updatedMessage.responses.length > 0) {
+          console.log('Alert has responses, completing active alert');
+          this.completeActiveAlert(updatedMessage.channelId);
+        }
+      });
+    });
+  }
 }
 
-// Export a singleton
-export default new AlertPriorityQueue()
+
+// Create singleton instance
+const instance = new AlertPriorityQueue();
+
+// Initialize listeners
+instance.initializeListeners();
+
+// Export singleton
+export default instance;

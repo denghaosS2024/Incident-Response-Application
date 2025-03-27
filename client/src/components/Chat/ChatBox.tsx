@@ -24,6 +24,7 @@ interface ChatBoxProps {
   currentUserRole: string
   isLoading: boolean
   onSendMessage: (content: string, channelId: string) => Promise<void>
+  isHospitalGroup?: boolean
 }
 
 const ChatBox: React.FC<ChatBoxProps> = ({
@@ -33,6 +34,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   currentUserRole,
   isLoading,
   onSendMessage,
+  isHospitalGroup = false,
 }) => {
   const dispatch = useDispatch<AppDispatch>()
   // State for the snackbar
@@ -322,7 +324,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
                 currentUserRole={currentUserRole}
               />
             )}
-            {currentUserRole === 'Nurse' && (
+            {currentUserRole === 'Nurse' && isHospitalGroup && (
               <MessageNurseAlertOptions
                 channelId={channelId}
                 currentUserId={currentUserId}
