@@ -187,6 +187,15 @@ class IncidentController {
     const incidentCallGroup = channelId
     return await Incident.find({ incidentCallGroup }).exec()
   }
+
+  async closeIncident(incidentId: string): Promise<IIncident | null> {
+    return await Incident.findOneAndUpdate(
+      { incidentId },
+      { $set: { incidentState: 'Closed' } },
+      { new: true },
+    ).exec()
+  }
 }
+
 
 export default new IncidentController()
