@@ -49,4 +49,5 @@ export default interface IIncident {
     latitude: number
     longitude: number
   }
+  assignedVehicles: { type: string; name: string; usernames: string[] }[] // List of vehicles assigned to the incident
 }

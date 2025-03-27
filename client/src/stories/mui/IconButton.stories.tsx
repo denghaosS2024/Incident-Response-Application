@@ -1,13 +1,17 @@
-import { Meta, StoryObj } from '@storybook/react'
-import { IconButton, IconButtonProps } from '@mui/material'
 import {
+  AttachFile,
   Home,
   Message,
   PermContactCalendar,
   Phone,
-  AttachFile,
+  Settings,
   Warning,
 } from '@mui/icons-material'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import { IconButton, IconButtonProps } from '@mui/material'
+import { Meta, StoryObj } from '@storybook/react'
+
+
 
 const meta = {
   title: 'Material UI/IconButton',
@@ -88,4 +92,18 @@ export const WarningButton: Story = {
     size: 'medium',
     children: <Warning />,
   },
+}
+
+export const IncidentButton: Story = {
+  args: {
+    size: 'medium',
+    children: <ErrorOutlineIcon />,
+  },
+}
+
+export const IncidentTypeSettingsButton: Story = {
+  args: {
+    size: 'medium',
+    children: <Settings />,
+  },      
 }

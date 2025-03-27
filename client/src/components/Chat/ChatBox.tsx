@@ -24,6 +24,7 @@ interface ChatBoxProps {
   currentUserRole: string
   isLoading: boolean
   onSendMessage: (content: string, channelId: string) => Promise<void>
+  isHospitalGroup?: boolean
 }
 
 const ChatBox: React.FC<ChatBoxProps> = ({
@@ -33,6 +34,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   currentUserRole,
   isLoading,
   onSendMessage,
+  isHospitalGroup = false,
 }) => {
   const dispatch = useDispatch<AppDispatch>()
   // State for the snackbar
@@ -60,7 +62,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 
     const socket = SocketClient
     socket.connect()
-    
+
     // Track processed message IDs to prevent duplicates
     const processedAlertIds = new Set<string>()
 
@@ -77,31 +79,31 @@ const ChatBox: React.FC<ChatBoxProps> = ({
       console.log('Alert content:', data.content)
       console.log('Alert isAlert flag:', data.isAlert)
       console.log('Alert responders:', data.responders)
-      
+
       // Basic validations for alert messages
       if (!data || !data.content) {
         console.log('Invalid alert data, missing content')
         return
       }
-      
+
       // If this is a processed alert, skip it but only if we have an ID to track
       if (data._id && processedAlertIds.has(data._id)) {
         console.log('Alert already processed, skipping duplicate:', data._id)
         return
       }
-      
+
       // Check if this is a help-related message - more permissive check
-      const isHelpMessage = 
-        (data.isAlert || data.content.includes('HELP')) && 
+      const isHelpMessage =
+        (data.isAlert || data.content.includes('HELP')) &&
         (data.content.includes('Patient:') || data.content.includes('HELP'))
-      
+
       console.log('Is this a help message?', isHelpMessage)
-      
+
       if (!isHelpMessage) {
         console.log('Not a nurse help alert, ignoring')
         return
       }
-      
+
       // Don't show alert to the sender
       if (data.sender?._id === currentUserId) {
         console.log('Current user is the sender, not showing alert')
@@ -113,23 +115,24 @@ const ChatBox: React.FC<ChatBoxProps> = ({
         console.log('Current user is not a nurse, not showing alert')
         return
       }
-      
+
       // Check if message is targeted to nurses
-      const hasSpecificResponders = Array.isArray(data.responders) && data.responders.length > 0
-      
+      const hasSpecificResponders =
+        Array.isArray(data.responders) && data.responders.length > 0
+
       // For targeting, check if the current user is included in responders
       let isTargeted = false
-      
+
       if (hasSpecificResponders && data.responders) {
         isTargeted = data.responders.some((user: any) => {
           const userId = typeof user === 'object' ? user._id : user
           const userRole = typeof user === 'object' ? user.role : null
-          
+
           // If we have role info, make sure it's a nurse
           if (userRole !== null) {
             return userId === currentUserId && userRole === 'Nurse'
           }
-          
+
           // If no role info, just check the ID
           return userId === currentUserId
         })
@@ -138,14 +141,20 @@ const ChatBox: React.FC<ChatBoxProps> = ({
         isTargeted = true
       }
 
-      console.log('Is this nurse targeted?', isTargeted, 'Has specific responders:', hasSpecificResponders)
+      console.log(
+        'Is this nurse targeted?',
+        isTargeted,
+        'Has specific responders:',
+        hasSpecificResponders,
+      )
 
       // Check if not already acknowledged by this nurse
-      const notAcknowledged = !data.acknowledgedBy ||
+      const notAcknowledged =
+        !data.acknowledgedBy ||
         !data.acknowledgedBy.some((user: any) =>
           typeof user === 'object'
             ? user._id === currentUserId
-            : user === currentUserId
+            : user === currentUserId,
         )
 
       if (isTargeted && notAcknowledged) {
@@ -161,7 +170,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
           'Not showing alert. Already acknowledged:',
           !notAcknowledged,
           'or not targeted:',
-          !isTargeted
+          !isTargeted,
         )
       }
     }
@@ -262,8 +271,15 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 
   // Determine alert type from message content
   const getAlertType = (content: string): 'E' | 'U' | '' => {
-    if (content.startsWith('E HELP - Patient:')) return 'E'
-    if (content.startsWith('U HELP - Patient:')) return 'U'
+    if (content.includes('E HELP')) return 'E'
+    if (content.includes('U HELP')) return 'U'
+    // For regular HELP, ensure it's not an E or U help
+    if (
+      content.includes('HELP') &&
+      !content.includes('E HELP') &&
+      !content.includes('U HELP')
+    )
+      return ''
     return ''
   }
 
@@ -271,7 +287,9 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const getPatientName = (content: string): string => {
     // Extract patient name from the new format: 'HELP - Patient: PatientName - Nurses: X'
     const patientMatch = content.match(/Patient:\s*([^-]+)/)
-    return patientMatch && patientMatch[1] ? patientMatch[1].trim() : 'Unknown Patient'
+    return patientMatch && patientMatch[1]
+      ? patientMatch[1].trim()
+      : 'Unknown Patient'
   }
 
   return (
@@ -306,7 +324,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
                 currentUserRole={currentUserRole}
               />
             )}
-            {currentUserRole === 'Nurse' && (
+            {currentUserRole === 'Nurse' && isHospitalGroup && (
               <MessageNurseAlertOptions
                 channelId={channelId}
                 currentUserId={currentUserId}

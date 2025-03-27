@@ -37,7 +37,6 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
   const [isIncidentCommander, setIsIncidentCommander] = useState<boolean>(false)
   const currentUsername = localStorage.getItem('username')
   const checkIncidentCommander = async () => {
-    console.log(channelId)
     try {
       const incidents: IIncident[] = await request(
         `/api/incidents?channelId=${channelId}`,
@@ -45,20 +44,21 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
           method: 'GET',
         },
       )
-
+      console.log(incidents)
       const isCommander = incidents.some(
         (incident: IIncident) => incident.commander === currentUsername,
       )
       setIsIncidentCommander(isCommander)
     } catch (error) {
       console.error('Error fetching incidents:', error)
+      console.log('not exist')
       setIsIncidentCommander(false)
     }
   }
 
   useEffect(() => {
     checkIncidentCommander()
-  }, [currentUsername])
+  }, [channelId])
 
   // Fetch the first resopnders
   const handleFetchResponders = async () => {

@@ -31,7 +31,7 @@ class HospitalController {
    */
   async getHospitalById(hospitalId: string) {
     try {
-      const hospital = await Hospital.findOne({ hospitalId })
+      const hospital = await Hospital.findOne({ hospitalId }).populate('nurses')
       if (!hospital) {
         throw new Error('Hospital not found')
       }
@@ -48,7 +48,7 @@ class HospitalController {
    */
   async getAllHospitals() {
     try {
-      const hospitals = await Hospital.find().sort({hospitalName: 1})
+      const hospitals = await Hospital.find().sort({ hospitalName: 1 })
       return hospitals
     } catch (error) {
       console.error('Error fetching hospitals:', error)
@@ -56,22 +56,22 @@ class HospitalController {
     }
   }
 
-    /**
+  /**
    * Update an existing Hospital
    */
-     async updateHospital(hospital: Partial<IHospital>) {
-      if (!hospital.hospitalId) throw new Error("Invalid hospital data");
+  async updateHospital(hospital: Partial<IHospital>) {
+    if (!hospital.hospitalId) throw new Error('Invalid hospital data')
 
-      try {
-        const updatedHospital = await Hospital.findOneAndUpdate(
-            { hospitalId: hospital.hospitalId},
-            { $set: hospital },
-            { new: true }
-        ).exec();
-        return updatedHospital;
+    try {
+      const updatedHospital = await Hospital.findOneAndUpdate(
+        { hospitalId: hospital.hospitalId },
+        { $set: hospital },
+        { new: true },
+      ).exec()
+      return updatedHospital
     } catch (error) {
-        console.error("Error updating hospital:", error);
-        throw error;
+      console.error('Error updating hospital:', error)
+      throw error
     }
   }
 }

@@ -1,4 +1,4 @@
-export default interface IHospital {
+export default interface IHospital<T = string> {
   _id?: string // MongoDB id of the hospital
   hospitalId: string
   hospitalName: string
@@ -6,6 +6,6 @@ export default interface IHospital {
   hospitalDescription: string
   totalNumberERBeds: number
   totalNumberOfPatients: number
-  nurses: string[]
-  hospitalGroupId?:  string // id of the associated chat channel
+  nurses: T[]
+  hospitalGroupId?: string
 }

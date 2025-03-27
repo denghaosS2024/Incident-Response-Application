@@ -16,9 +16,6 @@ export default class Globals {
     if (!import.meta.env.VITE_MAPBOX_TOKEN) {
       console.warn('VITE_MAPBOX_TOKEN is not set. Using fallback token.')
     }
-    return (
-      import.meta.env.VITE_MAPBOX_TOKEN ??
-      'pk.eyJ1IjoiZG9tb25jYXNzaXUiLCJhIjoiY204Mnlqc3ZzMWxuNjJrcTNtMTFjOTUyZiJ9.isQSr9JMLSztiJol_nQSDA'
-    )
+    return import.meta.env.VITE_MAPBOX_TOKEN ?? ''
   }
 }

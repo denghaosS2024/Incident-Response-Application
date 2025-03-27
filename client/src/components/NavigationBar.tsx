@@ -81,6 +81,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
   ) {
     title = 'Incidents'
   }
+  if (pathname === '/incidents/report') {
+    title = 'Incident Report'
+  }
 
   if (pathname.startsWith('/messages/') && name) {
     title = `${name} Messages`
@@ -185,7 +188,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
           {(role === 'Nurse' || role === 'Police' || role === 'Fire') && (
             <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
           )}
-           {(role === 'Police' || role === 'Fire') && (
+          {(role === 'Police' || role === 'Fire') && (
             <MenuItem onClick={findHospital}>Find Hospital</MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>

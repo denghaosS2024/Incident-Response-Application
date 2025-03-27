@@ -80,13 +80,13 @@ class TruckController {
   }
 
   async addUsernameToTruck(truckName: string, username: string) {
-    const truck = await Truck.findOne({
+    const truck: ITruck | null = await Truck.findOne({
       name: truckName,
     })
     if (!truck) {
       throw new Error(`Truck with name '${truckName}' does not exist`)
     }
-    const updatedTruck = await Truck.findOneAndUpdate(
+    const updatedTruck: ITruck | null = await Truck.findOneAndUpdate(
       { name: truckName },
       { $addToSet: { usernames: username } },
       { new: true },
@@ -95,13 +95,13 @@ class TruckController {
   }
 
   async releaseUsernameFromTruck(truckName: string, username: string) {
-    const truck = await Truck.findOne({
+    const truck: ITruck | null = await Truck.findOne({
       name: truckName,
     })
     if (!truck) {
       throw new Error(`Truck with name '${truckName}' does not exist`)
     }
-    const updatedTruck = await Truck.findOneAndUpdate(
+    const updatedTruck: ITruck | null = await Truck.findOneAndUpdate(
       { name: truckName },
       { $pull: { usernames: username } },
       { new: true },

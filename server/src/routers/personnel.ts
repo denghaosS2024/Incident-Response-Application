@@ -1,7 +1,7 @@
-import { Request, Response, Router } from "express";
-import PersonnelController from "../controllers/PersonnelController";
+import { Request, Response, Router } from 'express'
+import PersonnelController from '../controllers/PersonnelController'
 
-const personnelRouter = Router();
+const personnelRouter = Router()
 
 /**
  * @swagger
@@ -23,15 +23,15 @@ const personnelRouter = Router();
  *       500:
  *         description: Server error while fetching personnel.
  */
-personnelRouter.get("/", async (_req: Request, res: Response) => {
+personnelRouter.get('/', async (_req: Request, res: Response) => {
   try {
-    const personnel = await PersonnelController.getAllAvailablePersonnel();
-    res.json(personnel);
+    const personnel = await PersonnelController.getAllAvailablePersonnel()
+    res.json(personnel)
   } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
+    const error = err as Error
+    res.status(500).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -72,16 +72,19 @@ personnelRouter.get("/", async (_req: Request, res: Response) => {
  *       500:
  *         description: Server error while updating personnel.
  */
-personnelRouter.put("/cities", async (req: Request, res: Response) => {
+personnelRouter.put('/cities', async (req: Request, res: Response) => {
   try {
-    const { username, cityName } = req.body;
-    const updatedPersonnel = await PersonnelController.updatePersonnelCity(username, cityName);
-    res.status(200).json(updatedPersonnel);
+    const { username, cityName } = req.body
+    const updatedPersonnel = await PersonnelController.updatePersonnelCity(
+      username.toString(),
+      cityName.toString(),
+    )
+    res.status(200).json(updatedPersonnel)
   } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
+    const error = err as Error
+    res.status(500).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -116,14 +119,18 @@ personnelRouter.put("/cities", async (req: Request, res: Response) => {
  *             schema:
  *               $ref: "#/components/schemas/Personnel"
  */
-personnelRouter.put("/vehicles", async (req: Request, res: Response) => {
+personnelRouter.put('/vehicles', async (req: Request, res: Response) => {
   try {
-    const { personnelName, vehicleName } = req.body;
-    const updatedPersonnel = await PersonnelController.selectVehicleForPersonnel(personnelName, vehicleName);
-    res.status(200).json(updatedPersonnel);
+    const { personnelName, vehicleName } = req.body
+    const updatedPersonnel =
+      await PersonnelController.selectVehicleForPersonnel(
+        personnelName.toString(),
+        vehicleName.toString(),
+      )
+    res.status(200).json(updatedPersonnel)
   } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
+    const error = err as Error
+    res.status(500).json({ error: error.message })
   }
 })
 
@@ -155,17 +162,22 @@ personnelRouter.put("/vehicles", async (req: Request, res: Response) => {
  *       200:
  *         description: Vehicle released successfully.
  */
-personnelRouter.put("/vehicles/release", async (req: Request, res: Response) => {
-  try {
-    const { personnelName, vehicleName } = req.body;
-    const updatedPersonnel = await PersonnelController.releaseVehicleFromPersonnel(personnelName, vehicleName);
-    res.status(200).json(updatedPersonnel);
-  } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
-  }
-}
-);
+personnelRouter.put(
+  '/vehicles/release',
+  async (req: Request, res: Response) => {
+    try {
+      const { personnelName, vehicleName } = req.body
+      const updatedPersonnel =
+        await PersonnelController.releaseVehicleFromPersonnel(
+          personnelName.toString(),
+          vehicleName.toString(),
+        )
+      res.status(200).json(updatedPersonnel)
+    } catch (err) {
+      const error = err as Error
+      res.status(500).json({ error: error.message })
+    }
+  },
+)
 
-
-export default personnelRouter;
+export default personnelRouter

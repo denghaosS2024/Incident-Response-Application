@@ -107,9 +107,9 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
             const currentUserId = localStorage.getItem('uid')
             // Extra filter to ensure we ONLY have nurses (role check is critical) and exclude current user
             const nurseUsersFiltered = users.filter(
-              (user: IUser) => 
+              (user: IUser) =>
                 user._id !== currentUserId && // Exclude current user
-                user.role === 'Nurse' // STRICT role check
+                user.role === 'Nurse', // STRICT role check
             )
             console.log('Filtered nurse users:', nurseUsersFiltered.length)
             setNurseUsers(nurseUsersFiltered)
@@ -158,16 +158,19 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         })
         return
       }
-      
+
       // We've already filtered to include ONLY nurses in nurseUsers, but let's be extra safe
-      const availableNurses = nurseUsers.filter(user => user.role === 'Nurse')
-      
+      const availableNurses = nurseUsers.filter((user) => user.role === 'Nurse')
+
       // Ensure we don't request more nurses than are available
       // If nursesCount is somehow 0, default to 1 (should not happen with UI constraints)
-      const actualNurseCount = Math.min(nursesCount || 1, availableNurses.length)
-      
+      const actualNurseCount = Math.min(
+        nursesCount || 1,
+        availableNurses.length,
+      )
+
       // Get responder IDs for only nurses
-      const responderIds = availableNurses.map(user => user._id)
+      const responderIds = availableNurses.map((user) => user._id)
 
       // Create a more readable alert content format
       const alertContent = `${alertType} HELP - Patient: ${selectedPatient} - Nurses: ${actualNurseCount}`
@@ -177,7 +180,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         responders: responderIds, // Include all nurses as responders
         acknowledgedBy: [],
         acknowledgeAt: [],
-        alertType: alertType ? `${alertType}_HELP` : 'HELP',
+        alertType: alertType ? `${alertType} HELP` : 'HELP',
         patientUsername: selectedPatient,
         nursesNeeded: actualNurseCount,
       }
@@ -186,11 +189,14 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
       // Send the message through the API
       // If called from Messages page without a specific channel, use the nurse alerts channel
       const targetChannelId = channelId || 'nurse-alerts'
-      
-      const message = await request(`/api/channels/${targetChannelId}/messages`, {
-        method: 'POST',
-        body: JSON.stringify(messageData),
-      })
+
+      const message = await request(
+        `/api/channels/${targetChannelId}/messages`,
+        {
+          method: 'POST',
+          body: JSON.stringify(messageData),
+        },
+      )
 
       console.log('Alert created:', message)
 

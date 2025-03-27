@@ -8,6 +8,7 @@ import GroupInformationPage from './pages/GroupInformationPage'
 import GroupsPage from './pages/GroupsPage'
 import HomePage from './pages/HomePage'
 import HospitalsDirectory from './pages/HospitalsDirectory'
+import IncidentReportPage from './pages/IncidentReportPage.tsx'
 import IncidentsPage from './pages/IncidentsPage'
 import LoginPage from './pages/LoginPage'
 import MapPage from './pages/MapPage'
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/reach911" element={<Reach911Page />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/incidents" element={<IncidentsPage />} />
+            <Route path="/incidents/report" element={<IncidentReportPage />} />
             <Route path="/organization" element={<Organization />} />
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile" element={<ProfilePage />} />
@@ -73,7 +75,7 @@ export default function App() {
             {hospitalsDirectory && (
               <Route path="/hospitals" element={<HospitalsDirectory />} />
             )}
-            <Route path="/find-hospital" element={<FindHospital />}/>
+            <Route path="/find-hospital" element={<FindHospital />} />
           </Route>
           <Route element={<RoutedHome showBackButton isSubPage />}>
             <Route path="/messages/:id" element={<ChatRoomPage />} />

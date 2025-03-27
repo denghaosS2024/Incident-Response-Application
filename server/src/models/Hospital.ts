@@ -9,7 +9,7 @@ export interface IHospital extends Document {
   totalNumberERBeds: number
   totalNumberOfPatients: number
   nurses: Schema.Types.ObjectId[]
-  hospitalGroupId?: Types.ObjectId;  // Reference to Channel model
+  hospitalGroupId?: Types.ObjectId
 }
 
 const HospitalSchema = new Schema({
@@ -27,7 +27,7 @@ const HospitalSchema = new Schema({
   hospitalAddress: {
     type: String,
     required: true,
-    unique: true,
+    unique: false,
   },
   hospitalDescription: {
     type: String,
@@ -57,7 +57,7 @@ const HospitalSchema = new Schema({
     ref: 'Channel',
     required: false,
     default: null,
-},
+  },
 })
 
 export default mongoose.model<IHospital>('Hospital', HospitalSchema)

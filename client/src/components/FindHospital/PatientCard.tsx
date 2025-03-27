@@ -12,15 +12,19 @@ interface PatientProps {
 const PatientCard: React.FC<PatientProps> = ({ patient, id, index }) => {
   return (
     <Droppable droppableId={id}>
-      {(provided) => (
+      {(provided, snapshot) => (
         <Box ref={provided.innerRef} {...provided.droppableProps}>
           <Draggable draggableId={id} index={index}>
-            {(providedDrag, snapshot) => (
+            {(providedDrag, snapshotDrag) => (
               <Box
                 ref={providedDrag.innerRef}
                 {...providedDrag.draggableProps}
                 {...providedDrag.dragHandleProps}
-                className="border border-gray-300 w-full rounded-lg p-3 mb-2"
+                className={
+                  snapshotDrag.isDragging
+                    ? 'border border-gray-300 rounded-lg w-full p-3'
+                    : 'border-b border-gray-300 w-full p-3'
+                }
               >
                 <Typography variant="body2" className="text-sm text-gray-500">
                   {patient.username}
