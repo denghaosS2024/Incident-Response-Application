@@ -1,7 +1,7 @@
 import IHospital from '@/models/Hospital'
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
+import request from '../utils/request'
 import { HospitalState } from '../utils/types'
-import request from '@/utils/request'
 
 /* ---------------------- Initial State ---------------------- */
 const initialState: HospitalState = {
@@ -18,7 +18,7 @@ const fetchHospitals = createAsyncThunk('hospital/fetchHospitals', async () => {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
-    return response 
+    return response
   } catch (error) {
     console.error('Error fetching hostpitals:', error)
     throw error
