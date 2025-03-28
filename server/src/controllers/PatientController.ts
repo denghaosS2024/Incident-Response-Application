@@ -22,6 +22,12 @@ class PatientController {
     return await Patient.findOne({ patientId }).lean()
   }
 
+  async findByHospitalId(hospitalId: string) {
+    return await Patient.find({
+      hospitalId: hospitalId
+    })
+  }
+
   /**
    * Get the expanded patient info by patientId, no more joining in the frontend
    * @param patientId - The ID of the patient
