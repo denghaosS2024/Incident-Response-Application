@@ -13,6 +13,7 @@ class HospitalController {
         hospitalAddress: hospital.hospitalAddress,
         hospitalDescription: hospital.hospitalDescription,
         totalNumberERBeds: hospital.totalNumberERBeds,
+        totalNumberOfPatients: hospital.totalNumberOfPatients,
         nurses: hospital.nurses,
         hospitalGroupId: hospital.hospitalGroupId,
       })

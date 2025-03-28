@@ -65,11 +65,11 @@ const HospitalsDirectory: React.FC = () => {
               render: (hospital:IHospital): number => hospital.totalNumberERBeds,
             },
             {
+              // available beds
               key: 'totalNumberOfPatients',
               align: 'center',
               label: 'Available ER Beds',
-              // TODO: update this logic to display available beds
-              render: (hospital:IHospital): number => hospital.totalNumberERBeds,
+              render: (hospital:IHospital): number => hospital.totalNumberERBeds - hospital.totalNumberOfPatients,
             },
             {
               key: 'hospitalId',

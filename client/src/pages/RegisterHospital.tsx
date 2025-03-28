@@ -329,6 +329,12 @@ const RegisterHospital: React.FC = () => {
                     startAdornment: (
                         <InputAdornment position="start">🛏️</InputAdornment>
                     ),
+                    inputProps: {
+                        inputMode: 'numeric', // Forces numeric keyboard on iOS
+                        pattern: '[0-9]*', // Ensures only numbers are entered
+                        max: 110,
+                        min: 1,
+                      },
                 }}
             />
 
