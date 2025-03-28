@@ -1,5 +1,5 @@
 import IHospital from '@/models/Hospital'
-import { fetchHospitals } from '@/redux/hospitalSlice'
+import { fetchHospitals, sortHospitalsByDistance } from '@/redux/hospitalSlice'
 import { AppDispatch, RootState } from '@/redux/store'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useEffect } from 'react'
@@ -12,11 +12,19 @@ const HospitalList: React.FC = () => {
     (state: RootState) => state.hospital.hospitals,
   )
 
-
-  
   useEffect(() => {
-    dispatch(fetchHospitals())
+    const fetchHospitalsList = async () => {
+      await dispatch(fetchHospitals())
+      await dispatch(sortHospitalsByDistance())
+    }
+
+    fetchHospitalsList()
   }, [dispatch])
+
+  useEffect(() => {
+    console.log('Current Hospital List: ')
+    console.log(hospitals)
+  }, [hospitals])
 
   const loading: boolean = useSelector(
     (state: RootState) => state.hospital.loading,

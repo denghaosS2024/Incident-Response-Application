@@ -2,6 +2,12 @@ import IHospital from '@/models/Hospital'
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import request from '../utils/request'
 import { HospitalState } from '../utils/types'
+import {
+  calculateDistance,
+  fetcHospitalCoordinates,
+  getCurrentLocation,
+} from './SupportingFunctions/Hospital/HospitalExternelAPI'
+import { RootState } from './store'
 
 /* ---------------------- Initial State ---------------------- */
 const initialState: HospitalState = {
@@ -24,6 +30,28 @@ const fetchHospitals = createAsyncThunk('hospital/fetchHospitals', async () => {
     throw error
   }
 })
+
+const sortHospitalsByDistance = createAsyncThunk(
+  'hospital/sortHospitalsByDistance',
+  async (_, { getState }) => {
+    const state = getState() as RootState
+    const hospitals = state.hospital.hospitals
+    const currentLocation = await getCurrentLocation()
+    const hospitalsWithDistance = await Promise.all(
+      hospitals.map(async (hospital) => {
+        const coords = await fetcHospitalCoordinates(hospital)
+        const distance = await calculateDistance(coords, currentLocation)
+        return {
+          ...hospital,
+          distance,
+        }
+      }),
+    )
+    return hospitalsWithDistance.sort(
+      (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity),
+    )
+  },
+)
 
 /* ---------------------- Redux Slice ---------------------- */
 const hospitalSlice = createSlice({
@@ -56,6 +84,25 @@ const hospitalSlice = createSlice({
     setHospitalError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload
     },
+
+    // sortHospitalsByDistance(state) {
+    //   const currentLocation = getCurrentLocation()
+    //   state.hospitals.forEach(async (hospital) => {
+    //     const hospitalCoordinate = await fetcHospitalCoordinates(hospital)
+    //     hospital.distance = await calculateDistance(
+    //       hospitalCoordinate,
+    //       currentLocation,
+    //     )
+    //     console.log(hospital)
+    //   })
+
+    //   state.hospitals = [...state.hospitals].sort(
+    //     (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity),
+    //   )
+
+    //   console.log('State Sorted Hospital: ')
+    //   console.log(state.hospitals)
+    // },
   },
 
   extraReducers: (builder) => {
@@ -71,6 +118,9 @@ const hospitalSlice = createSlice({
           state.loading = false
         },
       )
+      .addCase(sortHospitalsByDistance.fulfilled, (state, action) => {
+        state.hospitals = action.payload
+      })
   },
 })
 
@@ -82,6 +132,6 @@ export const {
   setHospitalError,
 } = hospitalSlice.actions
 
-export { fetchHospitals }
+export { fetchHospitals, sortHospitalsByDistance }
 
 export default hospitalSlice.reducer
