@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import TruckController from '../controllers/TruckController'
-
+import { ITruck } from '../models/Truck'
 const truckRouter = Router()
 
 /**
@@ -29,6 +29,12 @@ const truckRouter = Router()
  */
 truckRouter.get('/', async (_req: Request, res: Response) => {
   try {
+    const { name } = _req.query
+    if (name) {
+      const car: ITruck | null = await TruckController.getTruckByName(name as string)
+      res.json(car)
+      return
+    }
     const trucks = await TruckController.getAllTrucks()
     res.json(trucks)
   } catch (err) {
@@ -188,11 +194,8 @@ truckRouter.put('/cities', async (req: Request, res: Response) => {
 
 truckRouter.put('/usernames', async (req: Request, res: Response) => {
   try {
-    const { truckName, username } = req.body
-    const updatedTruck = await TruckController.addUsernameToTruck(
-      truckName,
-      username,
-    )
+    const { truckName, username, commandingIncident } = req.body
+    const updatedTruck = await TruckController.addUsernameToTruck(truckName, username, commandingIncident)
     res.status(200).json(updatedTruck)
   } catch (err) {
     const error = err as Error
