@@ -1,6 +1,7 @@
 import CarController from '../../src/controllers/CarController'
 import Car from '../../src/models/Car'
 import * as TestDatabase from '../utils/TestDatabase'
+import Incident from '../../src/models/Incident'
 
 describe('CarController', () => {
   beforeAll(async () => {
@@ -158,6 +159,52 @@ describe('CarController', () => {
   
       // Assertions
       await expect(CarController.getAvailableCarsWithResponder()).rejects.toThrow('Database error');
+    });
+
+    it('should add the username to the car when a responder is added', async () => {
+      const testCar = 
+        {
+          name: 'Police Car 1',
+          usernames: [],
+          assignedIncident: null,
+          assignedCity: 'New York',
+        };
+      await Car.create(testCar);
+      const updatedCar = await CarController.addUsernameToCar('Police Car 1', 'Officer Smith', null);
+      expect(updatedCar).toBeDefined();
+      expect(updatedCar?.usernames).toContain('Officer Smith');
+    });
+
+    it ('should add the username and assign the car to incident when a commander is added', async () => {
+      const testCar = 
+        {
+          name: 'Police Car 1',
+          usernames: [],
+          assignedIncident: null,
+          assignedCity: 'New York',
+        };
+      const commandingIncident = await Incident.create({ incidentId: 'IJohn', caller: 'John', openingDate: new Date(), incidentState: 'Assigned', owner: 'officer_john', 
+            commander: 'officer_john', address: "", type: "U", priority: "E", incidentCallGroup: null})
+      await Car.create(testCar);
+      const updatedCar = await CarController.addUsernameToCar('Police Car 1', 'Officer Smith', commandingIncident);
+      expect(updatedCar).toBeDefined();
+      expect(updatedCar?.usernames).toContain('Officer Smith');
+      expect(updatedCar?.assignedIncident).toBe('IJohn');
+    });
+
+    it('should be able to get car by name', async () => {
+      const testCar = 
+        {
+          name: 'Police Car 1',
+          usernames: [],
+          assignedIncident: null,
+          assignedCity: 'New York',
+        };
+      await Car.create(testCar);
+      const car = await CarController.getCarByName('Police Car 1');
+      expect(car).toBeDefined();
+      expect(car?.name).toBe('Police Car 1');
+      expect(car?.assignedCity).toBe('New York');
     });
   });
 })
