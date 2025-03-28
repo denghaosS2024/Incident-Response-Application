@@ -1,15 +1,16 @@
-import IUser from '@/models/User'
+import IPatient from '@/models/Patient'
 import { Box, Typography } from '@mui/material'
 import React from 'react'
 import { Draggable, Droppable } from 'react-beautiful-dnd'
 
 interface PatientProps {
-  patient: IUser
+  patient: IPatient
   id: string
   index: number
+  isInHopital: boolean
 }
 
-const PatientCard: React.FC<PatientProps> = ({ patient, id, index }) => {
+const PatientCard: React.FC<PatientProps> = ({ patient, id, index, isInHopital }) => {
   return (
     <Droppable droppableId={id}>
       {(provided, snapshot) => (
@@ -27,7 +28,7 @@ const PatientCard: React.FC<PatientProps> = ({ patient, id, index }) => {
                 }
               >
                 <Typography variant="body2" className="text-sm text-gray-500">
-                  {patient.username}
+                  {patient.name}
                 </Typography>
               </Box>
             )}

@@ -1,19 +1,19 @@
 import { Box, Typography } from '@mui/material'
 import PatientCard from './PatientCard'
-import IUser from '@/models/User'
 import { AppDispatch, RootState } from '@/redux/store'
 import { useDispatch, useSelector } from 'react-redux'
-import { loadContacts } from '@/redux/contactSlice'
 import { useEffect } from 'react'
+import IPatient from '@/models/Patient'
+import { fetchPatients } from '@/redux/patientSlice'
 
 const PatientList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const patients: IUser[] = useSelector(
-    (state: RootState) => state.contactState.contacts,
+  const patients: IPatient[] = useSelector(
+    (state: RootState) => state.patientState.patients,
   )
 
   useEffect(() => {
-    dispatch(loadContacts())
+    dispatch(fetchPatients())
   }, [dispatch])
 
   return (
@@ -30,6 +30,7 @@ const PatientList: React.FC = () => {
               id={'patient-' + id}
               patient={patient}
               index={id}
+              isInHopital={false}
             />
           ))
         ) : (

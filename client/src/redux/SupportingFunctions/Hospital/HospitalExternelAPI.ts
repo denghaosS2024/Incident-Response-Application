@@ -65,8 +65,8 @@ export const calculateDistance = async (
     }
     const data = await response.json()
     if (data.routes && data.routes.length > 0) {
-      const dist = data.routes[0].distance
-      console.log('dist ' + dist)
+      const dist = Math.round(data.routes[0].distance)
+      
       return dist
     }
   } catch (err) {
