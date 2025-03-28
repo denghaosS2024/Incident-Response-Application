@@ -292,7 +292,7 @@ export default Router()
    *         required: true
    *         schema:
    *           type: string
-   *           description: User ID
+   *         description: User ID
    *     responses:
    *       200:
    *         description: Groups retrieved successfully
@@ -400,56 +400,7 @@ export default Router()
   // Wrong Route swagger Documentation in url
   /**
    * @swagger
-   * /api/:id:
-   *  get:
-   *   summary: Get a channel by ID
-   *  description: Get a channel by its ID
-   * tags: [Channels]
-   * parameters:
-   *  - in: path
-   *   name: id
-   *  required: true
-   * schema:
-   * type: string
-   * description: Channel ID
-   * responses:
-   * 200:
-   * description: Channel retrieved successfully
-   * content:
-   * application/json:
-   * schema:
-   * $ref: '#/components/schemas/Channel'
-   * 404:
-   * description: Channel not found
-   */
-  .get('/:id', async (request, response) => {
-    try {
-      const channelId = new Types.ObjectId(request.params.id) // will throw error for invalid id
-      const channel = await ChannelController.getChannel(channelId)
-      response.json(channel)
-    } catch (e) {
-      const error = e as Error
-      response.status(404).json({ message: error.message })
-    }
-  })
-  /**
-   * @swagger
-   * /api/public/messages:
-   *   get:
-   *     summary: Redirect to public channel messages
-   *     description: Redirect to the public channel's messages endpoint
-   *     tags: [Channels]
-   *     responses:
-   *       308:
-   *         description: Redirect to public channel messages
-   */
-  .get('/public/messages', async (_, response) => {
-    const publicChannel = await Channel.getPublicChannel()
-    return response.redirect(`/api/channels/${publicChannel.id}/messages`)
-  })
-  /**
-   * @swagger
-   * /api/:id/messages:
+   * /api/channels/{id}/messages:
    *   get:
    *     summary: Get messages for a channel
    *     description: Get messages for a specific channel
@@ -889,4 +840,54 @@ export default Router()
       const error = e as Error
       response.status(404).send({ message: error.message })
     }
+  })
+
+  /**
+   * @swagger
+   * /api/channels/{id}:
+   *   get:
+   *     summary: Get a channel by ID
+   *     description: Get a channel by its ID
+   *     tags: [Channels]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           description: Channel ID
+   *     responses:
+   *       200:
+   *         description: Channel retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Channel'
+   *       404:
+   *         description: Channel not found
+   */
+  .get('/:id', async (request, response) => {
+    try {
+      const channelId = new Types.ObjectId(request.params.id) // will throw error for invalid id
+      const channel = await ChannelController.getChannel(channelId)
+      response.json(channel)
+    } catch (e) {
+      const error = e as Error
+      response.status(404).json({ message: error.message })
+    }
+  })
+  /**
+   * @swagger
+   * /api/channels/public/messages:
+   *   get:
+   *     summary: Redirect to public channel messages
+   *     description: Redirect to the public channel's messages endpoint
+   *     tags: [Channels]
+   *     responses:
+   *       308:
+   *         description: Redirect to public channel messages
+   */
+  .get('/public/messages', async (_, response) => {
+    const publicChannel = await Channel.getPublicChannel()
+    return response.redirect(`/api/channels/${publicChannel.id}/messages`)
   })

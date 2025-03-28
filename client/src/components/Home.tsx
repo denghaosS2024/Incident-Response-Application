@@ -27,6 +27,7 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Groups', link: '/groups', icon: <Groups2Icon /> },
     { text: 'Map', link: '/map', icon: <LocationIcon /> },
     { text: 'Incidents', link: '/incidents', icon: <ErrorOutlineIcon /> },
+    { text: 'Dashboard', link: '/dashboard' },
   ],
   Police: [
     { text: 'Messages', link: '/messages', icon: <Message /> },
@@ -38,6 +39,7 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Resource Allocation', link: '/resources' },
     { text: 'Patients', link: '/' },
     { text: 'Find Hospital', link: '/find-hospital' },
+    { text: 'Dashboard', link: '/dashboard' },
   ],
   Fire: [
     { text: 'Messages', link: '/messages', icon: <Message /> },
@@ -49,6 +51,7 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Resource Allocation', link: '/resources' },
     { text: 'Patients', link: '/' },
     { text: 'Find Hospital', link: '/find-hospital' },
+    { text: 'Dashboard', link: '/dashboard' },
   ],
   Nurse: [
     { text: 'Messages', link: '/messages', icon: <Message /> },

@@ -389,3 +389,38 @@ export default Router()
       response.status(400).json({ message: error.message })
     }
   })
+  /*
+  * @swagger
+  * /api/incidents/{id}:
+  *   delete:
+  *     summary: Close an incident
+  *     tags: [Incidents]
+  *     parameters:
+  *       - in: path
+  *         name: id
+  *         required: true
+  *         description: ID of the incident to close
+  *         schema:
+  *           type: string
+  *     responses:
+  *       200:
+  *         description: Incident closed successfully
+  *       404:
+  *         description: Incident not found
+  *       500:
+  *         description: Internal server error
+  */
+  .delete('/:id', async (request, response) => {
+    const { id } = request.params
+    try {
+      const result = await IncidentController.closeIncident(id)
+      if (!result) {
+        response.status(404).json({ message: 'Incident not found' })
+        return
+      }
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
+    }
+  })

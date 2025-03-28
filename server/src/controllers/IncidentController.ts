@@ -239,6 +239,16 @@ class IncidentController {
       throw error;
     }
   }
+
+
+  async closeIncident(incidentId: string): Promise<IIncident | null> {
+    return await Incident.findOneAndUpdate(
+      { incidentId },
+      { $set: { incidentState: 'Closed' } },
+      { new: true },
+    ).exec()
+  }
 }
+
 
 export default new IncidentController()

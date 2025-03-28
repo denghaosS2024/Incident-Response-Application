@@ -1,8 +1,8 @@
 import React from 'react';
 import { ListItem, Box, ListItemText, Typography } from '@mui/material';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
-import IIncident from '@/models/Incident';
-import getRoleIcon from '@/components/common/RoleIcon';
+import IIncident from '../../models/Incident';
+import getRoleIcon from '../../components/common/RoleIcon';
 import { ListItemAvatar, Avatar } from '@mui/material';
 
 interface IncidentItemProps {

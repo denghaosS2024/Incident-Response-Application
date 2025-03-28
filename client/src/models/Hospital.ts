@@ -8,4 +8,5 @@ export default interface IHospital<T = string> {
   totalNumberOfPatients: number
   nurses: T[]
   hospitalGroupId?: string
+  distance?: number
 }

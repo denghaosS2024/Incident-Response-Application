@@ -62,6 +62,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     '/hospitals': 'Hospitals',
     '/resources': 'Resources',
     '/find-hospital': 'Find Hospital',
+    '/dashboard': 'Dashboard',
   }
 
   const roleTitles: Record<string, string> = {
@@ -80,6 +81,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
     (role === 'Fire' || role === 'Police' || role === 'Dispatch')
   ) {
     title = 'Incidents'
+  }
+  if (pathname === '/incidents/report') {
+    title = 'Incident Report'
   }
 
   if (pathname.startsWith('/messages/') && name) {
@@ -149,6 +153,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     closeMenu()
   }
 
+  const navigateToDashboard = () => {
+    if (['Dispatch', 'Police', 'Fire'].includes(role)) {
+      navigate('/dashboard')
+    }
+    closeMenu()
+  }
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -185,8 +196,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
           {(role === 'Nurse' || role === 'Police' || role === 'Fire') && (
             <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
           )}
-           {(role === 'Police' || role === 'Fire') && (
+          {(role === 'Police' || role === 'Fire') && (
             <MenuItem onClick={findHospital}>Find Hospital</MenuItem>
+          )}
+          {(role === 'Dispatch' ||
+            role === 'Police' ||
+            role === 'Fire') && (
+            <MenuItem onClick={navigateToDashboard}>Dashboard</MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
