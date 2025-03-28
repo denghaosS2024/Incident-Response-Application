@@ -12,6 +12,8 @@ const HospitalList: React.FC = () => {
     (state: RootState) => state.hospital.hospitals,
   )
 
+
+  
   useEffect(() => {
     dispatch(fetchHospitals())
   }, [dispatch])

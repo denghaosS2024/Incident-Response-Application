@@ -8,7 +8,6 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd'
 import { useNavigate } from 'react-router-dom'
 
 const FindHospital: React.FC = () => {
-  
   const navigate = useNavigate()
 
   // Navigate to map and activate hospital layer
