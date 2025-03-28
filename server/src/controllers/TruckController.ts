@@ -17,7 +17,7 @@ class TruckController {
   }
 
   // Get cars that not assigned to an incident and has at least one responder onboard
-  async getAvailableTruckWithResponder() {
+  async getAvailableTrucksWithResponder() {
     try {
       const truck = await Truck.find({
         assignedIncident: null,

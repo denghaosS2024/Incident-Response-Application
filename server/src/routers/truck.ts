@@ -39,7 +39,7 @@ truckRouter.get('/', async (_req: Request, res: Response) => {
 
 truckRouter.get('/availability', async (_req: Request, res: Response) => {
   try {
-    const trucks = await TruckController.getAvailableTruckWithResponder()
+    const trucks = await TruckController.getAvailableTrucksWithResponder()
     res.json(trucks)
   } catch (err) {
     const error = err as Error
