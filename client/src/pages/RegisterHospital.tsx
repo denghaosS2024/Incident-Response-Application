@@ -148,15 +148,24 @@ const RegisterHospital: React.FC = () => {
             if (!hospital) return
 
             const hospitalGroup = hospital.hospitalGroupId
-
+                    
             if (hospitalGroup != null) {
-                // If the hospital already has a discussion group, we only need make sure that new nurses are added to it
-                await request(`/api/channels/${hospitalGroup}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        users: [...hospitalData.nurses],
-                    }),
+
+                const channel = await request(`/api/channels/${hospitalGroup}`, {
+                    method: 'GET',
                 })
+
+                // if the current user is not registerd
+                if (!channel.users.includes(currentUserId)){
+                    // If the hospital already has a discussion group, we only need make sure that new nurses are added to it
+                    await request(`/api/channels`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                        _id: hospitalGroup,
+                        users: [...hospitalData.nurses],
+                        }),
+                    })
+                }
             } else {
                 // Create a new discussion group, where channelId=hospitalData._id (reason: the format of hospitalId does not match the format of channelId)
                 const newHospitalGroup = await request('/api/channels', {
@@ -165,7 +174,7 @@ const RegisterHospital: React.FC = () => {
                         _id: hospitalData._id,
                         owner: currentUserId,
                         name: hospitalData.hospitalName,
-                        users: [currentUserId, ...hospitalData.nurses],
+                        users: [...hospitalData.nurses],
                     }),
                 })
 
