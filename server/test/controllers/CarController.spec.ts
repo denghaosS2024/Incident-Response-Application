@@ -110,8 +110,8 @@ describe('CarController', () => {
       expect(availableCars.length).toBe(2);
   
       // Check that the returned cars are the expected ones
-      const carNames = availableCars.map(car => car.name).sort();
-      expect(carNames).toEqual(['Police Car 1', 'Police Car 2'].sort());
+      const carNames = availableCars.map(car => car.name).sort((a, b) => a.localeCompare(b));
+      expect(carNames).toEqual(['Police Car 1', 'Police Car 2'].sort((a, b) => a.localeCompare(b)));
   
       // Check that the cars that should be excluded are not in the result
       expect(carNames).not.toContain('Police Car 3');
