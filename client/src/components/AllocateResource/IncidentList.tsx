@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, List } from '@mui/material';
-import IIncident from '@/models/Incident';
+import IIncident from '../../models/Incident';
 import IncidentItem from './IncidentItem';
 
 interface IncidentListProps {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ListItem, ListItemText, Box, ListItemAvatar, Avatar, Typography } from '@mui/material';
 import { Draggable } from 'react-beautiful-dnd';
-import getRoleIcon from '@/components/common/RoleIcon';
+import getRoleIcon from '../../components/common/RoleIcon';
 
 interface VehicleItemProps {
   name: string;
