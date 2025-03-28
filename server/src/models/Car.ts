@@ -5,7 +5,7 @@ export interface ICar extends Document {
   name: string
   assignedCity?: string | null
   usernames?: string[] | []
-  assignedIncident: Schema.Types.ObjectId | null
+  assignedIncident: string | null
 }
 
 const CarSchema = new Schema<ICar>({

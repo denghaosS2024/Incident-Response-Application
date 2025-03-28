@@ -43,6 +43,11 @@ export interface IIncident extends Document {
     | null
   priority: IncidentPriority // The priority of the incident
   incidentCallGroup?: Types.ObjectId // Reference to Channel model
+  assignedVehicles: {
+    type: 'Car' | 'Truck'
+    name: string
+    usernames: string[]
+  }[]
 }
 
 const IncidentSchema = new Schema({

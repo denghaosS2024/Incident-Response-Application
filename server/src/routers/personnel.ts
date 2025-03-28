@@ -121,11 +121,12 @@ personnelRouter.put('/cities', async (req: Request, res: Response) => {
  */
 personnelRouter.put('/vehicles', async (req: Request, res: Response) => {
   try {
-    const { personnelName, vehicleName } = req.body
+    const { personnelName, commandingIncident, vehicle } = req.body
     const updatedPersonnel =
       await PersonnelController.selectVehicleForPersonnel(
         personnelName.toString(),
-        vehicleName.toString(),
+        commandingIncident,
+        vehicle
       )
     res.status(200).json(updatedPersonnel)
   } catch (err) {

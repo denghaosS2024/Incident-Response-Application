@@ -29,6 +29,7 @@ import { format } from 'date-fns'
 import React, { useEffect, useState } from 'react'
 import request from '../../utils/request'
 import getRoleIcon from '../common/RoleIcon'
+import IIncident from '@/models/Incident'
 
 interface Vehicle {
   _id: string
@@ -141,11 +142,23 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
    */
   const assignVehicle = async (vehicleName: string) => {
     try {
+      let commandingIncident: IIncident | null = null;
+      const response = await request(`/api/incidents?commander=${encodeURIComponent(currentUser)}`)
+      if (response.length > 0) {
+        commandingIncident = response[0];
+      }
+      let vehicle;
+      if (currentUserPersonnel?.role === 'Fire') {
+        vehicle = await request(`/api/trucks?name=${encodeURIComponent(vehicleName)}`)
+      } else if (currentUserPersonnel?.role === 'Police') {
+        vehicle = await request(`/api/cars?name=${encodeURIComponent(vehicleName)}`)
+      }
       await request('/api/personnel/vehicles/', {
         method: 'PUT',
         body: JSON.stringify({
           personnelName: currentUser,
-          vehicleName,
+          commandingIncident: commandingIncident || null,
+          vehicle,
         }),
       })
       if (currentUserPersonnel?.role === 'Fire') {
@@ -154,6 +167,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
           body: JSON.stringify({
             truckName: vehicleName,
             username: currentUser,
+            commandingIncident: commandingIncident || null,
           }),
         })
       } else if (currentUserPersonnel?.role === 'Police') {
@@ -162,9 +176,18 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
           body: JSON.stringify({
             carName: vehicleName,
             username: currentUser,
+            commandingIncident: commandingIncident || null,
           }),
         })
       }
+      await request('/api/incidents/vehicles', {
+        method: 'PUT',
+        body: JSON.stringify({
+          personnel: currentUserPersonnel,
+          commandingIncident: commandingIncident || null,
+          vehicle: vehicle,
+        }),
+      })
       // After assigning, refresh
       refreshData()
       setSelectedVehicle(vehicleName)

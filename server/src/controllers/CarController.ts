@@ -1,5 +1,6 @@
 import Car, { ICar } from '../models/Car'
 import City from '../models/City'
+import { IIncident } from '../models/Incident'
 
 class CarController {
   async getAllCars() {
@@ -78,19 +79,33 @@ class CarController {
     return updatedCar
   }
 
-  async addUsernameToCar(carName: string, username: string) {
-    const car: ICar | null = await Car.findOne({
-      name: carName,
-    })
-    if (!car) {
-      throw new Error(`Car with name '${carName}' does not exist`)
+  async addUsernameToCar(carName: string, username: string, commandingIncident: IIncident | null) {
+    try {
+      const car: ICar | null = await Car.findOne({
+        name: carName,
+      })
+      if (!car) {
+        throw new Error(`Car with name '${carName}' does not exist`)
+      }
+      if (commandingIncident && !car.assignedIncident ) {
+        const updatedCar = await Car.findOneAndUpdate(
+          { name: carName },
+          { $addToSet: { usernames: username }, 
+          assignedIncident: commandingIncident.incidentId },
+          { new: true },
+        )
+        return updatedCar;
+      }
+      const updatedCar: ICar | null = await Car.findOneAndUpdate(
+        { name: carName },
+        { $addToSet: { usernames: username } },
+        { new: true },
+      )
+      return updatedCar;
+    } catch (error) {
+      console.error('Error adding username to car:', error)
+      throw error
     }
-    const updatedCar: ICar | null = await Car.findOneAndUpdate(
-      { name: carName },
-      { $addToSet: { usernames: username } },
-      { new: true },
-    )
-    return updatedCar
   }
 
   async releaseUsernameFromCar(carName: string, username: string) {
@@ -106,6 +121,21 @@ class CarController {
       { new: true },
     )
     return updatedCar
+  }
+
+  async getCarByName(name: string) {
+    try {
+      const car: ICar | null = await Car.findOne({
+        name: name,
+      })
+      if (!car) {
+        throw new Error(`Car with name '${name}' does not exist`)
+      }
+      return car;
+    } catch (error) {
+      console.error('Error fetching car:', error)
+      throw error
+    }
   }
 }
 

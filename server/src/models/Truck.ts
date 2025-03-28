@@ -4,7 +4,7 @@ export interface ITruck extends Document {
   name: string
   assignedCity?: string | null
   usernames?: string[] | []
-  assignedIncident?: Schema.Types.ObjectId | null
+  assignedIncident?: string | null
 }
 
 const TruckSchema = new Schema<ITruck>({

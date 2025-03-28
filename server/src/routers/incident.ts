@@ -272,6 +272,18 @@ export default Router()
    *         schema:
    *           type: string
    *         description: Retrieve incident details by incidentId.
+   *       - in: query
+   *         name: channelId
+   *         required: false
+   *         schema:
+   *          type: string
+   *         description: Retrieve incident details by channelId.
+   *       - in: query
+   *         name: commander
+   *         required: false
+   *         schema:
+   *          type: string
+   *         description: Retrieve incident details by commander.
    *     responses:
    *       200:
    *         description: Incidents retrieved successfully.
@@ -317,6 +329,17 @@ export default Router()
       const { caller } = request.query
       const { incidentId } = request.query
       const { channelId } = request.query
+      const { commander } = request.query
+
+      if (commander) {
+        const result = await IncidentController.getIncidentByCommander(
+          commander as string,
+        )
+        return result && result.length > 0 
+        ? response.json(result) 
+        : response.json([]);
+      }
+
       let result
       if (caller) {
         result = await IncidentController.getIncidentsByCaller(caller as string)
@@ -336,18 +359,33 @@ export default Router()
           response.status(404).json({ message: 'No incidents found' })
           return
         }
-      } else {
+      }  else {
         result = await IncidentController.getAllIncidents()
       }
 
       if (!result || result.length === 0) {
-        response.status(204).json({ message: 'No incidents found' })
-        return
+        return response.status(204).json({ message: 'No incidents found' })
       }
 
-      response.json(result)
+      return response.json(result)
     } catch (e) {
       const error = e as Error
-      response.status(500).json({ message: error.message })
+      return response.status(500).json({ message: error.message })
+    }
+  })
+
+  .put('/vehicles', async (request, response) => {
+    const { personnel, commandingIncident, vehicle } = request.body
+
+    try {
+      const result = await IncidentController.addVehicleToIncident(
+        personnel,
+        commandingIncident,
+        vehicle,
+      )
+      response.status(200).json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(400).json({ message: error.message })
     }
   })

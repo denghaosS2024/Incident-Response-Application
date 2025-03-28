@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import CarController from '../controllers/CarController'
-
+import { ICar } from '../models/Car'
 const carRouter = Router()
 
 /**
@@ -29,6 +29,12 @@ const carRouter = Router()
  */
 carRouter.get('/', async (_req: Request, res: Response) => {
   try {
+    const { name } = _req.query
+    if (name) {
+      const car: ICar | null = await CarController.getCarByName(name as string)
+      res.json(car)
+      return
+    }
     const cars = await CarController.getAllCars()
     res.json(cars)
   } catch (err) {
@@ -192,8 +198,8 @@ carRouter.put('/cities', async (req: Request, res: Response) => {
 
 carRouter.put('/usernames', async (req: Request, res: Response) => {
   try {
-    const { carName, username } = req.body
-    const updatedCar = await CarController.addUsernameToCar(carName, username)
+    const { carName, username, commandingIncident } = req.body
+    const updatedCar = await CarController.addUsernameToCar(carName, username, commandingIncident)
     res.status(200).json(updatedCar)
   } catch (err) {
     const error = err as Error

@@ -2,6 +2,9 @@ import { Types } from 'mongoose'
 import Incident, { IncidentPriority, type IIncident } from '../models/Incident'
 import { ROLES } from '../utils/Roles'
 import UserConnections from '../utils/UserConnections'
+import {ICar} from '../models/Car'
+import {ITruck} from '../models/Truck'
+import {IUser} from '../models/User'
 
 class IncidentController {
   /**
@@ -186,6 +189,55 @@ class IncidentController {
   async getIncidentByChannelId(channelId: string): Promise<IIncident[]> {
     const incidentCallGroup = channelId
     return await Incident.find({ incidentCallGroup }).exec()
+  }
+
+  async getIncidentByCommander(commander: string): Promise<IIncident[]> {
+    return await Incident.find({ commander: commander }).exec()
+  }
+
+  async addVehicleToIncident(personnel:IUser, commandingIncident:IIncident, vehicle: ICar | ITruck){
+    try{
+      if (vehicle.assignedIncident){
+        const assignedIncident = await Incident.findOne({ incidentId: vehicle.assignedIncident });
+        if (!assignedIncident) {
+          throw new Error(`Incident with ID '${vehicle.assignedIncident}' not found`);
+        }
+        const existingVehicleIndex = assignedIncident.assignedVehicles.findIndex(
+          vehicle => vehicle.name === vehicle.name 
+        );
+        if (vehicle.assignedIncident && !personnel.assignedIncident) {
+          if (existingVehicleIndex !== -1) {
+            // Create an update operation to add the username to the specific vehicle's usernames
+            const updateOperation = {
+              $addToSet: { 
+                [`assignedVehicles.${existingVehicleIndex}.usernames`]: personnel.username 
+              }
+            };
+          
+            const updatedIncident: IIncident | null = await Incident.findByIdAndUpdate(assignedIncident._id, updateOperation, { new: true });
+            return updatedIncident;
+          }
+        }
+      } else {
+        if (commandingIncident && !vehicle.assignedIncident && (!personnel.assignedCar && !personnel.assignedTruck)) {
+          // Create an update operation to add the username to the specific vehicle's usernames
+          const updatedIncident = await Incident.findByIdAndUpdate(commandingIncident._id, {
+            $push: { 
+              assignedVehicles: { 
+                type: personnel.role === 'Police' ? 'Car' : 'Truck',
+                name: vehicle.name,
+                usernames: vehicle.usernames
+              }
+            }
+          })
+          return updatedIncident;
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error adding vehicle to incident:', error);
+      throw error;
+    }
   }
 }
 
