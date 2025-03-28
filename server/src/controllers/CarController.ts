@@ -79,6 +79,13 @@ class CarController {
     return updatedCar
   }
 
+  /**
+   * 
+   * @param carName which is the name of the selected Car
+   * @param username which is the username of the responder
+   * @param commandingIncident which is the incident that the responder is commanding
+   * @returns the updated car 
+   */
   async addUsernameToCar(carName: string, username: string, commandingIncident: IIncident | null) {
     try {
       const car: ICar | null = await Car.findOne({
@@ -123,6 +130,11 @@ class CarController {
     return updatedCar
   }
 
+  /**
+   * 
+   * @param name which is the name of the car
+   * @returns the car object
+   */
   async getCarByName(name: string) {
     try {
       const car: ICar | null = await Car.findOne({

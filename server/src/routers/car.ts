@@ -11,6 +11,13 @@ const carRouter = Router()
  *     description: Retrieves a list of all available cars sorted by name.
  *     tags:
  *       - Cars
+*      parameters:
+*        - in: query
+*          name: name
+*          required: false
+*          schema:
+*            type: string
+*          description: Filter cars by name.
  *     responses:
  *       200:
  *         description: A list of cars retrieved successfully.
@@ -196,6 +203,43 @@ carRouter.put('/cities', async (req: Request, res: Response) => {
   }
 })
 
+/**
+ * @swagger
+ * /api/incidents/{id}/vehicles:
+ *   put:
+ *     summary: Add a vehicle to an incident
+ *     tags: [Incidents]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the incident to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               personnel:
+ *                 type: string
+ *                 description: The personnel to assign the vehicle to
+ *                 example: john_doe
+ *               commandingIncident:
+ *                 type: object
+ *                 description: The incident object commanding by the current user
+ *               vehicle:
+ *                 type: string
+ *                 description: The vehicle to assign to the incident
+ *                 example: Car123
+ *     responses:
+ *       200:
+ *         description: Vehicle added to incident successfully
+ *       400:
+ *         description: Error adding vehicle to incident: {error message}
+ */
 carRouter.put('/usernames', async (req: Request, res: Response) => {
   try {
     const { carName, username, commandingIncident } = req.body

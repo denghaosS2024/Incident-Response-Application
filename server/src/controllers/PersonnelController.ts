@@ -6,8 +6,13 @@ import { ROLES } from '../utils/Roles'
 import { IIncident } from '../models/Incident'
 class PersonnelController {
   /**
-   * Get all available personnel (Police and Firefighters) who are not assigned to any city.
-   */
+   * Update the assigned Car for a specific personnel.
+   * @param username - The username of the personnel to update.
+   * @param vehicleName - The name of the vehicle to assign.
+   * @param assignedIncidentId - The incidentId to assign the vehicle to.
+   * @returns The updated personnel object.
+   *
+   * */
   private updateCarAssignment(
     username: string, 
     vehicleName: string, 
@@ -29,6 +34,15 @@ class PersonnelController {
     );
   }
 
+
+  /**
+   * Update the assigned Truck for a specific personnel.
+   * @param username - The username of the personnel to update.
+   * @param vehicleName - The name of the vehicle to assign.
+   * @param assignedIncidentId - The incidentId to assign the vehicle to.
+   * @returns The updated personnel object.
+   *
+   * */
   private updateTruckAssignment(
     username: string, 
     vehicleName: string, 
@@ -50,6 +64,9 @@ class PersonnelController {
     );
   }
 
+  /**
+   * Get all available personnel (Police and Firefighters) who are not assigned to any city.
+   */
   async getAllAvailablePersonnel() {
     try {
       const unassignedUsers = await User.find({
@@ -115,7 +132,13 @@ class PersonnelController {
     }
   }
 
-
+  /**
+   * Assign the vehicle information to the personnel.
+   * @param personnelName - The username of the personnel to update.
+   * @param commandingIncident - The incident object commanding by the current user.
+   * @param vehicle - The vehicle selected.
+   * @returns The updated personnel details.
+   */
   async selectVehicleForPersonnel(personnelName: string, commandingIncident: IIncident, vehicle: ICar | ITruck) {
     try{
       if (commandingIncident && vehicle.assignedIncident && commandingIncident.incidentId !== vehicle.assignedIncident) {

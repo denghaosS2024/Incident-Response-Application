@@ -191,10 +191,21 @@ class IncidentController {
     return await Incident.find({ incidentCallGroup }).exec()
   }
 
+  /**
+   * @param commander which is the username of the commander
+   * @returns incident details based on commander
+   */
   async getIncidentByCommander(commander: string): Promise<IIncident[]> {
     return await Incident.find({ commander: commander }).exec()
   }
 
+  /**
+   *
+   * @param personnel which is the user object
+   * @param commandingIncident which is the incident commanding by the user
+   * @param vehicle which is the vehicle selected
+   * @returns updated incident details
+   */
   async addVehicleToIncident(personnel:IUser, commandingIncident:IIncident, vehicle: ICar | ITruck){
     try{
       if (vehicle.assignedIncident){

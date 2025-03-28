@@ -107,10 +107,12 @@ personnelRouter.put('/cities', async (req: Request, res: Response) => {
  *               personnelName:
  *                 type: string
  *                 example: "john_doe"
- *               vehicleName:
- *                 type: string
- *                 example: "Car123"
- *                 description: Name of the vehicle to assign. Pass `null` to remove vehicle from a personnel.
+ *               commandingIncident:
+ *                 type: object
+ *                 description: Incident that the personnel is commanding.
+ *               vehicle:
+ *                 type: object
+ *                 description: The vehicle (Car or Truck) to assign. 
  *     responses:
  *       200:
  *         description: Vehicle updated successfully.

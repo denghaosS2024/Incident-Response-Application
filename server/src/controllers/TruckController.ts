@@ -103,7 +103,7 @@ class TruckController {
       )
       return updatedTruck;
     } catch (error) {
-      console.error('Error adding username to car:', error)
+      console.error('Error adding username to truck:', error)
       throw error
     }
   }
