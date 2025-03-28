@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import TruckController from '../controllers/TruckController'
-
+import { ITruck } from '../models/Truck'
 const truckRouter = Router()
 
 /**
@@ -29,6 +29,12 @@ const truckRouter = Router()
  */
 truckRouter.get('/', async (_req: Request, res: Response) => {
   try {
+    const { name } = _req.query
+    if (name) {
+      const car: ITruck | null = await TruckController.getTruckByName(name as string)
+      res.json(car)
+      return
+    }
     const trucks = await TruckController.getAllTrucks()
     res.json(trucks)
   } catch (err) {
@@ -186,13 +192,48 @@ truckRouter.put('/cities', async (req: Request, res: Response) => {
   }
 })
 
+/**
+ * @swagger
+ * /api/trucks/usernames:
+ *   put:
+ *     summary: Add a username to a truck
+ *     description: Assigns a username to a truck as the commanding incident.
+ *     tags:
+ *       - Trucks
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - truckName
+ *               - username
+ *               - commandingIncident
+ *             properties:
+ *               truckName:
+ *                 type: string
+ *                 example: "Fire Truck 1"
+ *               username:
+ *                 type: string
+ *                 example: "john_doe"
+ *               commandingIncident:
+ *                 type: object
+ *                 description: The incident object commanding by the current user
+ *     responses:
+ *       200:
+ *         description: Truck updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Truck"
+ *       400:
+ *         description: Error adding username to truck
+ */
 truckRouter.put('/usernames', async (req: Request, res: Response) => {
   try {
-    const { truckName, username } = req.body
-    const updatedTruck = await TruckController.addUsernameToTruck(
-      truckName,
-      username,
-    )
+    const { truckName, username, commandingIncident } = req.body
+    const updatedTruck = await TruckController.addUsernameToTruck(truckName, username, commandingIncident)
     res.status(200).json(updatedTruck)
   } catch (err) {
     const error = err as Error

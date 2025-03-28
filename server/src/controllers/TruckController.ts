@@ -1,6 +1,6 @@
 import City from '../models/City'
 import Truck, { ITruck } from '../models/Truck'
-
+import { IIncident } from '../models/Incident'
 class TruckController {
   async getAllTrucks() {
     try {
@@ -79,19 +79,33 @@ class TruckController {
     return updatedTruck
   }
 
-  async addUsernameToTruck(truckName: string, username: string) {
-    const truck: ITruck | null = await Truck.findOne({
-      name: truckName,
-    })
-    if (!truck) {
-      throw new Error(`Truck with name '${truckName}' does not exist`)
+  async addUsernameToTruck(truckName: string, username: string, commandingIncident: IIncident | null) {
+    try {
+      const truck: ITruck | null = await Truck.findOne({
+        name: truckName,
+      })
+      if (!truck) {
+        throw new Error(`Truck with name '${truckName}' does not exist`)
+      }
+      if (commandingIncident && !truck.assignedIncident ) {
+        const updatedTruck = await Truck.findOneAndUpdate(
+          { name: truckName },
+          { $addToSet: { usernames: username }, 
+          assignedIncident: commandingIncident.incidentId },
+          { new: true },
+        )
+        return updatedTruck;
+      }
+      const updatedTruck: ITruck | null = await Truck.findOneAndUpdate(
+        { name: truckName },
+        { $addToSet: { usernames: username } },
+        { new: true },
+      )
+      return updatedTruck;
+    } catch (error) {
+      console.error('Error adding username to truck:', error)
+      throw error
     }
-    const updatedTruck: ITruck | null = await Truck.findOneAndUpdate(
-      { name: truckName },
-      { $addToSet: { usernames: username } },
-      { new: true },
-    )
-    return updatedTruck
   }
 
   async releaseUsernameFromTruck(truckName: string, username: string) {
@@ -107,6 +121,21 @@ class TruckController {
       { new: true },
     )
     return updatedTruck
+  }
+
+  async getTruckByName(name: string) {
+    try {
+      const truck: ITruck | null = await Truck.findOne({
+        name: name,
+      })
+      if (!truck) {
+        throw new Error(`Truck with name '${name}' does not exist`)
+      }
+      return truck;
+    } catch (error) {
+      console.error('Error fetching car:', error)
+      throw error
+    }
   }
 }
 
