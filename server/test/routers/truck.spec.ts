@@ -70,8 +70,8 @@ describe('Truck Routes', () => {
                 expect(response.body.length).toBe(2);
             
                 // Check that the returned trucks are the expected ones
-                const truckNames = response.body.map((truck: any) => truck.name).sort();
-                expect(truckNames).toEqual(['Fire Truck 1', 'Fire Truck 2'].sort());
+                const truckNames = response.body.map((truck: any) => truck.name).sort((a, b) => a.localeCompare(b));
+                expect(truckNames).toEqual(['Fire Truck 1', 'Fire Truck 2'].sort((a, b) => a.localeCompare(b)));
             
                 // Verify that results are sorted by name
                 expect(response.body[0].name.localeCompare(response.body[1].name)).toBeLessThanOrEqual(0);

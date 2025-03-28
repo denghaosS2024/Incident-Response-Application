@@ -111,8 +111,8 @@ describe('TruckController', () => {
         expect(availableTrucks.length).toBe(2);
     
         // Check that the returned trucks are the expected ones
-        const truckNames = availableTrucks.map(truck => truck.name).sort();
-        expect(truckNames).toEqual(['Truck 1', 'Truck 2'].sort());
+        const truckNames = availableTrucks.map(truck => truck.name).sort((a, b) => a.localeCompare(b));
+        expect(truckNames).toEqual(['Truck 1', 'Truck 2'].sort((a, b) => a.localeCompare(b)));
     
         // Check that the trucks that should be excluded are not in the result
         expect(truckNames).not.toContain('Truck 3');
