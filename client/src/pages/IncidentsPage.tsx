@@ -420,8 +420,8 @@ function IncidentsPage() {
             <IconButton
               sx={{
                 position: 'fixed',
-                bottom: 16,
-                right: 16,
+                bottom: 30,
+                right: 10,
                 width: 56,
                 height: 56,
               }}

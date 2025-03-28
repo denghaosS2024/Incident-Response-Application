@@ -48,7 +48,7 @@ const GenericItemizeContainer = <T,>({
   return (
     <Box
       sx={{
-        border: '1px solid black',
+        border: '1.5px solid #ddd',
         borderRadius: '12px',
         overflow: 'hidden',
         marginBottom: 2,
@@ -71,18 +71,20 @@ const GenericItemizeContainer = <T,>({
       <TableContainer sx={{ width: '100%', overflowX: 'auto' }}>
         <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
           {showHeader && headerColumns.length > 0 && (
-            <TableHead>
-              <TableRow>
+            <TableHead sx={{ border: 'none' }}>
+              <TableRow sx={{ borderBottom: 'none' }}>
                 {headerColumns.map((column) => (
                   <TableCell
                     key={column.key}
                     align={column.align || 'center'}
                     sx={{
-                      fontWeight: 'bold',
                       padding: '8px 16px',
                       whiteSpace: 'normal',
                       overflow: 'visible',
                       width: column.width,
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.primary.contrastText,
+                      borderRight: `1px solid ${theme.palette.primary.main}`,
                     }}
                   >
                     {column.label || ''}

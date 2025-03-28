@@ -61,13 +61,13 @@ const HospitalsDirectory: React.FC = () => {
             {
               key: 'totalNumberERBeds',
               align: 'center',
-              label: 'ER beds: Total',
+              label: 'Total ER Beds',
               render: (hospital:IHospital): number => hospital.totalNumberERBeds,
             },
             {
               key: 'totalNumberOfPatients',
               align: 'center',
-              label: 'ER beds: Available',
+              label: 'Available ER Beds',
               // TODO: update this logic to display available beds
               render: (hospital:IHospital): number => hospital.totalNumberERBeds,
             },
@@ -87,18 +87,18 @@ const HospitalsDirectory: React.FC = () => {
             },
           ]}
         />
-   <IconButton
+        <IconButton
               sx={{
                 position: 'fixed',
-                bottom: 16,
-                right: 16,
+                bottom: 30,
+                right: 10,
                 width: 56,
-                height: 56,
+                height: 56
               }}
               onClick={redirectToRegisterHospital}
             >
               <Add fontSize="large" />
-            </IconButton>
+            </IconButton>          
     </Box>
   )
 }
