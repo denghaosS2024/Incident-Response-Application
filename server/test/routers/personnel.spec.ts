@@ -119,7 +119,7 @@ describe('Personnel Routes', () => {
         .expect(500)
 
       expect(response.body).toHaveProperty('error')
-      expect(response.body.error).toMatch(/does not exist/i) // or something similar from your code
+      expect(response.body.error).toMatch(/does not exist/i)
     })
   })
 
@@ -175,7 +175,7 @@ describe('Personnel Routes', () => {
       await User.create({
         username: 'RandomUser',
         password: 'pw',
-        role: 'civilian',
+        role: ROLES.CITIZEN,
       })
 
       const response = await request(app)
@@ -187,8 +187,8 @@ describe('Personnel Routes', () => {
         })
         .expect(500)
 
-      expect(response.body).toHaveProperty('error')
-      expect(response.body.error).toMatch(/not a police or firefighter/i)
+      expect(response.body).toHaveProperty('message')
+      expect(response.body.message).toMatch(/not a police or firefighter/i)
     })
   })
 
