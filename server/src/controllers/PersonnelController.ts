@@ -50,16 +50,6 @@ class PersonnelController {
     );
   }
 
-  async getPersonnelByName(username: string) {
-    try {
-      const personnel: IUser | null = await User.findOne({ username: username })
-      return personnel
-    } catch (error) {
-      console.error('Error fetching personnel:', error)
-      throw error
-    }
-  }
-
   async getAllAvailablePersonnel() {
     try {
       const unassignedUsers = await User.find({
