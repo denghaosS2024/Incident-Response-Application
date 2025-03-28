@@ -30,6 +30,8 @@ import React, { useEffect, useState } from 'react'
 import request from '../../utils/request'
 import getRoleIcon from '../common/RoleIcon'
 import IIncident from '@/models/Incident'
+import AlertSnackbar from '../common/AlertSnackbar'
+import { IRequestError } from '@/utils/request'
 
 interface Vehicle {
   _id: string
@@ -69,7 +71,8 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
   const currentUserPersonnel = data.personnel.find(
     (person) => person.name === currentUser,
   )
-
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [openSnackbar, setOpenSnackbar] = useState(false)
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null)
 
   /**
@@ -137,6 +140,9 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
     }
   }
 
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false)
+  }
   /**
    * Attempt to assign a new vehicle
    */
@@ -191,8 +197,11 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
       // After assigning, refresh
       refreshData()
       setSelectedVehicle(vehicleName)
-    } catch (error) {
-      console.error('Error assigning vehicle:', error)
+    } catch (e) {
+      const error = e as IRequestError
+      console.log('Error:', error)
+      setErrorMessage(`Error: ${error.message}`)
+      setOpenSnackbar(true)
     }
   }
 
@@ -460,6 +469,14 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
           </Grid>
         </AccordionDetails>
       </Accordion>
+      <AlertSnackbar
+        open={openSnackbar}
+        message={errorMessage || ''}
+        onClose={handleCloseSnackbar}
+        severity="error"
+        vertical="bottom"
+        horizontal="center"
+      />
     </Box>
   )
 }

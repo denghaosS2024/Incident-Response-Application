@@ -149,6 +149,10 @@ class PersonnelController {
       if (!personnel) {
         throw new Error(`Personnel with username '${personnelName}' does not exist`);
       }
+
+      if (personnel.assignedCar || personnel.assignedTruck) {
+        throw new Error(`Personnel with username '${personnelName}' already has a vehicle assigned`);
+      }
       const assignedIncidentId = vehicle.assignedIncident;
       let updatedPersonnel: IUser | null;
       if ( personnel.role === ROLES.POLICE) {

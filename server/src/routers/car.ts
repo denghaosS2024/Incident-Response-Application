@@ -247,7 +247,7 @@ carRouter.put('/usernames', async (req: Request, res: Response) => {
     res.status(200).json(updatedCar)
   } catch (err) {
     const error = err as Error
-    res.status(400).json({ error: error.message })
+    res.status(400).json({ message: error.message })
   }
 })
 
@@ -261,7 +261,7 @@ carRouter.put('/usernames/release', async (req: Request, res: Response) => {
     res.status(200).json(updatedCar)
   } catch (err) {
     const error = err as Error
-    res.status(400).json({ error: error.message })
+    res.status(400).json({ message: error.message })
   }
 })
 export default carRouter

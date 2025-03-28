@@ -120,6 +120,10 @@ personnelRouter.put('/cities', async (req: Request, res: Response) => {
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Personnel"
+ *       400:
+ *         description: Bad request. Missing or invalid parameters.
+ *       500:
+ *         description: Server error while updating personnel.
  */
 personnelRouter.put('/vehicles', async (req: Request, res: Response) => {
   try {
@@ -133,7 +137,17 @@ personnelRouter.put('/vehicles', async (req: Request, res: Response) => {
     res.status(200).json(updatedPersonnel)
   } catch (err) {
     const error = err as Error
-    res.status(500).json({ error: error.message })
+    if (
+      error.message.includes('already has a vehicle assigned') ||
+      error.message.includes('does not exist') ||
+      error.message.includes('from another incident')
+    ) {
+      // Return 400 Bad Request for validation errors
+      res.status(400).json({ message: error.message })
+      console.log(error.message)
+      return
+    }
+    res.status(500).json({ message: error.message })
   }
 })
 
