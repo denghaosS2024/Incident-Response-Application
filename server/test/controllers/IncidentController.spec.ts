@@ -5,6 +5,7 @@ import Incident, {
   IncidentPriority,
 } from '../../src/models/Incident'
 import * as TestDatabase from '../utils/TestDatabase'
+import Car from '../../src/models/Car'
 
 describe('Incident Controller', () => {
   beforeAll(TestDatabase.connect)
@@ -347,4 +348,58 @@ describe('Incident Controller', () => {
     expect(newSARIncident.owner).toBe(username)
     expect(newSARIncident.commander).toBe(username)
   })
+
+  it('should update vehicle history for given incidents', async () => {
+    const username = 'test-sar-user'
+    const testCars = [
+        {
+          name: 'Police Car 1',
+          usernames: ['Officer Smith'],
+          assignedIncident: null,
+          assignedCity: 'New York',
+        },
+        {
+          name: 'Police Car 2',
+          usernames: ['Officer Williams'],
+          assignedIncident: null,
+          assignedCity: 'New York',
+        },
+      ];
+    await Car.insertMany(testCars);
+
+    const testIncident = await Incident.create({
+        incidentId: 'Ipolice1011',
+        caller: username,
+        incidentState: 'Assigned',
+        owner: username,
+        commander: username,
+        address: '',
+        type: 'U',
+        priority: 'E',
+        incidentCallGroup: null,
+        assignedVehicles: [],
+        assignHistory: []
+      });
+
+    const updatedIncident = testIncident.toObject();
+    updatedIncident.assignedVehicles = [
+      {
+        name: 'Police Car 1',
+        type: 'Car',
+        usernames: ['Officer Smith'],
+      }
+    ];
+
+    const res = await IncidentController.updateVehicleHistory(updatedIncident);
+
+    expect(res?.assignHistory?.length).toBeGreaterThan(0);
+
+    const lastHistory = res!.assignHistory!.at(-1);
+    expect(lastHistory).toMatchObject({
+        name: 'Police Car 1',
+        type: 'Car',
+        isAssign: true,
+        usernames: [ 'Officer Smith' ],
+    });
+})
 })

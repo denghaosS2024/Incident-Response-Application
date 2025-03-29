@@ -5,6 +5,7 @@ import { ITruck } from '../models/Truck'
 import { IUser } from '../models/User'
 import { ROLES } from '../utils/Roles'
 import UserConnections from '../utils/UserConnections'
+//import CarController from '../controllers/CarController'
 
 class IncidentController {
     async findById(_id: Types.ObjectId) {
@@ -294,6 +295,10 @@ class IncidentController {
             { new: true },
         ).exec()
     }
+
+    async updateVehicleHistory(incident:IIncident): Promise<IIncident | null>{
+      return incident;
+    }   
 }
 
 export default new IncidentController()

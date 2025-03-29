@@ -4,6 +4,7 @@ import request from 'supertest';
 import app from '../../src/app';
 import Incident, { IIncident } from '../../src/models/Incident';
 import * as TestDatabase from '../utils/TestDatabase';
+import Car from '../../src/models/Car';
 
 describe('Router - Incident', () => {
     beforeAll(TestDatabase.connect)
@@ -126,6 +127,67 @@ describe('Router - Incident', () => {
             .get('/api/incidents')
             .expect(500);
     });
+
+    it('should update vehicle history for given incidents', async () => {
+        const testCars = [
+            {
+              name: 'Police Car 1',
+              usernames: ['Officer Smith'],
+              assignedIncident: null,
+              assignedCity: 'New York',
+            },
+            {
+              name: 'Police Car 2',
+              usernames: ['Officer Williams'],
+              assignedIncident: null,
+              assignedCity: 'New York',
+            },
+          ];
+        await Car.insertMany(testCars);
+
+        const testIncident = await Incident.create({
+            incidentId: 'Ipolice1011',
+            caller: username,
+            incidentState: 'Assigned',
+            owner: username,
+            commander: username,
+            address: '',
+            type: 'U',
+            priority: 'E',
+            incidentCallGroup: null,
+            assignedVehicles: [],
+            assignHistory: []
+          });
+
+        const updatedIncident = {
+            ...testIncident.toObject(),
+            assignedVehicles: [
+              {
+                name: 'Police Car 1',
+                type: 'Car',
+                usernames: ['Officer Smith']
+              },
+            ]
+        };
+
+        const res = await request(app)
+                    .put('/api/incidents/updatedVehicles')
+                    .send({ incidents: [[updatedIncident]] })
+                    .expect(200);
+
+        expect(res.body).toMatchObject({ message: 'success' });
+
+        const after = await Incident.findOne({ incidentId: 'Ipolice1011' }).lean();
+        expect(after?.assignHistory?.length).toBeGreaterThan(0);
+
+        const lastHistory = after!.assignHistory!.at(-1);
+        expect(lastHistory).toMatchObject({
+            name: 'Police Car 1',
+            type: 'Car',
+            isAssign: true,
+            usernames: [ 'Officer Smith' ],
+        });
+    })
 
     afterAll(TestDatabase.close)
 })

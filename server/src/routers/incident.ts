@@ -461,3 +461,9 @@ export default Router()
       response.status(500).json({ message: error.message })
     }
   })
+
+  .put('/updatedVehicles', async (request, response) => {
+    const { incident } = request.body
+    response.status(404).json({ incident })
+  })
+ 

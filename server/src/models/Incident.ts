@@ -48,6 +48,13 @@ export interface IIncident extends Document {
     name: string
     usernames: string[]
   }[]
+  assignHistory?: {
+    timestamp: Date
+    name: string
+    type: string
+    isAssign: boolean
+    usernames: string[]
+  }[] 
 }
 
 const IncidentSchema = new Schema({
@@ -114,6 +121,18 @@ const IncidentSchema = new Schema({
     ],
     default: [],
   },
+  assignHistory: {
+    type: [
+      {
+        timestamp: { type: Date, required: true },
+        name: { type: String, required: true },
+        type: { type: String, enum: ['Car', 'Truck'] },
+        isAssign: { type:Boolean, required: true},
+        usernames: { type: [String], required: true },
+      }
+    ],
+    default: [],
+  }, 
 })
 
 /**

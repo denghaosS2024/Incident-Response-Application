@@ -149,6 +149,28 @@ class CarController {
       throw error
     }
   }
+
+  async updateIncident(carName: string, incidentId: string | null) {
+    if (!incidentId) {
+      const updatedCar = await Car.findOneAndUpdate(
+        { name: carName },
+        { assignedCity: null },
+        { new: true },
+      )
+      return updatedCar
+    }
+    const car = await Car.findOne({ name: carName })
+    if (!car) {
+      throw new Error(`Car with name '${carName}' does not exist`)
+    }
+    const updatedCar = await Car.findOneAndUpdate(
+      { name: carName },
+      { assignedIncident: incidentId },
+      { new: true },
+    )
+    return updatedCar
+  }
+ 
 }
 
 export default new CarController()
