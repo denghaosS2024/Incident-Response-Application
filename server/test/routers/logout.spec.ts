@@ -22,13 +22,69 @@ describe('Dispatcher - Logout', () => {
   let waitingIncident: IIncident
 
   beforeAll( async () => {
-    await TestDatabase.connect
- })
-  beforeEach(async () => {
-    // Create test dispatchers
+    await TestDatabase.connect();
     dispatcher1 = await UserController.register('dispatcher1', 'password1', ROLES.DISPATCH)
     dispatcher2 = await UserController.register('dispatcher2', 'password2', ROLES.DISPATCH)
     dispatcher3 = await UserController.register('dispatcher3', 'password3', ROLES.DISPATCH)
+
+
+    triageIncident1 = await new Incident({
+      incidentId: 'Icitizen1',
+      caller: 'citizen1',
+      incidentState: 'Triage',
+      owner: dispatcher1.username,
+      commander: dispatcher1.username,
+      address: '123 Test St',
+      type: IncidentType.Medical,
+      priority: IncidentPriority.Urgent
+  }).save()
+
+  triageIncident2 = await new Incident({
+    incidentId: 'Icitizen2',
+    caller: 'citizen2',
+    incidentState: 'Triage',
+    owner: dispatcher1.username,
+    commander: dispatcher1.username,
+    address: '456 Test Ave',
+    type: IncidentType.Police,
+    priority: IncidentPriority.Immediate
+  }).save()
+  
+  waitingIncident = await new Incident({
+    incidentId: 'Icitizen3',
+    caller: 'citizen3',
+    incidentState: 'Waiting',
+    owner: dispatcher1.username,
+    commander: dispatcher1.username,
+    address: '789 Test Blvd',
+    type: IncidentType.Fire,
+    priority: IncidentPriority.CouldWait
+  }).save()
+  
+  // Create additional triage incidents for dispatcher2 to make them "busier"
+  await new Incident({
+    incidentId: 'I-Test4',
+    caller: 'Caller4',
+    incidentState: 'Triage',
+    owner: dispatcher2.username,
+    commander: dispatcher2.username,
+    address: '555 Busy St',
+    type: IncidentType.Medical,
+    priority: IncidentPriority.Urgent
+  }).save()
+  
+  await new Incident({
+    incidentId: 'I-Test5',
+    caller: 'Caller5',
+    incidentState: 'Triage',
+    owner: dispatcher2.username,
+    commander: dispatcher2.username,
+    address: '666 Busy Ave',
+    type: IncidentType.Police,
+    priority: IncidentPriority.Immediate
+  }).save()
+ })
+  beforeEach(async () => {
 
     // Login dispatchers
     const socket = mock<SocketIO.Socket>()
@@ -36,73 +92,18 @@ describe('Dispatcher - Logout', () => {
     UserConnections.addUserConnection(dispatcher2.id, socket, ROLES.DISPATCH)
     UserConnections.addUserConnection(dispatcher3.id, socket, ROLES.DISPATCH)
 
-    triageIncident1 = await new Incident({
-        incidentId: 'Icitizen1',
-        caller: 'citizen1',
-        incidentState: 'Triage',
-        owner: dispatcher1.username,
-        commander: dispatcher1.username,
-        address: '123 Test St',
-        type: IncidentType.Medical,
-        priority: IncidentPriority.Urgent
-    }).save()
-
-    triageIncident2 = await new Incident({
-      incidentId: 'Icitizen2',
-      caller: 'citizen2',
-      incidentState: 'Triage',
-      owner: dispatcher1.username,
-      commander: dispatcher1.username,
-      address: '456 Test Ave',
-      type: IncidentType.Police,
-      priority: IncidentPriority.Immediate
-    }).save()
-    
-    waitingIncident = await new Incident({
-      incidentId: 'Icitizen3',
-      caller: 'citizen3',
-      incidentState: 'Waiting',
-      owner: dispatcher1.username,
-      commander: dispatcher1.username,
-      address: '789 Test Blvd',
-      type: IncidentType.Fire,
-      priority: IncidentPriority.CouldWait
-    }).save()
-    
-    // Create additional triage incidents for dispatcher2 to make them "busier"
-    await new Incident({
-      incidentId: 'I-Test4',
-      caller: 'Caller4',
-      incidentState: 'Triage',
-      owner: dispatcher2.username,
-      commander: dispatcher2.username,
-      address: '555 Busy St',
-      type: IncidentType.Medical,
-      priority: IncidentPriority.Urgent
-    }).save()
-    
-    await new Incident({
-      incidentId: 'I-Test5',
-      caller: 'Caller5',
-      incidentState: 'Triage',
-      owner: dispatcher2.username,
-      commander: dispatcher2.username,
-      address: '666 Busy Ave',
-      type: IncidentType.Police,
-      priority: IncidentPriority.Immediate
-    }).save()
   })
 
   afterEach(async () => {
-    jest.restoreAllMocks()
-    await Incident.deleteMany({})
-    await User.deleteMany({})
     await UserConnections.removeUserConnection(dispatcher1.id)
     await UserConnections.removeUserConnection(dispatcher2.id)
     await UserConnections.removeUserConnection(dispatcher3.id)
    })
 
     afterAll(async () => {
+      // Clean up test data
+      await Incident.deleteMany({});
+      await User.deleteMany({});
       await TestDatabase.close()
     })
 
