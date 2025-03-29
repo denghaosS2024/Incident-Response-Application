@@ -136,6 +136,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
+          disabled={!allowEdit}
         />
         <TextField
           label="Description"
@@ -144,6 +145,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
           value={description}
           margin="normal"
           onChange={(e) => setDescription(e.target.value)}
+          disabled={!allowEdit}
         />
         {allowEdit && (
           <Box
