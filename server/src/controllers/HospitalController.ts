@@ -75,6 +75,12 @@ class HospitalController {
       throw error
     }
   }
+
+  async updateMultipleHospitals(
+    updates: { hospitalId: string; patients: string[] }[],
+  ) {
+    console.log(updates)
+  }
 }
 
 export default new HospitalController()

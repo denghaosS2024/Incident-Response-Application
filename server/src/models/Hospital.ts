@@ -9,6 +9,7 @@ export interface IHospital extends Document {
   totalNumberERBeds: number
   totalNumberOfPatients: number
   nurses: Schema.Types.ObjectId[]
+  patients: Schema.Types.ObjectId[]
   hospitalGroupId?: Types.ObjectId
 }
 
@@ -46,6 +47,13 @@ const HospitalSchema = new Schema({
     unique: false,
   },
   nurses: {
+    type: [Schema.Types.ObjectId],
+    ref: 'User',
+    required: false,
+    unique: false,
+    default: [],
+  },
+  patients: {
     type: [Schema.Types.ObjectId],
     ref: 'User',
     required: false,
