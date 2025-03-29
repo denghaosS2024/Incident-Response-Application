@@ -16,6 +16,7 @@ import {
 
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import IIncident from '../../../models/Incident'
 import { loadContacts } from '../../../redux/contactSlice'
 import { updateIncident } from '../../../redux/incidentSlice'
@@ -25,6 +26,7 @@ import Loading from '../../common/Loading'
 
 import IUser from '../../../models/User'
 
+const navigate = useNavigate()
 const PatientForm: React.FC<{ username?: string }> = ({
     username: propUsername,
 }) => {
@@ -235,7 +237,9 @@ const PatientForm: React.FC<{ username?: string }> = ({
                         cursor: 'pointer',
                         fontSize: '16px',
                     }}
-                    onClick={() => alert('Profile button clicked')}
+                    onClick={() =>
+                        navigate(`/patient-profile/${incident.patientId || ''}`)
+                    }
                 >
                     Profile
                 </button>
