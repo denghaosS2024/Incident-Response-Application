@@ -1,11 +1,12 @@
-/**
- * Organization.tsx - Example with both MUI & Bootstrap integrated
- */
-
 import 'bootstrap/dist/css/bootstrap.min.css'
 import React, { useEffect, useState } from 'react'
 
-import { Add, Delete } from '@mui/icons-material'
+import {
+  Add,
+  Delete,
+  DirectionsCar,
+  FireExtinguisher,
+} from '@mui/icons-material'
 import {
   Box,
   Card,
@@ -13,6 +14,7 @@ import {
   IconButton,
   List,
   ListItem,
+  ListItemIcon,
   ListItemText,
   TextField,
   Typography,
@@ -26,29 +28,35 @@ import {
 } from 'react-beautiful-dnd'
 import { useNavigate } from 'react-router-dom'
 import CityContainer from '../components/Organization/CityContainer'
+import getRoleIcon from '../components/common/RoleIcon'
+import ROLES from '../utils/Roles'
 import request from '../utils/request'
 
-// Interfaces representing the backend data
+// Interfaces
 interface Car {
   assignedCity: string
   _id: string
   name: string
   usernames: string[]
 }
+
 interface Truck {
   assignedCity: string
   _id: string
   name: string
   usernames: string[]
 }
+
 interface City {
   _id: string
   name: string
 }
+
 interface Personnel {
   assignedCity: string
   _id: string
   name: string
+  role: ROLES.FIRE | ROLES.POLICE
 }
 
 const Organization: React.FC = () => {
@@ -87,6 +95,7 @@ const Organization: React.FC = () => {
       setTrucks(trucksData)
       setCities(citiesData)
       setPersonnel(personnelData)
+      console.log(personnelData)
     } catch (err) {
       console.error('Failed to fetch data:', err)
     }
@@ -295,6 +304,11 @@ const Organization: React.FC = () => {
                                 {...providedDrag.dragHandleProps}
                                 sx={{ touchAction: 'none' }}
                               >
+                                {/* ICON for either Fire or Police */}
+                                <ListItemIcon>
+                                  {getRoleIcon(person.role)}
+                                </ListItemIcon>
+
                                 <ListItemText primary={person.name} />
                               </ListItem>
                             )}
@@ -352,6 +366,11 @@ const Organization: React.FC = () => {
                                   </IconButton>
                                 }
                               >
+                                {/* ICON for Cars */}
+                                <ListItemIcon>
+                                  <DirectionsCar color="primary" sx={{ mr: 1 }} />
+                                </ListItemIcon>
+
                                 <ListItemText
                                   primary={car.name}
                                   primaryTypographyProps={{
@@ -414,6 +433,11 @@ const Organization: React.FC = () => {
                                   </IconButton>
                                 }
                               >
+                                {/* ICON for Trucks */}
+                                <ListItemIcon>
+                                  <FireExtinguisher color="error" sx={{ mr: 1 }} />
+                                </ListItemIcon>
+
                                 <ListItemText
                                   primary={truck.name}
                                   primaryTypographyProps={{
@@ -490,7 +514,7 @@ const Organization: React.FC = () => {
                               </IconButton>
                             </Box>
 
-                            {/* CityContainer displays assigned cars/trucks/personnel */}
+                            {/* CityContainer shows assigned items */}
                             <Box>
                               <CityContainer
                                 cityName={city.name}

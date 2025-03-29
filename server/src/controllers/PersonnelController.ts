@@ -1,9 +1,9 @@
-import Car, {ICar} from '../models/Car'
+import Car, { ICar } from '../models/Car'
 import City from '../models/City'
-import Truck, {ITruck} from '../models/Truck'
+import { IIncident } from '../models/Incident'
+import Truck, { ITruck } from '../models/Truck'
 import User, { IUser } from '../models/User'
 import { ROLES } from '../utils/Roles'
-import { IIncident } from '../models/Incident'
 class PersonnelController {
   /**
    * Update the assigned Car for a specific personnel.
@@ -76,10 +76,11 @@ class PersonnelController {
         .sort({ username: 1 })
         .exec()
 
-      return unassignedUsers.map(({ _id, username, assignedCity }) => ({
+      return unassignedUsers.map(({ _id, username, assignedCity, role }) => ({
         _id,
         name: username,
         assignedCity,
+        role
       }))
     } catch (error) {
       console.error('Error fetching unassigned users:', error)
