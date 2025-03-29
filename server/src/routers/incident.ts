@@ -426,7 +426,7 @@ export default Router()
       response.status(400).json({ message: error.message })
     }
   })
-  /*
+  /**
   * @swagger
   * /api/incidents/{id}:
   *   delete:
@@ -461,9 +461,71 @@ export default Router()
       response.status(500).json({ message: error.message })
     }
   })
-
+  /**
+   * @swagger
+   * /api/incidents/updatedVehicles:
+   *   put:
+   *     summary: Bulk update assigned vehicles in incidents and append to history
+   *     tags: [Incidents]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               incidents:
+   *                 type: array
+   *                 description: Array of incident objects to update
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     incidentId:
+   *                       type: string
+   *                       example: I123456
+   *                     commander:
+   *                       type: string
+   *                       example: test_user
+   *                     assignedVehicles:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           name:
+   *                             type: string
+   *                             example: Car123
+   *                           type:
+   *                             type: string
+   *                             enum: [Car, Truck]
+   *                             example: Car
+   *                           usernames:
+   *                             type: array
+   *                             items:
+   *                               type: string
+   *                               example: john_doe
+   *     responses:
+   *       200:
+   *         description: All incidents updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: success
+   *       500:
+   *         description: Internal server error during incident update
+   */
   .put('/updatedVehicles', async (request, response) => {
-    const { incident } = request.body
-    response.status(404).json({ incident })
+    const { incidents } = request.body
+    try {
+      for(const incident of incidents[0]){
+        await IncidentController.updateVehicleHistory(incident)
+      }
+      response.status(200).json({ message: "success" })
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
+    }
   })
- 

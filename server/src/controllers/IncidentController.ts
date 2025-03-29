@@ -5,7 +5,8 @@ import { ITruck } from '../models/Truck'
 import { IUser } from '../models/User'
 import { ROLES } from '../utils/Roles'
 import UserConnections from '../utils/UserConnections'
-//import CarController from '../controllers/CarController'
+import CarController from './CarController'
+import TruckController from './TruckController'
 
 class IncidentController {
     async findById(_id: Types.ObjectId) {
@@ -297,8 +298,61 @@ class IncidentController {
     }
 
     async updateVehicleHistory(incident:IIncident): Promise<IIncident | null>{
-      return incident;
-    }   
+      const incidentId = incident.incidentId
+      const existingIncident = await Incident.findOne({ incidentId }).exec()
+  
+  
+      if(!existingIncident) return null
+      const currentVehicleKeys = incident.assignedVehicles || []
+      const existingVehicleKeys = existingIncident.assignedVehicles || []
+      const currentSet = new Set(currentVehicleKeys.map(v => `${v.type}::${v.name}`));
+      const previousSet = new Set(existingVehicleKeys.map(v => `${v.type}::${v.name}`));
+    
+      const addVehicleSet = currentVehicleKeys.filter((v)=>!previousSet.has(`${v.type}::${v.name}`))
+      const removeVehicleSet = existingVehicleKeys.filter((v)=>!currentSet.has(`${v.type}::${v.name}`))
+  
+  
+      const now = new Date();
+      existingIncident.assignHistory = existingIncident.assignHistory || [];
+    
+      for (const v of addVehicleSet){
+        existingIncident.assignHistory.push({
+          timestamp: now,
+          usernames: v.usernames,
+          isAssign: true,
+          name: v.name,
+          type: v.type,
+        });
+        if(v.type == 'Car'){
+          await CarController.updateIncident(v.name,incidentId)
+        }else{
+          await TruckController.updateIncident(v.name,incidentId)
+        }
+      }
+  
+  
+      for (const v of removeVehicleSet){
+        existingIncident.assignHistory.push({
+          timestamp: now,
+          usernames: v.usernames,
+          isAssign: false,
+          name: v.name,
+          type: v.type,
+        });
+        if(v.type == 'Car'){
+          await CarController.updateIncident(v.name,incidentId)
+        }else{
+          await TruckController.updateIncident(v.name,incidentId)
+        }
+      }
+  
+  
+      existingIncident.assignedVehicles = currentVehicleKeys
+ 
+ 
+      return await existingIncident.save()
+    }
+    
 }
 
 export default new IncidentController()
