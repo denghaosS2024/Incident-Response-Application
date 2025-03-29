@@ -16,7 +16,6 @@ import {
 
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 import IIncident from '../../../models/Incident'
 import { loadContacts } from '../../../redux/contactSlice'
 import { updateIncident } from '../../../redux/incidentSlice'
@@ -24,9 +23,9 @@ import { AppDispatch, RootState } from '../../../redux/store'
 import { MedicalQuestions } from '../../../utils/types'
 import Loading from '../../common/Loading'
 
+import { useNavigate } from 'react-router-dom'
 import IUser from '../../../models/User'
 
-const navigate = useNavigate()
 const PatientForm: React.FC<{ username?: string }> = ({
     username: propUsername,
 }) => {
@@ -34,6 +33,7 @@ const PatientForm: React.FC<{ username?: string }> = ({
     const incident: IIncident = useSelector(
         (state: RootState) => state.incidentState.incident,
     )
+    const navigate = useNavigate()
     const medicalQuestions = (incident.questions as MedicalQuestions) ?? {}
     const sex = medicalQuestions.sex ?? ''
     const age = medicalQuestions.age ?? 0
