@@ -15,6 +15,7 @@ import LoginPage from './pages/LoginPage'
 import MapPage from './pages/MapPage'
 import Messages from './pages/Messages'
 import Organization from './pages/Organization'
+import PatientPage from './pages/PatientPage.tsx'
 import PatientProfile from './pages/PatientProfile'
 import ProfilePage from './pages/ProfilePage'
 import Reach911Page from './pages/Reach911Page'
@@ -68,6 +69,7 @@ export default function App() {
                             path="/patient-profile/:patientId"
                             element={<PatientProfile />}
                         />
+                        <Route path="/patients" element={<PatientPage />} />
                         <Route
                             path="/incidents/report"
                             element={<IncidentReportPage />}
@@ -102,6 +104,7 @@ export default function App() {
                         />
                         <Route path="/dashboard" element={<DashboardPage />} />
                     </Route>
+
                     <Route element={<RoutedHome showBackButton isSubPage />}>
                         <Route
                             path="/messages/:id"
