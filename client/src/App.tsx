@@ -26,6 +26,7 @@ import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
 import './styles/globals.css'
 import './styles/tailwind.css'
+import CreatechartPage from './pages/CreatechartPage.tsx'
 
 export default function App() {
     // const dispatcher = useDispatch()
@@ -103,6 +104,7 @@ export default function App() {
                             element={<FindHospital />}
                         />
                         <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/create-chart" element={<CreatechartPage />} />
                     </Route>
 
                     <Route element={<RoutedHome showBackButton isSubPage />}>
