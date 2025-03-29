@@ -12,23 +12,15 @@ import {
   AccordionSummary,
   Avatar,
   Box,
-  Button,
   Card,
   CardContent,
   CardHeader,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  FormControlLabel,
   Grid,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
   Radio,
-  RadioGroup,
   Stack,
   Typography,
 } from '@mui/material'
@@ -94,16 +86,15 @@ const ViewOrganization: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<Personnel | null>(null)
 
-  // Vehicle assignment dialog states
-  const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false)
-  const [selectedVehicleId, setSelectedVehicleId] = useState('')
-  const [selectedCity, setSelectedCity] = useState<City | null>(null)
-
   // Fetch data on component mount
   useEffect(() => {
     // Get current user's role from localStorage
     const role = localStorage.getItem('role')
-    const userId = localStorage.getItem('userId') // Assuming you store user ID in localStorage
+    const userId = localStorage.getItem('uid')
+
+    console.log('Current user role from localStorage:', role)
+    console.log('Current user ID from localStorage:', userId)
+
     setUserRole(role)
     setUserId(userId)
 
@@ -330,85 +321,19 @@ const ViewOrganization: React.FC = () => {
     }
   }
 
-  // Open the vehicle selection dialog for a specific city
-  const handleOpenVehicleDialog = (city: City) => {
-    setSelectedCity(city)
-    setVehicleDialogOpen(true)
-  }
-
-  // Close the vehicle selection dialog
-  const handleCloseVehicleDialog = () => {
-    setVehicleDialogOpen(false)
-    setSelectedVehicleId('')
-    setSelectedCity(null)
-  }
-
-  // Submit vehicle selection from the dialog
-  const handleSelectVehicle = async () => {
-    if (!selectedVehicleId || !userId || !selectedCity) return
-
-    try {
-      // Determine if we're assigning a car or a truck based on user role
-      const vehicleType = userRole === 'Police' ? 'car' : 'truck'
-
-      // RESTful API endpoint for assigning vehicles to personnel - same as in handleDirectVehicleSelection
-      const response = await fetch(`/api/personnel/${userId}/vehicles`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          vehicleId: selectedVehicleId,
-          vehicleType,
-          cityId: selectedCity._id,
-        }),
-      })
-
-      if (response.ok) {
-        // Create timestamp
-        const timestamp = format(new Date(), 'MM.dd h:mma')
-
-        // Update local state to reflect the change
-        setPersonnel((prevPersonnel) =>
-          prevPersonnel.map((person) =>
-            person._id === userId
-              ? {
-                  ...person,
-                  assignedVehicle: selectedVehicleId,
-                  assignmentTimestamp: timestamp,
-                }
-              : person,
-          ),
-        )
-
-        // Close the dialog if it's open
-        handleCloseVehicleDialog()
-
-        // Refresh only the affected city assignment
-        await refreshCityAssignment(selectedCity._id)
-      } else {
-        console.error('Failed to assign vehicle:', response.statusText)
-        // TODO: Add error handling UI feedback
-      }
-    } catch (error) {
-      console.error('Error assigning vehicle:', error)
-      // TODO: Add error handling UI feedback
-    }
-  }
-
   // Handle direct vehicle selection from the radio buttons
   const handleDirectVehicleSelection = async (
     vehicleId: string,
     city: City,
   ) => {
-    // Set the selected vehicle and city
-    setSelectedVehicleId(vehicleId)
-    setSelectedCity(city)
-
     // Then trigger the vehicle assignment process
     if (userId && vehicleId && city) {
       try {
-        const vehicleType = userRole === 'Police' ? 'car' : 'truck'
+        // Determine if we're assigning a car or a truck based on user role - case-insensitive
+        const isPoliceRole = userRole && userRole.toLowerCase() === 'police'
+        const vehicleType = isPoliceRole ? 'car' : 'truck'
 
-        // RESTful API endpoint for assigning vehicles to personnel
+        // TODO: RESTful API endpoint for assigning vehicles to personnel
         const response = await fetch(`/api/personnel/${userId}/vehicles`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -475,7 +400,9 @@ const ViewOrganization: React.FC = () => {
 
   // Determine if the user can select a vehicle based on their role
   const canSelectVehicle =
-    (userRole === 'Police' || userRole === 'Fire') && userId
+    userId &&
+    userRole &&
+    (userRole.toLowerCase() === 'police' || userRole.toLowerCase() === 'fire')
 
   // Group personnel by city for easier rendering - use the cityAssignments data
   const getCityPersonnel = (
@@ -547,8 +474,25 @@ const ViewOrganization: React.FC = () => {
           <Typography variant="body2">Total cars: {cars.length}</Typography>
           <Typography variant="body2">Total trucks: {trucks.length}</Typography>
           <Typography variant="body2">
-            UserRole: {userRole || 'None'}
+            UserRole: {userRole || 'None'} (Can select vehicle:{' '}
+            {canSelectVehicle ? 'Yes' : 'No'})
           </Typography>
+          <Typography variant="body2">
+            CurrentUser: {currentUser ? currentUser.username : 'None'}
+          </Typography>
+          {personnel.length > 0 && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2">Personnel Roles:</Typography>
+              <ul style={{ margin: '0', paddingLeft: '20px' }}>
+                {personnel.map((person) => (
+                  <li key={person._id}>
+                    {person.username}: {person.role}
+                    {person._id === userId && ' (current user)'}
+                  </li>
+                ))}
+              </ul>
+            </Box>
+          )}
         </Card>
       )}
 
@@ -750,39 +694,30 @@ const ViewOrganization: React.FC = () => {
                                 </Box>
 
                                 {/* Only show radio buttons if current user is a Firefighter */}
-                                {userRole === 'Fire' && userId && (
-                                  <Box>
-                                    <Radio
-                                      checked={
-                                        currentUser?.assignedVehicle ===
-                                        truck._id
-                                      }
-                                      onChange={() =>
-                                        handleDirectVehicleSelection(
-                                          truck._id,
-                                          city,
-                                        )
-                                      }
-                                    />
-                                  </Box>
-                                )}
+                                {userRole &&
+                                  userRole.toLowerCase() === 'fire' && (
+                                    <Box>
+                                      <Radio
+                                        checked={
+                                          currentUser?.assignedVehicle ===
+                                          truck._id
+                                        }
+                                        onChange={() => {
+                                          console.log(
+                                            'Fire truck selected:',
+                                            truck._id,
+                                          )
+                                          handleDirectVehicleSelection(
+                                            truck._id,
+                                            city,
+                                          )
+                                        }}
+                                      />
+                                    </Box>
+                                  )}
                               </ListItem>
                             ))}
                           </List>
-                        )}
-
-                        {/* Vehicle Assignment button for current user if they are firefighter */}
-                        {userId && userRole === 'Fire' && (
-                          <Button
-                            variant="outlined"
-                            color="error"
-                            size="small"
-                            onClick={() => handleOpenVehicleDialog(city)}
-                            sx={{ mt: 2 }}
-                            fullWidth
-                          >
-                            Assign Truck
-                          </Button>
                         )}
                       </CardContent>
                     </Card>
@@ -906,38 +841,30 @@ const ViewOrganization: React.FC = () => {
                                 </Box>
 
                                 {/* Only show radio buttons if current user is a Police Officer */}
-                                {userRole === 'Police' && userId && (
-                                  <Box>
-                                    <Radio
-                                      checked={
-                                        currentUser?.assignedVehicle === car._id
-                                      }
-                                      onChange={() =>
-                                        handleDirectVehicleSelection(
-                                          car._id,
-                                          city,
-                                        )
-                                      }
-                                    />
-                                  </Box>
-                                )}
+                                {userRole &&
+                                  userRole.toLowerCase() === 'police' && (
+                                    <Box>
+                                      <Radio
+                                        checked={
+                                          currentUser?.assignedVehicle ===
+                                          car._id
+                                        }
+                                        onChange={() => {
+                                          console.log(
+                                            'Police car selected:',
+                                            car._id,
+                                          )
+                                          handleDirectVehicleSelection(
+                                            car._id,
+                                            city,
+                                          )
+                                        }}
+                                      />
+                                    </Box>
+                                  )}
                               </ListItem>
                             ))}
                           </List>
-                        )}
-
-                        {/* Vehicle Assignment button for current user if they are police */}
-                        {userId && userRole === 'Police' && (
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            size="small"
-                            onClick={() => handleOpenVehicleDialog(city)}
-                            sx={{ mt: 2 }}
-                            fullWidth
-                          >
-                            Assign Car
-                          </Button>
                         )}
                       </CardContent>
                     </Card>
@@ -1018,65 +945,6 @@ const ViewOrganization: React.FC = () => {
           </Accordion>
         )
       })}
-
-      {/* Vehicle Assignment Dialog with Radio Buttons */}
-      <Dialog
-        open={vehicleDialogOpen}
-        onClose={handleCloseVehicleDialog}
-        maxWidth="xs"
-        fullWidth
-      >
-        <DialogTitle>
-          {userRole === 'Police'
-            ? `Select Your Police Car in ${selectedCity?.name || ''}`
-            : `Select Your Fire Truck in ${selectedCity?.name || ''}`}
-        </DialogTitle>
-        <DialogContent>
-          <FormControl component="fieldset" sx={{ mt: 2, width: '100%' }}>
-            <RadioGroup
-              value={selectedVehicleId}
-              onChange={(e) => setSelectedVehicleId(e.target.value)}
-            >
-              {userRole === 'Police'
-                ? getCityCars(selectedCity?._id || '').map((car) => (
-                    <FormControlLabel
-                      key={car._id}
-                      value={car._id}
-                      control={<Radio />}
-                      label={car.name}
-                    />
-                  ))
-                : getCityTrucks(selectedCity?._id || '').map((truck) => (
-                    <FormControlLabel
-                      key={truck._id}
-                      value={truck._id}
-                      control={<Radio />}
-                      label={truck.name}
-                    />
-                  ))}
-              {((userRole === 'Police' &&
-                getCityCars(selectedCity?._id || '').length === 0) ||
-                (userRole === 'Fire' &&
-                  getCityTrucks(selectedCity?._id || '').length === 0)) && (
-                <Typography color="text.secondary" sx={{ mt: 2 }}>
-                  No vehicles available for this location
-                </Typography>
-              )}
-            </RadioGroup>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseVehicleDialog}>Cancel</Button>
-          <Button
-            onClick={handleSelectVehicle}
-            variant="contained"
-            color="primary"
-            disabled={!selectedVehicleId}
-          >
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   )
 }
