@@ -16,7 +16,14 @@ class CarController {
       throw error
     }
   }
-  // Get cars that not assigned to an incident and has at least one responder onboard
+  /**
+   * 
+   * @returns the list of cars that are available and have a responder assigned
+   * @throws an error if the database operation fails
+   * @description This method fetches all cars that are available (not assigned to an incident) and have a responder assigned.
+   * The cars are sorted by name in ascending order. The method uses the Car model to query the database and returns the result.
+   * The method handles any errors that may occur during the database operation and logs them to the console.
+   */
   async getAvailableCarsWithResponder() {
     try {
       const cars = await Car.find({

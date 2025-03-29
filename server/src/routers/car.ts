@@ -50,6 +50,26 @@ carRouter.get('/', async (_req: Request, res: Response) => {
   }
 })
 
+/**
+ * @swagger
+ * /api/cars/availability:
+ *   get:
+ *     summary: Get available cars with responders
+ *     description: Retrieves a list of available cars that have responders assigned.
+ *     tags:
+ *       - Cars
+ *     responses:
+ *       200:
+ *         description: A list of available cars retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Car"
+ *       500:
+ *         description: Server error while fetching available cars.
+ */
 carRouter.get('/availability', async (_req: Request, res: Response) => {
   try {
     const cars = await CarController.getAvailableCarsWithResponder()

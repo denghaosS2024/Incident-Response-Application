@@ -347,4 +347,28 @@ describe('Incident Controller', () => {
     expect(newSARIncident.owner).toBe(username)
     expect(newSARIncident.commander).toBe(username)
   })
+
+  it('shoudl find an incident by its id', async () => {
+    const username = 'test-user-find'
+    const incident = await createTestIncident(username)
+
+    const foundIncident = await IncidentController.findById(
+      incident._id.toString(),
+    )
+
+    expect(foundIncident).toBeDefined()
+    expect(foundIncident?.incidentId).toBe(incident.incidentId)
+  })
+
+  it('should return null if incident not found', async () => {
+    const objectId = new Types.ObjectId('507f1f77bcf86cd799439011');
+    await IncidentController.findById(
+      objectId,
+    ).catch((error) => {
+      // Handle the error if needed
+      console.error('Error finding incident:', error)
+      expect(error).toBeInstanceOf(Error)
+      expect(error.message).toBe(`Incident with ID '${objectId}' not found`)
+    })
+  })
 })

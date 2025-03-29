@@ -43,6 +43,26 @@ truckRouter.get('/', async (_req: Request, res: Response) => {
   }
 })
 
+/**
+ * @swagger
+ * /api/trucks/availability:
+ *   get:
+ *     summary: Get available trucks with responders
+ *     description: Retrieves a list of available trucks that have responders assigned.
+ *     tags:
+ *       - Trucks
+ *     responses:
+ *       200:
+ *         description: A list of available trucks retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Truck"
+ *       500:
+ *         description: Server error while fetching available trucks.
+ */
 truckRouter.get('/availability', async (_req: Request, res: Response) => {
   try {
     const trucks = await TruckController.getAvailableTrucksWithResponder()
