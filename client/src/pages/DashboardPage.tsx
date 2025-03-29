@@ -12,8 +12,11 @@ import AddIcon from '@mui/icons-material/Add'
 import PieChartIcon from '@mui/icons-material/PieChart'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import ShowChartIcon from '@mui/icons-material/ShowChart'
+import { Handshake } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
 
 type ChartType = 'Bar' | 'Line' | 'Pie'
+
 
 interface Chart {
   name: string
@@ -71,6 +74,16 @@ const mockCharts: Chart[] = [
 ]
 
 const DashboardPage: React.FC = () => {
+
+    
+    const navigate = useNavigate()
+
+    const handleAddChart = () => {
+    console.log('Add Chart')
+    navigate('/create-chart')
+    }
+
+
   return (
     <Box display="flex" flexDirection="column" padding="16px">
 
@@ -140,6 +153,7 @@ const DashboardPage: React.FC = () => {
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
+          onClick={handleAddChart}
           sx={{ borderRadius: '999px' }}
         >
           Add Chart
