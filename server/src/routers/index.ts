@@ -14,6 +14,7 @@ import incident from './incident'
 import login from './login'
 import map from './map'
 import user from './user'
+import logout from './logout'
 
 // This router does not exist in this codebase
 import airQuality from './airQuality'
@@ -29,6 +30,7 @@ import wildfireAreaRouter from './WildfireArea'
 export default Router()
   .use('/users', user)
   .use('/login', login)
+  .use('/logout', logout)
   .use('/channels', channel)
   .use('/incidents', incident)
   .use('/map', map)
