@@ -14,6 +14,7 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom'
+import request, { IRequestError } from '../utils/request'
 
 export interface IProps {
   /**
@@ -114,7 +115,28 @@ const NavigationBar: FunctionComponent<IProps> = ({
     setOpenMenu(false)
   }
 
-  const quit = () => {
+  const quit = async () => {
+    console.log('Logout clicked')
+    try {
+      const username = localStorage.getItem('username')
+      const role = localStorage.getItem('role')
+
+      // Make a POST request to the logout endpoint
+      const response = await request('/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, role }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Logout failed')
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Handle error (e.g., show a notification)
+    } finally {
     localStorage.removeItem('token')
     localStorage.removeItem('uid')
     localStorage.removeItem('incidentState')
@@ -122,6 +144,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     localStorage.removeItem('username')
     localStorage.removeItem('role')
     navigate('/login')
+    }
   }
 
   const profile = () => {
@@ -140,7 +163,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     // Get the user's role from localStorage
     const userRole = localStorage.getItem('role') || ''
 
-    // Use the same role-based logic as in App.tsx
+    // Use the same role-based logic
     if (['Dispatch', 'Police', 'Fire'].includes(userRole)) {
       // Responders see the ViewOrganization component
       navigate('/organization/view')

@@ -16,7 +16,14 @@ class TruckController {
     }
   }
 
-  // Get cars that not assigned to an incident and has at least one responder onboard
+  /**
+   * 
+   * @returns {Promise<ITruck[]>} - Returns a promise that resolves to an array of available trucks with responders.
+   * @throws {Error} - Throws an error if there is an issue with the database operation.
+   * @description This method fetches all trucks that are available (not assigned to an incident) and have a responder assigned.
+   * The trucks are sorted by name in ascending order. The method uses the Truck model to query the database and returns the result.
+   * The method handles any errors that may occur during the database operation and logs them to the console.
+   */
   async getAvailableTrucksWithResponder() {
     try {
       const truck = await Truck.find({

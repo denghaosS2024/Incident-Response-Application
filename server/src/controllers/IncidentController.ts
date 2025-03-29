@@ -9,6 +9,12 @@ import CarController from './CarController'
 import TruckController from './TruckController'
 
 class IncidentController {
+    /**
+     * Find an incident by its ID
+     * @param _id - The MongoDB ObjectId of the incident
+     * @returns The incident object if found
+     * @throws {Error} if the incident with the given ID is not found
+     */
     async findById(_id: Types.ObjectId) {
         const incident = await Incident.findById(_id).exec()
         if (!incident) {

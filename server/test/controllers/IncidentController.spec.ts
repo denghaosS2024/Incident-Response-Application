@@ -349,6 +349,30 @@ describe('Incident Controller', () => {
     expect(newSARIncident.commander).toBe(username)
   })
 
+  it('shoudl find an incident by its id', async () => {
+    const username = 'test-user-find'
+    const incident = await createTestIncident(username)
+
+    const foundIncident = await IncidentController.findById(
+      incident._id.toString(),
+    )
+
+    expect(foundIncident).toBeDefined()
+    expect(foundIncident?.incidentId).toBe(incident.incidentId)
+  })
+
+  it('should return null if incident not found', async () => {
+    const objectId = new Types.ObjectId('507f1f77bcf86cd799439011');
+    await IncidentController.findById(
+      objectId,
+    ).catch((error) => {
+      // Handle the error if needed
+      console.error('Error finding incident:', error)
+      expect(error).toBeInstanceOf(Error)
+      expect(error.message).toBe(`Incident with ID '${objectId}' not found`)
+    })
+  })
+
   it('should update vehicle history for given incidents', async () => {
     const username = 'test-sar-user'
     const testCars = [
@@ -366,7 +390,6 @@ describe('Incident Controller', () => {
         },
       ];
     await Car.insertMany(testCars);
-
     const testIncident = await Incident.create({
         incidentId: 'Ipolice1011',
         caller: username,
@@ -380,7 +403,8 @@ describe('Incident Controller', () => {
         assignedVehicles: [],
         assignHistory: []
       });
-
+ 
+ 
     const updatedIncident = testIncident.toObject();
     updatedIncident.assignedVehicles = [
       {
@@ -389,11 +413,14 @@ describe('Incident Controller', () => {
         usernames: ['Officer Smith'],
       }
     ];
-
+ 
+ 
     const res = await IncidentController.updateVehicleHistory(updatedIncident);
-
+ 
+ 
     expect(res?.assignHistory?.length).toBeGreaterThan(0);
-
+ 
+ 
     const lastHistory = res!.assignHistory!.at(-1);
     expect(lastHistory).toMatchObject({
         name: 'Police Car 1',
@@ -401,5 +428,5 @@ describe('Incident Controller', () => {
         isAssign: true,
         usernames: [ 'Officer Smith' ],
     });
-})
+  }) 
 })

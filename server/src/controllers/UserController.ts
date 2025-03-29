@@ -213,6 +213,11 @@ class UserController {
         }
     }
 
+    /**
+     * Logout a user
+     * @param username - The username of the user to log out
+     * @throws Error if the user is not logged in or does not exist
+     */
     async logout(username: string): Promise<void> {
         try {
             const user = await this.findUserByUsername(username) // Await the promise
@@ -234,6 +239,11 @@ class UserController {
         }
     }
 
+    /**
+     * Handle dispatcher logout and transfer triage incidents to another dispatcher
+     * @param username - The username of the dispatcher logging out
+     * @throws Error if an error occurs during logout or incident transfer
+     */
     async dispatcherLogout(username: string): Promise<void> {
         try {
             // 1. Find all online dispatchers (excluding the one logging out)
@@ -276,6 +286,11 @@ class UserController {
         }
     }
 
+    /**
+     * Find the least busy dispatcher based on the number of triage incidents
+     * @param dispatchers - An array of dispatchers to evaluate
+     * @returns The least busy dispatcher
+     */
     async findLeastBusyDispatcher(dispatchers: IUser[]): Promise<IUser> {
         const dispatcherLoads = await Promise.all(
             dispatchers.map(async (dispatcher) => {
