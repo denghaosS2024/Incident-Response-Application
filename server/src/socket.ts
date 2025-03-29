@@ -50,6 +50,13 @@ class Socket {
         socket.broadcast.emit('send-mayday', data)
       })
 
+      // Handle nurse alerts specifically to make sure they get broadcasted correctly
+      socket.on('nurse-alert', (data) => {
+        console.log('Received nurse-alert', data)
+        // Broadcast to all connected sockets except sender
+        socket.broadcast.emit('nurse-alert', data)
+      })
+
       socket.on('acknowledge-alert', (data) => {
         socket.broadcast.emit('acknowledge-alert', data)
       })

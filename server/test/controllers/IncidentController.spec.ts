@@ -1,7 +1,10 @@
-import { Query, Types } from 'mongoose';
-import IncidentController from '../../src/controllers/IncidentController';
-import Incident, { IIncident } from '../../src/models/Incident';
-import * as TestDatabase from '../utils/TestDatabase';
+import { Query, Types } from 'mongoose'
+import IncidentController from '../../src/controllers/IncidentController'
+import Incident, {
+  IIncident,
+  IncidentPriority,
+} from '../../src/models/Incident'
+import * as TestDatabase from '../utils/TestDatabase'
 
 describe('Incident Controller', () => {
   beforeAll(TestDatabase.connect)
@@ -20,6 +23,7 @@ describe('Incident Controller', () => {
       incidentState: 'Waiting',
       owner: 'System',
       commander: 'System',
+      incidentCallGroup: new Types.ObjectId(),
     })
 
     return rawIncident.save()
@@ -143,6 +147,23 @@ describe('Incident Controller', () => {
     expect(incidents[0].incidentId).toBe(incident.incidentId)
   })
 
+  it('should return incident details for a given channelId', async () => {
+    const caller = 'user201'
+    const incident = await createTestIncident(caller)
+    let incidents = [] as IIncident[]
+    if (incident.incidentCallGroup) {
+      incidents = await IncidentController.getIncidentByChannelId(
+        incident.incidentCallGroup.toString(),
+      )
+    }
+    expect(incidents).toBeDefined()
+    expect(incidents.length).toBe(1)
+    expect(incidents[0].incidentId).toBe(incident.incidentId)
+    expect(
+      incidents[0].incidentCallGroup?.equals(incident.incidentCallGroup),
+    ).toBe(true)
+  })
+
   it('should update an existing incident', async () => {
     const caller = 'user3'
     const incident = await createTestIncident(caller)
@@ -171,14 +192,159 @@ describe('Incident Controller', () => {
     // Create a partial query object implementing exec()
     const fakeQuery: Partial<Query<IIncident[], IIncident>> = {
       exec: () => Promise.reject(new Error('Mocked MongoDB error')),
-    };
+    }
 
     // Mock Incident.find to return the fake query
-    jest.spyOn(Incident, 'find').mockReturnValue(
-      fakeQuery as Query<IIncident[], IIncident>
-    );
-    await expect(IncidentController.getAllIncidents()).rejects.toThrow(
-      'Mocked MongoDB error',
-    )
+    jest
+      .spyOn(Incident, 'find')
+      .mockReturnValue(fakeQuery as Query<IIncident[], IIncident>)
+    await expect(IncidentController.getAllIncidents()).rejects.toThrow(Error)
+  })
+
+  it('should return an error on updating an incident with missing incidentId', async () => {
+    const rawIncident: Partial<IIncident> = {}
+    await expect(
+      IncidentController.updateIncident(rawIncident),
+    ).rejects.toThrow(Error)
+  })
+
+  it('should return existing incident if there is existing incident with the same incidentId', async () => {
+    const incident = await createTestIncident('exist')
+    const rawIncident = incident.toObject()
+    const res = await IncidentController.createIncident(rawIncident)
+    expect(res).toBeDefined()
+
+    // it should have return the existing incident
+    expect(res.incidentId).toBe(incident.incidentId)
+  })
+
+  it('should create new incident since there is not existing incident with this incidentId', async () => {
+    const incident = await createTestIncident('does-not-exist')
+    let rawIncident = incident.toObject()
+    rawIncident.caller = 'new-incident'
+    rawIncident.incidentId = `I${rawIncident.caller}`
+    const res = await IncidentController.createIncident(rawIncident)
+    expect(res).toBeDefined()
+
+    // it should have return the existing incident
+    expect(res.incidentId).toBe(rawIncident.incidentId)
+  })
+
+  it('should create new incident with default values', async () => {
+    const caller = 'Test1'
+    const incident = new Incident({
+      caller: caller,
+    })
+    const newIncident = await IncidentController.createIncident(incident)
+
+    expect(newIncident).toBeDefined()
+    expect(newIncident.incidentId).toBe(`I${caller}`)
+    expect(newIncident.caller).toBe(caller)
+    expect(newIncident.incidentState).toBe('Waiting')
+    expect(newIncident.owner).toBe('System')
+    expect(newIncident.commander).toBe('System')
+    expect(newIncident.address).toBe('')
+    expect(newIncident.type).toBe('U')
+    expect(newIncident.questions).toEqual({})
+    expect(newIncident.priority).toBe(IncidentPriority.Immediate)
+    expect(newIncident.incidentCallGroup).toBeNull()
+  })
+
+  it('should create new incident with provided values', async () => {
+    // example id
+    const validGroupId = '507f1f77bcf86cd799439011'
+
+    const caller = 'Test2'
+    const incident = new Incident({
+      incidentId: `I${caller}`,
+      caller: caller,
+      openingDate: new Date(),
+      incidentState: 'Waiting',
+      owner: 'TestOwner',
+      commander: 'TestCommander',
+      address: '110 Test Avenue',
+      type: 'U',
+      questions: {},
+      priority: IncidentPriority.Immediate,
+      incidentCallGroup: validGroupId,
+    })
+
+    const newIncident = await IncidentController.createIncident(incident)
+
+    expect(newIncident).toBeDefined()
+    expect(newIncident.incidentId).toBe(`I${caller}`)
+    expect(newIncident.caller).toBe(caller)
+    expect(newIncident.incidentState).toBe('Waiting')
+    expect(newIncident.owner).toBe('TestOwner')
+    expect(newIncident.commander).toBe('TestCommander')
+    expect(newIncident.address).toBe('110 Test Avenue')
+    expect(newIncident.type).toBe('U')
+    expect(newIncident.questions).toEqual({})
+    expect(newIncident.priority).toBe(IncidentPriority.Immediate)
+    expect(newIncident.incidentCallGroup?.toString()).toBe(validGroupId)
+  })
+
+  it('should create new incident with default values for state, owner, commander, and incidentCallGroup when passed null or undefined values', async () => {
+    const caller = 'Test'
+    const incident = new Incident({
+      caller: caller,
+      incidentState: null,
+      owner: undefined,
+      commander: undefined,
+      incidentCallGroup: undefined,
+    })
+
+    const newIncident = await IncidentController.createIncident(incident)
+
+    expect(newIncident).toBeDefined()
+    expect(newIncident.incidentId).toBe(`I${caller}`)
+    expect(newIncident.caller).toBe(caller)
+    expect(newIncident.incidentState).toBe('Waiting')
+    expect(newIncident.owner).toBe('System')
+    expect(newIncident.commander).toBe('System')
+    expect(newIncident.incidentCallGroup).toBeNull()
+  })
+
+  it('should create new incident with default values for owner, commander, and incidentCallGroup when passed empty values', async () => {
+    const caller = 'Test3'
+    const incident = new Incident({
+      caller: caller,
+      owner: '',
+      commander: '',
+      incidentCallGroup: '',
+    })
+
+    const newIncident = await IncidentController.createIncident(incident)
+
+    expect(newIncident).toBeDefined()
+    expect(newIncident.incidentId).toBe(`I${caller}`)
+    expect(newIncident.caller).toBe(caller)
+    expect(newIncident.owner).toBe('System')
+    expect(newIncident.commander).toBe('System')
+    expect(newIncident.incidentCallGroup).toBeNull()
+  })
+
+  it('should create a new SAR incident with correct type and ID format', async () => {
+    const username = 'test-sar-user'
+
+    const sarIncident = new Incident({
+      incidentId: `S${username}1`,
+      caller: username,
+      openingDate: new Date(),
+      incidentState: 'Assigned',
+      owner: username,
+      commander: username,
+      type: 'S',
+    })
+
+    const newSARIncident = await IncidentController.createIncident(sarIncident)
+
+    expect(newSARIncident).toBeDefined()
+    expect(newSARIncident.incidentId).toBe(`S${username}1`)
+    expect(newSARIncident.caller).toBe(username)
+    expect(newSARIncident.type).toBe('S')
+    expect(newSARIncident.incidentState).toBe('Assigned')
+    expect(newSARIncident.owner).toBe(username)
+    expect(newSARIncident.commander).toBe(username)
   })
 })

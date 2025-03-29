@@ -272,6 +272,18 @@ export default Router()
    *         schema:
    *           type: string
    *         description: Retrieve incident details by incidentId.
+   *       - in: query
+   *         name: channelId
+   *         required: false
+   *         schema:
+   *          type: string
+   *         description: Retrieve incident details by channelId.
+   *       - in: query
+   *         name: commander
+   *         required: false
+   *         schema:
+   *          type: string
+   *         description: Retrieve incident details by commander.
    *     responses:
    *       200:
    *         description: Incidents retrieved successfully.
@@ -316,6 +328,17 @@ export default Router()
     try {
       const { caller } = request.query
       const { incidentId } = request.query
+      const { channelId } = request.query
+      const { commander } = request.query
+
+      if (commander) {
+        const result = await IncidentController.getIncidentByCommander(
+          commander as string,
+        )
+        return result && result.length > 0 
+        ? response.json(result) 
+        : response.json([]);
+      }
 
       let result
       if (caller) {
@@ -328,15 +351,110 @@ export default Router()
           response.status(404).json({ message: 'No incidents found' })
           return
         }
-      } else {
+      } else if (channelId) {
+        result = await IncidentController.getIncidentByChannelId(
+          channelId as string,
+        )
+        if (!result || result.length === 0) {
+          response.status(404).json({ message: 'No incidents found' })
+          return
+        }
+      }  else {
         result = await IncidentController.getAllIncidents()
       }
 
       if (!result || result.length === 0) {
-        response.status(204).json({ message: 'No incidents found' })
-        return
+        return response.status(204).json({ message: 'No incidents found' })
       }
 
+      return response.json(result)
+    } catch (e) {
+      const error = e as Error
+      return response.status(500).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/incidents/{id}/vehicles:
+   *   put:
+   *     summary: Add a vehicle to an incident
+   *     tags: [Incidents]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID of the incident to update
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               personnel:
+   *                 type: string
+   *                 description: The personnel to assign the vehicle to
+   *                 example: john_doe
+   *               commandingIncident:
+   *                 type: object
+   *                 description: The incident object commanding by the current user
+   *               vehicle:
+   *                 type: string
+   *                 description: The vehicle to assign to the incident
+   *                 example: Car123
+   *     responses:
+   *       200:
+   *         description: Vehicle added to incident successfully
+   *       400:
+   *         description: Error adding vehicle to incident: {error message}
+   */
+  .put('/vehicles', async (request, response) => {
+    const { personnel, commandingIncident, vehicle } = request.body
+
+    try {
+      const result = await IncidentController.addVehicleToIncident(
+        personnel,
+        commandingIncident,
+        vehicle,
+      )
+      response.status(200).json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(400).json({ message: error.message })
+    }
+  })
+  /*
+  * @swagger
+  * /api/incidents/{id}:
+  *   delete:
+  *     summary: Close an incident
+  *     tags: [Incidents]
+  *     parameters:
+  *       - in: path
+  *         name: id
+  *         required: true
+  *         description: ID of the incident to close
+  *         schema:
+  *           type: string
+  *     responses:
+  *       200:
+  *         description: Incident closed successfully
+  *       404:
+  *         description: Incident not found
+  *       500:
+  *         description: Internal server error
+  */
+  .delete('/:id', async (request, response) => {
+    const { id } = request.params
+    try {
+      const result = await IncidentController.closeIncident(id)
+      if (!result) {
+        response.status(404).json({ message: 'Incident not found' })
+        return
+      }
       response.json(result)
     } catch (e) {
       const error = e as Error

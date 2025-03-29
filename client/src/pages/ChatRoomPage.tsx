@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { addMessage, loadMessages } from '../features/messageSlice';
-import IChannel from '../models/Channel';
-import request from '../utils/request';
-import { RootState } from '@/utils/types';
-import {AppDispatch} from '@/app/store';
-import ChatBox from '../components/Chat/ChatBox';
-import styles from '@/styles/ChatRoomPage.module.css';
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useLocation, useNavigate } from 'react-router-dom'
+import ChatBox from '../components/Chat/ChatBox'
+import IChannel from '../models/Channel'
+import { addMessage, loadMessages } from '../redux/messageSlice'
+import { AppDispatch, RootState } from '../redux/store'
+import request from '../utils/request'
 
 // ChatRoomPage component: Displays messages for a specific channel and allows sending new messages
 const ChatRoomPage: React.FC = () => {

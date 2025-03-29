@@ -1,5 +1,9 @@
-import { EmergencyQuestions, FireQuestions, MedicalQuestions, PoliceQuestions } from "@/utils/types"
-import IUser from "./User"
+import {
+  EmergencyQuestions,
+  FireQuestions,
+  MedicalQuestions,
+  PoliceQuestions,
+} from '../utils/types'
 
 /**
  * Incident Interface
@@ -12,19 +16,19 @@ export enum IncidentPriority {
   Urgent = 'One',
   CouldWait = 'Two',
   Dismiss = 'Three',
-  Unset = 'U'
+  Unset = 'U',
 }
 
-export enum IncidentType {  
+export enum IncidentType {
   Fire = 'F',
   Medical = 'M',
   Police = 'P',
-  Unset = "U"
+  Unset = 'U',
 }
 
 export default interface IIncident {
   _id: string // Unique identifier for the incident
-  incidentId : string
+  incidentId: string
   caller: string // User object representing the sender of the incident
   openingDate: string // Timestamp of when the incident was create
   incidentState: string // Identifier of the state of the incident
@@ -32,7 +36,18 @@ export default interface IIncident {
   commander: string // The commander of the incident
   address: string // The address of the user who created the incident
   type: IncidentType // The type of the incident
-  questions: MedicalQuestions | FireQuestions | PoliceQuestions | EmergencyQuestions | null
-  incidentCallGroup?: string; // ID of the associated chat channel
+  questions:
+    | MedicalQuestions
+    | FireQuestions
+    | PoliceQuestions
+    | EmergencyQuestions
+    | null
+  incidentCallGroup?: string // ID of the associated chat channel
   priority: IncidentPriority // The priority of the incident
+  location?: {
+    // Exact coordinates of the incident location
+    latitude: number
+    longitude: number
+  }
+  assignedVehicles: { type: string; name: string; usernames: string[] }[] // List of vehicles assigned to the incident
 }

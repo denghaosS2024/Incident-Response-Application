@@ -1,5 +1,6 @@
-import { Meta, StoryObj } from '@storybook/react'
+import { NavigateNext } from '@mui/icons-material'
 import { Button, ButtonProps } from '@mui/material'
+import { Meta, StoryObj } from '@storybook/react'
 
 const meta = {
   title: 'Material UI/Button',
@@ -56,5 +57,13 @@ export const RegisterLinkButton: Story = {
     variant: 'text',
     color: 'primary',
     children: 'Register',
+  },
+}
+
+export const navigateArrowButton: Story = {
+  args: {
+    variant: 'outlined',
+    color: 'info',
+    children: <NavigateNext />,
   },
 }

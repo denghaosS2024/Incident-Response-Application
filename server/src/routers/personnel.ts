@@ -1,7 +1,7 @@
-import { Request, Response, Router } from "express";
-import PersonnelController from "../controllers/PersonnelController";
+import { Request, Response, Router } from 'express'
+import PersonnelController from '../controllers/PersonnelController'
 
-const personnelRouter = Router();
+const personnelRouter = Router()
 
 /**
  * @swagger
@@ -23,15 +23,15 @@ const personnelRouter = Router();
  *       500:
  *         description: Server error while fetching personnel.
  */
-personnelRouter.get("/", async (_req: Request, res: Response) => {
+personnelRouter.get('/', async (_req: Request, res: Response) => {
   try {
-    const personnel = await PersonnelController.getAllAvailablePersonnel();
-    res.json(personnel);
+    const personnel = await PersonnelController.getAllAvailablePersonnel()
+    res.json(personnel)
   } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
+    const error = err as Error
+    res.status(500).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -72,18 +72,19 @@ personnelRouter.get("/", async (_req: Request, res: Response) => {
  *       500:
  *         description: Server error while updating personnel.
  */
-personnelRouter.put("/cities", async (req: Request, res: Response) => {
+personnelRouter.put('/cities', async (req: Request, res: Response) => {
   try {
-    const { username, cityName } = req.body;
-    console.log('username:', username);
-    console.log('cityName:', cityName);
-    const updatedPersonnel = await PersonnelController.updatePersonnelCity(username, cityName);
-    res.status(200).json(updatedPersonnel);
+    const { username, cityName } = req.body
+    const updatedPersonnel = await PersonnelController.updatePersonnelCity(
+      username.toString(),
+      cityName.toString(),
+    )
+    res.status(200).json(updatedPersonnel)
   } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
+    const error = err as Error
+    res.status(500).json({ error: error.message })
   }
-});
+})
 
 /**
  * @swagger
@@ -106,10 +107,12 @@ personnelRouter.put("/cities", async (req: Request, res: Response) => {
  *               personnelName:
  *                 type: string
  *                 example: "john_doe"
- *               vehicleName:
- *                 type: string
- *                 example: "Car123"
- *                 description: Name of the vehicle to assign. Pass `null` to remove vehicle from a personnel.
+ *               commandingIncident:
+ *                 type: object
+ *                 description: Incident that the personnel is commanding.
+ *               vehicle:
+ *                 type: object
+ *                 description: The vehicle (Car or Truck) to assign. 
  *     responses:
  *       200:
  *         description: Vehicle updated successfully.
@@ -117,15 +120,34 @@ personnelRouter.put("/cities", async (req: Request, res: Response) => {
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Personnel"
+ *       400:
+ *         description: Bad request. Missing or invalid parameters.
+ *       500:
+ *         description: Server error while updating personnel.
  */
-personnelRouter.put("/vehicles", async (req: Request, res: Response) => {
+personnelRouter.put('/vehicles', async (req: Request, res: Response) => {
   try {
-    const { personnelName, vehicleName } = req.body;
-    const updatedPersonnel = await PersonnelController.selectVehicleForPersonnel(personnelName, vehicleName);
-    res.status(200).json(updatedPersonnel);
+    const { personnelName, commandingIncident, vehicle } = req.body
+    const updatedPersonnel =
+      await PersonnelController.selectVehicleForPersonnel(
+        personnelName.toString(),
+        commandingIncident,
+        vehicle
+      )
+    res.status(200).json(updatedPersonnel)
   } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
+    const error = err as Error
+    if (
+      error.message.includes('already has a vehicle assigned') ||
+      error.message.includes('does not exist') ||
+      error.message.includes('from another incident')
+    ) {
+      // Return 400 Bad Request for validation errors
+      res.status(400).json({ message: error.message })
+      console.log(error.message)
+      return
+    }
+    res.status(500).json({ message: error.message })
   }
 })
 
@@ -157,17 +179,22 @@ personnelRouter.put("/vehicles", async (req: Request, res: Response) => {
  *       200:
  *         description: Vehicle released successfully.
  */
-personnelRouter.put("/vehicles/release", async (req: Request, res: Response) => {
-  try {
-    const { personnelName, vehicleName } = req.body;
-    const updatedPersonnel = await PersonnelController.releaseVehicleFromPersonnel(personnelName, vehicleName);
-    res.status(200).json(updatedPersonnel);
-  } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
-  }
-}
-);
+personnelRouter.put(
+  '/vehicles/release',
+  async (req: Request, res: Response) => {
+    try {
+      const { personnelName, vehicleName } = req.body
+      const updatedPersonnel =
+        await PersonnelController.releaseVehicleFromPersonnel(
+          personnelName.toString(),
+          vehicleName.toString(),
+        )
+      res.status(200).json(updatedPersonnel)
+    } catch (err) {
+      const error = err as Error
+      res.status(500).json({ error: error.message })
+    }
+  },
+)
 
-
-export default personnelRouter;
+export default personnelRouter

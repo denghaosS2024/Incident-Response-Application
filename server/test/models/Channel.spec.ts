@@ -1,32 +1,45 @@
+import Channel from '../../src/models/Channel'
+import SystemGroupConfigs from '../../src/utils/SystemDefinedGroups'
 import * as TestDatabase from '../utils/TestDatabase'
-import Channel, { PUBLIC_CHANNEL_NAME } from '../../src/models/Channel'
 
 describe('Channel model', () => {
+  jest.setTimeout(10000)
   beforeAll(TestDatabase.connect)
 
-  it('will create the public channel since it does not exist', async () => {
-    // prove that there is no channel
-    expect(await Channel.find().exec()).toEqual([])
-
-    const publicChannel = await Channel.getPublicChannel()
+  it('will get all system defined groups', async () => {
     const channels = await Channel.find().exec()
+    expect(channels.length).toBe(SystemGroupConfigs.length)
 
-    expect(channels.length).toBe(1)
-    expect(channels[0].id).toBe(publicChannel.id)
-    expect(publicChannel.name).toBe(PUBLIC_CHANNEL_NAME)
+    // Insertion order is not guaranteed, so we need to sort the channels by name
+    channels.sort((a, b) => a.name.localeCompare(b.name))
+    SystemGroupConfigs.sort((a, b) => a.name.localeCompare(b.name))
+
+    for (let i = 0; i < channels.length; i++) {
+      expect(channels[i].name).toBe(SystemGroupConfigs[i].name)
+      expect(channels[i].description).toBe(SystemGroupConfigs[i].description)
+    }
   })
 
-  it('will return the existing public channel', async () => {
-    const channels = await Channel.find().exec()
+  describe('getPublicChannel', () => {
+    it('will return the existing public channel', async () => {
+      const channels = await Channel.find().exec()
+      const publicChannel = await Channel.getPublicChannel()
 
-    // prove that there is already a public channel
-    expect(channels.length).toBe(1)
+      // prove that no new channels are created
+      expect(await Channel.find().exec()).toStrictEqual(channels)
 
-    const publicChannel = await Channel.getPublicChannel()
+      const ids = channels.map((c) => c.id)
+      expect(ids).toContain(publicChannel.id)
+    })
 
-    // prove that no new channels are created
-    expect(await Channel.find().exec()).toStrictEqual(channels)
-    expect(channels[0].id).toBe(publicChannel.id)
+    it('will create a new public channel if it does not exist', async () => {
+      await Channel.deleteMany({ name: 'Public' }).exec()
+      const channelsBefore = await Channel.find()
+      const publicChannel = await Channel.getPublicChannel()
+      const channelsAfter = await Channel.find()
+      expect(channelsAfter.length).toBe(channelsBefore.length + 1)
+      expect(publicChannel.name).toBe('Public')
+    })
   })
 
   afterAll(TestDatabase.close)

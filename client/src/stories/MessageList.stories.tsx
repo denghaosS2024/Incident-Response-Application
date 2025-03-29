@@ -1,8 +1,8 @@
 import { Meta, StoryObj } from '@storybook/react'
 
+import moment from 'moment'
 import MessageList from '../components/MessageList'
 import IMessage from '../models/Message'
-import moment from 'moment'
 
 const message1: IMessage = {
   _id: '66ac3bd3d3cdaf58f9a5a268',

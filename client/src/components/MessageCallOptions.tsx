@@ -1,18 +1,20 @@
-import React, { useState, useEffect} from 'react'
-import { IconButton, Menu, MenuItem } from '@mui/material'
 import { Phone } from '@mui/icons-material'
+import { IconButton, Menu, MenuItem } from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { addMessage } from '../features/messageSlice'
+import { addMessage } from '../redux/messageSlice'
 import request from '../utils/request'
 
 interface MessageCallOptionsProps {
   channelId: string
   currentUserId: string
+  onError: (message: string) => void
 }
 
 const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   channelId,
   currentUserId,
+  onError,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false)
@@ -22,10 +24,9 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   useEffect(() => {
     const fetchChannelDetails = async () => {
       try {
-        const channels = await request(`/api/channels`) 
-        const currentChannel = channels.find((channel: any) => channel._id === channelId) // Find the current channel
+        const currentChannel = await request(`/api/channels/${channelId}`) // Find the current channel
         if (currentChannel) {
-          setPrivateChannel(currentChannel.users.length === 2) // Check if only two users exist in the channel
+          setPrivateChannel(currentChannel.name === "PrivateContact") // Check if only two users exist in the channel
         }
       } catch (error) {
         console.error('Failed to fetch channel details:', error)
@@ -44,32 +45,34 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   }
 
   // Option for making a phone call
-  const handleMakeCall = async() => {
+  const handleMakeCall = async () => {
     // Waiting for implementing adding phone number in profile page
     try {
-      console.log('Make phone call...');
-      const response = await request(
-        `/api/channels/${channelId}/phone-call`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-application-uid': currentUserId,
-          },
-          body: JSON.stringify({}),
+      console.log('Make phone call...')
+      const response = await request(`/api/channels/${channelId}/phone-call`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-application-uid': currentUserId,
         },
-      )
-      const phoneNumber = response.phoneNumber;
+        body: JSON.stringify({}),
+      })
+      const phoneNumber = response.phoneNumber
       if (phoneNumber) {
-        window.location.href = `tel:${phoneNumber}`;
+        window.location.href = `tel:${phoneNumber}`
       } else {
-        alert('Failed to retrieve phone number.');
+        onError(
+          "The user you are calling hasn't set up their profile with a phone number.",
+        )
       }
-      dispatch(addMessage(response.message));
+      dispatch(addMessage(response.message))
     } catch (error) {
+      onError(
+        "The user you are calling hasn't set up their profile. Phone calls are not available.",
+      )
       console.error('Failed to make phone call:', error)
     }
-    handleMenuClose();
+    handleMenuClose()
   }
 
   // Option for starting a video conference
@@ -101,7 +104,9 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
         <Phone />
       </IconButton>
       <Menu anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose}>
-        <MenuItem onClick={handleMakeCall} disabled={!isPrivateChannel}>Make Phone Call</MenuItem>
+        <MenuItem onClick={handleMakeCall} disabled={!isPrivateChannel}>
+          Make Phone Call
+        </MenuItem>
         <MenuItem onClick={handleStartVideoConference}>
           Start Video Conference
         </MenuItem>

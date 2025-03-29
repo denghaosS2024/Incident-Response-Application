@@ -4,12 +4,18 @@
  */
 export default class Globals {
   public static backendUrl() {
-    if (!process.env.REACT_APP_BACKEND_URL) {
+    if (!import.meta.env.VITE_BACKEND_URL) {
       console.warn(
-        'REACT_APP_BACKEND_URL is not set. Using localhost:3001 as fallback.',
+        'VITE_BACKEND_URL is not set. Using localhost:3001 as fallback.',
       )
     }
 
-    return process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:3001'
+    return import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:3001'
+  }
+  public static getMapboxToken() {
+    if (!import.meta.env.VITE_MAPBOX_TOKEN) {
+      console.warn('VITE_MAPBOX_TOKEN is not set. Using fallback token.')
+    }
+    return import.meta.env.VITE_MAPBOX_TOKEN ?? ''
   }
 }

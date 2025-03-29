@@ -8,6 +8,11 @@ export interface ISystemGroupConfig {
 
 const SystemGroupConfigs: ISystemGroupConfig[] = [
   {
+    name: "Public",
+    description: "Group includes all users.",
+    participantRole: [ROLES.CITIZEN, ROLES.DISPATCH, ROLES.POLICE, ROLES.FIRE, ROLES.NURSE, ROLES.ADMINISTRATOR]
+  },
+  {
     name: "Citizens",
     description: "Group includes all citizens.",
     participantRole: [ROLES.CITIZEN, ROLES.ADMINISTRATOR]
@@ -42,11 +47,6 @@ const SystemGroupConfigs: ISystemGroupConfig[] = [
     description: "Group includes all medical personnel.",
     participantRole: [ROLES.NURSE, ROLES.POLICE, ROLES.FIRE, ROLES.NURSE, ROLES.ADMINISTRATOR]
   },
-  {
-    name: "Public",
-    description: "Group includes all users.",
-    participantRole: [ROLES.CITIZEN, ROLES.DISPATCH, ROLES.POLICE, ROLES.FIRE, ROLES.NURSE, ROLES.ADMINISTRATOR]
-  }
 ]
 
 export default SystemGroupConfigs;

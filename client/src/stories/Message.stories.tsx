@@ -42,6 +42,16 @@ export const VideoMessage: Story = {
   },
 }
 
+export const ImageMessage: Story = {
+  args: {
+    message: {
+      sender: { username: 'Jane Doe' },
+      timestamp: '5 minutes ago',
+      content: 'https://storage.googleapis.com/sem-video-bucket/images/sample-image.png',
+    },
+  },
+}
+
 export const FileMessage: Story = {
   args: {
     message: {

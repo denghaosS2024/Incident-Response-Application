@@ -23,6 +23,7 @@ export interface IUser extends Document {
   assignedCar?: string | null
   assignedTruck?: string | null
   assignedVehicleTimestamp?: Date
+  assignedIncident?: string | null
   previousLatitude: number
   previousLongitude: number
   comparePassword: (candidatePassword: string) => Promise<boolean>

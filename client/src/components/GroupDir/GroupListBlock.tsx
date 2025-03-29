@@ -1,47 +1,66 @@
-import IChannel from '@/models/Channel';
-import { Box, List, ListItem, SxProps, Typography } from '@mui/material';
-import { Channel } from '../ChannelList';
-
+import { Box, List, ListItem, Typography } from '@mui/material'
+import IChannel from '../../models/Channel'
+import { Channel } from '../ChannelList'
 
 interface GroupListBlockProps {
-    headerName: string;
-    id: string;
-    groups: IChannel[];
+  headerName: string
+  id: string
+  groups: IChannel[]
 }
 
-const GroupStyle: SxProps = {
-    width: '100%',
+const GroupListBlock: React.FC<GroupListBlockProps> = ({
+  headerName,
+  id,
+  groups,
+}) => {
+  return (
+    <div>
+      <div className="group-subheader" id={id}>
+        <ListItem sx={{
+          padding: '10px 10px',
+          marginBottom: '8px',
+          width: '100%',
+          marginTop: '5px',
+          lineHeight: "40px",  /* Matches the height */
+          display: 'flex',
+          justifyContent: 'center',
+
+        }}>
+          <Typography variant="h6" fontWeight="bold">
+          {headerName}
+          </Typography>
+        </ListItem>
+      </div>
+
+      <List className="group-item" sx={{ width: '300px' }}>
+        {groups.map((group) => (
+          <ListItem
+            key={group._id}
+            disablePadding
+            
+            sx={{
+              border: '1.5px solid #ddd',
+              borderRadius: '8px',
+              backgroundColor:  '#fff',
+              marginBottom: '8px',
+              width: '100%',
+              marginTop: '5px',
+              '&:hover': {
+                backgroundColor: '#f0f0f0',
+              },
+              height: '60px'
+
+            }}
+          >
+            <Box sx={{margin: 'auto', paddingLeft: '20px', width: '300px'}}>
+              <Channel channel={group} isSettingButton={true} sx={{ backgroundColor: 'transparent', color: 'black', boxShadow: 'none', padding: '0px'}}
+               settingButtonSx={{ paddingLeft: '30px'}} settingButtonLinkSx={{ textDecoration: 'none'}} />
+            </Box>
+          </ListItem>
+        ))}
+      </List>
+    </div>
+  )
 }
 
-const GroupListBlock: React.FC<GroupListBlockProps> = ({ headerName, id, groups }) => {
-    return (
-        <div>
-            <div className="group-subheader" id={id}>
-                <Typography
-                    variant="h6"
-                    sx={{ mb: 2}}
-                    >
-                    {headerName}
-                </Typography>
-            </div>
-
-            <List className="group-item" sx={{ width: '100%' }}>
-                {
-                    groups.map(group => (
-                        <ListItem key={group._id} disablePadding sx={{ width: '90%', marginLeft: "1%"}}>
-                        <Box sx={{
-                        width: '90%',
-                        }}>
-                            <Channel channel={group} isSettingButton={id !== "closed"} />
-                        </Box>
-                            </ListItem>
-                    ))
-                }
-            </List>
-
-        </div>
-    );
-};
-
-
-export default GroupListBlock;
+export default GroupListBlock

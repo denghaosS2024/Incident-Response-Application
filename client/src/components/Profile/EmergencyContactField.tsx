@@ -1,149 +1,196 @@
-import React, { useState } from "react";
-import { TextField, Grid, Card, CardContent, IconButton } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { IEmergencyContact } from "@/models/Profile";
+import CloseIcon from '@mui/icons-material/Close'
+import { Card, CardContent, Grid, IconButton, TextField } from '@mui/material'
+import { useState } from 'react'
+import { IEmergencyContact } from '../../models/Profile'
 
-interface EmergencyContactFieldProps {  
-    contactList: IEmergencyContact[];   
-    setContactList: (contactList: IEmergencyContact[]) => void;
+interface EmergencyContactFieldProps {
+  contactList: IEmergencyContact[]
+  setContactList: (contactList: IEmergencyContact[]) => void
 }
 
-export default function EmergencyContactField({ contactList, setContactList }: EmergencyContactFieldProps) {
-    const handleDeleteContact = (index: number) => {
-        const updatedContacts = contactList.filter((_, i) => i !== index);
-        setContactList(updatedContacts);
-    };
+export default function EmergencyContactField({
+  contactList,
+  setContactList,
+}: EmergencyContactFieldProps) {
+  const handleDeleteContact = (index: number) => {
+    const updatedContacts = contactList.filter((_, i) => i !== index)
+    setContactList(updatedContacts)
+  }
 
-    const handleContactChange = (index: number, field: keyof IEmergencyContact, value: string) => {
-        const updatedContacts = contactList.map((contact, i) => 
-          i === index ? { ...contact, [field]: value } : contact
-        );
-        setContactList(updatedContacts);
-    };
+  const handleContactChange = (
+    index: number,
+    field: keyof IEmergencyContact,
+    value: string,
+  ) => {
+    const updatedContacts = contactList.map((contact, i) =>
+      i === index ? { ...contact, [field]: value } : contact,
+    )
+    setContactList(updatedContacts)
+  }
 
-    return (
-        <>
-            <h2>Emergency Contacts</h2>
-            {contactList.map((contact, index) => (
-                <ContactInfo 
-                    key={index} 
-                    index={index} 
-                    phone={contact.phone} 
-                    email={contact.email} 
-                    name={contact.name} 
-                    onChange={handleContactChange}
-                    onDelete={handleDeleteContact} 
-                />
-            ))}
+  return (
+    <>
+      <h2>Emergency Contacts</h2>
+      {contactList.map((contact, index) => (
+        <ContactInfo
+          key={index}
+          index={index}
+          phone={contact.phone}
+          email={contact.email}
+          name={contact.name}
+          onChange={handleContactChange}
+          onDelete={handleDeleteContact}
+        />
+      ))}
 
-            <button onClick={() => {
-                const newContact: IEmergencyContact = { name: "", phone: "", email: "" };
-                setContactList([...contactList, newContact]);
-            }}>
-                Add Emergency Contact
-            </button>
-        </>
-    );
+      <button
+        onClick={() => {
+          const newContact: IEmergencyContact = {
+            name: '',
+            phone: '',
+            email: '',
+          }
+          setContactList([...contactList, newContact])
+        }}
+      >
+        Add Emergency Contact
+      </button>
+    </>
+  )
 }
 
 interface ContactInfoProps {
-    index: number;
-    name: string;
-    phone: string;
-    email: string;
-    onDelete: (index: number) => void;
-    onChange: (index: number, field: keyof IEmergencyContact, value: string) => void;
+  index: number
+  name: string
+  phone: string
+  email: string
+  onDelete: (index: number) => void
+  onChange: (
+    index: number,
+    field: keyof IEmergencyContact,
+    value: string,
+  ) => void
 }
 
-const ContactInfo = ({ index, phone, name, email, onDelete, onChange }: ContactInfoProps) => {
-    const [phoneError, setPhoneError] = useState("");
-    const [emailError, setEmailError] = useState("");
-    const [nameError, setNameError] = useState("");
+const ContactInfo = ({
+  index,
+  phone,
+  name,
+  email,
+  onDelete,
+  onChange,
+}: ContactInfoProps) => {
+  const [phoneError, setPhoneError] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [nameError, setNameError] = useState('')
+  const phoneRegex = /^\+?[1-9]\d{1,14}$/
 
-    const validatePhone = (phone: string) => {
-        if (!/^\d{10,15}$/.test(phone)) {
-            setPhoneError("Invalid phone number (10-15 digits required)");
-        } else {
-            setPhoneError("");
-        }
-    };
+  // const validatePhone = (phone: string) => {
+  //     if (phone.length < 7) {
+  //       setPhoneError("Phone number is too short.");
+  //       return false;
+  //   }
+  //   if (phone.length > 15) {
+  //       setPhoneError("Phone number is too long.");
+  //       return false;
+  //   }
+  //   if (!phone.startsWith("+")) {
+  //       setPhoneError("Include country code (e.g., +1 for US).");
+  //       return false;
+  //   }
+  //   if (!phoneRegex.test(phone)) {
+  //       setPhoneError("Only numbers are allowed (no spaces or symbols).");
+  //       return false;
+  //   }
 
-    const validateEmail = (email: string) => {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setEmailError("Invalid email format");
-        } else {
-            setEmailError("");
-        }
-    };
+  //   setPhoneError("");
+  //   return true;
+  // };
 
-    const validateName = (name: string) => {
-        if (name.trim() === "") {
-            setNameError("Name is required");
-        } else {
-            setNameError("");
-        }
-    };
+  const validatePhone = (email: string) => {
+    if (!phoneRegex.test(email)) {
+      setEmailError('Invalid email format')
+    } else {
+      setEmailError('')
+    }
+  }
 
-    return (
-        <Card sx={{ position: "relative", marginBottom: "10px", padding: "10px" }}>
-            <IconButton 
-                sx={{ position: "absolute", top: 5, right: 5 }} 
-                onClick={() => onDelete(index)}
-            >
-                <CloseIcon />
-            </IconButton>
-            <CardContent>
-                <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                        <TextField
-                            label="Name"
-                            value={name}
-                            variant="outlined"
-                            fullWidth
-                            margin="normal"
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                onChange(index, "name", value);
-                                validateName(value);
-                            }}
-                            error={!!nameError}
-                            helperText={nameError}
-                        />
-                    </Grid>
-                    <Grid item xs={4}>
-                        <TextField
-                            label="Phone"
-                            value={phone}
-                            variant="outlined"
-                            fullWidth
-                            margin="normal"
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                onChange(index, "phone", value);
-                                validatePhone(value);
-                            }}
-                            error={!!phoneError}
-                            helperText={phoneError}
-                        />
-                    </Grid>
-                    <Grid item xs={4}>
-                        <TextField
-                            label="Email"
-                            value={email}
-                            variant="outlined"
-                            fullWidth
-                            margin="normal"
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                onChange(index, "email", value);
-                                validateEmail(value);
-                            }}
-                            error={!!emailError}
-                            helperText={emailError}
-                        />
-                    </Grid>
-                </Grid>
-            </CardContent>
-        </Card>
-    );
-};
+  const validateEmail = (email: string) => {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('Invalid email format')
+    } else {
+      setEmailError('')
+    }
+  }
+
+  const validateName = (name: string) => {
+    if (name.trim() === '') {
+      setNameError('Name is required')
+    } else {
+      setNameError('')
+    }
+  }
+
+  return (
+    <Card sx={{ position: 'relative', marginBottom: '10px', padding: '10px' }}>
+      <IconButton
+        sx={{ position: 'absolute', top: 5, right: 5 }}
+        onClick={() => onDelete(index)}
+      >
+        <CloseIcon />
+      </IconButton>
+      <CardContent>
+      <Grid container spacing={2} direction="column">
+      <Grid item xs={12}>
+            <TextField
+              label="Name"
+              value={name}
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              onChange={(e) => {
+                const value = e.target.value
+                onChange(index, 'name', value)
+                validateName(value)
+              }}
+              error={!!nameError}
+              helperText={nameError}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Phone"
+              value={phone}
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              onChange={(e) => {
+                const value = e.target.value
+                onChange(index, 'phone', value)
+                validatePhone(value)
+              }}
+              error={!!phoneError}
+              helperText={phoneError}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Email"
+              value={email}
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              onChange={(e) => {
+                const value = e.target.value
+                onChange(index, 'email', value)
+                validateEmail(value)
+              }}
+              error={!!emailError}
+              helperText={emailError}
+            />
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
+  )
+}

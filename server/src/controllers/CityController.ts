@@ -21,22 +21,38 @@ class CityController {
     if (!name.trim()) {
       throw new Error("City name is required");
     }
+    const existingCity = await City.findOne({ name: name.trim() });
+    if (existingCity) {
+      throw new Error(`City with name '${name}' already exists`);
+    }
     const city: ICity = new City({ name: name.trim() });
     return city.save();
   }
 
-  /**
-   * Removes a city by its ID
-   * @param id The MongoDB document ID of the city
-   * @returns The removed city document
-   */
-  async removeCityById(id: string) {
-    const deleted = await City.findByIdAndDelete(id);
-    if (!deleted) {
-      throw new Error("City not found");
-    }
-    return deleted;
+/**
+ * Removes a city by its ID and resets the assignedCity field 
+ * for all associated cars, trucks, and personnel.
+ * 
+ * @param cityId The ID of the city to be removed.
+ * @returns A confirmation message indicating the city and its assignments were removed.
+ * @throws Error if the city does not exist in the database.
+ */
+async removeCityById(cityId: string) {
+  const city = await City.findById(cityId);
+  if (!city) {
+    throw new Error(`City with ID '${cityId}' not found`);
   }
+
+  // Reset assignedCity to null for all related entities
+  await Car.updateMany({ assignedCity: city.name }, { $set: { assignedCity: null } });
+  await Truck.updateMany({ assignedCity: city.name }, { $set: { assignedCity: null } });
+  await Personnel.updateMany({ assignedCity: city.name }, { $set: { assignedCity: null } });
+
+  // Remove the city
+  await City.deleteOne({ _id: cityId });
+
+  return { message: `City with ID '${cityId}' and its assignments have been removed.` };
+}
 
   async getCityAssignments(cityName: string) {
     const city = await City.findOne({ name: cityName });
@@ -60,13 +76,15 @@ class CityController {
         assignedCity
       })),
       personnel: personnel.map(
-        ({ _id, username, assignedCity, assignedVehicleTimestamp, role }) => ({
+        ({ _id, username, assignedCity, assignedCar, assignedTruck, assignedVehicleTimestamp, role }) => ({
           _id,
           name: username,
           assignedCity,
           ...(assignedVehicleTimestamp
             ? { assignedVehicleTimestamp }
             : {}),
+          ...(assignedCar ? { assignedCar } : {}),
+          ...(assignedTruck ? { assignedTruck } : {}),
           role
         })
       )

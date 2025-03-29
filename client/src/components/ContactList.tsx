@@ -1,22 +1,13 @@
 import {
   NavigateNext as Arrow,
   Visibility,
-  VisibilityOff
+  VisibilityOff,
 } from '@mui/icons-material'
-import {
-  IconButton,
-  List,
-  ListItemText,
-  Typography,
-  Box,
-} from '@mui/material'
-import cx from 'classnames'
+import { Box, IconButton, List, ListItemText, Typography } from '@mui/material'
 import { Fragment, FunctionComponent } from 'react'
 import IUser from '../models/User'
 import Loading from './common/Loading'
-import { getRoleIcon } from "./common/RoleIcon"
-
-import styles from '../styles/ContactList.module.css'
+import { getRoleIcon } from './common/RoleIcon'
 
 export type ClickContactHandler = (id: string, username: string) => void
 
@@ -29,8 +20,6 @@ export const Contact: FunctionComponent<IContactProps> = ({
   user: { _id, username, online, role },
   onClick,
 }) => {
-
-
   return (
     <Box
       sx={{

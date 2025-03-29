@@ -56,7 +56,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     '/reach911': '911 Call',
     '/incidents': 'Incidents',
     '/organization': 'Organization',
+    '/organization/view': 'Organization',
     '/map': 'Map',
+    '/register-hospital': 'Hospital',
+    '/hospitals': 'Hospitals',
+    '/resources': 'Resources',
+    '/find-hospital': 'Find Hospital',
+    '/dashboard': 'Dashboard',
   }
 
   const roleTitles: Record<string, string> = {
@@ -76,6 +82,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
   ) {
     title = 'Incidents'
   }
+  if (pathname === '/incidents/report') {
+    title = 'Incident Report'
+  }
 
   if (pathname.startsWith('/messages/') && name) {
     title = `${name} Messages`
@@ -86,6 +95,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   if (pathname.startsWith('/map')) {
     title = 'Map'
+  }
+
+  if (pathname.startsWith('/groups/')) {
+    title = 'Group'
   }
 
   if (pathname === '/') {
@@ -115,6 +128,14 @@ const NavigationBar: FunctionComponent<IProps> = ({
     navigate('/profile')
   }
 
+  const hospitalsDirectory = () => {
+    navigate('/hospitals')
+  }
+
+  const findHospital = () => {
+    navigate('/find-hospital')
+  }
+
   const navigateToOrganization = () => {
     // Get the user's role from localStorage
     const userRole = localStorage.getItem('role') || ''
@@ -129,6 +150,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     }
 
     // Close the menu after navigation
+    closeMenu()
+  }
+
+  const navigateToDashboard = () => {
+    if (['Dispatch', 'Police', 'Fire'].includes(role)) {
+      navigate('/dashboard')
+    }
     closeMenu()
   }
 
@@ -165,7 +193,18 @@ const NavigationBar: FunctionComponent<IProps> = ({
             role === 'Administrator') && (
             <MenuItem onClick={navigateToOrganization}>Organization</MenuItem>
           )}
-          <MenuItem onClick={profile}>profile</MenuItem>
+          {(role === 'Nurse' || role === 'Police' || role === 'Fire') && (
+            <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
+          )}
+          {(role === 'Police' || role === 'Fire') && (
+            <MenuItem onClick={findHospital}>Find Hospital</MenuItem>
+          )}
+          {(role === 'Dispatch' ||
+            role === 'Police' ||
+            role === 'Fire') && (
+            <MenuItem onClick={navigateToDashboard}>Dashboard</MenuItem>
+          )}
+          <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
         </Menu>
       </Toolbar>

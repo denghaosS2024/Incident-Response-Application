@@ -1,9 +1,9 @@
-import { Grid, Box } from '@mui/material'
-import AlertButton from './AlertButton'
-import request from '../utils/request'
-import { addMessage } from '../features/messageSlice'
-import { AppDispatch } from '@/app/store'
+import { Box, Grid } from '@mui/material'
 import { useDispatch } from 'react-redux'
+import { addMessage } from '../redux/messageSlice'
+import { AppDispatch } from '../redux/store'
+import request from '../utils/request'
+import AlertButton from './AlertButton'
 interface AlertPanelProps {
   role: 'Fire' | 'Police'
   channelId: string
@@ -34,7 +34,11 @@ const policeAlerts = [
   { label: 'HOSTAGE', bgColor: 'darkred', textColor: 'white' },
 ]
 
-const AlertPanel: React.FC<AlertPanelProps> = ({ role, channelId, responders }) => {
+const AlertPanel: React.FC<AlertPanelProps> = ({
+  role,
+  channelId,
+  responders,
+}) => {
   const dispatch = useDispatch<AppDispatch>()
   let alerts: { label: string; bgColor: string; textColor: string }[] = []
   if (role === 'Fire') {

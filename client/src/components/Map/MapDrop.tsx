@@ -1,22 +1,27 @@
-import Paper from '@mui/material/Paper';
-import BottomNavigation from '@mui/material/BottomNavigation';
-import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import PushPinIcon from '@mui/icons-material/PushPin';
-import CloudIcon from '@mui/icons-material/Cloud';
-import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt';
-import BlockIcon from '@mui/icons-material/Block';
-import { useState } from 'react';
+import BlockIcon from '@mui/icons-material/Block'
+import CloudIcon from '@mui/icons-material/Cloud'
+import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt'
+import PushPinIcon from '@mui/icons-material/PushPin'
+import BottomNavigation from '@mui/material/BottomNavigation'
+import BottomNavigationAction from '@mui/material/BottomNavigationAction'
+import Paper from '@mui/material/Paper'
+import { useState } from 'react'
 
 interface MapDropProps {
-    onDropPin: () => void;
-    onDropRoadblock: () => void;
-    onDropFireHydrant: () => void;
-    onDropAirQuality: () => void;
+  onDropPin: () => void
+  onDropRoadblock: () => void
+  onDropFireHydrant: () => void
+  onDropAirQuality: () => void
 }
 
-const MapDrop: React.FC<MapDropProps> = ({ onDropPin, onDropRoadblock, onDropFireHydrant, onDropAirQuality }) => {
-  const [value, setValue] = useState(0);
-  const currentUserRole = localStorage.getItem('role') || 'Citizen';  // Get role
+const MapDrop: React.FC<MapDropProps> = ({
+  onDropPin,
+  onDropRoadblock,
+  onDropFireHydrant,
+  onDropAirQuality,
+}) => {
+  const [value, setValue] = useState(0)
+  const currentUserRole = localStorage.getItem('role') || 'Citizen' // Get role
 
   return (
     <Paper
@@ -53,7 +58,7 @@ const MapDrop: React.FC<MapDropProps> = ({ onDropPin, onDropRoadblock, onDropFir
         />
 
         {/* Show Roadblock & Fire Hydrant only if NOT a Nurse */}
-        {(currentUserRole !== 'Nurse' && currentUserRole !== 'Citizen') && (
+        {currentUserRole !== 'Nurse' && currentUserRole !== 'Citizen' && (
           <>
             <BottomNavigationAction
               icon={<BlockIcon />}
@@ -76,7 +81,7 @@ const MapDrop: React.FC<MapDropProps> = ({ onDropPin, onDropRoadblock, onDropFir
         />
       </BottomNavigation>
     </Paper>
-  );
-};
+  )
+}
 
-export default MapDrop;
+export default MapDrop

@@ -7,28 +7,29 @@ import { ROLES, isValidRole } from './Roles'
  * This class manages a single Socket.io connection across the application.
  */
 class SocketClient {
-  private socket?: Socket
+  private socket: Socket | undefined = undefined
 
   /**
    * Establishes a connection to the Socket.io server
    */
-  connect = () => {
+  connect = (): Socket | undefined => {
     const uid = localStorage.getItem('uid')
     const token = localStorage.getItem('token')
     const roleFromStorage = localStorage.getItem('role')
 
     if (!roleFromStorage || !isValidRole(roleFromStorage)) {
       console.error('Invalid role:', roleFromStorage)
-      return
+      return undefined
     }
 
     const role = roleFromStorage as ROLES
 
     if (this.socket || !uid || !token || !Object.values(ROLES).includes(role)) {
-      return
+      return this.socket
     }
 
     const url = Globals.backendUrl()
+    console.log('Connecting to socket at:', url)
     this.socket = io(url)
 
     // Authenticate the socket connection
@@ -37,6 +38,21 @@ class SocketClient {
       uid,
       role,
     })
+
+    // Set up basic event listeners for debugging
+    this.socket.on('connect', () => {
+      console.log('Socket connected with ID:', this.socket?.id)
+    })
+
+    this.socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error)
+    })
+
+    this.socket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason)
+    })
+
+    return this.socket
   }
 
   /**
@@ -49,13 +65,23 @@ class SocketClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on(eventName: string, listener: (...args: any[]) => void) {
     if (this.socket) {
-      // console.log('Listening:', eventName);
-      this.socket.on(eventName, listener)
+      console.log('Adding listener for event:', eventName)
+      this.socket.on(eventName, (data) => {
+        console.log(`Received ${eventName} event:`, data)
+        listener(data)
+      })
+    } else {
+      console.warn('Attempted to add listener but socket is not connected')
+      const socket = this.connect() // Try to connect first
+      if (socket) {
+        socket.on(eventName, listener)
+      }
     }
   }
 
   off(eventName: string) {
     if (this.socket) {
+      console.log('Removing listener for event:', eventName)
       this.socket.off(eventName)
     }
   }
@@ -63,8 +89,14 @@ class SocketClient {
   // TODO: Whoever wrote this "any", please fix it when you figure out what type it should be
   emit(eventName: string, data: any) {
     if (this.socket) {
-      // console.log('Emitting:', eventName, data);
+      console.log('Emitting event:', eventName, data)
       this.socket.emit(eventName, data)
+    } else {
+      console.warn('Attempted to emit but socket is not connected')
+      const socket = this.connect() // Try to connect first
+      if (socket) {
+        socket.emit(eventName, data)
+      }
     }
   }
 
