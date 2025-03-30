@@ -16,6 +16,8 @@ import { useNavigate } from 'react-router-dom'
 import { IncidentType } from '../models/Incident'
 import { resetIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
+import ROLES from "@/utils/Roles"
+import { update } from "lodash"
 
 interface IncidentData {
   incidentId: string
@@ -235,7 +237,7 @@ function IncidentsPage() {
 
       // Create unique SAR incident ID (e.g. "SDena12")
       const incidentId = `S${username}${sarIncidentCount}`
-      
+
       // Create the new SAR incident
       const newSARIncident = {
         incidentId,
@@ -274,6 +276,29 @@ function IncidentsPage() {
     ) {
       readOnly = true
     }
+
+    if (incident.incidentState === 'Waiting' && role === ROLES.DISPATCH) {
+      // Update incident's state, owner and commander
+      const updatedIncident = {
+        ...incident,
+        incidentState: 'Triage',
+        owner: userId,
+        commander: userId,
+      }
+      try {
+        //todo: refactor incident endpoint to comply with REST best practices
+          request('/api/incidents/update', {
+            method: 'PUT',
+          body: JSON.stringify(updatedIncident),
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      catch (error) {
+        console.error('Error updating incident:', error)
+      }
+
+    }
+
     const autoPopulateData = true
     navigate('/reach911', {
       state: {
@@ -399,7 +424,7 @@ function IncidentsPage() {
               </FormControl>
             </MenuItem>
           </Menu>
-          {!hasActiveResponderIncident && 
+          {!hasActiveResponderIncident &&
           (
             <>
               <Tooltip title="Create new SAR incident">
@@ -416,7 +441,7 @@ function IncidentsPage() {
                   <X fontSize="large" />
                 </IconButton>
               </Tooltip>
-            
+
             <IconButton
               sx={{
                 position: 'fixed',

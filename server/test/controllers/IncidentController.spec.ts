@@ -436,6 +436,49 @@ describe('Incident Controller', () => {
         })
     })
 
+    it('Update incident should return an error if incident ID not found', async () => {
+        const incidentId = 'non-existent-id'
+        const updateData = {
+            incidentId: incidentId,
+            owner: 'UpdatedOwner',
+        }
+        await expect(
+            IncidentController.updateIncident(updateData),
+        ).rejects.toThrow(/not found/)
+    })
+
+    it('Can update incident owner and commander', async () => {
+        const username = 'test-user-update'
+        const incident = await createTestIncident(username)
+        const updateData = {
+            incidentId: incident.incidentId,
+            owner: 'UpdatedOwner',
+            commander: 'UpdatedCommander',
+        }
+
+        const updatedIncident =
+            await IncidentController.updateIncident(updateData)
+
+        expect(updatedIncident).toBeDefined()
+        expect(updatedIncident?.owner).toBe('UpdatedOwner')
+        expect(updatedIncident?.commander).toBe('UpdatedCommander')
+    })
+
+    it('Can update incdident status', async () => {
+        const username = 'test-user-update-status'
+        const incident = await createTestIncident(username)
+        const updateData = {
+            incidentId: incident.incidentId,
+            incidentState: 'Closed' as 'Closed',
+        }
+
+        const updatedIncident =
+            await IncidentController.updateIncident(updateData)
+
+        expect(updatedIncident).toBeDefined()
+        expect(updatedIncident?.incidentState).toBe('Closed')
+    })
+
     describe('Incident Responders Group functionality', () => {
         it('should create a new responders group from responders on assigned vehicles', async () => {
             await UserController.register(

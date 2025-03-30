@@ -166,9 +166,14 @@ class IncidentController {
                 { new: true },
             ).exec()
 
+            if (!updatedIncident) {
+                throw new Error(
+                    `Incident with ID '${incident.incidentId}' not found`,
+                )
+            }
+
             return updatedIncident
         } catch (error) {
-            console.error('Error updating incident:', error)
             throw error
         }
     }
