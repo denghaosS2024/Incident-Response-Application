@@ -1,13 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit'
+import alertQueueReducer from './alertQueueSlice'
 import contactReducer from './contactSlice'
 import hospitalReducer from './hospitalSlice'
 import incidentReducer from './incidentSlice'
 import messageReducer from './messageSlice'
 import notifyReducer from './notifySlice'
+import patientReducer from './patientSlice'
 import profileReducer from './profileSlice'
 import snackbarReducer from './snackbarSlice'
 import storageReducer from './storageSlice'
-import patientReducer from './patientSlice'
 /**
  * Redux Store Configuration
  *
@@ -21,6 +22,14 @@ import patientReducer from './patientSlice'
  * Store structure:
  * - messageState: Managed by messageReducer
  * - contactState: Managed by contactReducer
+ * - incidentState: Managed by incidentReducer
+ * - profileState: Managed by profileReducer
+ * - patientState: Managed by patientReducer
+ * - snackbarState: Managed by snackbarReducer
+ * - storage: Managed by storageReducer
+ * - hospital: Managed by hospitalReducer
+ * - notifyState: Managed by notifyReducer
+ * - alertQueue: Managed by alertQueueReducer
  *
  * Types:
  * - AppDispatch: Exported for use in typed dispatch calls.
@@ -43,6 +52,7 @@ export const store = configureStore({
     storage: storageReducer, // Reducer for managing storage state
     hospital: hospitalReducer, // Reducer for managing hospital state
     notifyState: notifyReducer, // Reducer for managing notification state
+    alertQueue: alertQueueReducer, // Reducer for managing alert queue state
   },
 })
 

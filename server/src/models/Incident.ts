@@ -43,7 +43,7 @@ export interface IIncident extends Document {
         | EmergencyQuestions
         | null
     priority: IncidentPriority // The priority of the incident
-    incidentCallGroup?: Types.ObjectId // Reference to Channel model
+    incidentCallGroup?: Types.ObjectId | null // Reference to Channel model
     assignedVehicles: {
         type: 'Car' | 'Truck'
         name: string
@@ -56,7 +56,7 @@ export interface IIncident extends Document {
         isAssign: boolean
         usernames: string[]
     }[]
-    respondersGroup?: Types.ObjectId // Reference to Channel model
+    respondersGroup?: Types.ObjectId | null // Reference to Channel model
 }
 
 const IncidentSchema = new Schema({

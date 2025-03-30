@@ -3,7 +3,9 @@ import request from 'supertest'
 
 import app from '../../src/app'
 import Car from '../../src/models/Car'
+import Channel from '../../src/models/Channel'
 import Incident, { IIncident } from '../../src/models/Incident'
+import User from '../../src/models/User'
 import * as TestDatabase from '../utils/TestDatabase'
 
 describe('Router - Incident', () => {
@@ -190,6 +192,82 @@ describe('Router - Incident', () => {
             .put('/api/incidents/update')
             .send({ incidentId: new Types.ObjectId().toString() })
             .expect(404)
+    })
+
+    it('should close an incident with vehicles and groups', async () => {
+        const carName = 'UnitTestCar'
+        const commander = 'TestCommander'
+        const officer = 'OfficerCar'
+        const caller = 'CloseFullTestUser'
+
+        const officerUser = await User.create({
+            username: officer,
+            role: 'Police',
+            password: 'testpass123',
+        })
+
+        const commanderUser = await User.create({
+            username: commander,
+            role: 'Police',
+            password: 'testpass123',
+        })
+
+        await Car.create({
+            name: carName,
+            usernames: [officer],
+            assignedIncident: null,
+            assignedCity: 'TestCity',
+        })
+
+        const callGroup = await Channel.create({
+            name: `CallGroup_${Date.now()}`,
+            users: [officerUser._id],
+            closed: false,
+        })
+
+        const responderGroup = await Channel.create({
+            name: `ResponderGroup_${Date.now()}`,
+            users: [officerUser._id, commanderUser._id],
+            closed: false,
+        })
+
+        const testIncident = await Incident.create({
+            incidentId: `I${caller}`,
+            caller,
+            incidentState: 'Assigned',
+            owner: caller,
+            commander,
+            address: 'Test address',
+            type: 'S',
+            priority: 'Three',
+            assignedVehicles: [
+                { type: 'Car', name: carName, usernames: [officer] },
+            ],
+            assignHistory: [],
+            incidentCallGroup: callGroup._id,
+            respondersGroup: responderGroup._id,
+        })
+
+        const res = await request(app)
+            .delete(`/api/incidents/${testIncident.incidentId}`)
+            .expect(200)
+
+        expect(res.body.incidentState).toBe('Closed')
+        expect(res.body.closingDate).toBeTruthy()
+        expect(res.body.assignedVehicles.length).toBe(0)
+        expect(res.body.incidentCallGroup).toBe(null)
+        expect(res.body.respondersGroup).toBe(null)
+
+        const carAfter = await Car.findOne({ name: carName }).lean()
+        expect(carAfter?.assignedIncident).toBe(null)
+
+        const callGroupAfter = await Channel.findById(callGroup._id).lean()
+        expect(callGroupAfter?.closed).toBe(true)
+
+        const responderGroupAfter = await Channel.findById(
+            responderGroup._id,
+        ).lean()
+        expect(responderGroupAfter?.closed).toBe(true)
     })
 
     it('should remove assigned incident from deallocated vehicles', async () => {
