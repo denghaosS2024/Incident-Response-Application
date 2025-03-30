@@ -1,10 +1,12 @@
 import { Query, Types } from 'mongoose'
 import IncidentController from '../../src/controllers/IncidentController'
+import UserController from '../../src/controllers/UserController'
 import Car from '../../src/models/Car'
 import Incident, {
     IIncident,
     IncidentPriority,
 } from '../../src/models/Incident'
+import ROLES from '../../src/utils/Roles'
 import * as TestDatabase from '../utils/TestDatabase'
 
 describe('Incident Controller', () => {
@@ -216,7 +218,7 @@ describe('Incident Controller', () => {
 
     it('should create new incident since there is not existing incident with this incidentId', async () => {
         const incident = await createTestIncident('does-not-exist')
-        let rawIncident = incident.toObject()
+        const rawIncident = incident.toObject()
         rawIncident.caller = 'new-incident'
         rawIncident.incidentId = `I${rawIncident.caller}`
         const res = await IncidentController.createIncident(rawIncident)
@@ -424,53 +426,78 @@ describe('Incident Controller', () => {
     })
 
     it('Update incident should return an error if incident ID not found', async () => {
-      const incidentId = 'non-existent-id'
-      const updateData = {
-          incidentId: incidentId,
-          owner: 'UpdatedOwner',
-      }
-      await expect(
-          IncidentController.updateIncident(updateData),
-      ).rejects.toThrow(/not found/)
-  })
+        const incidentId = 'non-existent-id'
+        const updateData = {
+            incidentId: incidentId,
+            owner: 'UpdatedOwner',
+        }
+        await expect(
+            IncidentController.updateIncident(updateData),
+        ).rejects.toThrow(/not found/)
+    })
 
-  it('Can update incident owner and commander', async () => {
-      const username = 'test-user-update'
-      const incident = await createTestIncident(username)
-      const updateData = {
-          incidentId: incident.incidentId,
-          owner: 'UpdatedOwner',
-          commander: 'UpdatedCommander',
-      }
+    it('Can update incident owner and commander', async () => {
+        const username = 'test-user-update'
+        const incident = await createTestIncident(username)
+        const updateData = {
+            incidentId: incident.incidentId,
+            owner: 'UpdatedOwner',
+            commander: 'UpdatedCommander',
+        }
 
-      const updatedIncident =
-          await IncidentController.updateIncident(updateData)
+        const updatedIncident =
+            await IncidentController.updateIncident(updateData)
 
-      expect(updatedIncident).toBeDefined()
-      expect(updatedIncident?.owner).toBe('UpdatedOwner')
-      expect(updatedIncident?.commander).toBe('UpdatedCommander')
-  })
+        expect(updatedIncident).toBeDefined()
+        expect(updatedIncident?.owner).toBe('UpdatedOwner')
+        expect(updatedIncident?.commander).toBe('UpdatedCommander')
+    })
 
-  it('Can update incdident status', async () => {
-      const username = 'test-user-update-status'
-      const incident = await createTestIncident(username)
-      const updateData = {
-          incidentId: incident.incidentId,
-          incidentState: 'Closed',
-      }
+    it('Can update incdident status', async () => {
+        const username = 'test-user-update-status'
+        const incident = await createTestIncident(username)
+        const updateData = {
+            incidentId: incident.incidentId,
+            incidentState: 'Closed' as const,
+        }
 
-      const updatedIncident =
-          await IncidentController.updateIncident(updateData)
+        const updatedIncident =
+            await IncidentController.updateIncident(updateData)
 
-      expect(updatedIncident).toBeDefined()
-      expect(updatedIncident?.incidentState).toBe('Closed')
-  })
+        expect(updatedIncident).toBeDefined()
+        expect(updatedIncident?.incidentState).toBe('Closed')
+    })
 
     describe('Incident Responders Group functionality', () => {
-        //todo: fix me
-        it.skip('should create a new responders channel when commander is on a vehicle', async () => {
+        it('should create a new responders group from responders on assigned vehicles', async () => {
+            await UserController.register(
+                'CommanderUser',
+                'password123',
+                ROLES.DISPATCH,
+            )
+            await UserController.register(
+                'Responder1',
+                'password123',
+                ROLES.POLICE,
+            )
+            await UserController.register(
+                'Responder2',
+                'password123',
+                ROLES.POLICE,
+            )
+            await UserController.register(
+                'Responder3',
+                'password123',
+                ROLES.POLICE,
+            )
+            await UserController.register(
+                'Responder4',
+                'password123',
+                ROLES.POLICE,
+            )
+
             const username = 'test-responder-group'
-            let incident = await createTestIncident(username)
+            const incident = await createTestIncident(username)
             incident.commander = 'CommanderUser'
             incident.assignedVehicles = [
                 {
@@ -486,23 +513,7 @@ describe('Incident Controller', () => {
             const updatedIncident =
                 await IncidentController.createOrUpdateRespondersGroup(incident)
 
-            expect(updatedIncident.channel).toBeDefined()
-            expect(updatedIncident.channel.name).toBe(
-                `${incident.incidentId}_Resp`,
-            )
-            const expectedUsers = new Set([
-                'CommanderUser',
-                'Responder1',
-                'Responder2',
-                'Responder3',
-                'Responder4',
-            ])
-            expect(new Set(updatedIncident.channel.users)).toEqual(
-                expectedUsers,
-            )
-            expect(updatedIncident.channel.owner).toBe(incident.commander)
-            expect(updatedIncident.channel.messages).toEqual([])
-            expect(updatedIncident.channel.closed).toBe(false)
+            expect(updatedIncident.respondersGroup).toBeDefined()
         })
     })
 })

@@ -64,6 +64,9 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     const [usernameError, setUserNameError] = useState<string>('')
     const [ageError, setAgeError] = useState<string>('')
 
+    const token = localStorage.getItem('token')
+    const uid = localStorage.getItem('uid')
+
     // Loads contacts upon page loading
     useEffect(() => {
         dispatch(loadContacts())
@@ -78,7 +81,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     const currentUser = contacts.filter((user: IUser) => user._id === userId)[0]
 
     // When any input changes, add the changes to the incident slice
-    const onChange = (
+    const onChange = async (
         field: string,
         e:
             | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -96,35 +99,97 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             [field]: newValue,
         } as MedicalQuestions
 
-        dispatch(
-            updateIncident({
-                ...incident,
-                questions: updatedQuestions,
-            }),
-        )
+        if (await validateField(field, newValue)) {
+            dispatch(
+                updateIncident({
+                    ...incident,
+                    questions: updatedQuestions,
+                }),
+            )
+        }
 
         // Validate only the changed field
-        validateField(field, newValue)
     }
 
     // Validates field to set certain error messages
-    const validateField = (field: string, value: string | boolean) => {
+    const validateField = async (
+        field: string,
+        value: string | boolean,
+    ): Promise<boolean> => {
+        let isValid = true
+
         if (field === 'username') {
             setUserNameError(
                 !value || value === 'Select One' ? 'Select a username' : '',
             )
+            // Check for duplicate usernames in the questions array
+            const isDuplicateUsername = Array.isArray(incident.questions)
+                ? incident.questions.some(
+                      (question, index) =>
+                          index !== formIndex && question?.username === value,
+                  )
+                : false
+
+            if (!value || value === 'Select One' || isDuplicateUsername) {
+                setUserNameError(
+                    isDuplicateUsername
+                        ? 'This username does not meet the rule'
+                        : 'Select a username',
+                )
+                isValid = false
+            }
+
+            const response = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api/incidents/${username}/active`,
+                {
+                    headers: {
+                        'x-application-token': token || '',
+                        'x-application-uid': uid || '',
+                    },
+                },
+            )
+            console.log('response: ', response)
+            if (response.ok) {
+                const responseData = await response.json()
+                if (
+                    responseData.incidentId &&
+                    responseData.incidentId !== incident._id
+                ) {
+                    setUserNameError(
+                        'This username is already associated with another active incident',
+                    )
+                    isValid = false
+                }
+            }
         }
 
         // Checks that the age is between 1 and 110
         if (field === 'age') {
             const parsedAge = Number(value) // Convert to number
 
-            if (parsedAge && (parsedAge <= 0 || parsedAge > 110)) {
+            if (!parsedAge || parsedAge <= 0 || parsedAge > 110) {
                 setAgeError('Enter a value between 1 and 110')
+                isValid = false
             } else {
                 setAgeError('')
             }
         }
+
+        if (field === 'isPatient') {
+            const isAnotherPatient = Array.isArray(incident.questions)
+                ? incident.questions.some(
+                      (question, index) =>
+                          index !== formIndex && question?.isPatient === true,
+                  )
+                : false
+
+            if (isAnotherPatient && value === true) {
+                isValid = false
+                alert('Another form already has "I am the patient" selected.')
+            }
+        }
+
+        return isValid
     }
 
     if (loading) return <Loading />

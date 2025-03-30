@@ -62,7 +62,6 @@ const Reach911Page: React.FC = () => {
                         },
                     },
                 )
-                console.log('response: ', response)
                 if (response.status === 404) {
                     console.log('-------------404---------------')
                     const createResponse = await fetch(

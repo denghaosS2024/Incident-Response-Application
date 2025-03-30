@@ -55,6 +55,7 @@ export interface IIncident extends Document {
         isAssign: boolean
         usernames: string[]
     }[]
+    respondersGroup?: Types.ObjectId // Reference to Channel model
 }
 
 const IncidentSchema = new Schema({
@@ -132,6 +133,11 @@ const IncidentSchema = new Schema({
             },
         ],
         default: [],
+    },
+    respondersGroup: {
+        type: Schema.Types.ObjectId,
+        ref: 'Channel',
+        default: null,
     },
 })
 

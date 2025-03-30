@@ -158,7 +158,12 @@ export default Router()
     } catch (e) {
       const error = e as Error
       console.error('Error updating incident:', error)
-      response.status(400).send({ message: error.message })
+      // Return 404 if the incident is not found
+      if (error.message.includes('not found')) {
+        response.status(404).send({ message: error.message })
+      } else {
+        response.status(400).send({ message: error.message })
+      }
     }
   })
 
@@ -335,8 +340,8 @@ export default Router()
         const result = await IncidentController.getIncidentByCommander(
           commander as string,
         )
-        return result && result.length > 0 
-        ? response.json(result) 
+        return result && result.length > 0
+        ? response.json(result)
         : response.json([]);
       }
 
