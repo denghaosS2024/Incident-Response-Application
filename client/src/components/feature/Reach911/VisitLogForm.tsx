@@ -1,4 +1,6 @@
-import { Box, FormControl, FormControlLabel, FormLabel, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import { Box, FormControl, FormControlLabel, IconButton, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
@@ -71,41 +73,53 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     if (loading) return <Loading />
 
     return (
-        <>
-            <Box
-                width="100%"
-                maxWidth="800px"
-                my={4}
-                display="flex"
-                flexDirection="column"
-                alignItems="left"
-                paddingX="32px"
-            >
-                <Typography>Visit: 12.03.21-10:00</Typography>
-                <Typography>Incident ID: IZoe</Typography>
-                <FormControl>
-                    <Typography>Priority: </Typography>
+        <Box
+            width="100%"
+            maxWidth="800px"
+            my={4}
+            display="flex"
+            flexDirection="column"
+            paddingX="32px"
+            gap={3}  // Added vertical spacing between form elements
+        >
+            <Typography variant="h6">Visit: 12.03.21-10:00</Typography>
+            <Typography variant="h6">Incident ID: IZoe</Typography>
+
+            {/* Priority */}
+            <FormControl>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography sx={{ width: 120, flexShrink: 0 }}>Priority:</Typography>
                     <Select
                         name="priority"
                         value={formData.priority}
                         onChange={handleChange}
+                        sx={{ 
+                            width: 200,
+                            height: 40,
+                            '& .MuiSelect-select': { 
+                                padding: '8px 14px',
+                            }
+                        }}
                     >
-                        {
-                            priorities.map((priority) => (
-                                <MenuItem key={priority.value} value={priority.value}>
-                                    {priority.label}
-                                </MenuItem>
-                            ))
-                        }
+                        {priorities.map((priority) => (
+                            <MenuItem key={priority.value} value={priority.value}>
+                                {priority.label}
+                            </MenuItem>
+                        ))}
                     </Select>
-                </FormControl>
-                <FormControl>
-                    <Typography>Location: </Typography>
+                </Box>
+            </FormControl>
+
+            {/* Location */}
+            <FormControl>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography sx={{ width: 120, flexShrink: 0 }}>Location:</Typography>
                     <RadioGroup
                         name="location"
                         value={formData.location}
                         onChange={handleChange}
                         row
+                        sx={{ gap: 2 }}
                     >
                         {locations.map((location) => (
                             <FormControlLabel
@@ -113,32 +127,66 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                                 value={location.value}
                                 control={<Radio />}
                                 label={location.label}
+                                sx={{ marginRight: 3 }}
                             />
                         ))}
                     </RadioGroup>
-                </FormControl>
-                <FormControl>
-                    <Typography>Age: </Typography>
-                    <TextField
-                        variant="outlined"
-                        name="age"
-                        value={formData.age}
-                        onChange={handleChange}
-                        type="number"
-                        inputProps={{ min: 0 }}
-                    />
-                </FormControl>
-                <FormControl>
-                    <FormLabel>Concious</FormLabel>
+                </Box>
+            </FormControl>
+
+            {/* Age */}
+            <FormControl>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography sx={{ width: 120, flexShrink: 0 }}>Age:</Typography>
+                    <Box display="flex" alignItems="center">
+                        <IconButton 
+                            onClick={() => {
+                                const newValue = formData.age === '' ? 0 : Math.max(0, parseInt(formData.age) - 1);
+                                setFormData(prev => ({ ...prev, age: newValue.toString() }));
+                            }} 
+                            size="small"
+                        >
+                            <RemoveIcon fontSize="small" />
+                        </IconButton>
+                        <TextField
+                            variant="outlined"
+                            name="age"
+                            value={formData.age}
+                            onChange={handleChange}
+                            type="number"
+                            inputProps={{ min: 0 }}
+                            sx={{ width: 100, mx: 1 }}
+                            size="small"
+                        />
+                        <IconButton 
+                            onClick={() => {
+                                const newValue = formData.age === '' ? 1 : parseInt(formData.age) + 1;
+                                setFormData(prev => ({ ...prev, age: newValue.toString() }));
+                            }} 
+                            size="small"
+                        >
+                            <AddIcon fontSize="small" />
+                        </IconButton>
+                    </Box>
+                </Box>
+            </FormControl>
+
+            {/* Conscious */}
+            <FormControl>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography sx={{ width: 120, flexShrink: 0 }}>Conscious:</Typography>
                     <RadioGroup
                         name="conscious"
                         value={formData.conscious}
                         onChange={handleChange}
+                        row
+                        sx={{ gap: 2 }}
                     >
                         <FormControlLabel
                             value="Yes"
                             control={<Radio />}
                             label="Yes"
+                            sx={{ marginRight: 3 }}
                         />
                         <FormControlLabel
                             value="No"
@@ -146,18 +194,25 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                             label="No"
                         />
                     </RadioGroup>
-                </FormControl>
-                <FormControl>
-                    <FormLabel>Breathing</FormLabel>
+                </Box>
+            </FormControl>
+
+            {/* Breathing */}
+            <FormControl>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography sx={{ width: 120, flexShrink: 0 }}>Breathing:</Typography>
                     <RadioGroup
                         name="breathing"
                         value={formData.breathing}
                         onChange={handleChange}
+                        row
+                        sx={{ gap: 2 }}
                     >
                         <FormControlLabel
                             value="Yes"
                             control={<Radio />}
                             label="Yes"
+                            sx={{ marginRight: 3 }}
                         />
                         <FormControlLabel
                             value="No"
@@ -165,52 +220,79 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                             label="No"
                         />
                     </RadioGroup>
-                </FormControl>
-                <FormControl>
-                    <Typography>Chief Complaint: </Typography>
+                </Box>
+            </FormControl>
+
+            {/* Chief Complaint */}
+            <FormControl>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography sx={{ width: 120, flexShrink: 0 }}>Chief Complaint:</Typography>
                     <TextField
                         variant="outlined"
                         name="chiefComplaint"
                         value={formData.chiefComplaint}
                         onChange={handleChange}
+                        fullWidth
+                        size="small"
                     />
-                </FormControl>
-                <FormControl>
-                    <Typography>Condition: </Typography>
+                </Box>
+            </FormControl>
+
+            {/* Condition */}
+            <FormControl>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography sx={{ width: 120, flexShrink: 0 }}>Condition:</Typography>
                     <Select
                         name="condition"
                         value={formData.condition}
                         onChange={handleChange}
+                        sx={{ 
+                            width: 200,
+                            height: 40,
+                            '& .MuiSelect-select': { 
+                                padding: '8px 14px',
+                            }
+                        }}
                     >
-                        {
-                            conditions.map((condition) => (
-                                <MenuItem key={condition.value} value={condition.value}>
-                                    {condition.label}
-                                </MenuItem>
-                            ))
-                        }
+                        {conditions.map((condition) => (
+                            <MenuItem key={condition.value} value={condition.value}>
+                                {condition.label}
+                            </MenuItem>
+                        ))}
                     </Select>
-                </FormControl>
-                <FormControl>
-                    <Typography>Drugs: </Typography>
+                </Box>
+            </FormControl>
+
+            {/* Drugs */}
+            <FormControl>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography sx={{ width: 120, flexShrink: 0 }}>Drugs:</Typography>
                     <TextField
                         variant="outlined"
                         name="drugs"
                         value={formData.drugs}
                         onChange={handleChange}
+                        fullWidth
+                        size="small"
                     />
-                </FormControl>
-                <FormControl>
-                    <Typography>Allergies: </Typography>
+                </Box>
+            </FormControl>
+
+            {/* Allergies */}
+            <FormControl>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography sx={{ width: 120, flexShrink: 0 }}>Allergies:</Typography>
                     <TextField
                         variant="outlined"
                         name="allergies"
                         value={formData.allergies}
                         onChange={handleChange}
+                        fullWidth
+                        size="small"
                     />
-                </FormControl>
-            </Box>
-        </>
+                </Box>
+            </FormControl>
+        </Box>
     )
 }
 
