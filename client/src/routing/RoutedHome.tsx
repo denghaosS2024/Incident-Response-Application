@@ -424,6 +424,8 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
               incidentId={assignedIncident}
               onClose={() => setAssignedIncident(null)}
               onNav={() => {
+                const step = 4
+                localStorage.setItem('911Step', step.toString())
                 navigate('/reach911', {
                   state: {
                     incidentId: assignedIncident,
