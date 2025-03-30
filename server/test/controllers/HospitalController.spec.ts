@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import Hospital from '../../src/models/Hospital'
 
 import HospitalController from '../../src/controllers/HospitalController'
@@ -47,13 +48,21 @@ describe('Hospital Controller', () => {
   it('should update multiple hospitals successfully', async () => {
     const hospitalId1 = 'hospital_for_batch_update1'
     const hospitalId2 = 'hospital_for_batch_update2'
+
     // Arrange
+    const patient1 = new mongoose.Types.ObjectId()
+    const patient2 = new mongoose.Types.ObjectId()
+    const patient3 = new mongoose.Types.ObjectId()
+
     await createTestHospital(hospitalId1)
     await createTestHospital(hospitalId2)
 
     const updates = [
-      { hospitalId: hospitalId1, patients: ['patient1', 'patient2'] },
-      { hospitalId: hospitalId2, patients: ['patient3'] },
+      {
+        hospitalId: hospitalId1,
+        patients: [patient1.toString(), patient2.toString()],
+      },
+      { hospitalId: hospitalId2, patients: [patient3.toString()] },
     ]
 
     // Act
@@ -62,9 +71,14 @@ describe('Hospital Controller', () => {
     // Assert
     expect(result).toHaveLength(2)
     expect(result[0]?.hospitalId).toBe(hospitalId1)
-    expect(result[0]?.patients).toEqual(['patient1', 'patient2'])
+    expect(result[0]?.patients.map((p) => p.toString())).toEqual([
+      patient1.toString(),
+      patient2.toString(),
+    ])
     expect(result[1]?.hospitalId).toBe(hospitalId2)
-    expect(result[1]?.patients).toEqual(['patient3'])
+    expect(result[1]?.patients.map((p) => p.toString())).toEqual([
+      patient3.toString(),
+    ])
 
     // Assert database state using getHospitalById
     const updatedHospital1 =
@@ -73,10 +87,15 @@ describe('Hospital Controller', () => {
       await HospitalController.getHospitalById(hospitalId2)
 
     expect(updatedHospital1).toBeDefined()
-    expect(updatedHospital1?.patients).toEqual(['patient1', 'patient2'])
+    expect(updatedHospital1?.patients.map((p) => p.toString())).toEqual([
+      patient1.toString(),
+      patient2.toString(),
+    ])
 
     expect(updatedHospital2).toBeDefined()
-    expect(updatedHospital2?.patients).toEqual(['patient3'])
+    expect(updatedHospital2?.patients.map((p) => p.toString())).toEqual([
+      patient3.toString(),
+    ])
   })
 
   it('should throw an error if one or more hospitals do not exist', async () => {
@@ -84,11 +103,18 @@ describe('Hospital Controller', () => {
     const hospitalId1 = 'existing_hospital'
     const hospitalId2 = 'non_existent_hospital'
 
+    const patient1 = new mongoose.Types.ObjectId()
+    const patient2 = new mongoose.Types.ObjectId()
+    const patient3 = new mongoose.Types.ObjectId()
+
     await createTestHospital(hospitalId1)
 
     const updates = [
-      { hospitalId: hospitalId1, patients: ['patient1', 'patient2'] },
-      { hospitalId: hospitalId2, patients: ['patient3'] }, // Non-existent hospital
+      {
+        hospitalId: hospitalId1,
+        patients: [patient1.toString(), patient2.toString()],
+      },
+      { hospitalId: hospitalId2, patients: [patient3.toString()] }, // Non-existent hospital
     ]
 
     // Act & Assert

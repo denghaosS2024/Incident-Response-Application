@@ -79,7 +79,40 @@ class HospitalController {
   async updateMultipleHospitals(
     updates: { hospitalId: string; patients: string[] }[],
   ) {
-    console.log(updates)
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return [] // Return an empty array instead of throwing an error
+    }
+
+    // Validate that all hospitals exist before performing updates
+    const hospitalIds = updates.map((update) => update.hospitalId)
+    const existingHospitals = await Hospital.find({
+      hospitalId: { $in: hospitalIds },
+    }).exec()
+
+    if (existingHospitals.length !== updates.length) {
+      throw new Error('One or more hospitals do not exist')
+    }
+
+    try {
+      const updatePromises = updates.map((update) => {
+        if (!update.hospitalId) {
+          throw new Error('Invalid hospitalId in update data')
+        }
+
+        // Directly use the patients array as it is
+        return Hospital.findOneAndUpdate(
+          { hospitalId: update.hospitalId },
+          { $set: { patients: update.patients } }, // Overwrite patients array
+          { new: true },
+        ).exec()
+      })
+
+      const updatedHospitals = await Promise.all(updatePromises)
+      return updatedHospitals
+    } catch (error: unknown) {
+      console.error('Error updating multiple hospitals:', error)
+      throw new Error(`Failed to update multiple hospitals: ${error}`)
+    }
   }
 }
 
