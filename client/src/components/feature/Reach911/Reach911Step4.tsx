@@ -68,7 +68,7 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
         return
       }
       try {
-        let incidentCaller = incident.caller
+        const incidentCaller = incident.caller
         const username = localStorage.getItem('username')
         const role = localStorage.getItem('role')
         const uid = localStorage.getItem('uid')
