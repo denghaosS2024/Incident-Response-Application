@@ -147,7 +147,7 @@ class TruckController {
         )
 
         if (!updatedTruck) {
-            throw new Error(`Failed to update truck '${truckName}'`)
+            throw new Error(`Failed to retrieve / update truck '${truckName}'`)
         }
 
         if (!updatedTruck.usernames || updatedTruck.usernames.length === 0) {
