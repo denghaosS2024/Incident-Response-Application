@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import styles from '../../../styles/SARTaskPage.module.css'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import AddressBar from './AddressBar.tsx'
+import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 
 
 const SARTaskStep2: React.FC = () => {
@@ -14,6 +15,7 @@ const SARTaskStep2: React.FC = () => {
         title={'Hazards'}
         subtitle={'Select the hazards you notice:'}
       />
+      <ReturnToTasksBtn />
     </div>
   )
 }

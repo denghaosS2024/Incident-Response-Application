@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import styles from '../../../styles/SARTaskPage.module.css'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import AddressBar from './AddressBar.tsx'
+import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 
 
 const SARTaskStep1: React.FC = () => {
@@ -14,6 +15,7 @@ const SARTaskStep1: React.FC = () => {
         title={'Initial Marker'}
         subtitle={'Draw this marker on the wall, next to the main entrance:'}
       />
+      <ReturnToTasksBtn />
     </div>
   )
 }
