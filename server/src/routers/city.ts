@@ -1,7 +1,7 @@
-import { Request, Response, Router } from 'express';
-import CityController from '../controllers/CityController';
+import { Request, Response, Router } from 'express'
+import CityController from '../controllers/CityController'
 
-const cityRouter = Router();
+const cityRouter = Router()
 
 /**
  * @swagger
@@ -28,14 +28,14 @@ const cityRouter = Router();
  *               $ref: "#/components/schemas/ErrorResponse"
  */
 cityRouter.get('/', async (_req: Request, res: Response) => {
-  try {
-    const cities = await CityController.getAllCities();
-    res.json(cities);
-  } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
-  }
-});
+    try {
+        const cities = await CityController.getAllCities()
+        res.json(cities)
+    } catch (err) {
+        const error = err as Error
+        res.status(500).json({ error: error.message })
+    }
+})
 
 /**
  * @swagger
@@ -75,15 +75,15 @@ cityRouter.get('/', async (_req: Request, res: Response) => {
  *         description: Internal server error.
  */
 cityRouter.post('/', async (req: Request, res: Response) => {
-  try {
-    const { name } = req.body;
-    const newCity = await CityController.createCity(name);
-    res.status(201).json(newCity);
-  } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
-  }
-});
+    try {
+        const { name } = req.body
+        const newCity = await CityController.createCity(name)
+        res.status(201).json(newCity)
+    } catch (err) {
+        const error = err as Error
+        res.status(400).json({ error: error.message })
+    }
+})
 
 /**
  * @swagger
@@ -129,15 +129,17 @@ cityRouter.post('/', async (req: Request, res: Response) => {
  *                   example: "City with ID '12345' not found"
  */
 cityRouter.delete('/:cityId', async (req: Request, res: Response) => {
-  try {
-    const { cityId } = req.params;
-    const removedCity = await CityController.removeCityById(cityId.toString());
-    res.json({ message: 'City deleted', city: removedCity });
-  } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
-  }
-});
+    try {
+        const { cityId } = req.params
+        const removedCity = await CityController.removeCityById(
+            cityId.toString(),
+        )
+        res.json({ message: 'City deleted', city: removedCity })
+    } catch (err) {
+        const error = err as Error
+        res.status(400).json({ error: error.message })
+    }
+})
 
 /**
  * @swagger
@@ -175,16 +177,20 @@ cityRouter.delete('/:cityId', async (req: Request, res: Response) => {
  *                   items:
  *                     $ref: "#/components/schemas/Personnel"
  */
-cityRouter.get('/assignments/:cityName', async (req: Request, res: Response) => {
-  try {
-    const { cityName } = req.params;
-    const assignments = await CityController.getCityAssignments(cityName);
-    res.json(assignments);
-  } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
-  }
-});
+cityRouter.get(
+    '/assignments/:cityName',
+    async (req: Request, res: Response) => {
+        try {
+            const { cityName } = req.params
+            const assignments =
+                await CityController.getCityAssignments(cityName)
+            res.json(assignments)
+        } catch (err) {
+            const error = err as Error
+            res.status(400).json({ error: error.message })
+        }
+    },
+)
 
 /**
  * @swagger
@@ -223,16 +229,23 @@ cityRouter.get('/assignments/:cityName', async (req: Request, res: Response) => 
  *             schema:
  *               $ref: "#/components/schemas/City"
  */
-cityRouter.put('/assignments/:cityName', async (req: Request, res: Response) => {
-  try {
-    const { cityName } = req.params;
-    const { type, name } = req.body;
-    const updatedCity = await CityController.addCityAssignment(cityName, type, name);
-    res.json(updatedCity);
-  } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
-  }
-});
+cityRouter.put(
+    '/assignments/:cityName',
+    async (req: Request, res: Response) => {
+        try {
+            const { cityName } = req.params
+            const { type, name } = req.body
+            const updatedCity = await CityController.addCityAssignment(
+                cityName,
+                type,
+                name,
+            )
+            res.json(updatedCity)
+        } catch (err) {
+            const error = err as Error
+            res.status(400).json({ error: error.message })
+        }
+    },
+)
 
-export default cityRouter;
+export default cityRouter
