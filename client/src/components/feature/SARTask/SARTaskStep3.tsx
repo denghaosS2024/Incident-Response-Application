@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 
-const SARTaskStep3: React.FC = ({}) => {
+const SARTaskStep3: React.FC = () => {
 
   return (
     <div>

@@ -4,7 +4,7 @@ import {StepIconProps, styled} from '@mui/material'
 const SquareStepIconComponent = (props: StepIconProps) => {
   const { active, icon } = props;
 
-  const SquareStepIcon = styled('div')(({}) => ({
+  const SquareStepIcon = styled('div')(() => ({
     width: 32,
     height: 32,
     borderRadius: 2,
