@@ -37,21 +37,56 @@ const sortHospitalsByDistance = createAsyncThunk(
     const state = getState() as RootState
     const hospitals = state.hospital.hospitals
     const currentLocation = await getCurrentLocation()
+
+    // Add distance field to each hospital
     const hospitalsWithDistance = await Promise.all(
       hospitals.map(async (hospital) => {
         const coords = await fetcHospitalCoordinates(hospital)
         const distance = await calculateDistance(coords, currentLocation)
         return {
           ...hospital,
-          distance,
+          distance: distance ?? Infinity,
         }
       }),
     )
-    return hospitalsWithDistance.sort(
+
+    // Groups hospitals by distance range (buckets)
+    const bucketSize = 500 // Groups hospitals in buckets of 500 meters
+    const groupedByDistance = hospitalsWithDistance.reduce(
+      (groups, hospital) => {
+        const distanceBucket =
+          Math.floor(hospital.distance / bucketSize) * bucketSize
+        if (!groups[distanceBucket]) {
+          groups[distanceBucket] = []
+        }
+        groups[distanceBucket].push(hospital)
+        return groups
+      },
+      {} as Record<number, typeof hospitalsWithDistance>,
+    )
+
+    // Sorts within each distance bucket by 'totalNumberOfBeds' and alphabetically by name
+    const sortedHospitals = Object.values(groupedByDistance).flatMap(
+      (bucket) => {
+        return bucket.sort((a, b) => {
+          // First, sort by 'totalNumberOfBeds'
+          const bedComparison =
+            (b.totalNumberERBeds ?? 0) - (a.totalNumberERBeds ?? 0)
+          if (bedComparison !== 0) return bedComparison
+
+          // Then, sort alphabetically by hospital name
+          return a.hospitalName.localeCompare(b.hospitalName)
+        })
+      },
+    )
+
+    // Sorts by distance (already calculated) as the outermost sort
+    return sortedHospitals.sort(
       (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity),
     )
   },
 )
+
 
 /* ---------------------- Redux Slice ---------------------- */
 const hospitalSlice = createSlice({

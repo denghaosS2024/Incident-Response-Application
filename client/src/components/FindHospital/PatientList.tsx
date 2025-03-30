@@ -13,7 +13,6 @@ const PatientList: React.FC = () => {
     (state: RootState) => state.patientState.patients,
   )
 
-
   useEffect(() => {
     dispatch(fetchPatients())
   }, [dispatch])
