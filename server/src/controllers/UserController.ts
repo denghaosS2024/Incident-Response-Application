@@ -245,8 +245,34 @@ class UserController {
      * @throws Error if an error occurs during logout or incident transfer
      */
     async CommanderLogout(username: string) {
-        // do nothing
-        console.log(username)
+        try {
+            // 1. Find all incident commanders
+            const incidentCommanderUsernames = await Incident.find({
+                commander: { $nin: ['System'] },
+                incidentState: 'Assigned'
+            }).select('commander');
+
+            // 2. Find one first responder who is not an incident commander
+            const firstResponderNotCommander = await User.findOne({
+                role: { $in: [ROLES.POLICE, ROLES.FIRE] },
+                username: { $nin: incidentCommanderUsernames.map(ic => ic.commander)}
+            });
+
+            // 3. If there are other un-assigned first responder, transfer incidents
+            if (firstResponderNotCommander) {
+                // Transfer the command of incident to this first responder
+                await Incident.updateOne(
+                    { commander: username },
+                    { $set: { commander: firstResponderNotCommander.username } }
+                );
+            }
+
+            // 3. Perform standard logout
+            await this.logout(username)
+        } catch (error) {
+            console.error('Error during commander logout:', error)
+            throw error
+        }
     }
 
     /**
