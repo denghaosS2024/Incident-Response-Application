@@ -14,7 +14,7 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom'
-import request, { IRequestError } from '../utils/request'
+import request from '../utils/request'
 
 export interface IProps {
   /**
@@ -56,6 +56,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     '/groups': 'Groups',
     '/reach911': '911 Call',
     '/incidents': 'Incidents',
+    '/patients': 'Patient',
+    '/patient-visit': 'Patient Visit',
     '/organization': 'Organization',
     '/organization/view': 'Organization',
     '/map': 'Map',
