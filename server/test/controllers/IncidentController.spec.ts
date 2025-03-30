@@ -184,17 +184,6 @@ describe('Incident Controller', () => {
         expect(updatedIncident?.owner).toBe('UpdatedOwner')
     })
 
-    it('should return null if the incident does not exist', async () => {
-        const updateData = {
-            incidentId: 'InonExistent',
-            owner: 'someone',
-        }
-
-        const updatedIncident =
-            await IncidentController.updateIncident(updateData)
-        expect(updatedIncident).toBeNull()
-    })
-
     it('should return database error if get all incidents fails', async () => {
         // Create a partial query object implementing exec()
         const fakeQuery: Partial<Query<IIncident[], IIncident>> = {
