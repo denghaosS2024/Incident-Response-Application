@@ -1,0 +1,47 @@
+.wrapper {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/*.placeholder {*/
+/*  flex-grow: 1;*/
+/*}*/
+
+/*.buttonWrapper {*/
+/*  align-self: center;*/
+/*  padding: 15px;*/
+/*}*/
+
+.wrapperStep {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.flexCenterColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/*.flexCenter {*/
+/*  display: flex;*/
+/*  justify-content: center;*/
+/*  align-items: center;*/
+/*  width: 100%;*/
+/*  box-sizing: border-box;*/
+/*}*/

@@ -1,8 +1,7 @@
-import { Container } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import style from '../styles/GroupPage.module.css'
 import request, { IRequestError } from '../utils/request'
+import styles from '../styles/SARTaskPage.module.css'
 import ClickableStepper, {StepIconStyle} from '../components/ClickableStepper'
 import SARTaskStep1 from '../components/feature/SARTask/SARTaskStep1.tsx'
 import SARTaskStep2 from '../components/feature/SARTask/SARTaskStep2.tsx'
@@ -11,9 +10,7 @@ import SARTaskStep4 from '../components/feature/SARTask/SARTaskStep4.tsx'
 
 
 const SARTaskPage: React.FC = () => {
-
   const [activeStep, setActiveStep] = useState<number>(0)
-
 
   const contents = [
     <SARTaskStep1 />,
@@ -29,14 +26,16 @@ const SARTaskPage: React.FC = () => {
   }
 
   return (
-    <div style={{pointerEvents: 'auto'}}>
-      <ClickableStepper
-        numberOfSteps={contents.length}
-        activeStep={activeStep}
-        setActiveStep={handleStepChange}
-        contents={contents}
-        stepIconStyle={StepIconStyle.Square}
-      />
+    <div className={styles.wrapper}>
+      <div style={{pointerEvents: 'auto'}}>
+        <ClickableStepper
+          numberOfSteps={contents.length}
+          activeStep={activeStep}
+          setActiveStep={handleStepChange}
+          contents={contents}
+          stepIconStyle={StepIconStyle.Square}
+        />
+      </div>
     </div>
   )
 }
