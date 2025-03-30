@@ -1,11 +1,8 @@
-// UserController handles user-related operations such as registration, login, and listing users.
-// It interacts with the User model and manages user authentication.
-
-import Car from '../models/Car'
 import Channel from '../models/Channel'
 import Incident from '../models/Incident'
-import Truck from '../models/Truck'
 import User, { IUser } from '../models/User'
+import Car from '../models/Car'
+import Truck from '../models/Truck'
 import ROLES from '../utils/Roles'
 import SystemGroupConfigs from '../utils/SystemDefinedGroups'
 import * as Token from '../utils/Token'

@@ -42,7 +42,10 @@ export default Router()
                 await UserController.dispatcherLogout(username)
             } else if (username && isCommander.length > 0){
                 // Handle incident commander logout
-                await UserController.CommanderLogout(username)
+                await UserController.FirstResponderLogout(username, true)
+            } else if (username && isCommander.length == 0 && (role === ROLES.FIRE || role === ROLES.POLICE)) {
+                // Handel first responder logout (not incident commander)
+                await UserController.FirstResponderLogout(username, false)
             } else {
                 // Normal logout for non-dispatchers
                 await UserController.logout(username)
