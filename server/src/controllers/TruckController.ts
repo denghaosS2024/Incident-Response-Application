@@ -1,5 +1,5 @@
 import City from '../models/City'
-import { IIncident } from '../models/Incident'
+import Incident, { IIncident } from '../models/Incident'
 import Truck, { ITruck } from '../models/Truck'
 class TruckController {
     async getAllTrucks() {
@@ -145,6 +145,22 @@ class TruckController {
             { $pull: { usernames: username } },
             { new: true },
         )
+
+        if (!updatedTruck) {
+            throw new Error(`Failed to update truck '${truckName}'`)
+        }
+
+        if (!updatedTruck.usernames || updatedTruck.usernames.length === 0) {
+            await Incident.findOneAndUpdate(
+                { 'assignedVehicles.name': truckName },
+                {
+                    $pull: {
+                        assignedVehicles: { name: truckName },
+                    },
+                },
+                { new: true },
+            )
+        }
         return updatedTruck
     }
 
