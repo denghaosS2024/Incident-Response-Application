@@ -202,6 +202,22 @@ export const getChart = async (req: Request, res: Response) => {
 };
 
 /**
+ * Function: Retrieve all saved charts for a user.
+ */
+export const getCharts = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const charts = await Chart.find({ userId });
+
+    return res.json({ charts });
+
+  } catch (error) {
+    console.error('Error retrieving charts:', error);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
+};
+
+/**
  * Function: Modify an existing chart's name, type, or date range.
  */
 export const modifyChart = async (req: Request, res: Response) => {
