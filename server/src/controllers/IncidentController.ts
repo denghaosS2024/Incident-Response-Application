@@ -241,7 +241,7 @@ class IncidentController {
             assignedCar?: string
             assignedTruck?: string
             assignedIncident?: string
-          },
+        },
         commandingIncident: IIncident,
         vehicle: ICar | ITruck,
     ) {
@@ -314,11 +314,35 @@ class IncidentController {
     }
 
     async closeIncident(incidentId: string): Promise<IIncident | null> {
-        return await Incident.findOneAndUpdate(
-            { incidentId },
-            { $set: { incidentState: 'Closed' } },
-            { new: true },
-        ).exec()
+        const incident = await Incident.findOne({ incidentId }).exec()
+        if (!incident) {
+            throw new Error(`Incident with ID '${incidentId}' not found`)
+        }
+
+        // Update incident state to 'Closed' and record the closing date/time
+        incident.incidentState = 'Closed'
+        incident.closingDate = new Date()
+
+        // Un-allocate all resources by updating each assigned vehicle's assignedIncident to null
+        for (const vehicle of incident.assignedVehicles) {
+            if (vehicle.type === 'Car') {
+                await CarController.updateIncident(vehicle.name, null)
+            } else if (vehicle.type === 'Truck') {
+                await TruckController.updateIncident(vehicle.name, null)
+            }
+        }
+
+        if (incident.incidentCallGroup) {
+            await ChannelController.closeChannel(incident.incidentCallGroup)
+        }
+
+        if (incident.respondersGroup) {
+            await ChannelController.closeChannel(incident.respondersGroup)
+        }
+
+        await incident.save()
+
+        return incident
     }
 
     async updateVehicleHistory(incident: IIncident): Promise<IIncident | null> {
@@ -361,14 +385,14 @@ class IncidentController {
 
             //Notify the first responder
             v.usernames.forEach(async (username) => {
-              const user = await User.findOne({username})
-              if(!user) return
-              const id = user._id.toHexString()
-              if (!UserConnections.isUserConnected(id)) return
-        
-              const connection = UserConnections.getUserConnection(id)!
-              console.log("emit")
-              connection.emit('join-new-incident',incidentId)
+                const user = await User.findOne({ username })
+                if (!user) return
+                const id = user._id.toHexString()
+                if (!UserConnections.isUserConnected(id)) return
+
+                const connection = UserConnections.getUserConnection(id)!
+                console.log('emit')
+                connection.emit('join-new-incident', incidentId)
             })
         }
 
@@ -391,13 +415,13 @@ class IncidentController {
 
         const exits = await existingIncident.save()
 
-        try{
-          const updated = await this.createOrUpdateRespondersGroup(exits)
-          console.log(updated)
-          return updated
-        }catch(e){
-          console.log(e)
-          return exits
+        try {
+            const updated = await this.createOrUpdateRespondersGroup(exits)
+            console.log(updated)
+            return updated
+        } catch (e) {
+            console.log(e)
+            return exits
         }
     }
 

@@ -183,7 +183,7 @@ class TruckController {
         if (!incidentId) {
             const updatedTruck = await Truck.findOneAndUpdate(
                 { name: truckName },
-                { assignedCity: null },
+                { $set: { assignedCity: null, assignedIncident: null } },
                 { new: true },
             )
             return updatedTruck
