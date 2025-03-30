@@ -193,27 +193,6 @@ class CarController {
     }
 
     async updateIncident(carName: string, incidentId: string | null) {
-        if (!incidentId) {
-            const updatedCar = await Car.findOneAndUpdate(
-                { name: carName },
-                { $set: { assignedCity: null, assignedIncident: null } },
-                { new: true },
-            )
-            return updatedCar
-        }
-        const car = await Car.findOne({ name: carName })
-        if (!car) {
-            throw new Error(`Car with name '${carName}' does not exist`)
-        }
-        const updatedCar = await Car.findOneAndUpdate(
-            { name: carName },
-            { assignedIncident: incidentId },
-            { new: true },
-        )
-        return updatedCar
-    }
-
-    async deallocateCarFromIncident(carName: string) {
         const car = await Car.findOne({ name: carName })
         if (!car) {
             throw new Error(`Car with name '${carName}' does not exist`)

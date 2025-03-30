@@ -526,8 +526,8 @@ describe('Incident Controller', () => {
         })
 
         it('should de-allocate vehicle from incident', async () => {
-            const username = 'test-deallocate-user'
-            const carName = 'test-deallocate-car'
+            const username = 'test-deallocate-user-1'
+            const carName = 'test-deallocate-car-1'
 
             const car = await createTestCar(carName, [username])
             const incident = await createTestIncident(username)
@@ -542,8 +542,10 @@ describe('Incident Controller', () => {
             car.assignedIncident = incident.incidentId
             await car.save()
 
-            const updatedIncident = await IncidentController.removeVehicleFromIncident(
-                carName,
+            incident.assignedVehicles = []
+
+            const updatedIncident = await IncidentController.updateVehicleHistory(
+                incident
             )
 
             const updatedCar = await Car.findOne({ name: carName })
@@ -571,8 +573,10 @@ describe('Incident Controller', () => {
             car.assignedIncident = incident.incidentId
             await car.save()
 
+            incident.assignedVehicles = []
+
             await expect(
-                IncidentController.removeVehicleFromIncident(carName),
+                IncidentController.updateVehicleHistory(incident),
             ).rejects.toThrow('Commander must be present on one of the vehicles')
         })        
     })

@@ -313,11 +313,6 @@ class IncidentController {
         }
     }
 
-    async removeVehicleFromIncident() {
-        // TO-DO: Implement this function
-        throw new Error('Method not implemented.')
-    }
-
     async closeIncident(incidentId: string): Promise<IIncident | null> {
         const incident = await Incident.findOne({ incidentId }).exec()
         if (!incident) {
@@ -410,9 +405,9 @@ class IncidentController {
                 type: v.type,
             })
             if (v.type == 'Car') {
-                await CarController.updateIncident(v.name, incidentId)
+                await CarController.updateIncident(v.name, null)
             } else {
-                await TruckController.updateIncident(v.name, incidentId)
+                await TruckController.updateIncident(v.name, null)
             }
         }
 
