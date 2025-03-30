@@ -65,7 +65,7 @@ class SocketClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on(eventName: string, listener: (...args: any[]) => void) {
     if (this.socket) {
-      console.log('Adding listener for event:', eventName)
+      console.debug('Adding listener for event:', eventName)
       this.socket.on(eventName, (data) => {
         console.log(`Received ${eventName} event:`, data)
         listener(data)

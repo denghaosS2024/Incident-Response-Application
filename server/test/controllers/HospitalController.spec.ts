@@ -6,10 +6,14 @@ import * as TestDatabase from '../utils/TestDatabase'
 
 describe('Hospital Controller', () => {
   beforeAll(TestDatabase.connect)
-  beforeEach(() => jest.clearAllMocks())
+
+  beforeEach(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.clearAllMocks()
+  });
   afterEach(async () => {
-    jest.restoreAllMocks()
     await Hospital.deleteMany({})
+    jest.restoreAllMocks();
   })
   afterAll(TestDatabase.close)
 
@@ -24,6 +28,130 @@ describe('Hospital Controller', () => {
     })
     return newHospital.save()
   }
+
+  it('should create hospital', async () => {
+    const hospitalData = new Hospital({
+      hospitalId: '123456789',
+      hospitalName: 'Test Hospital',
+      hospitalAddress: '123 Main St',
+      hospitalDescription: 'Test hospital',
+      totalNumberERBeds: 10,
+      totalNumberOfPatients: 5,
+    })
+
+    const newHospital = await HospitalController.create(hospitalData)
+
+
+    expect(newHospital).toBeDefined()
+    expect(newHospital.hospitalName?.toString()).toBe(
+      hospitalData.hospitalName.toString(),
+    )
+    expect(newHospital.hospitalAddress.toString()).toBe(
+      hospitalData.hospitalAddress.toString(),
+    )
+  })
+  
+  it('should return hospitals in alphabetical order', async () => {
+    const hospitalData1 = new Hospital({
+      hospitalId: '1234',
+      hospitalName: 'Zigzag Hospital',
+      hospitalAddress: '123 Main St',
+      hospitalDescription: 'Test hospital',
+      totalNumberERBeds: 10,
+      totalNumberOfPatients: 5,
+      nurses:[]
+    })
+  
+    const hospitalData2 = new Hospital({
+      hospitalId: '12',
+      hospitalName: 'Amazing Hospital',
+      hospitalAddress: '123 Main St',
+      hospitalDescription: 'Test hospital',
+      totalNumberERBeds: 10,
+      totalNumberOfPatients: 5,
+      nurses:[]
+    })
+  
+    const hospital1 = await HospitalController.create(hospitalData1)
+    const hospital2 = await HospitalController.create(hospitalData2)
+  
+    const hospitalList = await HospitalController.getAllHospitals();
+    
+    expect(hospital1).toBeDefined()
+    expect(hospitalList[0].hospitalName.toString()).toBe(
+      hospital2.hospitalName.toString(),
+    )
+    expect(hospitalList[1].hospitalName.toString()).toBe(
+      hospital1.hospitalName.toString(),
+    )
+  })
+
+  it('should not create an empty hospital', async () => {
+    const hospitalData = new Hospital({})
+
+    await expect(HospitalController.create(hospitalData),
+    ).rejects.toThrow('Failed to create hospital')
+  
+    const hospitalList = await HospitalController.getAllHospitals();
+    expect(hospitalList).toHaveLength(0);
+  })
+
+
+  it('should throw an error when hospital does not exist', async () => {
+    const hospitalId = '1';
+
+    await expect(HospitalController.getHospitalById(hospitalId),
+    ).rejects.toThrow("Failed to fetch hospital details")
+    
+    const hospitalList = await HospitalController.getAllHospitals();
+    expect(hospitalList).toHaveLength(0);
+  })
+
+  it('should return an empty array when no hospitals exist', async () => {
+    const hospitalList = await HospitalController.getAllHospitals();
+    expect(hospitalList).toEqual([]);
+  });
+
+  it('should throw an error when fetching hospitals fails', async () => {
+    jest.spyOn(Hospital, 'find').mockImplementationOnce(() => {
+      throw new Error('Database connection failed');
+    });
+  
+    await expect(HospitalController.getAllHospitals())
+      .rejects.toThrow('Failed to fetch hospitals');
+  
+  });
+
+  it('should throw an error when updating hospitals fails', async () => {
+    const hospitalData = new Hospital({
+      hospitalId: '123456789',
+      hospitalName: 'Test Hospital',
+      hospitalAddress: '123 Main St',
+      hospitalDescription: 'Test hospital',
+      totalNumberERBeds: 10,
+      totalNumberOfPatients: 5,
+    });
+  
+    await HospitalController.create(hospitalData);
+  
+    const updatedData = {
+      hospitalId: '123456789',
+      totalNumberERBeds: 5,
+    };
+  
+    jest.spyOn(Hospital, 'findOneAndUpdate').mockImplementationOnce(() => {
+      throw new Error('Database connection failed');
+    });
+  
+    await expect(HospitalController.updateHospital(updatedData))
+      .rejects.toThrow('Database connection failed');
+  
+    expect(console.error).toHaveBeenCalledWith(
+      'Error updating hospital:',
+      expect.any(Error) 
+    );
+  });
+
 
   it('should update hospital', async () => {
     const hospital = await createTestHospital('hospital1')
@@ -127,6 +255,48 @@ describe('Hospital Controller', () => {
       await HospitalController.getHospitalById(hospitalId1)
     expect(updatedHospital1?.patients).toEqual([])
   })
+
+  it('should throw an error when hospitalId is missing', async () => {
+    const updates: any = [{ patients: ['patient1', 'patient2'] }]; // 'any' to bypass typescript type check
+
+    await expect(HospitalController.updateMultipleHospitals(updates))
+      .rejects.toThrow('Invalid hospitalId in update data');
+  });
+
+  it('should throw an error when updating hospital with missing hospitalId', async () => {
+    const updates: any = [{ patients: ['patient1', 'patient2'] }]; 
+
+    await expect(HospitalController.updateHospital(updates))
+      .rejects.toThrow('Invalid hospital data');
+  });
+
+  it('should throw an error when the multiple hospital update fails due to a database issue', async () => {
+    const hospitalId1 = 'existing_hospital'
+    const hospitalId2 = 'non_existent_hospital'
+
+    const patient1 = new mongoose.Types.ObjectId()
+    const patient2 = new mongoose.Types.ObjectId()
+    const patient3 = new mongoose.Types.ObjectId()
+
+    await createTestHospital(hospitalId1)
+    await createTestHospital(hospitalId2)
+
+    const updates = [
+      {
+        hospitalId: hospitalId1,
+        patients: [patient1.toString(), patient2.toString()],
+      },
+      { hospitalId: hospitalId2, patients: [patient3.toString()] }, 
+    ]
+
+
+    jest.spyOn(Hospital, 'findOneAndUpdate').mockImplementationOnce(() => {
+      throw new Error('Database connection failed');
+    });
+
+    await expect(HospitalController.updateMultipleHospitals(updates))
+      .rejects.toThrow(('Failed to update multiple hospitals:'));
+  });
 
   it('should return an empty array if no updates are provided', async () => {
     // Arrange

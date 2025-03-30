@@ -2,7 +2,7 @@ import { Types } from 'mongoose'
 import { ICar } from '../models/Car'
 import Incident, { IncidentPriority, type IIncident } from '../models/Incident'
 import { ITruck } from '../models/Truck'
-import User, { IUser } from '../models/User'
+import User from '../models/User'
 import { ROLES } from '../utils/Roles'
 import UserConnections from '../utils/UserConnections'
 import CarController from './CarController'
@@ -232,7 +232,16 @@ class IncidentController {
      * @returns updated incident details
      */
     async addVehicleToIncident(
-        personnel: IUser,
+        personnel: {
+            _id: string
+            name: string
+            assignedCity: string
+            role: 'Fire' | 'Police'
+            assignedVehicleTimestamp?: string | null
+            assignedCar?: string
+            assignedTruck?: string
+            assignedIncident?: string
+          },
         commandingIncident: IIncident,
         vehicle: ICar | ITruck,
     ) {
@@ -248,15 +257,15 @@ class IncidentController {
                 }
                 const existingVehicleIndex =
                     assignedIncident.assignedVehicles.findIndex(
-                        (vehicle) => vehicle.name === vehicle.name,
+                        (v) => v.name === vehicle.name,
                     )
-                if (vehicle.assignedIncident && !personnel.assignedIncident) {
+                if (vehicle.assignedIncident) {
                     if (existingVehicleIndex !== -1) {
                         // Create an update operation to add the username to the specific vehicle's usernames
                         const updateOperation = {
                             $addToSet: {
                                 [`assignedVehicles.${existingVehicleIndex}.usernames`]:
-                                    personnel.username,
+                                    personnel.name,
                             },
                         }
 

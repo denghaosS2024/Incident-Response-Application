@@ -24,6 +24,7 @@ import RegisterPage from './pages/RegisterPage'
 import ResourcesPage from './pages/ResourcesPage'
 import SARIncidentPage from './pages/SARIncidentPage'
 import ViewOrganization from './pages/ViewOrganization'
+import SARTaskPage from './pages/SARTaskPage.tsx'
 import RoutedHome from './routing/RoutedHome'
 import './styles/globals.css'
 import './styles/tailwind.css'
@@ -59,8 +60,8 @@ export default function App() {
                         <Route path="/" element={<HomePage />} />
                         <Route path="/contacts" element={<Contacts />} />
                         <Route path="/messages" element={<Messages />} />
-                        {/* The path /messages/:id allows for passing channelId as a query parameter. 
-            This allow us to navigate to /messages but automatically into a specific channel chat. 
+                        {/* The path /messages/:id allows for passing channelId as a query parameter.
+            This allow us to navigate to /messages but automatically into a specific channel chat.
             Please look into the implementation in Messages.tsx */}
                         <Route path="/messages/:id" element={<Messages />} />
                         <Route path="/groups" element={<GroupsPage />} />
@@ -107,6 +108,7 @@ export default function App() {
                         />
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/create-chart" element={<CreatechartPage />} />
+                        <Route path="/sar-task" element={<SARTaskPage />} />
                     </Route>
 
                     <Route element={<RoutedHome showBackButton isSubPage />}>

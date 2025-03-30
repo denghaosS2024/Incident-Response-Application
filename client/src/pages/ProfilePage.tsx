@@ -1,6 +1,17 @@
+import Autocomplete from '@mui/lab/Autocomplete'
+import {
+    FormControlLabel,
+    Grid,
+    Radio,
+    RadioGroup,
+    TextField,
+    Typography,
+} from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useCallback, useEffect, useState } from 'react'
-import ProfileCard from '../components/ProfileCard'
+import EmergencyContactField from '../components/Profile/EmergencyContactField'
+import MedicalInfoField from '../components/Profile/MedicalInfoField'
+import ProfileField from '../components/Profile/ProfileField'
 import { IEmergencyContact } from '../models/Profile'
 import Globals from '../utils/Globals'
 import request from '../utils/request'
@@ -245,48 +256,119 @@ export default function ProfilePage() {
 
     return (
         <div style={{ padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
-            <h1>Personal Information</h1>
-
-            {/* ProfileCard to display general patient information */}
-            <ProfileCard
-                title="Patient Information"
-                data={{
-                    Name: name,
-                    'Date of Birth': dob,
-                    Sex: sex,
-                    Address: address,
-                    Phone: phone,
-                    Email: email,
-                }}
+            <h1> Personal Information</h1>
+            <ProfileField
+                label="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
             />
 
-            {/* ProfileCard to display medical information */}
-            <ProfileCard
-                title="Medical Information"
-                data={{
-                    Condition: medicalInfo.condition,
-                    Drugs: medicalInfo.drugs,
-                    Allergies: medicalInfo.allergies,
-                }}
+            <Grid container spacing={2} alignItems="center">
+                <Grid item xs={3}>
+                    <Typography variant="body1">Date of Birth:</Typography>
+                </Grid>
+                <Grid item xs={8}>
+                    <input
+                        type="date"
+                        id="birthday"
+                        name="birthday"
+                        value={dob}
+                        onChange={handleDobChange}
+                        style={{
+                            width: '100%',
+                            padding: '8px',
+                            fontSize: '16px',
+                            backgroundColor: '#f0f0f0',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            outline: 'none',
+                        }}
+                    />
+                </Grid>
+            </Grid>
+
+            <Grid
+                container
+                spacing={2}
+                alignItems="center"
+                style={{ marginTop: '8px' }}
+            >
+                <Grid item xs={2}>
+                    <Typography variant="body1">Sex:</Typography>
+                </Grid>
+                <Grid item xs={10}>
+                    <RadioGroup
+                        row
+                        value={sex}
+                        onChange={handleSexChange}
+                        style={{ display: 'flex', gap: '4px' }}
+                    >
+                        <FormControlLabel
+                            value="Female"
+                            control={<Radio size="small" />}
+                            label="Female"
+                            sx={{ marginRight: '4px' }}
+                        />
+                        <FormControlLabel
+                            value="Male"
+                            control={<Radio size="small" />}
+                            label="Male"
+                            sx={{ marginRight: '4px' }}
+                        />
+                        <FormControlLabel
+                            value="Other"
+                            control={<Radio size="small" />}
+                            label="Other"
+                        />
+                    </RadioGroup>
+                </Grid>
+            </Grid>
+
+            <Autocomplete
+                freeSolo
+                options={addressOptions}
+                onInputChange={handleAddressInputChange}
+                onChange={(event, newValue) =>
+                    handleAddressSelect(newValue || '')
+                }
+                renderInput={(params) => (
+                    <TextField
+                        {...params}
+                        label="Address"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                    />
+                )}
             />
 
-            {/* ProfileCard to display emergency contacts */}
-            {emergencyContacts.length > 0 && (
-                <ProfileCard
-                    title="Emergency Contacts"
-                    data={emergencyContacts.reduce(
-                        (acc, contact, index) => {
-                            acc[`Contact ${index + 1} - Name`] = contact.name
-                            acc[`Contact ${index + 1} - Phone`] = contact.phone
-                            acc[`Contact ${index + 1} - Email`] = contact.email
-                            return acc
-                        },
-                        {} as Record<string, string>,
-                    )}
-                />
-            )}
+            <ProfileField
+                label="Phone"
+                value={phone}
+                onChange={handlePhoneChange}
+                error={!!phoneError}
+                helperText={phoneError}
+            />
+            <ProfileField
+                label="Email"
+                value={email}
+                onChange={handleEmailChange}
+                error={!!emailError}
+                helperText={emailError}
+            />
 
-            {/* The rest of your form inputs and components */}
+            <MedicalInfoField
+                medicalInfo={medicalInfo}
+                onMedicalInfoChange={handleMedicalInfoChange}
+            />
+
+            <EmergencyContactField
+                contactList={emergencyContacts}
+                setContactList={handleEmergencyContactChange}
+            />
+            {/* <AlertSnackbar open={snackbarOpen} message={snackbarMessage} severity={snackbarSeverity} onClose={handleSnackbarClose} autoHideDuration={1350}/> */}
         </div>
     )
 }

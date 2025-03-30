@@ -1,16 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-// Base interface without Document extension
-export interface IPatientBase {
-  patientId: string
-  name: string
-  nameLower: string
-  nurseId?: string
-  hospitalId?: string
-  priority?: string
-  status?: string
-  location?: string
-  visitLog?: {
+export interface IVisitLog {
     dateTime: Date
     incidentId: string
     priority: 'E' | '1' | '2' | '3' | '4'
@@ -41,7 +31,20 @@ export interface IPatientBase {
       | null
     drugs?: string[] | null
     allergies?: string[] | null
-  }[]
+    active: boolean
+}
+
+// Base interface without Document extension
+export interface IPatientBase {
+  patientId: string
+  name: string
+  nameLower: string
+  nurseId?: string
+  hospitalId?: string
+  priority?: string
+  status?: string
+  location?: string
+  visitLog?: IVisitLog[]
 }
 
 // Document interface for Mongoose
@@ -118,6 +121,10 @@ const VisitLogSchema = new Schema(
       required: false,
       default: undefined,
     },
+    active: {
+        type: Boolean,
+        default: true,
+    },
   },
   { _id: false }
 )
@@ -187,6 +194,7 @@ export const PatientSchema = new Schema({
   visitLog: {
     type: [VisitLogSchema],
     default: [],
+    required: true
   },
 })
 

@@ -1,3 +1,5 @@
+import IIncident from '@/models/Incident'
+import { IRequestError } from '@/utils/request'
 import {
   DirectionsCar,
   ExpandMore,
@@ -28,10 +30,8 @@ import {
 import { format } from 'date-fns'
 import React, { useEffect, useState } from 'react'
 import request from '../../utils/request'
-import getRoleIcon from '../common/RoleIcon'
-import IIncident from '@/models/Incident'
 import AlertSnackbar from '../common/AlertSnackbar'
-import { IRequestError } from '@/utils/request'
+import getRoleIcon from '../common/RoleIcon'
 
 interface Vehicle {
   _id: string
@@ -74,6 +74,25 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null)
+  const [isIncidentCommander, setIsIncidentCommander] = useState<boolean>(false)
+  const currentUsername = localStorage.getItem('username')
+  const checkIncidentCommander = async () => {
+    try {
+      const incidents: IIncident[] = await request(
+        `/api/incidents?commander=${currentUsername}`,
+        {
+          method: 'GET',
+        },
+      )
+      const isCommander = incidents.some(
+        (incident: IIncident) => incident.commander === currentUsername,
+      )
+      setIsIncidentCommander(isCommander)
+    } catch (error) {
+      console.error('Error fetching incidents:', error)
+      setIsIncidentCommander(false)
+    }
+  }
 
   /**
    * Preselect the vehicle based on current assignment
@@ -100,6 +119,8 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
     } else {
       setSelectedVehicle(null)
     }
+
+    checkIncidentCommander()
   }, [currentUserPersonnel, data.cars, data.trucks])
 
   /**
@@ -219,6 +240,12 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
           : currentUserPersonnel?.assignedCar
 
       if (assignedVehicle) {
+        // Prevent the Incident Commander from deselecting their vehicle
+        if (isIncidentCommander) {
+          setErrorMessage("As an Incident Commander, you cannot release your assigned vehicle.");
+          setOpenSnackbar(true);
+          return;
+        }
         await releaseVehicle(assignedVehicle)
       }
       return

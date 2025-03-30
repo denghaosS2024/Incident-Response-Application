@@ -7,24 +7,33 @@ interface PatientProps {
   patient: IPatient
   id: string
   index: number
-  isInHopital: boolean
+  isDraggingOver: boolean
 }
 
-const PatientCard: React.FC<PatientProps> = ({ patient, id, index, isInHopital }) => {
+const PatientCard: React.FC<PatientProps> = ({
+  patient,
+  id,
+  index,
+  isDraggingOver,
+}) => {
+  const droppableId = `droppable-${id}-${patient.patientId}` // Unique droppableId per patient
+  const draggableId = `draggable-${id}-${patient.patientId}` // Unique draggableId per patient
+
+
   return (
-    <Droppable droppableId={id}>
+    <Droppable droppableId={droppableId}>
       {(provided, snapshot) => (
         <Box ref={provided.innerRef} {...provided.droppableProps}>
-          <Draggable draggableId={id} index={index}>
+          <Draggable draggableId={draggableId} index={index}>
             {(providedDrag, snapshotDrag) => (
               <Box
                 ref={providedDrag.innerRef}
                 {...providedDrag.draggableProps}
                 {...providedDrag.dragHandleProps}
                 className={
-                  snapshotDrag.isDragging
-                    ? 'border border-gray-300 rounded-lg w-full p-3'
-                    : 'border-b border-gray-300 w-full p-3'
+                  isDraggingOver || snapshotDrag.isDragging
+                    ? 'border border-gray-300 rounded-lg w-fit p-3'
+                    : 'border-b border-gray-300 w-fit p-3'
                 }
               >
                 <Typography variant="body2" className="text-sm text-gray-500">
