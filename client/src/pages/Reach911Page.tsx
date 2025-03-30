@@ -16,6 +16,8 @@ import { updateIncident } from '../redux/incidentSlice'
 import { AppDispatch, RootState } from '../redux/store'
 import request from '../utils/request'
 
+const STEP_CHAT = 3
+
 const Reach911Page: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>()
     // Load saved step from localStorage or default to 0
@@ -79,6 +81,7 @@ const Reach911Page: React.FC = () => {
                                 incidentState: 'Waiting',
                                 openingDate: new Date().toISOString(),
                                 commander: 'System',
+                                incidentCallerGroup: uid,
                             }),
                         },
                     )
@@ -118,7 +121,7 @@ const Reach911Page: React.FC = () => {
     }, [dispatch, incidentId, isCreatedByFirstResponder])
 
     useEffect(() => {
-        if (!incident._id) return
+        if (!incident._id || activeStep == STEP_CHAT) return
 
         const timer = setTimeout(() => {
             updateIncidentCall()

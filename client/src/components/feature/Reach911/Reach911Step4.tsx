@@ -12,6 +12,7 @@ import { addMessage, loadMessages } from '../../../redux/messageSlice'
 import type IChannel from '../../../models/Channel'
 import type IIncident from '../../../models/Incident'
 import type { AppDispatch, RootState } from '../../../redux/store'
+import ROLES from "@/utils/Roles"
 
 interface Reach911Step4Props {
   isCreatedByFirstResponder?: boolean
@@ -28,6 +29,11 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
   const dispatch = useDispatch<AppDispatch>()
   const currentUserId = localStorage.getItem('uid') || ''
   const currentUserRole = localStorage.getItem('role') || ''
+  const [chatTitle, setChatTitle] = useState<string>('911 Call')
+
+  const incident: IIncident = useSelector(
+    (state: RootState) => state.incidentState.incident,
+  )
 
   const messages =
     useSelector((state: RootState) => state.messageState.messages)[
@@ -58,28 +64,41 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
 
   useEffect(() => {
     const setupIncidentChat = async () => {
+      if (!incident || !incident._id) {
+        return
+      }
       try {
+        let incidentCaller = incident.caller
         const username = localStorage.getItem('username')
+        const role = localStorage.getItem('role')
         const uid = localStorage.getItem('uid')
-        console.log('Debug - User info:', { username, uid })
 
-        if (!username || !uid) {
-          throw new Error('User is not logged in')
+        console.log('Incidnet from slice:', incident) // Debug log
+        console.log('Incident Caller:', incidentCaller) // Debug log
+
+        // New incident
+        if (!incidentCaller) {
+          incident.caller = username
+          incident.incidentCallGroup = uid
+        }
+
+        if (role === ROLES.FIRST_RESPONDER || role === ROLES.DISPATCH) {
+          setChatTitle(`${incidentCaller}_911`)
         }
 
         // First check if user has active incident with chat
-        const incident: IIncident = await request(
-          `/api/incidents/${username}/active`,
+        const activeIncident: IIncident = await request(
+          `/api/incidents/${incidentCaller}/active`,
           {
             method: 'GET',
           },
         )
 
-        console.log('Debug - Active Incident:', incident)
+        console.log('Active Incident:', activeIncident)
 
-        if (incident.incidentCallGroup && incident.incidentCallGroup !== '') {
+        if (activeIncident.incidentCallGroup) {
           // User already has an active incident with chat
-          setChannelId(incident.incidentCallGroup)
+          setChannelId(activeIncident.incidentCallGroup)
         } else {
           // Create a new Channel using request utility
           const channel: IChannel = await request('/api/channels/911', {
@@ -92,7 +111,7 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
 
           if (channel?._id) {
             // Update incident with new channel
-            await request(`/api/incidents/${incident._id}/chat-group`, {
+            await request(`/api/incidents/${activeIncident._id}/chat-group`, {
               method: 'PUT',
               body: JSON.stringify({
                 channelId: channel._id,
@@ -167,7 +186,8 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
           variant="h6"
           sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}
         >
-          911 Call
+          {chatTitle}
+
         </Typography>
         <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
           {channelId && (
