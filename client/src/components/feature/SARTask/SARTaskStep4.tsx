@@ -1,12 +1,21 @@
 import { Button } from '@mui/material'
 import React from 'react'
+import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
 import AddressBar from './AddressBar.tsx'
 import FEMAMarker from './FEMAMarker'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import { useCurrentDateTime } from './useCurrentDateTime.tsx'
-const SARTaskStep4: React.FC = () => {
+
+interface SARTaskStep4Props {
+  incident?: IIncident | null;
+}
+
+const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident }) => {
+    const incidentId = Array.isArray(incident) 
+    ? incident[0]?.incidentId || 'SDena101' 
+    : incident?.incidentId || 'SDena101'
     const { formattedDateTime } = useCurrentDateTime()
     const handleDoneClick = () => {
     // TODO

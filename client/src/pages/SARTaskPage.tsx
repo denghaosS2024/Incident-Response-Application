@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import request, {IRequestError} from '../utils/request'
-import styles from '../styles/SARTaskPage.module.css'
-import ClickableStepper, {StepIconStyle} from '../components/ClickableStepper'
+import ClickableStepper, { StepIconStyle } from '../components/ClickableStepper'
 import SARTaskStep1 from '../components/feature/SARTask/SARTaskStep1.tsx'
 import SARTaskStep2 from '../components/feature/SARTask/SARTaskStep2.tsx'
 import SARTaskStep3 from '../components/feature/SARTask/SARTaskStep3.tsx'
 import SARTaskStep4 from '../components/feature/SARTask/SARTaskStep4.tsx'
 import IIncident from '../models/Incident.ts'
+import styles from '../styles/SARTaskPage.module.css'
+import request, { IRequestError } from '../utils/request'
 
 
 const SARTaskPage: React.FC = () => {
@@ -32,10 +32,10 @@ const SARTaskPage: React.FC = () => {
   }, [incidentId])
 
   const contents = [
-    <SARTaskStep1 />,
-    <SARTaskStep2 />,
-    <SARTaskStep3 />,
-    <SARTaskStep4 />,
+    <SARTaskStep1 incident={currentIncident}/>,
+    <SARTaskStep2 incident={currentIncident}/>,
+    <SARTaskStep3 incident={currentIncident}/>,
+    <SARTaskStep4 incident={currentIncident}/>,
   ]
 
   const handleStepChange = (step: number): void => {

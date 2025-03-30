@@ -1,12 +1,19 @@
 import { Button } from '@mui/material'
 import React from 'react'
+import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
 import AddressBar from './AddressBar.tsx'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 
-const SARTaskStep3: React.FC = () => {
+interface SARTaskStep3Props {
+  incident?: IIncident | null;
+}
 
+const SARTaskStep3: React.FC<SARTaskStep3Props> = ({incident }) => {
+    const incidentId = Array.isArray(incident) 
+    ? incident[0]?.incidentId || 'SDena101' 
+    : incident?.incidentId || 'SDena101'
   const handleVictimClick = () => {
     console.log('Victims button clicked')
   }
