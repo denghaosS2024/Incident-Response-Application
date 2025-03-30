@@ -26,6 +26,7 @@ export interface IIncident extends Document {
     incidentId: string
     caller: string
     openingDate: Date
+    closingDate?: Date
     incidentState: 'Waiting' | 'Triage' | 'Assigned' | 'Closed'
     /*
      TODO in the future: when the app is deployed we can create reserved user System
@@ -71,6 +72,10 @@ const IncidentSchema = new Schema({
     openingDate: {
         type: Date,
         default: Date.now,
+    },
+    closingDate: {
+        type: Date,
+        default: null,
     },
     incidentState: {
         type: String,

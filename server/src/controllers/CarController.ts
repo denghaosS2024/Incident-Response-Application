@@ -196,7 +196,7 @@ class CarController {
         if (!incidentId) {
             const updatedCar = await Car.findOneAndUpdate(
                 { name: carName },
-                { assignedCity: null },
+                { $set: { assignedCity: null, assignedIncident: null } },
                 { new: true },
             )
             return updatedCar

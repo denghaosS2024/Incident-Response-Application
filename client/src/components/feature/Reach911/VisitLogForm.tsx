@@ -40,11 +40,19 @@ const conditions = [
     { value: 'Stroke', label: 'Stroke' },
 ]
 
+// Returns the current date and time formatted as "MM.DD.YY-HH:mm"
+// Example formats: "12.03.21-10:00" or "11.22.20-08:00"
+const getCurrentDateTime = () => {
+    const now = new Date();
+    const formattedDate = `${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}.${String(now.getFullYear()).slice(-2)}-${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    return formattedDate;
+};
+
 const VisitLogForm: React.FC<{ username?: string }> = ({
     username: propUsername,
 }) => {
     const [formData, setFormData] = useState({
-        priority: 'Immediate', // Default value
+        priority: 'Immediate', // Default value, { value: 'Immediate', label: 'E' },
         location: 'Road',
         age: '',
         conscious: 'Yes',
@@ -54,6 +62,9 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
         drugs: '',
         allergies: ''
     });
+
+    // Set the visit time to the current date and time
+    const [visitTime, setVisitTime] = useState(getCurrentDateTime());
     
     const handleChange = (
         event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }> | SelectChangeEvent<string>,
@@ -82,7 +93,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             paddingX="32px"
             gap={3}  // Added vertical spacing between form elements
         >
-            <Typography variant="h6">Visit: 12.03.21-10:00</Typography>
+            <Typography variant="h6">Visit: {visitTime}</Typography>
             <Typography variant="h6">Incident ID: IZoe</Typography>
 
             {/* Priority */}

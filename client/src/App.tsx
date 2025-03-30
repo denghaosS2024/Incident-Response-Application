@@ -70,12 +70,12 @@ export default function App() {
                         <Route path="/map" element={<MapPage />} />
                         <Route path="/incidents" element={<IncidentsPage />} />
                         <Route path="/sar-incident" element={<SARIncidentPage />} />
+                        <Route path="/sar-task/:incidentId" element={<SARTaskPage />} />
                         <Route
                             path="/patient-profile/:patientId"
                             element={<PatientProfile />}
                         />
                         <Route path="/patients" element={<PatientPage />} />
-                        {/* <Route path='/patient-visit/:patientId' element={<PatientVisitPage />} /> */}
                         <Route path='/patient-visit' element={<PatientVisitPage />} />
                         <Route
                             path="/incidents/report"
@@ -111,7 +111,6 @@ export default function App() {
                         />
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/create-chart" element={<CreatechartPage />} />
-                        <Route path="/sar-task" element={<SARTaskPage />} />
                     </Route>
 
                     <Route element={<RoutedHome showBackButton isSubPage />}>
