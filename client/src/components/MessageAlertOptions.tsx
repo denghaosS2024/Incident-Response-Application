@@ -62,12 +62,12 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
   // Fetch the first resopnders
   const handleFetchResponders = async () => {
-    const users = await request(`/api/channels/${channelId}`, {
+    const respond = await request(`/api/channels/${channelId}`, {
       method: 'GET',
     })
-    console.log(users)
+    console.log(respond.users)
     // const responders = users.filter((user: any) => user._id !== currentUserId && (user.role === 'Fire' || user.role === 'Police'));
-    const responders = users.filter(
+    const responders = respond.users.filter(
       (user: any) =>
         user._id !== currentUserId && user.role === currentUserRole,
     )
