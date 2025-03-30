@@ -358,6 +358,16 @@ export default Router()
     }
   })
 
+  .get('/unassigned', async (_, response) => {
+    try {
+      const result = await PatientController.getUnassignedPatients()
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(400).json({ message: error.message })
+    }
+  })
+
   .post('/visitLogs', async (request, response) => {
     try {
       const { patientId, visitLog } = request.body
