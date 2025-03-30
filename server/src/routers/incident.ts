@@ -499,15 +499,15 @@ export default Router()
     })
     /**
      * @swagger
-     * /api/incidents/{id}:
+     * /api/incidents/{incidentId}:
      *   delete:
-     *     summary: Close an incident
+     *     summary: Close an incident by incidentId
      *     tags: [Incidents]
      *     parameters:
      *       - in: path
-     *         name: id
+     *         name: incidentId
      *         required: true
-     *         description: ID of the incident to close
+     *         description: The `incidentId` (e.g., "ITest") to close the incident
      *         schema:
      *           type: string
      *     responses:
@@ -518,20 +518,21 @@ export default Router()
      *       500:
      *         description: Internal server error
      */
-    .delete('/:id', async (request, response) => {
-        const { id } = request.params
+    .delete('/:incidentId', async (request, response) => {
+        const { incidentId } = request.params
         try {
-            const result = await IncidentController.closeIncident(id)
+            const result = await IncidentController.closeIncident(incidentId)
             if (!result) {
                 response.status(404).json({ message: 'Incident not found' })
                 return
             }
-            response.json(result)
+            response.status(200).json(result)
         } catch (e) {
             const error = e as Error
             response.status(500).json({ message: error.message })
         }
     })
+
     /**
      * @swagger
      * /api/incidents/updatedVehicles:
