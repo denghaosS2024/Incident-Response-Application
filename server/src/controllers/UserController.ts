@@ -4,6 +4,8 @@
 import Channel from '../models/Channel'
 import Incident from '../models/Incident'
 import User, { IUser } from '../models/User'
+import Car from '../models/Car'
+import Truck from '../models/Truck'
 import ROLES from '../utils/Roles'
 import SystemGroupConfigs from '../utils/SystemDefinedGroups'
 import * as Token from '../utils/Token'
@@ -272,6 +274,68 @@ class UserController {
         } catch (error) {
             console.error('Error during commander logout:', error)
             throw error
+        }
+    }
+
+    /**
+     * Handle first responder logout and un-assigns them from their Vehicle
+     * @param username - The username of the incident commanders logging out
+     * @param isCommander - Whether the user is the incident commander or not
+     * @throws Error if an error occurs during logout or un-assigns vehicle
+     */
+    async FirstResponderLogout(username: string, isCommander: boolean) {
+        try {
+            const user = await User.findOne({ username });
+            if (!user) {
+                throw new Error('User not found');
+            }
+    
+            if (user.role === ROLES.FIRE && user.assignedTruck) {
+                // Remove user from assigned truck
+                await Truck.updateOne(
+                    { name: user.assignedTruck },
+                    { $pull: { usernames: username } }
+                );
+    
+                // Remove user from incidents where this truck is assigned
+                await Incident.updateMany(
+                    { 'assignedVehicles.type': 'Truck', 'assignedVehicles.name': user.assignedTruck },
+                    { $pull: { 'assignedVehicles.$.usernames': username } }
+                );
+    
+                // Clear user's assignedTruck field
+                await User.updateOne({ username }, { assignedTruck: null });
+            }
+    
+            if (user.role === ROLES.POLICE && user.assignedCar) {
+                // Remove user from assigned car
+                await Car.updateOne(
+                    { name: user.assignedCar },
+                    { $pull: { usernames: username } }
+                );
+    
+                // Remove user from incidents where this car is assigned
+                await Incident.updateMany(
+                    { 'assignedVehicles.type': 'Car', 'assignedVehicles.name': user.assignedCar },
+                    { $pull: { 'assignedVehicles.$.usernames': username } }
+                );
+    
+                // Clear user's assignedCar field
+                await User.updateOne({ username }, { assignedCar: null });
+            }
+
+            if (isCommander) {
+                this.CommanderLogout(username);
+                return
+            }
+
+            // Perform standard logout
+            await this.logout(username);
+    
+            
+        } catch (error) {
+            console.error('Error during first responder logout:', error);
+            throw error;
         }
     }
 
