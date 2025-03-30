@@ -12,14 +12,15 @@ import channel from './channel'
 import HospitalRouter from './hospital'
 import incident from './incident'
 import login from './login'
+import logout from './logout'
 import map from './map'
 import user from './user'
-import logout from './logout'
 
 // This router does not exist in this codebase
 import airQuality from './airQuality'
 import carRouter from './car'
 import cityRouter from './city'
+import dashboard from './dashboard'
 import erBedRouter from './erbed'
 import patientRouter from './patients'
 import personnelRouter from './personnel'
@@ -57,3 +58,4 @@ export default Router()
   .use('/wildfire', wildfireAreaRouter)
   .use('/hospital', HospitalRouter)
   .use('/erbed', erBedRouter)
+  .use('/charts', dashboard)
