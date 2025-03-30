@@ -359,7 +359,11 @@ const PatientForm: React.FC<{ username?: string }> = ({
                         }}>
                         <AddIcon 
                             onClick={() => {
-                                navigate(`/patient-visit`)
+                                if (propUsername) {
+                                    navigate(`/patient-visit?username=${encodeURIComponent(propUsername)}`)
+                                } else {
+                                    navigate('/patient-visit')
+                                }
                             }}
                             style={{ cursor: 'pointer' }}
                         /> 
