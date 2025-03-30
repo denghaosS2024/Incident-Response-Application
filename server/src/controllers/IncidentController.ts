@@ -246,7 +246,12 @@ class IncidentController {
         vehicle: ICar | ITruck,
     ) {
         try {
-            console.log('addVehicleToIncident', personnel, commandingIncident, vehicle)
+            console.log(
+                'addVehicleToIncident',
+                personnel,
+                commandingIncident,
+                vehicle,
+            )
             if (vehicle.assignedIncident) {
                 const assignedIncident = await Incident.findOne({
                     incidentId: vehicle.assignedIncident,
@@ -286,7 +291,12 @@ class IncidentController {
                     !personnel.assignedCar &&
                     !personnel.assignedTruck
                 ) {
-                    const allUsers = [...new Set([...(vehicle.usernames || []), personnel.name])];
+                    const allUsers = [
+                        ...new Set([
+                            ...(vehicle.usernames || []),
+                            personnel.name,
+                        ]),
+                    ]
                     // Create an update operation to add the username to the specific vehicle's usernames
                     const updatedIncident = await Incident.findByIdAndUpdate(
                         commandingIncident._id,
@@ -332,12 +342,16 @@ class IncidentController {
             }
         }
 
+        incident.assignedVehicles = []
+
         if (incident.incidentCallGroup) {
             await ChannelController.closeChannel(incident.incidentCallGroup)
+            incident.incidentCallGroup = null
         }
 
         if (incident.respondersGroup) {
             await ChannelController.closeChannel(incident.respondersGroup)
+            incident.respondersGroup = null
         }
 
         await incident.save()

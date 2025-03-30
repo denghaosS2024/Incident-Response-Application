@@ -43,8 +43,8 @@ export default interface IIncident {
         | PoliceQuestions
         | EmergencyQuestions
         | null
-    incidentCallGroup?: string // ID of the associated chat channel
-    respondersGroup?: string // ID of the responders group
+    incidentCallGroup?: string | null // ID of the associated chat channel
+    respondersGroup?: string | null // ID of the responders group
     priority: IncidentPriority // The priority of the incident
     location?: {
         // Exact coordinates of the incident location
