@@ -98,7 +98,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             ...(updatedQuestions[formIndex] ?? {}),
             [field]: newValue,
         } as MedicalQuestions
-
+        console.log(incident.questions)
         if (await validateField(field, newValue)) {
             dispatch(
                 updateIncident({
@@ -212,11 +212,11 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                                 />
                             }
                             label={
-                              incident.incidentState === 'Assigned' ||
-                              incident.incidentState === 'Triage'
-                                  ? 'Caller is the patient'
-                                  : 'I am the patient'
-                          }
+                                incident.incidentState === 'Assigned' ||
+                                incident.incidentState === 'Triage'
+                                    ? 'Caller is the patient'
+                                    : 'I am the patient'
+                            }
                         />
                     </Box>
                 )}
@@ -241,14 +241,13 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                         <Select
                             labelId="username-label"
                             label="Username"
-                            value={
-                                isPatient
-                                    ? currentUser?.username || ''
-                                    : username || ''
-                            }
+                            value={username}
                             onChange={(e) => onChange('username', e)}
                             fullWidth
                         >
+                            <MenuItem key="unknown" value="unknown">
+                                Unknown
+                            </MenuItem>
                             {contacts.map((user: IUser) => (
                                 <MenuItem key={user._id} value={user.username}>
                                     {user.username}
