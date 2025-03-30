@@ -14,7 +14,7 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom'
-import request, { IRequestError } from '../utils/request'
+import request from '../utils/request'
 
 export interface IProps {
   /**

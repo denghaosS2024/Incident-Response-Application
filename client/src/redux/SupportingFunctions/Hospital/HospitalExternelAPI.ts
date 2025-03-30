@@ -1,8 +1,6 @@
 import IHospital from '@/models/Hospital'
-import Globals from '@/utils/Globals'
 import { Location } from '@/utils/types'
 // Access token
-const accessToken = Globals.getMapboxToken()
 
 export const fetcHospitalCoordinates = async (
   hospital: IHospital,
