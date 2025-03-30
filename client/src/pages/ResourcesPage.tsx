@@ -159,6 +159,7 @@ const ResourcesPage: React.FC = () => {
         body: JSON.stringify({ incidents: [myIncidents] }),
       })
       console.log(response)
+      alert("Success")
     }catch(e){
       console.log(e)
     }

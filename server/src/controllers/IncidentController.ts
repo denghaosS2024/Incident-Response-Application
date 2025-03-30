@@ -2,7 +2,7 @@ import { Types } from 'mongoose'
 import { ICar } from '../models/Car'
 import Incident, { IncidentPriority, type IIncident } from '../models/Incident'
 import { ITruck } from '../models/Truck'
-import { IUser } from '../models/User'
+import User, { IUser } from '../models/User'
 import { ROLES } from '../utils/Roles'
 import UserConnections from '../utils/UserConnections'
 import CarController from './CarController'
@@ -347,6 +347,17 @@ class IncidentController {
             } else {
                 await TruckController.updateIncident(v.name, incidentId)
             }
+
+            //Notify the first responder
+            v.usernames.forEach(async (username) => {
+              const user = await User.findOne({username})
+              if(!user) return
+              const id = user._id.toHexString()
+              if (!UserConnections.isUserConnected(id)) return
+        
+              const connection = UserConnections.getUserConnection(id)!
+              connection.emit('join-new-incident',incidentId)
+            })
         }
 
         for (const v of removeVehicleSet) {

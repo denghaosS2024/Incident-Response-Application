@@ -2,9 +2,8 @@
 import { Box, Modal, Typography, keyframes } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import IMessage from '../models/Message'
-
 // IR App
 import {
   setHasGroupNotification,
@@ -24,6 +23,7 @@ import {
 } from '../redux/messageSlice'
 import { AppDispatch } from '../redux/store'
 import SocketClient from '../utils/Socket'
+import IncidentAlert from '../components/IncidentAlert'
 
 interface IProps {
   showBackButton?: boolean
@@ -59,6 +59,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
     messageId: string
     channelId: string
   }>({ alertType: '', patientName: '', messageId: '', channelId: '' })
+  const navigate = useNavigate()
 
   const useFlashAnimation = (bgColor: string) => {
     return useMemo(
@@ -73,6 +74,8 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
   const flash = useFlashAnimation(bgColor)
 
   const [maydayOpen, setMaydayOpen] = useState<boolean>(false)
+
+  const [assignedIncident, setAssignedIncident] = useState<string | null>(null)
 
   const lastTap = useRef<number | null>(null)
 
@@ -194,6 +197,10 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
     socket.on('connect', () => {
       console.log('Socket connected successfully')
       console.log('Current role:', role)
+    })
+
+    socket.on('join-new-incident',(incidentId: string)=>{
+      setAssignedIncident(incidentId)
     })
 
     socket.on('new-message', (message: IMessage) => {
@@ -335,6 +342,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       socket.off('new-incident-created')
       socket.off('map-area-update')
       socket.off('map-area-delete')
+      socket.off('join-new-incident')
       socket.close()
 
       // Clear any active timeout when unmounting
@@ -407,6 +415,24 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
               patientName={nurseAlertData.patientName}
               onAccept={handleNurseAlertAccept}
               onBusy={handleNurseAlertBusy}
+            />
+          )}
+
+          {assignedIncident && (
+            <IncidentAlert
+              isOpen={!!assignedIncident}
+              incidentId={assignedIncident}
+              onClose={() => setAssignedIncident(null)}
+              onNav={() => {
+                navigate('/reach911', {
+                  state: {
+                    incidentId: assignedIncident,
+                    readOnly:true,
+                    autoPopulateData:true,
+                  },
+                })
+                setAssignedIncident(null)
+              }}
             />
           )}
         </>
