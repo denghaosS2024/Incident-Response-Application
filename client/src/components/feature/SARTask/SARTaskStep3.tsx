@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import { Button } from '@mui/material'
+import React from 'react'
 import styles from '../../../styles/SARTaskPage.module.css'
-import SARTaskTitle from './SARTaskTitle.tsx'
 import AddressBar from './AddressBar.tsx'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
-
+import SARTaskTitle from './SARTaskTitle.tsx'
 
 const SARTaskStep3: React.FC = () => {
+
+  const handleVictimClick = () => {
+    console.log('Victims button clicked')
+  }
 
   return (
     <div className={styles.wrapperStep}>
@@ -15,7 +19,14 @@ const SARTaskStep3: React.FC = () => {
         title={'Victims'}
         subtitle={'Enter the number of victims:'}
       />
-      <ReturnToTasksBtn />
+      
+      <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
+        <ReturnToTasksBtn />
+        <Button className={styles.primaryBtn} onClick={handleVictimClick} variant="contained"
+        sx={{ mt: 2, mx: 1 }}>
+          Treat Victims
+        </Button>
+      </div>
     </div>
   )
 }
