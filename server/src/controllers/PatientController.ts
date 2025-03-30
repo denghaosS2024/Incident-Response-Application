@@ -339,6 +339,39 @@ class PatientController {
     await patient.save()
     return patient
   }
+
+  
+
+  /**
+   * Update the active visit log entry of a patient.
+   * 
+   * @param patientId - ID of the patient to update
+   * @param updatedVisitData - The updated visit details to log for the patient
+   * @returns The updated patient document with the modified visit log
+   * @throws Error if the patient with the given ID does not exist
+   */
+  async updatePatientVisit(patientId: string, updatedVisitData: IVisitLog) {
+    const patient = await Patient.findOne({ patientId })
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`)
+    }
+  
+    const activeVisit = patient.visitLog?.find((visit) => visit.active)
+    if (!activeVisit) {
+      throw new Error(`No active visit log found for patient ID ${patientId}`)
+    }
+  
+    // Update only the provided fields
+    Object.entries(updatedVisitData).forEach(([key, value]) => {
+      if (value !== undefined && key !== 'active') {
+        activeVisit[key] = value
+      }
+    })
+  
+    await patient.save()
+    const updatedPatient = await Patient.findOne({ patientId })
+    return updatedPatient
+  }
 }
 
 export default new PatientController()
