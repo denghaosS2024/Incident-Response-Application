@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 interface DirectNurseAlertProps {
@@ -6,6 +6,7 @@ interface DirectNurseAlertProps {
   patientName: string
   onAccept: () => void
   onBusy: () => void
+  onTimeExpired?: () => void // Optional callback for when time expires
 }
 
 /**
@@ -17,17 +18,40 @@ const DirectNurseAlert: React.FC<DirectNurseAlertProps> = ({
   patientName,
   onAccept,
   onBusy,
+  onTimeExpired,
 }) => {
   console.log('DirectNurseAlert rendering with:', { alertType, patientName })
   const [isFlashing, setIsFlashing] = useState(true)
-  const [countdown, setCountdown] = useState(120) // 2 minutes
+  const [secondsLeft, setSecondsLeft] = useState(120) // 2 minutes
+  const [isVisible, setIsVisible] = useState(true) // Control visibility
+  
+  // Store the start time to calculate remaining time
+  const startTimeRef = useRef(Date.now())
+  const totalDurationMs = 120 * 1000 // 2 minutes in milliseconds
+  const endTimeRef = useRef(startTimeRef.current + totalDurationMs)
+  
+  // Handle auto-hide when timer reaches zero
+  useEffect(() => {
+    if (secondsLeft <= 0 && isVisible) {
+      console.log('DirectNurseAlert: Timer reached zero, hiding alert without action');
+      setIsVisible(false);
+      
+      // Notify parent component if callback provided
+      if (onTimeExpired) {
+        onTimeExpired();
+      }
+    }
+  }, [secondsLeft, isVisible, onTimeExpired]);
 
   // Log mount and unmount
   useEffect(() => {
-    console.log('DirectNurseAlert mounted')
-
+    console.log('DirectNurseAlert mounted with expiry time:', new Date(endTimeRef.current).toISOString())
+    // Force a reflow to ensure the component is visible
+    document.body.style.overflow = 'hidden'
+    
     return () => {
       console.log('DirectNurseAlert unmounted')
+      document.body.style.overflow = ''
     }
   }, [])
 
@@ -41,21 +65,47 @@ const DirectNurseAlert: React.FC<DirectNurseAlertProps> = ({
     return () => clearInterval(flashInterval)
   }, [])
 
-  // Countdown timer
+  // Simple countdown timer using requestAnimationFrame for better performance
   useEffect(() => {
-    console.log('Setting up countdown timer')
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
+    console.log('Setting up countdown timer with end time:', new Date(endTimeRef.current).toISOString())
+    
+    // Update the countdown every second
+    let frameId: number;
+    
+    const updateTimer = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, endTimeRef.current - now);
+      const seconds = Math.ceil(remaining / 1000);
+      
+      if (secondsLeft !== seconds) {
+        console.log('Countdown update:', seconds);
+        setSecondsLeft(seconds);
+      }
+      
+      if (remaining <= 0) {
+        console.log('Timer complete');
+        return;
+      }
+      
+      // Schedule next update
+      frameId = requestAnimationFrame(updateTimer);
+    };
+    
+    // Start the update loop
+    frameId = requestAnimationFrame(updateTimer);
+    
+    // Also set a direct timeout for the full duration to ensure visibility control
+    const dismissTimeoutId = setTimeout(() => {
+      console.log('DirectNurseAlert: Visibility timeout reached, hiding alert');
+      setIsVisible(false);
+    }, totalDurationMs);
+    
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearTimeout(dismissTimeoutId);
+      console.log('Countdown cleanup');
+    };
+  }, []);
 
   // Determine colors based on alert type
   let bgColor = '#1976d2' // Default blue for regular HELP
@@ -79,9 +129,14 @@ const DirectNurseAlert: React.FC<DirectNurseAlertProps> = ({
     onBusy()
   }
 
-  console.log('Creating portal for alert')
-  // Create a portal to render directly to body
-  return ReactDOM.createPortal(
+  // If not visible, don't render
+  if (!isVisible) {
+    console.log('DirectNurseAlert: Not rendering because alert is no longer visible');
+    return null;
+  }
+
+  // Alert content without the portal
+  const AlertContent = (
     <div
       style={{
         position: 'fixed',
@@ -89,7 +144,7 @@ const DirectNurseAlert: React.FC<DirectNurseAlertProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 9999,
+        zIndex: 999999, // Maximum z-index
         backgroundColor: isFlashing ? bgColor : altColor,
         display: 'flex',
         justifyContent: 'center',
@@ -119,8 +174,8 @@ const DirectNurseAlert: React.FC<DirectNurseAlertProps> = ({
         <h1 style={{ marginBottom: '32px' }}>{patientName}</h1>
 
         <p style={{ marginBottom: '32px', color: '#666' }}>
-          This alert will expire in {Math.floor(countdown / 60)}:
-          {String(countdown % 60).padStart(2, '0')}
+          This alert will expire in {Math.floor(secondsLeft / 60)}:
+          {String(secondsLeft % 60).padStart(2, '0')}
         </p>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '24px' }}>
@@ -157,9 +212,16 @@ const DirectNurseAlert: React.FC<DirectNurseAlertProps> = ({
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
-  )
+    </div>
+  );
+
+  try {
+    console.log('Creating portal for nurse alert with seconds left:', secondsLeft)
+    return ReactDOM.createPortal(AlertContent, document.body);
+  } catch (error) {
+    console.error('Portal creation failed, using direct rendering:', error);
+    return AlertContent;
+  }
 }
 
 export default DirectNurseAlert
