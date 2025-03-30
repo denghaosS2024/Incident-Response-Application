@@ -14,17 +14,18 @@ type ChartType = 'Bar' | 'Line' | 'Pie'
 
 const chartTypes: ChartType[] = ['Bar', 'Line', 'Pie']
 const chartDataOptions = [
-    'Incident Type',
-    'Incident Priority',
-    'Incident State',
+    'Alert Acknowledgment Time',
+    'Fire/Police Alerts',
     'Incident Duration',
+    'Incident Priority',
     'Incident Resources',
+    'Incident State',
+    'Incident Type',
     'Patient Location',
     'SAR Tasks',
     'SAR Victims',
-    'Fire/Police Alerts',
-    'Alert Acknowledgment Time',
   ]
+  
   
 
 const CreateChartPage: React.FC = () => {
@@ -113,9 +114,12 @@ const CreateChartPage: React.FC = () => {
       console.log('Chart updated:', res)
       navigate('/dashboard')
       localStorage.removeItem('editChartId')
-    } catch (err) {
-      console.error('Failed to update chart:', err)
-    }
+    } catch (err: any) {
+        const errorMessage =
+          err?.message || err?.response?.message || 'Failed to update chart.'
+        setMessage(errorMessage)
+        setMessageType('error')
+      }
   }
 
   const handleRemove = async () => {
