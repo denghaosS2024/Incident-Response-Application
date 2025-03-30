@@ -3,25 +3,22 @@ import {
     Box,
     FormControl,
     FormControlLabel,
-    FormHelperText,
     FormLabel,
-    InputLabel,
-    MenuItem,
     Radio,
     RadioGroup,
-    Select,
     SelectChangeEvent,
     TextField,
     Typography,
 } from '@mui/material'
+
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import IIncident from '../../../models/Incident'
-import IUser from '../../../models/User'
 import { loadContacts } from '../../../redux/contactSlice'
 import { updateIncident } from '../../../redux/incidentSlice'
 import { AppDispatch, RootState } from '../../../redux/store'
+import request from '../../../utils/request'
 import { MedicalQuestions } from '../../../utils/types'
 import Loading from '../../common/Loading'
 
@@ -39,9 +36,13 @@ const PatientForm: React.FC<{ username?: string }> = ({
     const name = ''
 
     const [usernameError, setUserNameError] = useState<string>('')
+    const [newUsername, setNewUsername] = useState<string>('')
+    const [isCreatingNewAccount, setIsCreatingNewAccount] =
+        useState<boolean>(false)
 
     // Loads contacts upon page loading
     useEffect(() => {
+        console.log('Loaded contacts')
         dispatch(loadContacts())
     }, [dispatch])
 
@@ -82,8 +83,30 @@ const PatientForm: React.FC<{ username?: string }> = ({
         }
     }
 
-    if (loading) return <Loading />
+    const createNewPatientAccount = () => {
+        request('/api/users/createTemp', { method: 'POST' })
+            .then((data) => {
+                if (data.username) {
+                    setNewUsername(data.username)
+                    alert(
+                        `A new user account has been created for the Patient. \nTemporary Username: ${data.username}, Password: 1234`,
+                    )
+                } else {
+                    alert('Failed to retrieve new username from server.')
+                }
+            })
+            .catch((error) => {
+                console.error('Error creating new patient account:', error)
+                alert(
+                    'Failed to create a new patient account. Please try again later.',
+                )
+            })
+            .finally(() => {
+                setIsCreatingNewAccount(false)
+            })
+    }
 
+    if (loading) return <Loading />
     return (
         <>
             <Box
@@ -104,32 +127,7 @@ const PatientForm: React.FC<{ username?: string }> = ({
                     <Typography>Patient Username:</Typography>
                 </Box>
 
-                {!propUsername ? (
-                    <Box width="100%" maxWidth="500px" my={2}>
-                        <FormControl fullWidth error={!!usernameError}>
-                            <InputLabel id="username-label">
-                                Select One
-                            </InputLabel>
-                            <Select
-                                labelId="username-label"
-                                label="Username"
-                                value=""
-                                onChange={(e) => onChange('username', e)}
-                                fullWidth
-                            >
-                                {contacts.map((user: IUser) => (
-                                    <MenuItem
-                                        key={user._id}
-                                        value={user.username}
-                                    >
-                                        {user.username}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                            <FormHelperText>{usernameError}</FormHelperText>
-                        </FormControl>
-                    </Box>
-                ) : (
+                {propUsername && propUsername !== 'unknown' ? (
                     <Box width="100%" maxWidth="500px" my={2}>
                         <TextField
                             variant="outlined"
@@ -141,9 +139,40 @@ const PatientForm: React.FC<{ username?: string }> = ({
                             }}
                         />
                     </Box>
+                ) : (
+                    <>
+                        <Box width="100%" maxWidth="500px" my={2}>
+                            <Typography
+                                variant="subtitle1"
+                                color="textSecondary"
+                            >
+                                Username: Unknown
+                            </Typography>
+                        </Box>
+                        <Box display="flex" justifyContent="center" mt={2}>
+                            <button
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: '#28a745',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '16px',
+                                }}
+                                onClick={createNewPatientAccount}
+                                disabled={isCreatingNewAccount}
+                            >
+                                {isCreatingNewAccount
+                                    ? 'Creating Account...'
+                                    : 'Create New Account'}
+                            </button>
+                        </Box>
+                    </>
                 )}
 
-                {/** Asks the user for a name */}
+                {/**Asks the user for a name */}
+
                 <Box
                     sx={{
                         display: 'flex',
@@ -180,7 +209,7 @@ const PatientForm: React.FC<{ username?: string }> = ({
                     <Typography>Date of Birth:</Typography>
                 </Box>
 
-                {/** Asks the user their date of birth */}
+                {/**Asks the user their date of birth */}
                 <Box width="100%" maxWidth="500px" my={2}>
                     <TextField
                         variant="outlined"
@@ -195,7 +224,7 @@ const PatientForm: React.FC<{ username?: string }> = ({
                     />
                 </Box>
 
-                {/** Asks the user their sex */}
+                {/**Asks the user their sex */}
                 <Box width="100%" maxWidth="500px" my={2}>
                     <FormControl>
                         <FormLabel id="sex-label">Sex:</FormLabel>
@@ -237,16 +266,9 @@ const PatientForm: React.FC<{ username?: string }> = ({
                         cursor: 'pointer',
                         fontSize: '16px',
                     }}
-                    onClick={() => {
-                        // Check if patientId exists before navigating
-                        if (!incident.patientId) {
-                            alert(
-                                'Patient ID is missing. Please complete patient information.',
-                            )
-                            return
-                        }
-                        navigate(`/patient-profile/${incident.patientId}`)
-                    }}
+                    onClick={() =>
+                        navigate(`/patient-profile/${incident.patientId || ''}`)
+                    }
                 >
                     Profile
                 </button>
