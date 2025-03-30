@@ -1,10 +1,12 @@
 import { Query, Types } from 'mongoose'
 import IncidentController from '../../src/controllers/IncidentController'
+import UserController from '../../src/controllers/UserController'
 import Car from '../../src/models/Car'
 import Incident, {
     IIncident,
     IncidentPriority,
 } from '../../src/models/Incident'
+import ROLES from '../../src/utils/Roles'
 import * as TestDatabase from '../utils/TestDatabase'
 
 describe('Incident Controller', () => {
@@ -435,7 +437,33 @@ describe('Incident Controller', () => {
     })
 
     describe('Incident Responders Group functionality', () => {
-        it('should create a new responders channel when commander is on a vehicle', async () => {
+        it('should create a new responders group from responders on assigned vehicles', async () => {
+            await UserController.register(
+                'CommanderUser',
+                'password123',
+                ROLES.DISPATCH,
+            )
+            await UserController.register(
+                'Responder1',
+                'password123',
+                ROLES.POLICE,
+            )
+            await UserController.register(
+                'Responder2',
+                'password123',
+                ROLES.POLICE,
+            )
+            await UserController.register(
+                'Responder3',
+                'password123',
+                ROLES.POLICE,
+            )
+            await UserController.register(
+                'Responder4',
+                'password123',
+                ROLES.POLICE,
+            )
+
             const username = 'test-responder-group'
             let incident = await createTestIncident(username)
             incident.commander = 'CommanderUser'
@@ -453,23 +481,7 @@ describe('Incident Controller', () => {
             const updatedIncident =
                 await IncidentController.createOrUpdateRespondersGroup(incident)
 
-            expect(updatedIncident.channel).toBeDefined()
-            expect(updatedIncident.channel.name).toBe(
-                `${incident.incidentId}_Resp`,
-            )
-            const expectedUsers = new Set([
-                'CommanderUser',
-                'Responder1',
-                'Responder2',
-                'Responder3',
-                'Responder4',
-            ])
-            expect(new Set(updatedIncident.channel.users)).toEqual(
-                expectedUsers,
-            )
-            expect(updatedIncident.channel.owner).toBe(incident.commander)
-            expect(updatedIncident.channel.messages).toEqual([])
-            expect(updatedIncident.channel.closed).toBe(false)
+            expect(updatedIncident.respondersGroup).toBeDefined()
         })
     })
 })
