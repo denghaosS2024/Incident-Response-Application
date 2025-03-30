@@ -5,9 +5,9 @@ import AddressBar from './AddressBar.tsx'
 import FEMAMarker from './FEMAMarker'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
-
+import { useCurrentDateTime } from './useCurrentDateTime.tsx'
 const SARTaskStep4: React.FC = () => {
-
+    const { formattedDateTime } = useCurrentDateTime()
     const handleDoneClick = () => {
     // TODO
     alert('Task marked as done!')
@@ -24,7 +24,7 @@ const SARTaskStep4: React.FC = () => {
 
       <div className={styles.flexCenter}>
         <FEMAMarker
-          top='[FAKE] 04.04.21 2:00pm'
+          top={formattedDateTime}
           right='[FAKE] Dogs Foods'
           bottom='[FAKE] 1-Immediate 2-Urgent'
           left='[FAKE] SDena101 04.04.21 1:40pm'
