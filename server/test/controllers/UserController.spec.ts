@@ -480,6 +480,78 @@ describe('User controller', () => {
         })
     })
 
+    describe('CommanderLogout', () => {
+        let incidentCommander: IUser
+        let firstResponder: IUser
+    
+        beforeEach(async () => {
+            await Incident.deleteMany({})
+            await User.deleteMany({})
+    
+            // Create an incident commander
+            incidentCommander = await UserController.register(
+                'incident-commander',
+                'password',
+                ROLES.FIRE
+            )
+    
+            // Create a first responder who is not an incident commander
+            firstResponder = await UserController.register(
+                'first-responder',
+                'password',
+                ROLES.POLICE
+            )
+
+            // Simulate user connection
+            const socket = mock<SocketIO.Socket>()
+            UserConnections.addUserConnection(
+                incidentCommander._id.toString(),
+                socket,
+                ROLES.FIRE,
+            )
+            UserConnections.addUserConnection(
+                firstResponder._id.toString(),
+                socket,
+                ROLES.POLICE,
+            )
+    
+            // Assign the incident commander to an incident
+            await Incident.create({
+                incidentId: 'Incident-1',
+                caller: 'Caller',
+                incidentState: 'Assigned',
+                commander: incidentCommander.username
+            })
+        })
+    
+        it('should transfer incident command to an available first responder upon commander logout', async () => {
+            await UserController.CommanderLogout(incidentCommander.username)
+    
+            const updatedIncident = await Incident.find({ incidentId: 'Incident-1' })
+
+            expect(updatedIncident[0].commander).toBe(firstResponder.username)
+        })
+    
+        it('should not transfer command if no available first responder', async () => {
+            await User.deleteOne({ username: firstResponder.username })
+    
+            await UserController.CommanderLogout(incidentCommander.username)
+    
+            const updatedIncident = await Incident.find({ incidentId: 'Incident-1' })
+    
+            expect(updatedIncident[0].commander).toBe(incidentCommander.username)
+        })
+    
+        it('should throw an error if an issue occurs during logout', async () => {
+            jest.spyOn(UserController, 'logout').mockImplementationOnce(() => {
+                throw new Error('Logout failed')
+            })
+    
+            await expect(UserController.CommanderLogout(incidentCommander.username)).rejects.toThrow('Logout failed')
+        })
+    })
+
+
   afterAll(async () => {
     await TestDatabase.close()
   })

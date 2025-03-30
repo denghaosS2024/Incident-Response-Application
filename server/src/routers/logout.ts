@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import IncidentController from '../controllers/IncidentController'
 import UserController from '../controllers/UserController'
 import ROLES from '../utils/Roles'
 
@@ -34,10 +35,14 @@ export default Router()
     .post('/', async (request, response) => {
         try {
             const { username, role } = request.body
+            const isCommander = await IncidentController.getIncidentByCommander(username)
             // Check if user is a dispatcher
             if (username && role === ROLES.DISPATCH) {
                 // Handle dispatcher-specific logout
                 await UserController.dispatcherLogout(username)
+            } else if (username && isCommander.length > 0){
+                // Handle incident commander logout
+                await UserController.CommanderLogout(username)
             } else {
                 // Normal logout for non-dispatchers
                 await UserController.logout(username)

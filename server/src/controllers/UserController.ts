@@ -240,6 +240,16 @@ class UserController {
     }
 
     /**
+     * Handle incident commander logout and transfer the command of incident to other un-assigned first responder
+     * @param username - The username of the incident commanders logging out
+     * @throws Error if an error occurs during logout or incident transfer
+     */
+    async CommanderLogout(username: string) {
+        // do nothing
+        console.log(username)
+    }
+
+    /**
      * Handle dispatcher logout and transfer triage incidents to another dispatcher
      * @param username - The username of the dispatcher logging out
      * @throws Error if an error occurs during logout or incident transfer
