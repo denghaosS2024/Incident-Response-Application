@@ -1,6 +1,6 @@
 import { uuidv4 } from 'mongodb-memory-server-core/lib/util/utils'
 import { IHospital } from '../models/Hospital'
-import Patient, { IPatientBase, PatientSchema } from '../models/Patient'
+import Patient, { IPatientBase, IVisitLog, PatientSchema } from '../models/Patient'
 import { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
 import HospitalController from './HospitalController'
@@ -277,6 +277,56 @@ class PatientController {
       throw new Error(`Patient "${patientId}" does not exist`)
     }
     return res
+  }
+
+  async createPatientVisit (patientId: string, patientVisitData:IVisitLog) {
+    const patient = await Patient.findOne({ patientId })
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`)
+    }
+
+    const {
+      // Required
+      dateTime,
+      incidentId,
+      location,
+
+      // Optional
+      priority,
+      age,
+      conscious,
+      breathing,
+      chiefComplaint,
+      condition,
+      drugs,
+      allergies,
+    } = patientVisitData
+
+    patient.visitLog?.forEach((visit) => {
+      if (visit.active) {
+        visit.active = false
+      }
+    })
+
+    const newVisitLogEntry = {
+      dateTime: dateTime ? new Date(dateTime) : new Date(),
+      incidentId,
+      location,
+      priority: priority || 'E',
+      age,
+      conscious,
+      breathing,
+      chiefComplaint,
+      condition,
+      drugs,
+      allergies,
+      active: true,
+    }
+
+    patient.visitLog?.push(newVisitLogEntry)
+
+    await patient.save()
+    return patient
   }
 }
 

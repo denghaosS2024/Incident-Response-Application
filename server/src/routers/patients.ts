@@ -358,12 +358,18 @@ export default Router()
     }
   })
 
-  .get('/unassigned', async (_, response) => {
+  .post('/visitLogs', async (request, response) => {
     try {
-      const result = await PatientController.getUnassignedPatients()
+      const { patientId, visitLog } = request.body
+      if (!patientId || !visitLog) {
+        response.status(400).json({ message: 'patientId and visitLog are required' })
+        return
+      }
+
+      const result = await PatientController.createPatientVisit(patientId as string, visitLog)
       response.json(result)
     } catch (e) {
       const error = e as Error
-      response.status(400).json({ message: error.message })
+      response.status(500).json({ message: error.message })
     }
   })
