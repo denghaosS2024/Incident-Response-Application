@@ -195,13 +195,13 @@ describe('Router - Incident', () => {
     it('should remove assigned incident from deallocated vehicles', async () => {
         const testCars = [
             {
-                name: 'Police Car 1',
+                name: 'Police Car 3',
                 usernames: ['Officer Smith'],
                 assignedIncident: null,
                 assignedCity: 'New York',
             },
             {
-                name: 'Police Car 2',
+                name: 'Police Car 4',
                 usernames: ['Officer Williams'],
                 assignedIncident: null,
                 assignedCity: 'New York',
@@ -210,7 +210,7 @@ describe('Router - Incident', () => {
         await Car.insertMany(testCars)
 
         const testIncident = await Incident.create({
-            incidentId: 'Ipolice1011',
+            incidentId: 'Ipolice1012',
             caller: username,
             incidentState: 'Assigned',
             owner: username,
@@ -227,7 +227,7 @@ describe('Router - Incident', () => {
             ...testIncident.toObject(),
             assignedVehicles: [
                 {
-                    name: 'Police Car 1',
+                    name: 'Police Car 3',
                     type: 'Car',
                     usernames: ['Officer Smith'],
                 },
@@ -242,7 +242,7 @@ describe('Router - Incident', () => {
         expect(res.body).toMatchObject({ message: 'success' })
 
         const car2 = await Car.findOne({
-            name: 'Police Car 2',
+            name: 'Police Car 4',
         }).lean()
         expect(car2?.assignedIncident).toBe(null)
     })

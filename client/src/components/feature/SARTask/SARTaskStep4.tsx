@@ -1,12 +1,17 @@
-import React, { useEffect, useState } from 'react'
+import { Button } from '@mui/material'
+import React from 'react'
 import styles from '../../../styles/SARTaskPage.module.css'
-import SARTaskTitle from './SARTaskTitle.tsx'
 import AddressBar from './AddressBar.tsx'
-import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import FEMAMarker from './FEMAMarker'
-
+import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
+import SARTaskTitle from './SARTaskTitle.tsx'
 
 const SARTaskStep4: React.FC = () => {
+
+    const handleDoneClick = () => {
+    // TODO
+    alert('Task marked as done!')
+  }
 
   return (
     <div className={styles.wrapperStep}>
@@ -27,7 +32,13 @@ const SARTaskStep4: React.FC = () => {
         />
       </div>
 
-      <ReturnToTasksBtn />
+      <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
+        <ReturnToTasksBtn />
+        <Button className={styles.primaryBtn} onClick={handleDoneClick} variant="contained"
+        sx={{ mt: 2, mx: 1 }}>
+          Done
+        </Button>
+      </div>
     </div>
   )
 }
