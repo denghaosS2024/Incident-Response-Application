@@ -279,6 +279,17 @@ class PatientController {
     return res
   }
 
+  /**
+   * Creates a new visit log for a patient.
+   * 
+   * If the patient has any active visits, they are marked as inactive.
+   * The new visit is marked as active and appended to the patient's visitLog.
+   * 
+   * @param patientId - The unique ID of the patient
+   * @param patientVisitData - The visit details to log for the patient
+   * @returns The updated patient document
+   * @throws Error if the patient with the given ID does not exist
+   */
   async createPatientVisit (patientId: string, patientVisitData:IVisitLog) {
     const patient = await Patient.findOne({ patientId })
     if (!patient) {
