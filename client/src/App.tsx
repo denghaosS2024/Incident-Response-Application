@@ -3,6 +3,7 @@ import { useFlags } from 'launchdarkly-react-client-sdk'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import ChatRoomPage from './pages/ChatRoomPage'
 import Contacts from './pages/Contacts'
+import CreatechartPage from './pages/CreatechartPage.tsx'
 import DashboardPage from './pages/DashboardPage'
 import FindHospital from './pages/FindHospital'
 import GroupInformationPage from './pages/GroupInformationPage'
@@ -17,16 +18,18 @@ import Messages from './pages/Messages'
 import Organization from './pages/Organization'
 import PatientPage from './pages/PatientPage.tsx'
 import PatientProfile from './pages/PatientProfile'
+import PatientVisitPage from './pages/PatientVisitPage.tsx'
 import ProfilePage from './pages/ProfilePage'
 import Reach911Page from './pages/Reach911Page'
 import RegisterHospital from './pages/RegisterHospital'
 import RegisterPage from './pages/RegisterPage'
 import ResourcesPage from './pages/ResourcesPage'
+import SARIncidentPage from './pages/SARIncidentPage'
+import SARTaskPage from './pages/SARTaskPage.tsx'
 import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
 import './styles/globals.css'
 import './styles/tailwind.css'
-import CreatechartPage from './pages/CreatechartPage.tsx'
 
 export default function App() {
     // const dispatcher = useDispatch()
@@ -58,19 +61,22 @@ export default function App() {
                         <Route path="/" element={<HomePage />} />
                         <Route path="/contacts" element={<Contacts />} />
                         <Route path="/messages" element={<Messages />} />
-                        {/* The path /messages/:id allows for passing channelId as a query parameter. 
-            This allow us to navigate to /messages but automatically into a specific channel chat. 
+                        {/* The path /messages/:id allows for passing channelId as a query parameter.
+            This allow us to navigate to /messages but automatically into a specific channel chat.
             Please look into the implementation in Messages.tsx */}
                         <Route path="/messages/:id" element={<Messages />} />
                         <Route path="/groups" element={<GroupsPage />} />
                         <Route path="/reach911" element={<Reach911Page />} />
                         <Route path="/map" element={<MapPage />} />
                         <Route path="/incidents" element={<IncidentsPage />} />
+                        <Route path="/sar-incident" element={<SARIncidentPage />} />
                         <Route
                             path="/patient-profile/:patientId"
                             element={<PatientProfile />}
                         />
                         <Route path="/patients" element={<PatientPage />} />
+                        {/* <Route path='/patient-visit/:patientId' element={<PatientVisitPage />} /> */}
+                        <Route path='/patient-visit' element={<PatientVisitPage />} />
                         <Route
                             path="/incidents/report"
                             element={<IncidentReportPage />}
@@ -105,6 +111,7 @@ export default function App() {
                         />
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/create-chart" element={<CreatechartPage />} />
+                        <Route path="/sar-task" element={<SARTaskPage />} />
                     </Route>
 
                     <Route element={<RoutedHome showBackButton isSubPage />}>

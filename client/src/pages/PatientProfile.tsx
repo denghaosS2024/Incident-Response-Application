@@ -13,6 +13,11 @@ interface PatientData {
     location?: string
 }
 
+// Helper function to verify that patientId is a valid non-empty string
+const isValidPatientId = (id: any): boolean => {
+    return typeof id === 'string' && id.trim() !== ''
+}
+
 const PatientProfile: React.FC = () => {
     const { patientId } = useParams()
     const navigate = useNavigate()
@@ -23,20 +28,33 @@ const PatientProfile: React.FC = () => {
 
     useEffect(() => {
         const fetchPatient = async () => {
-            if (!patientId) {
-                setError('No patientId provided')
+            // Check if patientId is valid
+            if (!isValidPatientId(patientId)) {
+                setError(
+                    'Invalid or missing patientId. Please check the patient information.',
+                )
                 setLoading(false)
                 return
             }
             try {
                 setLoading(true)
-                // 假设你想调用 /api/patients/single?patientId=xxx
+                // Call the API to fetch patient data; endpoint assumed as /api/patients/single?patientId=xxx
                 const res = await request(
                     `/api/patients/single?patientId=${patientId}`,
                 )
-                setPatient(res)
+                if (!res) {
+                    setError(
+                        'No patient data found. Please verify the patientId.',
+                    )
+                } else {
+                    setPatient(res)
+                }
             } catch (err: any) {
-                setError(err.message || 'Failed to fetch patient data')
+                // Provide a friendly error message if the request fails
+                setError(
+                    err?.message ||
+                        'Failed to fetch patient data. Please try again later.',
+                )
             } finally {
                 setLoading(false)
             }
@@ -46,24 +64,36 @@ const PatientProfile: React.FC = () => {
     }, [patientId])
 
     if (loading) {
-        return <div>Loading patient info...</div>
+        return (
+            <Box sx={{ padding: 2 }}>
+                <Typography variant="h6">Loading patient info...</Typography>
+            </Box>
+        )
     }
 
     if (error) {
         return (
-            <div>
-                <p style={{ color: 'red' }}>{error}</p>
-                <Button onClick={() => navigate(-1)}>Go Back</Button>
-            </div>
+            <Box sx={{ padding: 2 }}>
+                <Typography variant="h6" color="error" gutterBottom>
+                    {error}
+                </Typography>
+                <Button variant="contained" onClick={() => navigate(-1)}>
+                    Go Back
+                </Button>
+            </Box>
         )
     }
 
     if (!patient) {
         return (
-            <div>
-                <p>Patient not found.</p>
-                <Button onClick={() => navigate(-1)}>Go Back</Button>
-            </div>
+            <Box sx={{ padding: 2 }}>
+                <Typography variant="h6" color="error" gutterBottom>
+                    Patient not found.
+                </Typography>
+                <Button variant="contained" onClick={() => navigate(-1)}>
+                    Go Back
+                </Button>
+            </Box>
         )
     }
 
@@ -74,7 +104,6 @@ const PatientProfile: React.FC = () => {
                     <Typography variant="h5" gutterBottom>
                         Patient Profile (Read-only)
                     </Typography>
-
                     <Typography variant="body1">
                         <strong>Patient ID:</strong> {patient.patientId}
                     </Typography>
@@ -97,10 +126,11 @@ const PatientProfile: React.FC = () => {
                     <Typography variant="body1">
                         <strong>Nurse ID:</strong> {patient.nurseId || 'N/A'}
                     </Typography>
-
-                    <Button variant="outlined" onClick={() => navigate(-1)}>
-                        Back
-                    </Button>
+                    <Box mt={2}>
+                        <Button variant="outlined" onClick={() => navigate(-1)}>
+                            Go Back
+                        </Button>
+                    </Box>
                 </CardContent>
             </Card>
         </Box>

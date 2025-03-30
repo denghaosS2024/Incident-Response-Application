@@ -1,5 +1,5 @@
 import GenericItemizeContainer from '@/components/GenericItemizeContainer'
-import { Add, NavigateNext as Arrow, Settings, Close as X } from '@mui/icons-material'
+import { Add, NavigateNext as Arrow, Settings, Close } from '@mui/icons-material'
 import {
   Box,
   FormControl,
@@ -16,6 +16,8 @@ import { useNavigate } from 'react-router-dom'
 import { IncidentType } from '../models/Incident'
 import { resetIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
+import ROLES from "@/utils/Roles"
+import { update } from "lodash"
 
 interface IncidentData {
   incidentId: string
@@ -205,56 +207,16 @@ function IncidentsPage() {
     }
   }
 
-   const handleAddSARIncident = async () => {
+   const handleAddSARIncident = () => {
     try {
-      const username = localStorage.getItem('username')
-      if (!username) throw new Error('Username not found in local storage.')
-
-      // Count existing SAR incidents for this user to determine the sequence number
-      let sarIncidentCount = 1
-      try {
-        const userIncidents = await request(`/api/incidents?caller=${username}`)
-        if (Array.isArray(userIncidents)) {
-          // Filter to count only SAR incidents
-          const sarIncidents = userIncidents.filter(
-            (incident) => incident.type === 'S'
-          )
-          sarIncidentCount = sarIncidents.length + 1
-        }
-      } catch (error: any) {
-        if (
-          error &&
-          error.message &&
-          error.message.includes('Unexpected end of JSON input')
-        ) {
-          sarIncidentCount = 1
-        } else {
-          throw error
-        }
-      }
-
-      // Create unique SAR incident ID (e.g. "SDena12")
-      const incidentId = `S${username}${sarIncidentCount}`
-      
-      // Create the new SAR incident
-      const newSARIncident = {
-        incidentId,
-        caller: username,
-        openingDate: new Date().toISOString(),
-        incidentState: 'Assigned',
-        owner: username,
-        commander: username,
-        type: 'S'
-      }
-
-      await request('/api/incidents/new', {
-        method: 'POST',
-        body: JSON.stringify(newSARIncident),
-        headers: { 'Content-Type': 'application/json' },
+      // Just navigate to the SAR incident page without creating an incident
+      navigate('/sar-incident', {
+        state: {
+          createSARIncident: true
+        },
       })
-
     } catch (error) {
-      console.error('Error creating new SAR incident:', error)
+      console.error('Error navigating to SAR incident page:', error)
     }
   }
 
@@ -274,6 +236,29 @@ function IncidentsPage() {
     ) {
       readOnly = true
     }
+
+    if (incident.incidentState === 'Waiting' && role === ROLES.DISPATCH) {
+      // Update incident's state, owner and commander
+      const updatedIncident = {
+        ...incident,
+        incidentState: 'Triage',
+        owner: userId,
+        commander: userId,
+      }
+      try {
+        //todo: refactor incident endpoint to comply with REST best practices
+          request('/api/incidents/update', {
+            method: 'PUT',
+          body: JSON.stringify(updatedIncident),
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      catch (error) {
+        console.error('Error updating incident:', error)
+      }
+
+    }
+
     const autoPopulateData = true
     navigate('/reach911', {
       state: {
@@ -282,6 +267,43 @@ function IncidentsPage() {
         autoPopulateData,
       },
     })
+  }
+
+  const handleCloseCurrentIncident = async () => {
+    try {
+      // Find the user's active incident (where they are commander or owner)
+      const activeIncident = data.find(
+        (incident) => 
+          (incident.commander === userId || incident.owner === userId) &&
+          incident.incidentState !== 'Closed'
+      )
+
+      if (!activeIncident) {
+        console.error('No active incident found to close')
+        return
+      }
+
+      // Update the incident state to 'Closed'
+      const updatedIncident = {
+        ...activeIncident,
+        incidentState: 'Closed'
+      }
+
+      // Send the update to the server
+      await request('/api/incidents/update', {
+        method: 'PUT',
+        body: JSON.stringify(updatedIncident),
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      // Refresh the incident list
+      const refreshedData = await request('/api/incidents')
+      setData(refreshedData)
+
+      console.log(`Incident ${activeIncident.incidentId} has been closed`)
+    } catch (error) {
+      console.error('Error closing incident:', error)
+    }
   }
 
   // Render the page
@@ -399,7 +421,7 @@ function IncidentsPage() {
               </FormControl>
             </MenuItem>
           </Menu>
-          {!hasActiveResponderIncident && 
+          {!hasActiveResponderIncident &&
           (
             <>
               <Tooltip title="Create new SAR incident">
@@ -413,10 +435,10 @@ function IncidentsPage() {
                   }}
                   onClick={handleAddSARIncident}
                 >
-                  <X fontSize="large" />
+                  <Close fontSize="large" />
                 </IconButton>
               </Tooltip>
-            
+
             <IconButton
               sx={{
                 position: 'fixed',
@@ -432,6 +454,27 @@ function IncidentsPage() {
             </>
           )
           }
+          {hasActiveResponderIncident && (
+            <Tooltip title="Close current incident">
+              <IconButton
+                sx={{
+                  position: 'fixed',
+                  bottom: 30,
+                  right: 70,
+                  width: 56,
+                  height: 56,
+                  bgcolor: 'error.main',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: 'error.dark',
+                  },
+                }}
+                onClick={handleCloseCurrentIncident}
+              >
+                <Close fontSize="large" />
+              </IconButton>
+            </Tooltip>
+          )}
         </>
       ) : null}
     </Box>

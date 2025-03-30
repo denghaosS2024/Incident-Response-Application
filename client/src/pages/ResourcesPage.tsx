@@ -146,6 +146,25 @@ const ResourcesPage: React.FC = () => {
     }
   };
 
+  const onSubmit = async () => {
+    try{
+      const currentUsername = localStorage.getItem('username');
+      if (!currentUsername) return;
+      const myIncidents = incidents.filter(
+        (incident) => incident.commander === currentUsername
+      );
+      console.log(myIncidents)
+      const response = await request('/api/incidents/updatedVehicles', {
+        method: 'PUT',
+        body: JSON.stringify({ incidents: [myIncidents] }),
+      })
+      console.log(response)
+      alert("Success")
+    }catch(e){
+      console.log(e)
+    }
+  } 
+
   return (
     <div className="container-fluid" style={{ padding: '20px' }}>
       <Typography variant="h6" align="center" className="mb-4">
@@ -199,14 +218,14 @@ const ResourcesPage: React.FC = () => {
       
       {/* SUBMIT & CANCEL BUTTONS */}
       <Typography align="center" className="mb-4" style={{ marginTop: '20px' }}>
-        <Button type="submit" variant="contained" color="primary">
+        <Button type="submit" variant="contained" color="primary" onClick={onSubmit}>
           Submit
         </Button>
         <Button
           type="submit"
           variant="contained"
           color="inherit"
-          onClick={() => history.back()}
+          onClick={() => fetchAllData()}
         >
           Cancel
         </Button>

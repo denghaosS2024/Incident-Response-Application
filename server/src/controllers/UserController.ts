@@ -213,6 +213,11 @@ class UserController {
         }
     }
 
+    /**
+     * Logout a user
+     * @param username - The username of the user to log out
+     * @throws Error if the user is not logged in or does not exist
+     */
     async logout(username: string): Promise<void> {
         try {
             const user = await this.findUserByUsername(username) // Await the promise
@@ -234,6 +239,47 @@ class UserController {
         }
     }
 
+    /**
+     * Handle incident commander logout and transfer the command of incident to other un-assigned first responder
+     * @param username - The username of the incident commanders logging out
+     * @throws Error if an error occurs during logout or incident transfer
+     */
+    async CommanderLogout(username: string) {
+        try {
+            // 1. Find all incident commanders
+            const incidentCommanderUsernames = await Incident.find({
+                commander: { $nin: ['System'] },
+                incidentState: 'Assigned'
+            }).select('commander');
+
+            // 2. Find one first responder who is not an incident commander
+            const firstResponderNotCommander = await User.findOne({
+                role: { $in: [ROLES.POLICE, ROLES.FIRE] },
+                username: { $nin: incidentCommanderUsernames.map(ic => ic.commander)}
+            });
+
+            // 3. If there are other un-assigned first responder, transfer incidents
+            if (firstResponderNotCommander) {
+                // Transfer the command of incident to this first responder
+                await Incident.updateOne(
+                    { commander: username },
+                    { $set: { commander: firstResponderNotCommander.username } }
+                );
+            }
+
+            // 3. Perform standard logout
+            await this.logout(username)
+        } catch (error) {
+            console.error('Error during commander logout:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Handle dispatcher logout and transfer triage incidents to another dispatcher
+     * @param username - The username of the dispatcher logging out
+     * @throws Error if an error occurs during logout or incident transfer
+     */
     async dispatcherLogout(username: string): Promise<void> {
         try {
             // 1. Find all online dispatchers (excluding the one logging out)
@@ -276,6 +322,11 @@ class UserController {
         }
     }
 
+    /**
+     * Find the least busy dispatcher based on the number of triage incidents
+     * @param dispatchers - An array of dispatchers to evaluate
+     * @returns The least busy dispatcher
+     */
     async findLeastBusyDispatcher(dispatchers: IUser[]): Promise<IUser> {
         const dispatcherLoads = await Promise.all(
             dispatchers.map(async (dispatcher) => {

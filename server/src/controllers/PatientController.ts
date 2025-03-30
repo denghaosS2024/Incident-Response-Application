@@ -1,6 +1,6 @@
 import { uuidv4 } from 'mongodb-memory-server-core/lib/util/utils'
 import { IHospital } from '../models/Hospital'
-import Patient, { IPatientBase, PatientSchema } from '../models/Patient'
+import Patient, { IPatientBase, IVisitLog, PatientSchema } from '../models/Patient'
 import { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
 import HospitalController from './HospitalController'
@@ -17,14 +17,36 @@ class PatientController {
     return patients
   }
 
-  // Get a single patient by ID
+  /**
+   * Get a single patient by ID.
+   *
+   * @param {string} patientId - The ID of the patient to retrieve.
+   * @returns patient document if found, otherwise null.
+   */
   async findById(patientId: string) {
     return await Patient.findOne({ patientId }).lean()
   }
 
+  /**
+   * Get patients by hospital ID.
+   *
+   * @param {string} hospitalId - The ID of the hospital to filter patients by.
+   * @returns an array of patient documents associated with the given hospital.
+   */
   async findByHospitalId(hospitalId: string) {
     return await Patient.find({
-      hospitalId: hospitalId
+      hospitalId: hospitalId,
+    })
+  }
+
+  /**
+   * Get all patients that are not assigned to any hospital.
+   *
+   * @returns an array of patient documents with no assigned hospital.
+   */
+  async getUnassignedPatients() {
+    return await Patient.find({
+      hospitalId: { $in: [null, ''] }, // Query for both null and empty string
     })
   }
 
@@ -255,6 +277,100 @@ class PatientController {
       throw new Error(`Patient "${patientId}" does not exist`)
     }
     return res
+  }
+
+  /**
+   * Creates a new visit log for a patient.
+   * 
+   * If the patient has any active visits, they are marked as inactive.
+   * The new visit is marked as active and appended to the patient's visitLog.
+   * 
+   * @param patientId - The unique ID of the patient
+   * @param patientVisitData - The visit details to log for the patient
+   * @returns The updated patient document
+   * @throws Error if the patient with the given ID does not exist
+   */
+  async createPatientVisit (patientId: string, patientVisitData:IVisitLog) {
+    const patient = await Patient.findOne({ patientId })
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`)
+    }
+
+    const {
+      // Required
+      dateTime,
+      incidentId,
+      location,
+
+      // Optional
+      priority,
+      age,
+      conscious,
+      breathing,
+      chiefComplaint,
+      condition,
+      drugs,
+      allergies,
+    } = patientVisitData
+
+    patient.visitLog?.forEach((visit) => {
+      if (visit.active) {
+        visit.active = false
+      }
+    })
+
+    const newVisitLogEntry = {
+      dateTime: dateTime ? new Date(dateTime) : new Date(),
+      incidentId,
+      location,
+      priority: priority || 'E',
+      age,
+      conscious,
+      breathing,
+      chiefComplaint,
+      condition,
+      drugs,
+      allergies,
+      active: true,
+    }
+
+    patient.visitLog?.push(newVisitLogEntry)
+
+    await patient.save()
+    return patient
+  }
+
+  
+
+  /**
+   * Update the active visit log entry of a patient.
+   * 
+   * @param patientId - ID of the patient to update
+   * @param updatedVisitData - The updated visit details to log for the patient
+   * @returns The updated patient document with the modified visit log
+   * @throws Error if the patient with the given ID does not exist
+   */
+  async updatePatientVisit(patientId: string, updatedVisitData: IVisitLog) {
+    const patient = await Patient.findOne({ patientId })
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`)
+    }
+  
+    const activeVisit = patient.visitLog?.find((visit) => visit.active)
+    if (!activeVisit) {
+      throw new Error(`No active visit log found for patient ID ${patientId}`)
+    }
+  
+    // Update only the provided fields
+    Object.entries(updatedVisitData).forEach(([key, value]) => {
+      if (value !== undefined && key !== 'active') {
+        activeVisit[key] = value
+      }
+    })
+  
+    await patient.save()
+    const updatedPatient = await Patient.findOne({ patientId })
+    return updatedPatient
   }
 }
 

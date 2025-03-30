@@ -1,32 +1,41 @@
 import IHospital from '@/models/Hospital'
 import IPatient from '@/models/Patient'
-import { fetchPatients } from '@/redux/patientSlice'
-import { AppDispatch, RootState } from '@/redux/store'
 import { Box, Typography } from '@mui/material'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Droppable } from 'react-beautiful-dnd'
-import { useDispatch, useSelector } from 'react-redux'
 import PatientCard from './PatientCard'
+import request from '@/utils/request'
+import { Draggable } from '../Card'
 
 interface HospitalProps {
   hospital: IHospital
   id: string
+  index: number
 }
 
-const HospitalCard: React.FC<HospitalProps> = ({ hospital, id }) => {
+const HospitalCard: React.FC<HospitalProps> = ({ hospital, id, index }) => {
   const availableBeds =
     hospital.totalNumberERBeds - hospital.totalNumberOfPatients || 0
 
+  const [patients, setPatients] = useState<IPatient[]>([])
 
-  const patients: IPatient[] = useSelector(
-    (state: RootState) => state.patientState.patients,
-  )
-
-  const dispatch = useDispatch<AppDispatch>()
+  const fetchPatientsByHospitalId = (hospitalId: string) => {
+    request(`/api/patients?hospitalId=${encodeURIComponent(hospitalId)}`, {
+      method: 'GET',
+    })
+      .then((data) => {
+        console.log(data)
+        setPatients(data)
+      })
+      .catch((error) => {
+        console.error('Error fetching patients by hospital ID:', error)
+        setPatients([])
+      })
+  }
 
   useEffect(() => {
-    dispatch(fetchPatients())
-  }, [dispatch])
+    fetchPatientsByHospitalId(hospital.hospitalId)
+  }, [hospital.hospitalId])
 
   return (
     <Droppable droppableId={id}>
@@ -51,17 +60,18 @@ const HospitalCard: React.FC<HospitalProps> = ({ hospital, id }) => {
             {...provided.droppableProps}
             className="border-t border-gray-300 pt-3 mt-3"
           >
-            {patients.length > 0 ? (
-              patients.map((patient, hospitalID) => (
-                <PatientCard
-                  key={'patient-inHospital' + id}
-                  id={'patient-inHospital' + id}
-                  patient={patient}
-                  index={hospitalID}
-                  isInHopital={true}
-                />
-              ))
-            ) : (
+
+            {patients.map((patient, patientIndex) => (
+              <PatientCard
+                key={patient.patientId}
+                id={`patient-${hospital.hospitalId}-${patient.patientId}`} 
+                patient={patient}
+                index={patientIndex}
+                isDraggingOver={true}
+              />
+            ))}
+
+            {patients.length === 0 && (
               <Typography variant="body1" color="text.secondary">
                 No patients found.
               </Typography>

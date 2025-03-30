@@ -1,6 +1,7 @@
-import { Router } from 'express';
-import HospitalController from '../controllers/HospitalController';
-import type { IHospital } from '../models/Hospital';
+import { Router } from 'express'
+import HospitalController from '../controllers/HospitalController'
+import type { IHospital } from '../models/Hospital'
+import HttpError from '../utils/HttpError'
 
 export default Router()
   /**
@@ -15,8 +16,7 @@ export default Router()
    *       content:
    *         application/json:
    *           schema:
-   *             type: object
-   *             required:
+   *             type: objectq
    *               - hospitalName
    *               - hospitalAddress
    *             properties:
@@ -119,17 +119,82 @@ export default Router()
    */
   .put('/', async (request, response) => {
     try {
-      const hospitalData = request.body as Partial<IHospital>;
-  
-      const result = await HospitalController.updateHospital(hospitalData);
-  
+      const hospitalData = request.body as Partial<IHospital>
+
+      const result = await HospitalController.updateHospital(hospitalData)
+
       if (!result) {
-        return response.status(404).send({ message: "No Hospital found." });
+        return response.status(404).send({ message: 'No Hospital found.' })
       }
-  
-      return response.status(200).send(result);
+
+      return response.status(200).send(result)
     } catch (e) {
-      const error = e as Error;
-      return response.status(500).send({ message: error.message });
+      const error = e as Error
+      return response.status(500).send({ message: error.message })
     }
-  });
+  })
+
+  /**
+   * @swagger
+   * /api/hospital/patients/batch:
+   *   patch:
+   *     summary: Update multiple hospitals patients
+   *     description: Update multiple hospitals' patients at the same time
+   *     tags: [Hospital]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: array
+   *             items:
+   *               type: object
+   *               properties:
+   *                 hospitalId:
+   *                   type: string
+   *                   description: ID of the hospital
+   *                 nurses:
+   *                   type: array
+   *                   items:
+   *                     type: string
+   *                   description: List of nurse IDs to assign
+   *             required:
+   *               - hospitalId
+   *     responses:
+   *       200:
+   *         description: Hospitals updated successfully
+   *       400:
+   *         description: Invalid request data
+   *       500:
+   *         description: Server error
+   */
+  .patch('/patients/batch', async (request, response) => {
+    try {
+      const updates = request.body as {
+        hospitalId: string
+        patients: string[]
+      }[]
+
+      if (!Array.isArray(updates)) {
+        return response.status(400).send({ message: 'Invalid request data' })
+      }
+
+      const results = await HospitalController.updateMultipleHospitals(updates)
+
+      return response.status(200).send(results)
+    } catch (e) {
+      const error = e as HttpError
+      console.error(
+        'Error updating multiple hospitals:',
+        error.stack || error.message,
+      )
+
+      if (error instanceof HttpError) {
+        return response
+          .status(error.statusCode)
+          .send({ message: error.message })
+      }
+
+      return response.status(500).send({ message: 'Internal Server Error' })
+    }
+  })

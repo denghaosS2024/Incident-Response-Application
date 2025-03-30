@@ -289,37 +289,341 @@ export default Router()
    * @swagger
    * /api/patients:
    *   get:
-   *     summary: Get patients. If no param is provided, return all patients. If param "patientId" is provided, return the patient with the given ID.
-   *     description: Get all patients
+   *     summary: Get patients. If no parameters are provided, return all patients.
+   *     If "patientId" is provided, return the patient with the given ID.
+   *     If "hospitalId" is provided, return all patients associated with the given hospital.
+   *     description: Retrieve a list of patients, optionally filtered by patient ID or hospital ID.
    *     tags: [Patient]
    *     parameters:
    *       - in: query
    *         name: patientId
-   *         description: Id of the patient
+   *         description: ID of the patient to retrieve.
    *         required: false
-   *         type: string
+   *         schema:
+   *           type: string
+   *       - in: query
+   *         name: hospitalId
+   *         description: ID of the hospital to retrieve patients from.
+   *         required: false
+   *         schema:
+   *           type: string
    *     responses:
    *       200:
-   *         description: Patients retrieved
+   *         description: Patients retrieved successfully.
    *         content:
    *           application/json:
    *             schema:
    *               type: array
    *               items:
+   *                 type: object
+   *                 properties:
+   *                   id:
+   *                     type: string
+   *                     description: Unique identifier for the patient.
+   *                   name:
+   *                     type: string
+   *                     description: Name of the patient.
+   *                   hospitalId:
+   *                     type: string
+   *                     description: ID of the hospital the patient is associated with.
+   *       400:
+   *         description: Invalid request parameters.
+   *       500:
+   *         description: Internal server error.
    */
+
   .get('/', async (request, response) => {
     try {
-      const patientId = request.query['patientId']
-
-      if (patientId !== undefined && patientId !== '' && patientId !== null) {
+      const { patientId, hospitalId } = request.query
+      if (patientId) {
         const result = await PatientController.findById(patientId as string)
         response.json(result)
-      } else {
-        const result = await PatientController.getAllPatients()
-        response.json(result)
+        return
       }
+
+      if (hospitalId) {
+        const result = await PatientController.findByHospitalId(
+          hospitalId as string,
+        )
+        response.json(result)
+        return
+      }
+
+      // If no query params, return all patients
+      const result = await PatientController.getAllPatients()
+      response.json(result)
     } catch (e) {
       const error = e as Error
       response.status(400).json({ message: error.message })
+    }
+  })
+
+  .get('/unassigned', async (_, response) => {
+    try {
+      const result = await PatientController.getUnassignedPatients()
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(400).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/visitLogs:
+   *   post:
+   *     summary: Create a new visit log for a patient
+   *     description: >
+   *       Adds a new visit log entry to the specified patient. 
+   *       If the patient has any existing active visit logs, they will be marked as inactive.
+   *       The new visit will be created and marked as active.
+   *     tags: [Patient]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - patientId
+   *               - visitLog
+   *             properties:
+   *               patientId:
+   *                 type: string
+   *                 description: ID of the patient to add a visit for.
+   *                 example: "P12345"
+   *               visitLog:
+   *                 type: object
+   *                 required:
+   *                   - incidentId
+   *                   - location
+   *                 properties:
+   *                   dateTime:
+   *                     type: string
+   *                     format: date-time
+   *                     description: ISO string representing the date and time of the visit.
+   *                     example: "2025-03-29T14:30:00Z"
+   *                   incidentId:
+   *                     type: string
+   *                     description: ID of the related incident.
+   *                     example: "IJaneDoe42"
+   *                   location:
+   *                     type: string
+   *                     enum: [Road, ER]
+   *                     description: Location of the visit (Road or ER).
+   *                     example: "ER"
+   *                   priority:
+   *                     type: string
+   *                     enum: ["E", "1", "2", "3", "4"]
+   *                     description: Priority of the visit. Defaults to "E" (Immediate).
+   *                     example: "1"
+   *                   age:
+   *                     type: number
+   *                     description: Age of the patient at the time of the visit.
+   *                     example: 34
+   *                   conscious:
+   *                     type: boolean
+   *                     description: Whether the patient was conscious during the visit.
+   *                     example: true
+   *                   breathing:
+   *                     type: boolean
+   *                     description: Whether the patient was breathing during the visit.
+   *                     example: true
+   *                   chiefComplaint:
+   *                     type: string
+   *                     description: The patient's chief complaint during the visit.
+   *                     example: "Severe chest pain"
+   *                   condition:
+   *                     type: string
+   *                     enum:
+   *                       - Allergy
+   *                       - Asthma
+   *                       - Bleeding
+   *                       - Broken bone
+   *                       - Burn
+   *                       - Choking
+   *                       - Concussion
+   *                       - Covid-19
+   *                       - Heart Attack
+   *                       - Heat Stroke
+   *                       - Hypothermia
+   *                       - Poisoning
+   *                       - Seizure
+   *                       - Shock
+   *                       - Strain
+   *                       - Sprain
+   *                       - Stroke
+   *                       - Others
+   *                     description: Patient's condition type.
+   *                     example: "Heart Attack"
+   *                   drugs:
+   *                     type: array
+   *                     items:
+   *                       type: string
+   *                     description: List of drugs administered or reported.
+   *                     example: ["Aspirin"]
+   *                   allergies:
+   *                     type: array
+   *                     items:
+   *                       type: string
+   *                     description: List of known allergies.
+   *                     example: ["Penicillin"]
+   *     responses:
+   *       201:
+   *         description: Visit log created successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Patient'
+   *       400:
+   *         description: Missing or invalid patientId or visitLog object.
+   *       404:
+   *         description: Patient not found.
+   *       500:
+   *         description: Internal server error.
+   */
+  .post('/visitLogs', async (request, response) => {
+    try {
+      const { patientId, visitLog } = request.body
+      if (!patientId || !visitLog) {
+        response.status(400).json({ message: 'patientId and visitLog are required' })
+        return
+      }
+
+      const result = await PatientController.createPatientVisit(patientId as string, visitLog)
+      response.status(201).json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/visitLogs:
+   *   put:
+   *     summary: Update the active visit log of a patient
+   *     description: >
+   *       Updates the currently active visit log entry for a patient.
+   *       If no active visit log exists, an error is returned.
+   *     tags: [Patient]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - patientId
+   *               - updatedVisitData
+   *             properties:
+   *               patientId:
+   *                 type: string
+   *                 description: ID of the patient whose visit log should be updated.
+   *                 example: "P12345"
+   *               updatedVisitData:
+   *                 type: object
+   *                 description: Fields to update in the active visit log.
+   *                 properties:
+   *                   dateTime:
+   *                     type: string
+   *                     format: date-time
+   *                     description: Updated date and time of the visit.
+   *                     example: "2025-03-30T10:45:00Z"
+   *                   incidentId:
+   *                     type: string
+   *                     description: Updated ID of the related incident.
+   *                     example: "INewIncident77"
+   *                   location:
+   *                     type: string
+   *                     enum: [Road, ER]
+   *                     description: Updated location of the visit.
+   *                     example: "Road"
+   *                   priority:
+   *                     type: string
+   *                     enum: ["E", "1", "2", "3", "4"]
+   *                     description: Updated priority of the visit.
+   *                     example: "2"
+   *                   age:
+   *                     type: number
+   *                     description: Updated age at time of visit.
+   *                     example: 45
+   *                   conscious:
+   *                     type: boolean
+   *                     description: Whether the patient was conscious.
+   *                     example: false
+   *                   breathing:
+   *                     type: boolean
+   *                     description: Whether the patient was breathing.
+   *                     example: false
+   *                   chiefComplaint:
+   *                     type: string
+   *                     description: Updated chief complaint.
+   *                     example: "Fainted at workplace"
+   *                   condition:
+   *                     type: string
+   *                     enum:
+   *                       - Allergy
+   *                       - Asthma
+   *                       - Bleeding
+   *                       - Broken bone
+   *                       - Burn
+   *                       - Choking
+   *                       - Concussion
+   *                       - Covid-19
+   *                       - Heart Attack
+   *                       - Heat Stroke
+   *                       - Hypothermia
+   *                       - Poisoning
+   *                       - Seizure
+   *                       - Shock
+   *                       - Strain
+   *                       - Sprain
+   *                       - Stroke
+   *                       - Others
+   *                     description: Updated patient condition.
+   *                     example: "Shock"
+   *                   drugs:
+   *                     type: array
+   *                     items:
+   *                       type: string
+   *                     description: Updated list of drugs.
+   *                     example: ["Epinephrine"]
+   *                   allergies:
+   *                     type: array
+   *                     items:
+   *                       type: string
+   *                     description: Updated list of allergies.
+   *                     example: ["Peanuts"]
+   *     responses:
+   *       200:
+   *         description: Active visit log updated successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Patient'
+   *       400:
+   *         description: Missing or invalid patientId or updatedVisitData.
+   *       404:
+   *         description: Patient or active visit log not found.
+   *       500:
+   *         description: Internal server error.
+   */
+  .put('/visitLogs', async (request, response) => {
+    try {
+      const { patientId, updatedVisitData } = request.body
+      if (!patientId || !updatedVisitData) {
+        response.status(400).json({ message: 'patientId and updatedVisitData are required' })
+        return
+      }
+
+      const result = await PatientController.updatePatientVisit(
+        patientId as string,
+        updatedVisitData,
+      )
+      response.status(200).json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
     }
   })

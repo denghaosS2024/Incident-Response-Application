@@ -63,15 +63,16 @@ const HospitalList: React.FC = () => {
   return (
     <Box className="w-2/3">
       {hospitals.length > 0 ? (
-        hospitals.map((hospital, id) => (
+        hospitals.map((hospital, index) => (
           <HospitalCard
-            key={'hospital-' + id}
-            id={'hospital-' + id}
+            key={hospital.hospitalId}
+            id={hospital.hospitalId}
             hospital={hospital}
+            index={index}
           />
         ))
       ) : (
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body1" className="p-3">
           No hospitals found. Please register hospitals first.
         </Typography>
       )}

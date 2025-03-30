@@ -1,5 +1,5 @@
 import AddIcon from '@mui/icons-material/Add'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { IncidentType } from '../../../models/Incident'
 import { RootState } from '../../../redux/store'
@@ -17,10 +17,31 @@ const Step3Form: React.FC<Reach911Step3Props> = ({
     const type = useSelector(
         (state: RootState) => state.incidentState.incident.type,
     )
-    const [additionalForms, setAdditionalForms] = React.useState<number[]>([])
+    const questions = useSelector(
+        (state: RootState) => state.incidentState.incident.questions,
+    )
+    const qLen = Array.isArray(questions) ? questions.length : 1
+    // setAdditionalForms()
+    const [additionalForms, setAdditionalForms] = React.useState<number[]>(
+        Array.from({ length: qLen }, (_, i) => i),
+    )
+    // Ref to track the bottom of the page
+    const bottomRef = useRef<HTMLDivElement | null>(null)
+
     const addMedicalForm = () => {
-        setAdditionalForms([...additionalForms, additionalForms.length + 1])
+        setAdditionalForms([...additionalForms, additionalForms.length])
     }
+
+    // useEffect(() => {
+
+    // }, [])
+
+    // Scroll to the bottom whenever additionalForms changes
+    useEffect(() => {
+        if (bottomRef.current) {
+            bottomRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
+    }, [additionalForms])
 
     /// Renders the correct form based on the type obtained from step 2
     const renderForm = () => {
@@ -28,20 +49,10 @@ const Step3Form: React.FC<Reach911Step3Props> = ({
             case IncidentType.Medical:
                 return (
                     <>
-                        <MedicalForm
-                            isCreatedByFirstResponder={
-                                isCreatedByFirstResponder
-                            }
-                        />
-                        <hr
-                            style={{
-                                margin: '20px 0',
-                                border: '1px solid #000',
-                            }}
-                        />
                         {additionalForms.map((formId) => (
                             <React.Fragment key={formId}>
                                 <MedicalForm
+                                    formIndex={formId}
                                     isCreatedByFirstResponder={
                                         isCreatedByFirstResponder
                                     }
@@ -65,6 +76,8 @@ const Step3Form: React.FC<Reach911Step3Props> = ({
                                 style={{ cursor: 'pointer' }}
                             />
                         </div>
+                        {/* Add a div to act as the scroll target */}
+                        <div ref={bottomRef}></div>
                     </>
                 )
             case IncidentType.Fire:
@@ -75,6 +88,7 @@ const Step3Form: React.FC<Reach911Step3Props> = ({
                 return (
                     <>
                         <MedicalForm
+                            formIndex={0}
                             isCreatedByFirstResponder={
                                 isCreatedByFirstResponder
                             }

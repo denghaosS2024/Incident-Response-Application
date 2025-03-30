@@ -1,4 +1,5 @@
 import Hospital, { IHospital } from '../models/Hospital'
+import HttpError from '../utils/HttpError'
 
 class HospitalController {
   /**
@@ -73,6 +74,50 @@ class HospitalController {
     } catch (error) {
       console.error('Error updating hospital:', error)
       throw error
+    }
+  }
+
+  async updateMultipleHospitals(
+    updates: { hospitalId: string; patients: string[] }[],
+  ) {
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return [] // Return an empty array instead of throwing an error
+    }
+
+    for (const update of updates) {
+      if (!update.hospitalId) {
+        throw new HttpError('Invalid hospitalId in update data', 400)
+      }
+    }
+
+    // Validate that all hospitals exist before performing updates
+    const hospitalIds = updates.map((update) => update.hospitalId)
+    const existingHospitals = await Hospital.find({
+      hospitalId: { $in: hospitalIds },
+    }).exec()
+
+    console.log('Existing Hospitals:', existingHospitals)
+    console.log('Updates:', updates)
+
+    if (existingHospitals.length !== updates.length) {
+      throw new HttpError('One or more hospitals do not exist', 404)
+    }
+
+    try {
+      const updatePromises = updates.map((update) => {
+        // Directly use the patients array as it is
+        return Hospital.findOneAndUpdate(
+          { hospitalId: update.hospitalId },
+          { $set: { patients: update.patients } }, // Overwrite patients array
+          { new: true },
+        ).exec()
+      })
+
+      const updatedHospitals = await Promise.all(updatePromises)
+      return updatedHospitals
+    } catch (error: unknown) {
+      console.error('Error updating multiple hospitals:', error)
+      throw new HttpError(`Failed to update multiple hospitals: ${error}`, 500)
     }
   }
 }
