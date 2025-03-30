@@ -96,8 +96,25 @@ export const createChart = async (req: Request, res: Response) => {
   try {
     const { userId, name, type, dataType, startDate, endDate } = req.body;
 
-    if (!userId || !name || !type || !dataType) {
-      return res.status(400).json({ message: 'Missing required fields.' });
+    const missingInputField: string[] = [];
+    if (!userId) {
+      missingInputField.push('userId');
+    } 
+    
+    if (!name) {
+      missingInputField.push('name');
+    } 
+    
+    if (!type) {
+      missingInputField.push('type');
+    } 
+    
+    if (!dataType) {
+      missingInputField.push('dataType');
+    }
+
+    if (missingInputField.length > 0) {
+      return res.status(400).json({ message: `Missing required field(s): ${missingInputField.join(', ')}` });
     }
 
     if (!Object.values(ChartType).includes(type)) {
@@ -194,8 +211,21 @@ export const modifyChart = async (req: Request, res: Response) => {
 
     const { name, type, dataType, startDate, endDate } = updates;
 
-    if (!name || !type || !dataType) {
-      return res.status(400).json({ message: 'Missing required fields.' });
+    const missingInputField: string[] = [];
+
+    if (!name) {
+      missingInputField.push('name');
+    }
+    if (!type) {
+      missingInputField.push('type');
+    }
+    if (!dataType) {
+      missingInputField.push('dataType');
+    }
+
+    if (missingInputField.length > 0) {
+      return res.status(400).json({ message: `Missing required field(s): ${missingInputField.join(', ')}`
+      });
     }
 
     if (!Object.values(ChartType).includes(type)) {
