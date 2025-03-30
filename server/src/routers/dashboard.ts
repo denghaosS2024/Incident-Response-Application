@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createChart, deleteChart, getChart, modifyChart } from '../controllers/DashboardController';
+import { createChart, deleteChart, getChart, getCharts, modifyChart } from '../controllers/DashboardController';
 
 export default Router()
   /**
@@ -97,6 +97,38 @@ export default Router()
       }
     }
   })
+
+/**
+ * @swagger
+ * /api/charts/user/{userId}:
+ *   get:
+ *     summary: Get all charts for a user
+ *     description: Retrieves all saved charts for a user.
+ *     tags:
+ *       - Charts
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user to retrieve charts for.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user's charts.
+ *       500:
+ *         description: Internal server error.
+ */
+.get('/user/:userId', async (request, response) => {
+  try {
+    await getCharts(request, response);
+  } catch (e) {
+    const error = e as Error;
+    if (!response.headersSent) {
+      response.status(400).send({ message: error.message });
+    }
+  }
+})
 
   /**
    * @swagger
