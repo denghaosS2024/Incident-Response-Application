@@ -11,7 +11,7 @@ const AddressBar: React.FC<AddressBarProps> = ({ address }) => {
   // Function to open the map app with the given address
   const openInMaps = (): void => {
     const encodedAddress: string = encodeURIComponent(address)
-    const mapsUrl: string = `https://maps.google.com?q=${encodedAddress}`
+    const mapsUrl = `https://maps.google.com?q=${encodedAddress}`
     window.open(mapsUrl, '_blank')
   }
 
