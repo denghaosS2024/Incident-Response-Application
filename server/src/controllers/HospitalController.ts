@@ -1,4 +1,5 @@
 import Hospital, { IHospital } from '../models/Hospital'
+import HttpError from '../utils/HttpError'
 
 class HospitalController {
   /**
@@ -83,22 +84,27 @@ class HospitalController {
       return [] // Return an empty array instead of throwing an error
     }
 
+    for (const update of updates) {
+      if (!update.hospitalId) {
+        throw new HttpError('Invalid hospitalId in update data', 400)
+      }
+    }
+
     // Validate that all hospitals exist before performing updates
     const hospitalIds = updates.map((update) => update.hospitalId)
     const existingHospitals = await Hospital.find({
       hospitalId: { $in: hospitalIds },
     }).exec()
 
+    console.log('Existing Hospitals:', existingHospitals)
+    console.log('Updates:', updates)
+
     if (existingHospitals.length !== updates.length) {
-      throw new Error('One or more hospitals do not exist')
+      throw new HttpError('One or more hospitals do not exist', 404)
     }
 
     try {
       const updatePromises = updates.map((update) => {
-        if (!update.hospitalId) {
-          throw new Error('Invalid hospitalId in update data')
-        }
-
         // Directly use the patients array as it is
         return Hospital.findOneAndUpdate(
           { hospitalId: update.hospitalId },
@@ -111,7 +117,7 @@ class HospitalController {
       return updatedHospitals
     } catch (error: unknown) {
       console.error('Error updating multiple hospitals:', error)
-      throw new Error(`Failed to update multiple hospitals: ${error}`)
+      throw new HttpError(`Failed to update multiple hospitals: ${error}`, 500)
     }
   }
 }
