@@ -27,16 +27,31 @@ import Loading from '../../common/Loading'
 
 interface MedicalFormProps {
     isCreatedByFirstResponder?: boolean
+    formIndex: number
 }
 
 const MedicalForm: React.FC<MedicalFormProps> = ({
     isCreatedByFirstResponder,
+    formIndex,
 }) => {
     const dispatch = useDispatch<AppDispatch>()
     const incident: IIncident = useSelector(
         (state: RootState) => state.incidentState.incident,
     )
-    const medicalQuestions = (incident.questions as MedicalQuestions) ?? {}
+    let medicalQuestions: MedicalQuestions
+    if (Array.isArray(incident.questions) && incident.questions[formIndex]) {
+        medicalQuestions = incident.questions[formIndex]
+    } else {
+        medicalQuestions = {
+            isPatient: false,
+            username: '',
+            age: 0,
+            sex: '',
+            conscious: '',
+            breathing: '',
+            chiefComplaint: '',
+        }
+    }
 
     const isPatient = medicalQuestions.isPatient ?? false
     const sex = medicalQuestions.sex ?? ''
@@ -72,13 +87,19 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
         const { type, value, checked } = e.target as HTMLInputElement
         const newValue: string | boolean = type === 'checkbox' ? checked : value
 
+        const updatedQuestions = Array.isArray(incident.questions)
+            ? [...incident.questions]
+            : []
+
+        updatedQuestions[formIndex] = {
+            ...(updatedQuestions[formIndex] ?? {}),
+            [field]: newValue,
+        } as MedicalQuestions
+
         dispatch(
             updateIncident({
                 ...incident,
-                questions: {
-                    ...(incident.questions ?? {}),
-                    [field]: newValue,
-                } as MedicalQuestions,
+                questions: updatedQuestions,
             }),
         )
 
