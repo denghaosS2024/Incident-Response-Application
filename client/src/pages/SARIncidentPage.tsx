@@ -65,6 +65,28 @@ const SARIncidentPage: React.FC = () => {
                 )
                 if (response.status === 404) {
                     console.log('Creating new SAR incident')
+                    let sarCount = 1
+                    try {
+                        const countResponse = await fetch(
+                            `${import.meta.env.VITE_BACKEND_URL}/api/incidents/${username}/count?type=S`,
+                            {
+                                headers: {
+                                    'x-application-token': token || '',
+                                    'x-application-uid': uid || '',
+                                },
+                            }
+                        )
+                        if (countResponse.ok) {
+                            const countData = await countResponse.json()
+                            sarCount = (countData.count || 0) + 1
+                        }
+                    } catch (countError) {
+                        console.error('Error getting SAR count, using default:', countError)
+                    }
+                    const sarIncidentId = `S${username}${sarCount}`
+
+
+
                     const createResponse = await fetch(
                         `${import.meta.env.VITE_BACKEND_URL}/api/incidents/new`,
                         {
@@ -75,6 +97,7 @@ const SARIncidentPage: React.FC = () => {
                                 'x-application-uid': uid || '',
                             },
                             body: JSON.stringify({
+                                incidentId: sarIncidentId,
                                 caller: username,
                                 owner: username,
                                 incidentState: 'Waiting',
