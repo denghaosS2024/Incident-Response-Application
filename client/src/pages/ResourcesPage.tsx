@@ -225,7 +225,7 @@ const ResourcesPage: React.FC = () => {
           type="submit"
           variant="contained"
           color="inherit"
-          onClick={() => history.back()}
+          onClick={() => fetchAllData()}
         >
           Cancel
         </Button>
