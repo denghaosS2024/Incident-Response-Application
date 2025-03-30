@@ -1,8 +1,8 @@
 import {
-  EmergencyQuestions,
-  FireQuestions,
-  MedicalQuestions,
-  PoliceQuestions,
+    EmergencyQuestions,
+    FireQuestions,
+    MedicalQuestions,
+    PoliceQuestions,
 } from '../utils/types'
 
 /**
@@ -50,4 +50,22 @@ export default interface IIncident {
         longitude: number
     }
     assignedVehicles: { type: string; name: string; usernames: string[] }[] // List of vehicles assigned to the incident
+    resources?: { id: string; type: string; name: string; quantity: string; status: string; notes: string }[]
+    searchOperation?: {
+        incidentCommander: string;
+        searchType: string;
+        priority: string;
+        terrain: string;
+        weather: string;
+        visibility: string;
+        notes: string;
+        teams?: {
+            id: string;
+            name: string;
+            leader: string;
+            members: string[];
+            area: string;
+            status: string;
+        }[];
+    }
 }

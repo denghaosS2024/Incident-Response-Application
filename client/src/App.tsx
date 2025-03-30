@@ -22,6 +22,7 @@ import Reach911Page from './pages/Reach911Page'
 import RegisterHospital from './pages/RegisterHospital'
 import RegisterPage from './pages/RegisterPage'
 import ResourcesPage from './pages/ResourcesPage'
+import SARIncidentPage from './pages/SARIncidentPage'
 import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
 import './styles/globals.css'
@@ -66,6 +67,7 @@ export default function App() {
                         <Route path="/reach911" element={<Reach911Page />} />
                         <Route path="/map" element={<MapPage />} />
                         <Route path="/incidents" element={<IncidentsPage />} />
+                        <Route path="/sar-incident" element={<SARIncidentPage />} />
                         <Route
                             path="/patient-profile/:patientId"
                             element={<PatientProfile />}
