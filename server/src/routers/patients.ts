@@ -289,35 +289,69 @@ export default Router()
    * @swagger
    * /api/patients:
    *   get:
-   *     summary: Get patients. If no param is provided, return all patients. If param "patientId" is provided, return the patient with the given ID.
-   *     description: Get all patients
+   *     summary: Get patients. If no parameters are provided, return all patients.
+   *     If "patientId" is provided, return the patient with the given ID.
+   *     If "hospitalId" is provided, return all patients associated with the given hospital.
+   *     description: Retrieve a list of patients, optionally filtered by patient ID or hospital ID.
    *     tags: [Patient]
    *     parameters:
    *       - in: query
    *         name: patientId
-   *         description: Id of the patient
+   *         description: ID of the patient to retrieve.
    *         required: false
-   *         type: string
+   *         schema:
+   *           type: string
+   *       - in: query
+   *         name: hospitalId
+   *         description: ID of the hospital to retrieve patients from.
+   *         required: false
+   *         schema:
+   *           type: string
    *     responses:
    *       200:
-   *         description: Patients retrieved
+   *         description: Patients retrieved successfully.
    *         content:
    *           application/json:
    *             schema:
    *               type: array
    *               items:
+   *                 type: object
+   *                 properties:
+   *                   id:
+   *                     type: string
+   *                     description: Unique identifier for the patient.
+   *                   name:
+   *                     type: string
+   *                     description: Name of the patient.
+   *                   hospitalId:
+   *                     type: string
+   *                     description: ID of the hospital the patient is associated with.
+   *       400:
+   *         description: Invalid request parameters.
+   *       500:
+   *         description: Internal server error.
    */
+
   .get('/', async (request, response) => {
     try {
-      const patientId = request.query['patientId']
-
-      if (patientId !== undefined && patientId !== '' && patientId !== null) {
+      const { patientId, hospitalId } = request.query
+      if (patientId) {
         const result = await PatientController.findById(patientId as string)
         response.json(result)
-      } else {
-        const result = await PatientController.getAllPatients()
-        response.json(result)
+        return
       }
+
+      if (hospitalId) {
+        const result = await PatientController.findByHospitalId(
+          hospitalId as string,
+        )
+        response.json(result)
+        return
+      }
+
+      // If no query params, return all patients
+      const result = await PatientController.getAllPatients()
+      response.json(result)
     } catch (e) {
       const error = e as Error
       response.status(400).json({ message: error.message })
