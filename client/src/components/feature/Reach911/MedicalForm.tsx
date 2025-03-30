@@ -211,7 +211,12 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                                     onChange={(e) => onChange('isPatient', e)}
                                 />
                             }
-                            label="I am the patient"
+                            label={
+                              incident.incidentState === 'Assigned' ||
+                              incident.incidentState === 'Triage'
+                                  ? 'Caller is the patient'
+                                  : 'I am the patient'
+                          }
                         />
                     </Box>
                 )}
