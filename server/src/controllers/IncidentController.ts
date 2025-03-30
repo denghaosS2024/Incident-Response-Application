@@ -365,6 +365,7 @@ class IncidentController {
               if (!UserConnections.isUserConnected(id)) return
         
               const connection = UserConnections.getUserConnection(id)!
+              console.log("emit")
               connection.emit('join-new-incident',incidentId)
             })
         }
@@ -386,7 +387,16 @@ class IncidentController {
 
         existingIncident.assignedVehicles = currentVehicleKeys
 
-        return await existingIncident.save()
+        const exits = await existingIncident.save()
+
+        try{
+          const updated = await this.createOrUpdateRespondersGroup(exits)
+          console.log(updated)
+          return updated
+        }catch(e){
+          console.log(e)
+          return exits
+        }
     }
 
     async createOrUpdateRespondersGroup(

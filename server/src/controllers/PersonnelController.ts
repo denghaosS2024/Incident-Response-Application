@@ -1,6 +1,6 @@
 import Car, { ICar } from '../models/Car'
 import City from '../models/City'
-import { IIncident } from '../models/Incident'
+import Incident, { IIncident } from '../models/Incident'
 import Truck, { ITruck } from '../models/Truck'
 import User, { IUser } from '../models/User'
 import { ROLES } from '../utils/Roles'
@@ -189,8 +189,16 @@ class PersonnelController {
             }
             const assignedIncidentId = vehicle.assignedIncident
             let updatedPersonnel: IUser | null
+            const personnelIncident = await Incident.findOne({
+              'assignedVehicles.usernames': personnelName
+            });
+            if (personnelIncident) {
+              throw new Error(
+                `Cannot select a vehicle while you are assigned to an incident`
+              )
+            }
             if (personnel.role === ROLES.POLICE) {
-                if (assignedIncidentId && !personnel.assignedIncident) {
+                if (assignedIncidentId) {
                     updatedPersonnel = await this.updateCarAssignment(
                         personnelName,
                         vehicle.name,
@@ -205,7 +213,7 @@ class PersonnelController {
                 )
                 return updatedPersonnel
             } else if (personnel.role === ROLES.FIRE) {
-                if (assignedIncidentId && !personnel.assignedIncident) {
+                if (assignedIncidentId) {
                     updatedPersonnel = await this.updateTruckAssignment(
                         personnelName,
                         vehicle.name,
