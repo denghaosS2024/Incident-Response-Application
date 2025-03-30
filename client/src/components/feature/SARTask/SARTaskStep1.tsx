@@ -3,6 +3,7 @@ import styles from '../../../styles/SARTaskPage.module.css'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import AddressBar from './AddressBar.tsx'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
+import FEMAMarker from './FEMAMarker'
 
 
 const SARTaskStep1: React.FC = () => {
@@ -15,6 +16,14 @@ const SARTaskStep1: React.FC = () => {
         title={'Initial Marker'}
         subtitle={'Draw this marker on the wall, next to the main entrance:'}
       />
+
+      <div className={styles.flexCenter}>
+        <FEMAMarker
+          left='SDena101 04.04.21 1:40pm'
+          size={300}
+        />
+      </div>
+
       <ReturnToTasksBtn />
     </div>
   )

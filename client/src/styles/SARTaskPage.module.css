@@ -38,10 +38,10 @@
   width: 100%;
 }
 
-/*.flexCenter {*/
-/*  display: flex;*/
-/*  justify-content: center;*/
-/*  align-items: center;*/
-/*  width: 100%;*/
-/*  box-sizing: border-box;*/
-/*}*/
+.flexCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
