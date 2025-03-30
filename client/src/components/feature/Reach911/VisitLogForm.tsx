@@ -65,6 +65,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
     // Set the visit time to the current date and time
     const [visitTime, setVisitTime] = useState(getCurrentDateTime());
+    const [incidentId, setIncidentId] = useState('');
     
     const handleChange = (
         event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }> | SelectChangeEvent<string>,
@@ -76,6 +77,64 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             [name as string]: value,
         }));
     };
+
+    const role = localStorage.getItem('role')
+    // If the Visit is created by a First Responder, the Incident ID* is added and the default Location is Road
+    // If the Visit is created by a Nurse, the default Location is ER
+    const checkRole = () => {
+        if (role === 'Fire' || role === 'Police' || role === 'Administrator') {
+            const incidentId = (JSON.parse(localStorage.getItem('incidentState') || '{}')?.incident?.incidentId) || '';
+            setIncidentId(incidentId);
+            // Set the location to Road, if the role is First Responder
+            setFormData((prev) => ({
+                ...prev,
+                location: 'Road',
+            }));
+            // Set patient data if available
+            // This is to get the patient data from the incident
+            setPatientData();
+        } else if (role === 'Nurse') {
+            // Set the location to ER, if the role is Nurse
+            setFormData((prev) => ({
+                ...prev,
+                location: 'ER',
+            }));
+        }
+    }
+
+    // Pulls Age, Conscious, Breathing, and Chief Complaint from the Incident if available
+    const setPatientData = () => {
+        const incident = JSON.parse(localStorage.getItem('incidentState') || '{}')?.incident;
+        if (incident && incident.questions && incident.questions.length > 0) {
+            for (const question of incident.questions) {
+                if (question.isPatient && question.username === propUsername) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        // Only update age if it exists and can be converted to a string
+                        age: question.age !== undefined ? question.age.toString() : prev.age,
+                        // Only update conscious if it exists and is not empty
+                        conscious: question.conscious ? question.conscious : prev.conscious,
+                        // Only update breathing if it exists and is not empty
+                        breathing: question.breathing ? question.breathing : prev.breathing,
+                        // Only update chiefComplaint if it exists and is not empty
+                        chiefComplaint: question.chiefComplaint ? question.chiefComplaint : prev.chiefComplaint,
+                    }));
+                    break;
+                }
+            }
+        }    
+    }
+
+    // Update the form data when 
+    
+    // Check the role when the component mounts
+    React.useEffect(() => {
+        // Set the visit time to the current date and time
+        setVisitTime(getCurrentDateTime());
+        // Check the role and set the incident ID if needed
+        checkRole();
+    }
+    , []);
 
     const { loading } = useSelector(
         (state: RootState) => state.contactState,
@@ -94,7 +153,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             gap={3}  // Added vertical spacing between form elements
         >
             <Typography variant="h6">Visit: {visitTime}</Typography>
-            <Typography variant="h6">Incident ID: IZoe</Typography>
+            <Typography variant="h6">Incident ID: {incidentId}</Typography>
 
             {/* Priority */}
             <FormControl>
