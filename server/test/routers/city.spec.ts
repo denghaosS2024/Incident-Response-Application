@@ -273,4 +273,41 @@ describe('City Routes', () => {
             expect(response.body.error).toMatch(/Invalid type/i)
         })
     })
+
+    describe('DELETE /api/cities/assignments/:type/:name', () => {
+        beforeAll(async () => {
+            await City.create({ name: 'AssignmentCity' })
+            await Truck.create({
+                name: 'TruckToUnassign',
+                assignedCity: 'AssignmentCity',
+            })
+        })
+
+        afterAll(async () => {
+            await City.deleteMany({ name: 'AssignmentCity' })
+            await Truck.deleteMany({ name: 'TruckToUnassign' })
+        })
+
+        it('should unassign a Truck from its city (cancel assignment)', async () => {
+            const response = await request(app)
+                .delete('/api/cities/assignments/Truck/TruckToUnassign')
+                .expect(200)
+
+            expect(response.body).toHaveProperty('assignedCity', null)
+
+            const updatedTruck = await Truck.findOne({
+                name: 'TruckToUnassign',
+            })
+            expect(updatedTruck?.assignedCity).toBeNull()
+        })
+
+        it('should return 400 for invalid type', async () => {
+            const response = await request(app)
+                .delete('/api/cities/assignments/InvalidType/TruckToUnassign')
+                .expect(400)
+
+            expect(response.body).toHaveProperty('error')
+            expect(response.body.error).toMatch(/Invalid type/i)
+        })
+    })
 })
