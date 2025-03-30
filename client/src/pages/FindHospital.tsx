@@ -27,13 +27,13 @@ const FindHospital: React.FC = () => {
     const { destination, source, draggableId } = result
     if (!destination || source.droppableId === destination.droppableId) return
 
-    if (draggableId.startsWith('patient-')) {
+    //if (draggableId.startsWith('patient-')) {
       // // Handle group card drop
       // const groupId = draggableId.slice(6) // Extract group ID from the draggableId
       // //handleGroupClick(groupId) // This will handle adding users of the group to the 'done' column
       // return
       console.log('drag')
-    }
+   // }
 
     //const task = findItemById(String(draggableId), [...todo, ...done]) // Ensure ID is a string
     //if (!task) return // Prevent errors if the task is not found

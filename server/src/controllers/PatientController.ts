@@ -17,14 +17,36 @@ class PatientController {
     return patients
   }
 
-  // Get a single patient by ID
+  /**
+   * Get a single patient by ID.
+   *
+   * @param {string} patientId - The ID of the patient to retrieve.
+   * @returns patient document if found, otherwise null.
+   */
   async findById(patientId: string) {
     return await Patient.findOne({ patientId }).lean()
   }
 
+  /**
+   * Get patients by hospital ID.
+   *
+   * @param {string} hospitalId - The ID of the hospital to filter patients by.
+   * @returns an array of patient documents associated with the given hospital.
+   */
   async findByHospitalId(hospitalId: string) {
     return await Patient.find({
-      hospitalId: hospitalId
+      hospitalId: hospitalId,
+    })
+  }
+
+  /**
+   * Get all patients that are not assigned to any hospital.
+   *
+   * @returns an array of patient documents with no assigned hospital.
+   */
+  async getUnassignedPatients() {
+    return await Patient.find({
+      hospitalId: { $in: [null, ''] }, // Query for both null and empty string
     })
   }
 

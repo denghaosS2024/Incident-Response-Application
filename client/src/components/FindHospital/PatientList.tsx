@@ -5,12 +5,14 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react'
 import IPatient from '@/models/Patient'
 import { fetchPatients } from '@/redux/patientSlice'
+import { Droppable } from 'react-beautiful-dnd'
 
 const PatientList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
   const patients: IPatient[] = useSelector(
     (state: RootState) => state.patientState.patients,
   )
+
 
   useEffect(() => {
     dispatch(fetchPatients())
@@ -30,13 +32,25 @@ const PatientList: React.FC = () => {
               id={'patient-' + id}
               patient={patient}
               index={id}
-              isInHopital={false}
+              isDraggingOver={false}
             />
           ))
         ) : (
-          <Typography variant="body1" color="text.secondary">
-            No patients found.
-          </Typography>
+          <Droppable droppableId={'no-patients'}>
+            {(provided, snapshot) => (
+              <Box ref={provided.innerRef} {...provided.droppableProps}>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  className="p-3"
+                >
+                  {!snapshot.isDraggingOver && 'No patients found.'}
+                </Typography>
+
+                {provided.placeholder}
+              </Box>
+            )}
+          </Droppable>
         )}
       </Box>
     </Box>
