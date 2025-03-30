@@ -1,8 +1,8 @@
 import {
-    EmergencyQuestions,
-    FireQuestions,
-    MedicalQuestions,
-    PoliceQuestions,
+  EmergencyQuestions,
+  FireQuestions,
+  MedicalQuestions,
+  PoliceQuestions,
 } from '../utils/types'
 
 /**
