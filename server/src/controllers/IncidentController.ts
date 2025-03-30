@@ -311,6 +311,11 @@ class IncidentController {
         }
     }
 
+    async removeVehicleFromIncident() {
+        // TO-DO: Implement this function
+        throw new Error('Method not implemented.')
+    }
+
     async closeIncident(incidentId: string): Promise<IIncident | null> {
         return await Incident.findOneAndUpdate(
             { incidentId },

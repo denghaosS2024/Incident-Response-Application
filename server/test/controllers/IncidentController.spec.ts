@@ -32,6 +32,15 @@ describe('Incident Controller', () => {
         return rawIncident.save()
     }
 
+    const createTestCar = async (carName: string, usernames: string[] = []) => {
+        return await Car.create({
+            name: carName,
+            usernames,
+            assignedIncident: null,
+            assignedCity: 'TestCity',
+        })
+    }
+
     it('will create a new incident', async () => {
         const username: string = 'test-username-1'
         const newIncident = await IncidentController.create(username)
@@ -515,5 +524,56 @@ describe('Incident Controller', () => {
 
             expect(updatedIncident.respondersGroup).toBeDefined()
         })
+
+        it('should de-allocate vehicle from incident', async () => {
+            const username = 'test-deallocate-user'
+            const carName = 'test-deallocate-car'
+
+            const car = await createTestCar(carName, [username])
+            const incident = await createTestIncident(username)
+
+            incident.assignedVehicles.push({
+                name: carName,
+                type: 'Car',
+                usernames: [username],
+            })
+            await incident.save()
+
+            car.assignedIncident = incident.incidentId
+            await car.save()
+
+            const updatedIncident = await IncidentController.removeVehicleFromIncident(
+                carName,
+            )
+
+            const updatedCar = await Car.findOne({ name: carName })
+
+            expect(updatedIncident).toBeDefined()
+            expect(updatedIncident?.assignedVehicles.find(v => v.name === carName)).toBeUndefined()
+            expect(updatedCar).toBeDefined()
+            expect(updatedCar!.assignedIncident).toBe(null)
+        })
+
+        it('should prevet deallocating commander\'s vehicle', async () => {
+            const username = 'test-deallocate-user'
+            const carName = 'test-deallocate-car'
+
+            const car = await createTestCar(carName, [username])
+            const incident = await createTestIncident(username)
+
+            incident.assignedVehicles.push({
+                name: carName,
+                type: 'Car',
+                usernames: [username, 'System'],
+            })
+            await incident.save()
+
+            car.assignedIncident = incident.incidentId
+            await car.save()
+
+            await expect(
+                IncidentController.removeVehicleFromIncident(carName),
+            ).rejects.toThrow('Commander must be present on one of the vehicles')
+        })        
     })
 })

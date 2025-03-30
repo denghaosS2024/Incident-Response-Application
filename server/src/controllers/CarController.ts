@@ -212,6 +212,19 @@ class CarController {
         )
         return updatedCar
     }
+
+    async deallocateCarFromIncident(carName: string) {
+        const car = await Car.findOne({ name: carName })
+        if (!car) {
+            throw new Error(`Car with name '${carName}' does not exist`)
+        }
+        const updatedCar = await Car.findOneAndUpdate(
+            { name: carName },
+            { assignedIncident: incidentId },
+            { new: true },
+        )
+        return updatedCar
+    }
 }
 
 export default new CarController()
