@@ -13,18 +13,16 @@ import {
     TextField,
     Typography,
 } from '@mui/material'
-
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import IIncident from '../../../models/Incident'
+import IUser from '../../../models/User'
 import { loadContacts } from '../../../redux/contactSlice'
 import { updateIncident } from '../../../redux/incidentSlice'
 import { AppDispatch, RootState } from '../../../redux/store'
 import { MedicalQuestions } from '../../../utils/types'
 import Loading from '../../common/Loading'
-
-import { useNavigate } from 'react-router-dom'
-import IUser from '../../../models/User'
 
 const PatientForm: React.FC<{ username?: string }> = ({
     username: propUsername,
@@ -84,6 +82,7 @@ const PatientForm: React.FC<{ username?: string }> = ({
     }
 
     if (loading) return <Loading />
+
     return (
         <>
             <Box
@@ -142,8 +141,8 @@ const PatientForm: React.FC<{ username?: string }> = ({
                         />
                     </Box>
                 )}
-                {/**Asks the user for a name */}
 
+                {/** Asks the user for a name */}
                 <Box
                     sx={{
                         display: 'flex',
@@ -180,7 +179,7 @@ const PatientForm: React.FC<{ username?: string }> = ({
                     <Typography>Date of Birth:</Typography>
                 </Box>
 
-                {/**Asks the user their date of birth */}
+                {/** Asks the user their date of birth */}
                 <Box width="100%" maxWidth="500px" my={2}>
                     <TextField
                         variant="outlined"
@@ -195,7 +194,7 @@ const PatientForm: React.FC<{ username?: string }> = ({
                     />
                 </Box>
 
-                {/**Asks the user their sex */}
+                {/** Asks the user their sex */}
                 <Box width="100%" maxWidth="500px" my={2}>
                     <FormControl>
                         <FormLabel id="sex-label">Sex:</FormLabel>
@@ -237,9 +236,16 @@ const PatientForm: React.FC<{ username?: string }> = ({
                         cursor: 'pointer',
                         fontSize: '16px',
                     }}
-                    onClick={() =>
-                        navigate(`/patient-profile/${incident.patientId || ''}`)
-                    }
+                    onClick={() => {
+                        // Check if patientId exists before navigating
+                        if (!incident.patientId) {
+                            alert(
+                                'Patient ID is missing. Please complete patient information.',
+                            )
+                            return
+                        }
+                        navigate(`/patient-profile/${incident.patientId}`)
+                    }}
                 >
                     Profile
                 </button>
