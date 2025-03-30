@@ -87,6 +87,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = 'Incident Report'
   }
 
+  if (pathname.startsWith('/sar-task')) {
+    title = 'SAR Task'
+  }
+
   if (pathname.startsWith('/messages/') && name) {
     title = `${name} Messages`
   }
