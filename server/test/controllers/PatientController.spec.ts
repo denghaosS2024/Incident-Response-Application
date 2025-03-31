@@ -44,4 +44,8 @@ describe('Patient Controller', () => {
     expect(updatedPatient?.location).toBe('ER')
   })
 
+  it('should throw an error if the patient does not exist', async () => {
+    await expect(PatientController.updateLocation('I123', 'ER')).rejects.toThrow('Patient with ID I123 does not exist')
+  })
+
 })
