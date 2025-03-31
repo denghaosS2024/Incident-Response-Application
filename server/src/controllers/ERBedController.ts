@@ -263,6 +263,7 @@ class ERBedController {
       // Update patient record
       patient.hospitalId = bed.hospitalId
       patient.status = 'to_er' // Update as appropriate
+      patient.location = 'ER'
       await patient.save()
 
       // Notify nurses about the patient assignment
