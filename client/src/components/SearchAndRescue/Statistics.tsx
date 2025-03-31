@@ -73,7 +73,7 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
         }, body: JSON.stringify({ incidentId }) }).catch(() => []);
       
       let totalVictims = 0;
-      let counts = { Immediate: 0, Urgent: 0, CouldWait: 0, Dismiss: 0, Deceased: 0 };
+      const counts = { Immediate: 0, Urgent: 0, CouldWait: 0, Dismiss: 0, Deceased: 0 };
       
       tasks.forEach((task: any) => {
         if (task.victims) {
@@ -108,7 +108,7 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
       }).catch(() => []);
   
       let totalHazards = 0;
-      let hazardCounts = {
+      const hazardCounts = {
         ActiveWire: 0,
         Dogs: 0,
         Explosives: 0,
