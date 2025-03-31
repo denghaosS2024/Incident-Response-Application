@@ -146,11 +146,8 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                 dateTime: visitTime,
             }]}),
         });
-        console.log('Form data saved:', message);
         // check if the message is successful
-        if (message.status === 'success') {
-            alert('Form data saved successfully');
-        }
+        alert('Form data saved successfully');
     }
     
     // Check the role when the component mounts
