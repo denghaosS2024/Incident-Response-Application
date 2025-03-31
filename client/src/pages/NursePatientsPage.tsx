@@ -291,11 +291,16 @@ const NursePatientsPage: React.FC = () => {
         )}
       </List>
       
-      {/* Add Patient FAB */}
-      <Fab 
-        color="primary" 
-        sx={{ position: 'absolute', bottom: 16, right: 16 }}
+      {/* Add Patient FAB - positioned at bottom right */}
+      <Fab
+        color="primary"
+        aria-label="add"
         onClick={handleAddPatient}
+        sx={{
+          position: 'absolute',
+          bottom: 16,
+          right: 16,
+        }}
       >
         <AddIcon />
       </Fab>

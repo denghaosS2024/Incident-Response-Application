@@ -442,8 +442,24 @@ class UserController {
                     // Transfer command of each triage incident
                     for (const incident of triageIncidents) {
                         incident.commander = leastBusyDispatcher.username
+                        incident.owner = leastBusyDispatcher.username
                         await incident.save()
+
+                        // replace channel user from the old dispatcher to the new one
+                        const currentChannel = await Channel.findOne({
+                            _id: incident.incidentCallGroup,
+                        })
+
+                        if (currentChannel) {
+                            currentChannel.users = currentChannel.users.filter(
+                                (user) => user.toString() !== username,
+                            )
+                            currentChannel.users.push(leastBusyDispatcher._id)
+                            await currentChannel.save()
+                        }
+
                     }
+
                 }
             }
 

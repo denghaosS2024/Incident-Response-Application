@@ -159,6 +159,10 @@ export default Router()
    *                 type: string
    *                 enum: [Pie, Bar, Line]
    *                 description: The new chart type.
+   *               dataType:
+   *                 type: string
+   *                 enum: ["Incident Type"]
+   *                 description: The new data type used for the chart.
    *               startDate:
    *                 type: string
    *                 format: date-time

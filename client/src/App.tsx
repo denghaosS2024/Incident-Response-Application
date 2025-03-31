@@ -19,6 +19,7 @@ import Messages from './pages/Messages'
 import NursePatientsPage from './pages/NursePatientsPage.tsx'
 import Organization from './pages/Organization'
 import PatientAdmitPage from './pages/PatientAdmitPage.tsx'
+import PatientFirstResponderAdmitPage from './pages/PatientFirstResponderAdmitPage'
 import PatientProfile from './pages/PatientProfile'
 import PatientsRouter from './pages/PatientsRouter'
 import PatientVisitPage from './pages/PatientVisitPage.tsx'
@@ -83,6 +84,7 @@ export default function App() {
                         />
                         <Route path="/patients" element={<PatientsRouter />} />
                         <Route path="/patients/first-responder" element={<FirstResponderPatientsPage />} />
+                        <Route path="/patients/first-responder/admit" element={<PatientFirstResponderAdmitPage />} />
                         <Route path="/patients/nurse" element={<NursePatientsPage />} />
                         <Route path="/patients/nurse/admit" element={<PatientAdmitPage />} />
                         <Route path='/patient-visit' element={<PatientVisitPage />} />

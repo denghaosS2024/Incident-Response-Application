@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Chart, { ChartDataType, ChartType, IChart } from '../models/Dashboard';
+import Chart, { ChartDataType, ChartType, IChart, IncidentTypeLabelMap } from '../models/Dashboard';
 import Incident from '../models/Incident';
 
 /**
@@ -18,7 +18,7 @@ const getPieChartData = async (startDate: Date, endDate: Date) => {
   ]);
 
   return {
-    labels: incidents.map((item) => item._id),
+    labels: incidents.map((item) => IncidentTypeLabelMap[item._id] || item._id),
     datasets: [{ data: incidents.map((item) => item.count) }]
   };
 };
@@ -46,7 +46,7 @@ const getLineChartData = async (startDate: Date, endDate: Date) => {
   const incidentTypes = [...new Set(incidents.map((item) => item._id.type))];
 
   const datasets = incidentTypes.map((type) => ({
-    label: type,
+    label: IncidentTypeLabelMap[type] || type,
     data: labels.map((date) => {
       const found = incidents.find((item) => item._id.date === date && item._id.type === type);
       return found ? found.count : 0;
@@ -86,7 +86,10 @@ const getBarChartData = async (startDate: Date, endDate: Date) => {
     })
   }));
 
-  return { labels: incidentTypes, datasets };
+  return {
+    labels: incidentTypes.map((t) => IncidentTypeLabelMap[t] || t),
+    datasets
+  };
 };
 
 /**
@@ -97,21 +100,10 @@ export const createChart = async (req: Request, res: Response) => {
     const { userId, name, type, dataType, startDate, endDate } = req.body;
 
     const missingInputField: string[] = [];
-    if (!userId) {
-      missingInputField.push('userId');
-    } 
-    
-    if (!name) {
-      missingInputField.push('name');
-    } 
-    
-    if (!type) {
-      missingInputField.push('type');
-    } 
-    
-    if (!dataType) {
-      missingInputField.push('dataType');
-    }
+    if (!userId) missingInputField.push('userId');
+    if (!name) missingInputField.push('name');
+    if (!type) missingInputField.push('type');
+    if (!dataType) missingInputField.push('dataType');
 
     if (missingInputField.length > 0) {
       return res.status(400).json({ message: `Missing required field(s): ${missingInputField.join(', ')}` });
@@ -128,13 +120,8 @@ export const createChart = async (req: Request, res: Response) => {
     const parsedStartDate = startDate ? new Date(startDate) : new Date();
     const parsedEndDate = endDate ? new Date(endDate) : new Date();
 
-    if (!startDate) {
-      parsedStartDate.setDate(parsedEndDate.getDate() - 3);
-    }
-
-    if (!endDate) {
-      parsedEndDate.setDate(parsedStartDate.getDate() + 3);
-    }
+    if (!startDate) parsedStartDate.setDate(parsedEndDate.getDate() - 3);
+    if (!endDate) parsedEndDate.setDate(parsedStartDate.getDate() + 3);
 
     if (parsedStartDate >= parsedEndDate) {
       return res.status(400).json({ message: 'Start date must be before end date.' });
@@ -228,20 +215,12 @@ export const modifyChart = async (req: Request, res: Response) => {
     const { name, type, dataType, startDate, endDate } = updates;
 
     const missingInputField: string[] = [];
-
-    if (!name) {
-      missingInputField.push('name');
-    }
-    if (!type) {
-      missingInputField.push('type');
-    }
-    if (!dataType) {
-      missingInputField.push('dataType');
-    }
+    if (!name) missingInputField.push('name');
+    if (!type) missingInputField.push('type');
+    if (!dataType) missingInputField.push('dataType');
 
     if (missingInputField.length > 0) {
-      return res.status(400).json({ message: `Missing required field(s): ${missingInputField.join(', ')}`
-      });
+      return res.status(400).json({ message: `Missing required field(s): ${missingInputField.join(', ')}` });
     }
 
     if (!Object.values(ChartType).includes(type)) {

@@ -98,11 +98,38 @@ describe('AlertService', () => {
         alertService.queueAlert(alert);
         const groupAlertState = alertService.getGroupAlertState(groupId);
         expect(groupAlertState?.alertQueue).toEqual([alert]);
-        
+
         alertService.sendAlert(groupId);
         const groupAlertStateAfter = alertService.getGroupAlertState(groupId);
         expect(groupAlertStateAfter?.alertQueue).toEqual([]);
         expect(groupAlertStateAfter?.ongoingAlert).toEqual(alert);
     });
+
+    it('queue or send alert should set default state if group alert state is not set', () => {
+        const groupId = 'group-default';
+        const alertService = AlertService;
+        const alert: Alert = {
+            id: '123',
+            patientId: '123',
+            patientName: 'test',
+            numNurse: 1,
+            priority: 'E',
+            createdAt: new Date(),
+            groupId: groupId,
+            status: 'waiting',
+        }
+        jest.spyOn(alertService, 'getGroupAlertState').mockReturnValue(undefined);
+        jest.spyOn(alertService, 'setGroupAlertState').mockImplementation(() => {});
+
+        AlertService.queueOrSendAlert(alert)
+        // expect getGroupAlertState to be called
+        expect(alertService.getGroupAlertState).toHaveBeenCalledWith(groupId);
+        // expect setGroupAlertState to be called
+        expect(alertService.setGroupAlertState).toHaveBeenCalledWith(groupId, {
+            alertQueue: [],
+            ongoingAlert: undefined,
+            timeoutHandle: undefined,
+        });
+    })
   });
 

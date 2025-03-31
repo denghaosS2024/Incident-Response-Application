@@ -167,9 +167,7 @@ const FirstResponderPatientsPage: React.FC = () => {
 
   // Navigate to empty patient screen (as per wireframe)
   const handleAddPatient = () => {
-    // As per the wireframe, this leads to an empty patient screen
-    // and is only available to First Responders assigned to a SAR incident
-    // navigate('/sar-incident');
+    navigate('/patients/first-responder/admit');
   };
 
   if (loading) {

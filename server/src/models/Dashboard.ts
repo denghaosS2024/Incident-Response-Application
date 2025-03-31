@@ -20,12 +20,12 @@ export enum ChartDataType {
 }
 
 export interface IChart extends Document {
-  userId: string; // Reference to User
-  name: string; // User-defined chart name
-  type: ChartType; // Pie, Bar, Line
-  dataType: ChartDataType; // The category of data being visualized
-  startDate: Date; // User-defined start date
-  endDate: Date; // User-defined end date
+  userId: string;
+  name: string;
+  type: ChartType;
+  dataType: ChartDataType;
+  startDate: Date;
+  endDate: Date;
 }
 
 const ChartSchema = new Schema({
@@ -36,5 +36,32 @@ const ChartSchema = new Schema({
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
 });
+
+/**
+ * === Incident Enum Label Mappings for Display ===
+ * Used to translate short codes from Incident model
+ */
+export const IncidentTypeLabelMap: Record<string, string> = {
+  F: 'Fire',
+  M: 'Medical',
+  P: 'Police',
+  S: 'SAR',
+  U: 'Unset',
+};
+
+export const IncidentPriorityLabelMap: Record<string, string> = {
+  E: 'Immediate',
+  One: 'Urgent',
+  Two: 'Could Wait',
+  Three: 'Dismiss',
+  U: 'Unset',
+};
+
+export const IncidentStateLabelMap: Record<string, string> = {
+  Waiting: 'Waiting',
+  Triage: 'Triage',
+  Assigned: 'Assigned',
+  Closed: 'Closed',
+};
 
 export default mongoose.model<IChart>('Chart', ChartSchema);
