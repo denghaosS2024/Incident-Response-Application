@@ -27,10 +27,13 @@ export enum IncidentType {
     Sar = 'S',
 }
 
+// Make sure this is consistent with server ISarTask
 export interface ISarTask {
     state: 'Todo' | 'InProgress' | 'Done'
     startDate?: Date,
-    endDate?: Date
+    endDate?: Date,
+    hazards: string[],
+    victims: number[],
 }
 
 export default interface IIncident {
