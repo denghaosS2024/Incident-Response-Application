@@ -1,9 +1,10 @@
 // UserRouter handles operations related to users, such as registration and listing.
 // It interacts with the User model and manages user authentication.
 
-import { Router } from 'express'
-import UserController from '../controllers/UserController'
-import ROLES from '../utils/Roles'
+import { Router } from 'express';
+import UserController from '../controllers/UserController';
+import HttpError from '../utils/HttpError';
+import ROLES from '../utils/Roles';
 const router = Router()
 router
     /**
@@ -130,4 +131,25 @@ router
             return response.status(400).send({ message: error.message })
         }
     })
+
+    /**
+ * Register a nurse to a hospital
+ * @route POST /api/users/register-hospital
+ * @param {string} request.body.userId - The ID of the nurse
+ * @param {string} request.body.hospitalId - The ID of the hospital
+ * @returns {Object} A success message and the updated user object
+ * @throws {400} If the user is not found or is not a nurse
+ */
+  .put('/:id/hospital', async (request, response) => {
+    const { id } = request.params;
+    const { hospitalId } = request.body;
+  
+    try {
+      const result = await UserController.registerToHospital(id, hospitalId);
+      response.status(200).send(result);
+    } catch (e) {
+      const error = e as HttpError;
+      response.status(error.statusCode || 500).send({ message: error.message });
+    }
+  });
 export default router

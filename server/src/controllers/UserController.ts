@@ -1,15 +1,15 @@
+import Car from '../models/Car'
 import Channel from '../models/Channel'
 import Incident from '../models/Incident'
-import User, { IUser } from '../models/User'
-import Car from '../models/Car'
 import Truck from '../models/Truck'
+import User, { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
 import SystemGroupConfigs from '../utils/SystemDefinedGroups'
 import * as Token from '../utils/Token'
 import UserConnections from '../utils/UserConnections'
-import CarController from './CarController' 
-import TruckController from './TruckController'
+import CarController from './CarController'
 import IncidentController from './IncidentController'
+import TruckController from './TruckController'
 
 class UserController {
     /**
@@ -541,6 +541,40 @@ class UserController {
             throw new Error('Failed to create temporary patient user.')
         }
     }
+
+    /**
+ * Register a nurse to a hospital
+ * @param userId - The ID of the nurse
+ * @param hospitalId - The ID of the hospital
+ * @returns An object containing a success message and the updated user object
+ * @throws Error if the user is not found, is not a nurse, or the update fails
+ */
+async registerToHospital(userId: string, hospitalId: string) {
+    // Find the user by ID
+    const user = await User.findById(userId);
+  
+    // Check if the user exists
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+  
+    // Ensure the user is a nurse
+    if (user.role !== ROLES.NURSE) {
+      throw new Error('Only nurses can be registered to hospitals');
+    }
+  
+    // Assign the hospital ID to the user
+    user.hospitalId = hospitalId;
+  
+    // Save the updated user
+    await user.save();
+  
+    // Return a success message and the updated user object
+    return {
+      message: `Nurse ${user.username} has been registered to hospital ${hospitalId}`,
+      user,
+    };
+  }
 }
 
 export default new UserController()

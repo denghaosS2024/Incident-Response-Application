@@ -27,6 +27,7 @@ export interface IUser extends Document {
   previousLatitude: number
   previousLongitude: number
   comparePassword: (candidatePassword: string) => Promise<boolean>
+  hospitalId?: string;
 }
 
 /**
@@ -121,6 +122,7 @@ const UserSchema = new Schema<IUser>({
   },
   previousLatitude: { type: Number, required: false, default: 0 },
   previousLongitude: { type: Number, required: false, default: 0 },
+  hospitalId: { type: String, required: false, ref: 'Hospital' },
   __v: { type: Number, select: false },
 })
 
