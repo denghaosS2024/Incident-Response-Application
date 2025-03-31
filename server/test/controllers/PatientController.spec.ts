@@ -48,4 +48,9 @@ describe('Patient Controller', () => {
     await expect(PatientController.updateLocation('I123', 'ER')).rejects.toThrow('Patient with ID I123 does not exist')
   })
 
+  it('should throw error if location is not ER or Road', async () => {
+    const patient = await createTestPatient('Zoe')
+    await expect(PatientController.updateLocation(patient.patientId, 'Hospital')).rejects.toThrow('Invalid location')
+  })
+
 })
