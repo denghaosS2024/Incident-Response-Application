@@ -7,9 +7,6 @@ import ROLES from '../utils/Roles'
 import SystemGroupConfigs from '../utils/SystemDefinedGroups'
 import * as Token from '../utils/Token'
 import UserConnections from '../utils/UserConnections'
-import CarController from './CarController'
-import IncidentController from './IncidentController'
-import TruckController from './TruckController'
 
 class UserController {
     /**
@@ -90,6 +87,16 @@ class UserController {
             throw new Error(`User with ID ${userId} not found`)
         }
         return user
+    }
+
+    async getUserByUsername(username: string) {
+        try {
+            const user = await User.findOne({ username }).lean().exec()
+            return user || null
+        } catch (error) {
+            console.error('Error getting user by username:', error)
+            return null
+        }
     }
 
     /**
@@ -251,100 +258,37 @@ class UserController {
             // 1. Find all incident commanders
             const incidentCommanderUsernames = await Incident.find({
                 commander: { $nin: ['System'] },
-                incidentState: 'Assigned'
+                incidentState: 'Assigned',
             }).select('commander')
-    
+
             // 2. Find one first responder who is not an incident commander
             const firstResponderNotCommander = await User.findOne({
                 role: { $in: [ROLES.POLICE, ROLES.FIRE] },
-                username: { $nin: incidentCommanderUsernames.map(ic => ic.commander) }
+                username: {
+                    $nin: incidentCommanderUsernames.map((ic) => ic.commander),
+                },
             })
 
-            const prevCommander = await User.findOne({
-                username: username,
-            })
-
-            if (!prevCommander) {
-                throw new Error(`Previous commander ${username} not found`)
+            // 3. If there are other un-assigned first responder, transfer incidents
+            if (firstResponderNotCommander) {
+                // Transfer the command of incident to this first responder
+                await Incident.updateOne(
+                    { commander: username },
+                    {
+                        $set: {
+                            commander: firstResponderNotCommander.username,
+                        },
+                    },
+                )
             }
 
-            console.log('Previous Commander:', prevCommander)
-    
-            if (!firstResponderNotCommander) {
-                await this.logout(username)
-                return
-            }
-    
-            const incidents = await IncidentController.getIncidentByCommander(username)
-    
-            if (incidents.length === 0) {
-                await this.logout(username)
-                return
-            }
-    
-            const incident = incidents[0]
-    
-            // Make a shallow copy to avoid mutation issues during iteration
-            const originalVehicles = [...incident.assignedVehicles]
-            console.log('Original Vehicles:', originalVehicles)
-    
-            // Deallocate vehicles where the commander is present
-            for (const vehicle of originalVehicles) {
-                if (vehicle.name === prevCommander.assignedCar || vehicle.name === prevCommander.assignedTruck) {
-                    // Remove vehicle from assignment
-                    incident.assignedVehicles = incident.assignedVehicles.filter(
-                        (v) => v.name !== vehicle.name
-                    )
-
-                    console.log(`Vehicle '${vehicle.name}' deallocated from incident '${incident.incidentId}'`)
-                    await incident.save()
-    
-                    // Deallocate vehicle in DB
-                    if (vehicle.type === 'Car') {
-                        await CarController.updateIncident(vehicle.name, null)
-    
-                        if (firstResponderNotCommander.assignedCar) {
-                            await CarController.updateIncident(firstResponderNotCommander.assignedCar, incident.incidentId)
-    
-                            const newAssignCar = await CarController.getCarByName(firstResponderNotCommander.assignedCar)
-                            incident.assignedVehicles.push({
-                                type: 'Car',
-                                name: firstResponderNotCommander.assignedCar,
-                                usernames: newAssignCar?.usernames || [firstResponderNotCommander.username],
-                            })
-                        }
-                    } else {
-                        await TruckController.updateIncident(vehicle.name, null)
-    
-                        if (firstResponderNotCommander.assignedTruck) {
-                            await TruckController.updateIncident(firstResponderNotCommander.assignedTruck, incident.incidentId)
-    
-                            const newAssignTruck = await TruckController.getTruckByName(firstResponderNotCommander.assignedTruck)
-                            incident.assignedVehicles.push({
-                                type: 'Truck',
-                                name: firstResponderNotCommander.assignedTruck,
-                                usernames: newAssignTruck?.usernames || [firstResponderNotCommander.username],
-                            })
-                        }
-                    }
-    
-                    console.log(`Vehicle '${vehicle.name}' deallocated from incident '${incident.incidentId}'`)
-                }
-            }
-            
-    
-            // Transfer command to the new responder and save updated vehicles
-            incident.commander = firstResponderNotCommander.username
-            await incident.save()
-    
-            console.log(`Incident '${incident.incidentId}' command transferred to '${incident.commander}'`)
+            // 3. Perform standard logout
             await this.logout(username)
         } catch (error) {
             console.error('Error during commander logout:', error)
             throw error
         }
     }
-    
 
     /**
      * Handle first responder logout and un-assigns them from their Vehicle
@@ -354,57 +298,61 @@ class UserController {
      */
     async FirstResponderLogout(username: string, isCommander: boolean) {
         try {
-            const user = await User.findOne({ username });
+            const user = await User.findOne({ username })
             if (!user) {
-                throw new Error('User not found');
+                throw new Error('User not found')
             }
 
-            if (isCommander) {
-                await this.CommanderLogout(username);
-                return
-            }
-    
             if (user.role === ROLES.FIRE && user.assignedTruck) {
                 // Remove user from assigned truck
                 await Truck.updateOne(
                     { name: user.assignedTruck },
-                    { $pull: { usernames: username } }
-                );
-    
+                    { $pull: { usernames: username } },
+                )
+
                 // Remove user from incidents where this truck is assigned
                 await Incident.updateMany(
-                    { 'assignedVehicles.type': 'Truck', 'assignedVehicles.name': user.assignedTruck },
-                    { $pull: { 'assignedVehicles.$.usernames': username } }
-                );
-    
+                    {
+                        'assignedVehicles.type': 'Truck',
+                        'assignedVehicles.name': user.assignedTruck,
+                    },
+                    { $pull: { 'assignedVehicles.$.usernames': username } },
+                )
+
                 // Clear user's assignedTruck field
-                await User.updateOne({ username }, { assignedTruck: null });
+                await User.updateOne({ username }, { assignedTruck: null })
             }
-    
+
             if (user.role === ROLES.POLICE && user.assignedCar) {
                 // Remove user from assigned car
                 await Car.updateOne(
                     { name: user.assignedCar },
-                    { $pull: { usernames: username } }
-                );
-    
+                    { $pull: { usernames: username } },
+                )
+
                 // Remove user from incidents where this car is assigned
                 await Incident.updateMany(
-                    { 'assignedVehicles.type': 'Car', 'assignedVehicles.name': user.assignedCar },
-                    { $pull: { 'assignedVehicles.$.usernames': username } }
-                );
-    
+                    {
+                        'assignedVehicles.type': 'Car',
+                        'assignedVehicles.name': user.assignedCar,
+                    },
+                    { $pull: { 'assignedVehicles.$.usernames': username } },
+                )
+
                 // Clear user's assignedCar field
-                await User.updateOne({ username }, { assignedCar: null });
+                await User.updateOne({ username }, { assignedCar: null })
+            }
+
+            if (isCommander) {
+                await this.CommanderLogout(username)
+                return
             }
 
             // Perform standard logout
-            await this.logout(username);
-    
-            
+            await this.logout(username)
         } catch (error) {
-            console.error('Error during first responder logout:', error);
-            throw error;
+            console.error('Error during first responder logout:', error)
+            throw error
         }
     }
 
@@ -457,9 +405,7 @@ class UserController {
                             currentChannel.users.push(leastBusyDispatcher._id)
                             await currentChannel.save()
                         }
-
                     }
-
                 }
             }
 
@@ -502,7 +448,7 @@ class UserController {
      * Create a temporary user account for a patient.
      * This method automatically generates a temporary username (e.g., "temp1", "temp2", etc.)
      * and a fixed password "1234", then creates a new user with an empty profile.
-     * @returns An object containing a message and the newly created user object.
+     * @returns An object containing a message, the newly created user object, and userId.
      * @throws Error if the account creation fails.
      */
     async createTempUserForPatient() {
@@ -534,6 +480,7 @@ class UserController {
 
             return {
                 message: 'A new user account has been created for the Patient.',
+                userId: newUser._id,
                 username: newTempUsername,
             }
         } catch (error) {
@@ -543,38 +490,51 @@ class UserController {
     }
 
     /**
- * Register a nurse to a hospital
- * @param userId - The ID of the nurse
- * @param hospitalId - The ID of the hospital
- * @returns An object containing a success message and the updated user object
- * @throws Error if the user is not found, is not a nurse, or the update fails
- */
-async registerToHospital(userId: string, hospitalId: string) {
-    // Find the user by ID
-    const user = await User.findById(userId);
-  
-    // Check if the user exists
-    if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
+     * Register a nurse to a hospital
+     * @param userId - The ID of the nurse
+     * @param hospitalId - The ID of the hospital
+     * @returns An object containing a success message and the updated user object
+     * @throws Error if the user is not found, is not a nurse, or the update fails
+     */
+    async registerToHospital(userId: string, hospitalId: string) {
+        // Find the user by ID
+        const user = await User.findById(userId)
+
+        // Check if the user exists
+        if (!user) {
+            throw new Error(`User with ID ${userId} not found`)
+        }
+
+        // Ensure the user is a nurse
+        if (user.role !== ROLES.NURSE) {
+            throw new Error('Only nurses can be registered to hospitals')
+        }
+
+        // Assign the hospital ID to the user
+        user.hospitalId = hospitalId
+
+        // Save the updated user
+        await user.save()
+
+        // Return a success message and the updated user object
+        return {
+            message: `Nurse ${user.username} has been registered to hospital ${hospitalId}`,
+            user,
+        }
     }
-  
-    // Ensure the user is a nurse
-    if (user.role !== ROLES.NURSE) {
-      throw new Error('Only nurses can be registered to hospitals');
+
+    /**
+     * Find user ID by username
+     * @param username - The username of the user
+     * @returns The user ID if found, or an error message
+     */
+    async findUserIdByUsername(username: string) {
+        const user = await User.findOne({ username }).select('_id').exec()
+        if (!user) {
+            return null
+        }
+        return { userId: user._id }
     }
-  
-    // Assign the hospital ID to the user
-    user.hospitalId = hospitalId;
-  
-    // Save the updated user
-    await user.save();
-  
-    // Return a success message and the updated user object
-    return {
-      message: `Nurse ${user.username} has been registered to hospital ${hospitalId}`,
-      user,
-    };
-  }
 }
 
 export default new UserController()

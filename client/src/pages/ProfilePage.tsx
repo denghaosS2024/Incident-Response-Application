@@ -9,6 +9,7 @@ import {
 } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useCallback, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import EmergencyContactField from '../components/Profile/EmergencyContactField'
 import MedicalInfoField from '../components/Profile/MedicalInfoField'
 import ProfileField from '../components/Profile/ProfileField'
@@ -17,8 +18,8 @@ import Globals from '../utils/Globals'
 import request from '../utils/request'
 
 export default function ProfilePage() {
-    const currentUserId = localStorage.getItem('uid')
-
+    const { userId: paramUserId } = useParams<{ userId: string }>()
+    console.log('paramUserId:', paramUserId)
     const [name, setName] = useState('')
     const [dob, setDob] = useState('')
     const [sex, setSex] = useState('')
@@ -27,6 +28,10 @@ export default function ProfilePage() {
     const [email, setEmail] = useState('')
     const [addressOptions, setAddressOptions] = useState<string[]>([])
     const mapboxToken = Globals.getMapboxToken()
+    const patientUserId = localStorage.getItem('patientUserId') || ''
+    const uid = localStorage.getItem('uid') || ''
+    const isViewingOwnProfile = (paramUserId || uid) === uid
+    const isReadOnly = !isViewingOwnProfile
 
     const [emergencyContacts, setEmergencyContacts] = useState<
         IEmergencyContact[]
@@ -147,7 +152,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         const fetchProfileData = async () => {
-            if (!currentUserId) return
+            if (!paramUserId) return
 
             try {
                 const profileData = await request<{
@@ -163,24 +168,7 @@ export default function ProfilePage() {
                         drugs?: string
                         allergies?: string
                     }
-                }>(`/api/profiles/${currentUserId}`)
-
-                setName(profileData.name || '')
-                setDob(
-                    profileData.dob
-                        ? new Date(profileData.dob).toISOString().split('T')[0]
-                        : '',
-                )
-                setSex(profileData.sex || '')
-                setAddress(profileData.address || '')
-                setPhone(profileData.phone || '')
-                setEmail(profileData.email || '')
-                setEmergencyContacts(profileData.emergencyContacts || [])
-                setMedicalInfo({
-                    condition: profileData.medicalInfo?.condition ?? '',
-                    drugs: profileData.medicalInfo?.drugs ?? '',
-                    allergies: profileData.medicalInfo?.allergies ?? '',
-                })
+                }>(`/api/profile/${paramUserId}`)
 
                 console.log('Fetched profile data:', profileData)
             } catch (error) {
@@ -189,12 +177,24 @@ export default function ProfilePage() {
         }
 
         fetchProfileData()
-    }, [currentUserId])
+    }, [paramUserId])
 
     // 🛠 Debounced handleSave to prevent excessive API calls
     const debouncedHandleSave = useCallback(
         debounce(async () => {
-            if (!currentUserId) return
+            if (isReadOnly) {
+                console.log(
+                    '❌ Unauthorized attempt to save profile. ReadOnly mode is active.',
+                )
+                return
+            }
+
+            if (!paramUserId) {
+                console.error(
+                    '❌ Cannot save profile because paramUserId is undefined.',
+                )
+                return
+            }
 
             const sanitizedEmail = emailRegex.test(email) ? email : ''
             const sanitizedPhone = phoneRegex.test(phone) ? phone : ''
@@ -217,20 +217,29 @@ export default function ProfilePage() {
                 medicalInfo,
             }
 
-            // console.log("🚀 Debounced saving profileData:", profileData);
-
             try {
-                await request(`/api/profiles/${currentUserId}`, {
+                console.log(
+                    'Retrieved uid from localStorage:',
+                    localStorage.getItem('uid'),
+                )
+                const userId = localStorage.getItem('uid')
+                if (!userId || userId === 'undefined') {
+                    console.error('❌ userId is missing or invalid.')
+                    return
+                }
+
+                await request(`/api/profile/${userId}`, {
                     method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify(profileData),
                 })
-                // console.log("✅ Profile saved successfully!");
             } catch (error) {
                 console.error('❌ Failed to save profile:', error)
             }
         }, 500),
         [
-            currentUserId,
             name,
             dob,
             sex,
@@ -239,6 +248,8 @@ export default function ProfilePage() {
             email,
             emergencyContacts,
             medicalInfo,
+            isReadOnly,
+            paramUserId,
         ],
     )
 
@@ -246,11 +257,18 @@ export default function ProfilePage() {
         debouncedHandleSave()
     }, [name, dob, sex, address, phone, email, emergencyContacts, medicalInfo])
 
+    useEffect(() => {
+        if (paramUserId === uid) {
+            localStorage.removeItem('patientUserId')
+        }
+    }, [paramUserId, uid])
+
     // 🚀 if user leave the page, save immediately
     useEffect(() => {
         return () => {
             // console.log("🚀 Leaving Profile Page. Flushing save...");
             debouncedHandleSave.flush()
+            localStorage.removeItem('patientUserId')
         }
     }, [])
 
@@ -260,7 +278,10 @@ export default function ProfilePage() {
             <ProfileField
                 label="Name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                    setName(e.target.value)
+                }}
+                disabled={isReadOnly}
             />
 
             <Grid container spacing={2} alignItems="center">
@@ -283,6 +304,7 @@ export default function ProfilePage() {
                             borderRadius: '4px',
                             outline: 'none',
                         }}
+                        disabled={isReadOnly}
                     />
                 </Grid>
             </Grid>
@@ -300,24 +322,34 @@ export default function ProfilePage() {
                     <RadioGroup
                         row
                         value={sex}
-                        onChange={handleSexChange}
+                        onChange={(e) => {
+                            if (!isReadOnly) {
+                                handleSexChange(e)
+                            }
+                        }}
                         style={{ display: 'flex', gap: '4px' }}
                     >
                         <FormControlLabel
                             value="Female"
-                            control={<Radio size="small" />}
+                            control={
+                                <Radio size="small" disabled={isReadOnly} />
+                            }
                             label="Female"
                             sx={{ marginRight: '4px' }}
                         />
                         <FormControlLabel
                             value="Male"
-                            control={<Radio size="small" />}
+                            control={
+                                <Radio size="small" disabled={isReadOnly} />
+                            }
                             label="Male"
                             sx={{ marginRight: '4px' }}
                         />
                         <FormControlLabel
                             value="Other"
-                            control={<Radio size="small" />}
+                            control={
+                                <Radio size="small" disabled={isReadOnly} />
+                            }
                             label="Other"
                         />
                     </RadioGroup>
@@ -327,10 +359,12 @@ export default function ProfilePage() {
             <Autocomplete
                 freeSolo
                 options={addressOptions}
-                onInputChange={handleAddressInputChange}
-                onChange={(event, newValue) =>
-                    handleAddressSelect(newValue || '')
-                }
+                onInputChange={(event, value) => {
+                    if (!isReadOnly) handleAddressInputChange(event, value)
+                }}
+                onChange={(event, newValue) => {
+                    if (!isReadOnly) handleAddressSelect(newValue || '')
+                }}
                 renderInput={(params) => (
                     <TextField
                         {...params}
@@ -339,9 +373,13 @@ export default function ProfilePage() {
                         fullWidth
                         margin="normal"
                         value={address}
-                        onChange={(e) => setAddress(e.target.value)}
+                        onChange={(e) => {
+                            if (!isReadOnly) setAddress(e.target.value)
+                        }}
+                        disabled={isReadOnly}
                     />
                 )}
+                disabled={isReadOnly}
             />
 
             <ProfileField
@@ -350,6 +388,7 @@ export default function ProfilePage() {
                 onChange={handlePhoneChange}
                 error={!!phoneError}
                 helperText={phoneError}
+                disabled={isReadOnly}
             />
             <ProfileField
                 label="Email"
@@ -357,16 +396,24 @@ export default function ProfilePage() {
                 onChange={handleEmailChange}
                 error={!!emailError}
                 helperText={emailError}
+                disabled={isReadOnly}
             />
 
             <MedicalInfoField
                 medicalInfo={medicalInfo}
-                onMedicalInfoChange={handleMedicalInfoChange}
+                onMedicalInfoChange={(field, value) => {
+                    if (!isReadOnly) return
+                    handleMedicalInfoChange(field, value)
+                }}
+                isReadOnly={isReadOnly}
             />
 
             <EmergencyContactField
                 contactList={emergencyContacts}
-                setContactList={handleEmergencyContactChange}
+                setContactList={(newContacts) => {
+                    if (!isReadOnly) handleEmergencyContactChange(newContacts)
+                }}
+                isReadOnly={isReadOnly}
             />
             {/* <AlertSnackbar open={snackbarOpen} message={snackbarMessage} severity={snackbarSeverity} onClose={handleSnackbarClose} autoHideDuration={1350}/> */}
         </div>

@@ -40,6 +40,8 @@ const Reach911Page: React.FC = () => {
     const role = localStorage.getItem('role')
     const uid = localStorage.getItem('uid')
 
+    const isIncidentReady = !!incident._id || !!incident.incidentId
+
     useEffect(() => {
         const initializeIncident = async () => {
             try {
@@ -267,6 +269,19 @@ const Reach911Page: React.FC = () => {
             content
         ),
     )
+
+    if (!isIncidentReady) {
+        return (
+            <div className={styles.wrapper}>
+                <div
+                    className={styles.placeholder}
+                    style={{ paddingTop: '50px' }}
+                >
+                    <h3 style={{ textAlign: 'center' }}>Loading incident...</h3>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div

@@ -5,6 +5,7 @@ import {
     MedicalQuestions,
     PoliceQuestions,
 } from '../utils/types'
+import { IUser } from './User'
 
 export enum IncidentType {
     Fire = 'F',
@@ -52,6 +53,7 @@ export interface IIncident extends Document {
      */
     owner: string
     commander: string
+    commanderDetail:IUser
     address: string
     type: IncidentType
     questions:
@@ -73,6 +75,7 @@ export interface IIncident extends Document {
         type: string
         isAssign: boolean
         usernames: string[]
+        user?: IUser | null
     }[]
     respondersGroup?: Types.ObjectId | null // Reference to Channel model
     sarTasks?: ISarTask[] // Changed from sarTask to sarTasks as an array

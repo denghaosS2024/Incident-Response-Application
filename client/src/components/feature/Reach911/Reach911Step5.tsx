@@ -527,7 +527,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                             })
                         }}
                     >
-                        generate report
+                        report
                     </Button>
                 </Box>
             )}

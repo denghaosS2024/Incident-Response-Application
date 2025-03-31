@@ -10,6 +10,15 @@ import SARTaskTitle from './SARTaskTitle.tsx'
 import formatDateTime from './useCurrentDateTime.tsx'
 import {useSearchParams} from 'react-router-dom'
 
+// Types of victims with their index
+const victimTypes = [
+  { type: 'Immediate', index: 0 },
+  { type: 'Urgent', index: 1 },
+  // { type: 'Could Wait', index: 2 },
+  // { type: 'Dismiss', index: 3 },
+  { type: 'Deceased', index: 4 }
+]
+
 interface SARTaskStep4Props {
   incident?: IIncident | null;
   setIncident: (incident: IIncident) => void
@@ -31,37 +40,24 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
       if (!hazards || hazards.length === 0) {
         return 'No Hazards'
       }
-
-      return hazards.map(hazard =>
-        hazard
-      ).join(' ')
+      return hazards.join(' ')
     }
 
     const formatVictimCounts = () => {
       const victims = incident?.sarTasks?.at(taskId)?.victims || []
 
-      // Types of victims with their index
-      const victimTypes = [
-        { type: 'Immediate', index: 0 },
-        { type: 'Urgent', index: 1 },
-        // { type: 'Could Wait', index: 2 },
-        // { type: 'Dismiss', index: 3 },
-        { type: 'Deceased', index: 4 }
-      ]
-
-      const parts = [];
+      const parts = []
       for (const typeObj of victimTypes) {
-        const count = victims[typeObj.index];
+        const count = victims[typeObj.index]
         if (count && count > 0) {
-          parts.push(`${count}-${typeObj.type.toLowerCase()}`);
+          parts.push(`${count}-${typeObj.type}`)
         }
       }
 
       if (parts.length === 0) {
-        return 'No Victims';
+        return 'No Victims'
       }
-
-      return parts.join(' ');
+      return parts.join(' ')
     }
 
     const handleDoneClick = async () => {
