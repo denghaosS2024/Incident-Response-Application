@@ -64,7 +64,7 @@ const GlobalAlertListener: React.FC = () => {
     console.log('GlobalAlertListener: Alert expired, removing from queue without sending response:', activeAlert._id);
     // Simply remove the alert from the queue without sending a response to the server
     dispatch(completeActiveAlert({ 
-      channelId: activeAlert.channelId || 'nurse-alerts', 
+      channelId: activeAlert.channelId ?? 'nurse-alerts', 
       alertId: activeAlert._id
     }));
   };

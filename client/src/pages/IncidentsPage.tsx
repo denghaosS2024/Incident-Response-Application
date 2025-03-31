@@ -35,7 +35,7 @@ function IncidentsPage() {
   const [error, setError] = useState<string | null>(null)
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null)
   const [selectedType, setSelectedType] = useState('All')
-  const [userId] = useState(localStorage.getItem('username') || '')
+  const [userId] = useState(localStorage.getItem('username') ?? '')
   const [filteredData, setFilteredData] = useState<IncidentData[]>([])
   const navigate = useNavigate()
   const dispatch = useDispatch()

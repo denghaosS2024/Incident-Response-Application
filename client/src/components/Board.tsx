@@ -26,8 +26,8 @@ export default function Board({
   const [todo, setTodo] = useState<IUser[]>([])
   const [groups, setGroups] = useState<any[]>([]) // Store the groups
   const [colSubtitle, setColSubtitle] = useState<string>('')
-  const owner = localStorage.getItem('uid') || ''
-  const currentUserRole = localStorage.getItem('role') || ''
+  const owner = localStorage.getItem('uid') ?? ''
+  const currentUserRole = localStorage.getItem('role') ?? ''
 
   useEffect(() => {
     dispatch(loadFilteredContacts(currentUserRole))
@@ -167,7 +167,7 @@ export default function Board({
       const filteredGroupUsers = groupUsers.filter((user) => user._id !== owner)
 
       // Only move users from the selected group to the 'done' column
-      // Update the todo column with users who are not part of the group
+      // Update the column with users who are not part of the group
       setTodo((prevTodo) =>
         prevTodo.filter(
           (user) =>

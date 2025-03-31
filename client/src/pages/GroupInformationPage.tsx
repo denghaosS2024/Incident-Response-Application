@@ -9,7 +9,7 @@ import request, { IRequestError } from '../utils/request'
 import SocketClient from '../utils/Socket'
 
 const GroupInformationPage: React.FC = () => {
-  const uid = localStorage.getItem('uid') || ''
+  const uid = localStorage.getItem('uid') ?? ''
   const { id: channelId } = useParams<{ id: string }>()
   const [currentGroup, setCurrentGroup] = useState<IChannel | null>(null)
   const [loading, setLoading] = useState(true)

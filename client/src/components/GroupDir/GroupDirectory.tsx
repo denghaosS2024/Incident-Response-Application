@@ -11,7 +11,7 @@ const GroupDirectory: React.FC = () => {
     IChannel[]
   >([])
   const [myclosedChannels, setMyclosedChannels] = useState<IChannel[]>([])
-  const owner = localStorage.getItem('uid') || ''
+  const owner = localStorage.getItem('uid') ?? ''
   const fetchGroups = async () => {
     try {
       const myGroups = await request(`/api/channels/groups/${owner}`, {

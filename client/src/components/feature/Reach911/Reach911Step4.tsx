@@ -75,11 +75,12 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
 
         console.log('Incidnet from slice:', incident) // Debug log
         console.log('Incident Caller:', incidentCaller) // Debug log
+        console.log('Incident Group:', incident.incidentCallGroup) // Debug log
 
         // New incident
         if (!incidentCaller) {
-          incident.caller = username 
-          incident.incidentCallGroup = uid
+          incident.caller = username
+          // incident.incidentCallGroup = uid
         }
 
         if (role === ROLES.FIRE || role == ROLES.POLICE || role === ROLES.DISPATCH) {
@@ -107,6 +108,8 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
               userId: uid,
             }),
           })
+
+          console.log('New Channel:', channel) // Debug log
 
           if (channel?._id) {
             // Update incident with new channel

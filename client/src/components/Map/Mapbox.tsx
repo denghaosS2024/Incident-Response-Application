@@ -68,7 +68,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   const geoLocateRef = useRef<mapboxgl.GeolocateControl | null>(null)
 
   // get role from localStorage
-  const role = localStorage.getItem('role') || 'Citizen'
+  const role = localStorage.getItem('role') ?? 'Citizen'
 
   // refs for areaClick
   const areaRef = useRef<boolean>(false)
@@ -1500,7 +1500,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   ) => {
     const data = MapBoxHelper.getMapboxDraw().getAll()
     if (data.features.length > 0 && mapRef.current) {
-      const areaId: string = e.features[0]?.id?.toString() || ''
+      const areaId: string = e.features[0]?.id?.toString() ?? ''
       if (areaId == '') return
       const geometry = e.features[0].geometry as Geometry & { coordinates: any }
       const coordinates = geometry.coordinates
@@ -1675,7 +1675,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       return
     }
 
-    const areaId: string = e.features[0]?.id?.toString() || ''
+    const areaId: string = e.features[0]?.id?.toString() ?? ''
     if (areaId == '') return
 
     MapBoxHelper.deleteWildfireArea(areaId)
