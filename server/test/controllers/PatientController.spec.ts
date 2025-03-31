@@ -20,8 +20,8 @@ describe('Patient Controller', () => {
       nameLower: 'zoe',
       hospitalId: 'hospital123',
       priority: 'could_wait',
-      status: 'at_er',
-      location: 'ER',
+      status: 'to_er',
+      location: 'Road',
     })
 
     return rawPatient.save()
@@ -36,6 +36,12 @@ describe('Patient Controller', () => {
     expect(patients.length).toBe(1)
     expect(patients[0].hospitalId).toBe('hospital123')
     expect(patients[0].name).toBe('Zoe E')
+  })
+
+  it('should be able to change the location of a patient', async () => {
+    const patient = await createTestPatient('Zoe')
+    const updatedPatient = await PatientController.updateLocation(patient.patientId, 'ER')
+    expect(updatedPatient.location).toBe('ER')
   })
 
 })

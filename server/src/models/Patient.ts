@@ -170,6 +170,7 @@ export const PatientSchema = new Schema({
    */
   location: {
     type: String,
+    enum: ['ER','Road'],
   },
 
   /**
