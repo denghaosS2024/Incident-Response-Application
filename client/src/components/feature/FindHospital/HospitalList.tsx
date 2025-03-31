@@ -48,7 +48,7 @@ const HospitalList: React.FC<HospitalListProps> = ({
   }
 
   return (
-    <Box className="w-2/3">
+    <Box className="w-3/5">
       {hospitals.length > 0 ? (
         hospitals.map((hospital, index) => (
           <HospitalCard
