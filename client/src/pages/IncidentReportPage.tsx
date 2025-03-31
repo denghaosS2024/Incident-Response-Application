@@ -1,4 +1,4 @@
-import { Box, Divider, Typography } from '@mui/material'
+import { Box, Button, Divider, Typography } from '@mui/material'
 import { useLocation } from 'react-router-dom'
 import StatisticsAndAdditionalInfo from '../components/IncidentReport/StatisticsAndAdditionalInfo.tsx'
 import Step1EmergencyDetails from '../components/IncidentReport/Step1EmergencyDetails'
@@ -43,6 +43,12 @@ const IncidentReportPage = () => {
 
             <Step5ResponseTimeline incident={incidentData} />
             <StatisticsAndAdditionalInfo  incident={incidentData} />
+
+            <Box textAlign="center" mt={4} mb={2}>
+                <Button variant="outlined" onClick={() => window.print()}>
+                    Print Report
+                </Button>
+            </Box>
         </Box>
     )
 }

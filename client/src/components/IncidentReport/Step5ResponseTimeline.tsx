@@ -8,6 +8,7 @@ import {
   PriorityHigh,
 } from '@mui/icons-material'
 import { Box, Typography } from '@mui/material'
+import StepIndicator from '../common/StepIndicator'
 
 type AssignHistoryItem = {
   name: string
@@ -99,7 +100,8 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
   ]
 
   return (
-    <Box sx={{ px: 4, py: 3, backgroundColor: '#fff', minHeight: '80vh' }}>
+    <Box sx={{ mt: 3, mb: 4 }}>
+      <StepIndicator currentStep={5} totalSteps={5} />
       <Typography variant="h5"  align="center"  mb={3}>
         Response Timeline
       </Typography>

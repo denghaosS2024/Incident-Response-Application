@@ -1,11 +1,11 @@
 import {
-    Box,
-    Button,
-    List,
-    ListItem,
-    Stack,
-    TextField,
-    Typography,
+  Box,
+  Button,
+  List,
+  ListItem,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react'
 import request from '../../utils/request'
@@ -128,36 +128,10 @@ import StarRating from '../common/StarRating'
       setAdditionalInfo(initialData.additionalInfo)
     }
 
-    const generateReport = () => {
-      const printContent = contentRef.current?.innerHTML
-      if (!printContent) return
-
-      const printWindow = window.open('', '_blank')
-      if (printWindow) {
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>Incident Report</title>
-              <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                h5 { text-align: center; margin-top: 20px; }
-                p, li, div { margin: 5px 0; }
-              </style>
-            </head>
-            <body>${printContent}</body>
-          </html>
-        `)
-        printWindow.document.close()
-        printWindow.focus()
-        printWindow.print()
-        printWindow.close()
-      }
-    }
-
     const statisticsList = generateIncidentStatistics(incident)
 
     return (
-      <Box maxWidth="500px" mx="auto" p={3} ref={contentRef}>
+      <Box sx={{ mt: 3, mb: 4 }} ref={contentRef}>
         <Box component="section">
           <Typography variant="h5" align="center" gutterBottom>
             Incident Statistics
@@ -220,9 +194,6 @@ import StarRating from '../common/StarRating'
           </Button>
           <Button variant="outlined" onClick={unsaveReport}>
             Cancel
-          </Button>
-          <Button variant="outlined" onClick={generateReport}>
-            PDF
           </Button>
         </Stack>
       </Box>
