@@ -180,24 +180,16 @@ class TruckController {
     }
 
     async updateIncident(truckName: string, incidentId: string | null) {
-        if (!incidentId) {
-            const updatedTruck = await Truck.findOneAndUpdate(
-                { name: truckName },
-                { $set: { assignedCity: null, assignedIncident: null } },
-                { new: true },
-            )
-            return updatedTruck
-        }
-        const car = await Truck.findOne({ name: truckName })
-        if (!car) {
+        const truck = await Truck.findOne({ name: truckName })
+        if (!truck) {
             throw new Error(`Car with name '${truckName}' does not exist`)
         }
-        const updatedCar = await Truck.findOneAndUpdate(
+        const updatedTruck = await Truck.findOneAndUpdate(
             { name: truckName },
             { assignedIncident: incidentId },
             { new: true },
         )
-        return updatedCar
+        return updatedTruck
     }
 }
 

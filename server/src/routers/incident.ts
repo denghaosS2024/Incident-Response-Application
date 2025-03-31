@@ -593,6 +593,7 @@ export default Router()
         const { incidents } = request.body
         try {
             for (const incident of incidents[0]) {
+                console.log(incident)
                 await IncidentController.updateVehicleHistory(incident)
             }
             response.status(200).json({ message: 'success' })

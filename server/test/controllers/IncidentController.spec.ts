@@ -577,7 +577,7 @@ describe('Incident Controller', () => {
 
             await expect(
                 IncidentController.updateVehicleHistory(incident),
-            ).rejects.toThrow('Commander must be present on one of the vehicles')
+            ).rejects.toThrow('Cannot deallocate commander\'s vehicle')
         })        
     })
 })

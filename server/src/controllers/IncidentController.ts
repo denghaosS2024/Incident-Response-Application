@@ -411,6 +411,15 @@ class IncidentController {
         }
 
         for (const v of removeVehicleSet) {
+            // check whether incident.commander is in the vehicle
+            const isCommanderInVehicle = v.usernames.includes(
+                existingIncident.commander,
+            )
+            if (isCommanderInVehicle) {
+                throw new Error(
+                    'Cannot deallocate commander\'s vehicle',
+                )
+            }
             existingIncident.assignHistory.push({
                 timestamp: now,
                 usernames: v.usernames,
@@ -442,13 +451,26 @@ class IncidentController {
     async createOrUpdateRespondersGroup(
         incident: IIncident,
     ): Promise<IIncident> {
-        if (
-            !incident.assignedVehicles ||
-            incident.assignedVehicles.length === 0
-        ) {
-            throw new Error(
-                'No assigned vehicles available to create responders group.',
-            )
+        if (!incident.assignedVehicles || incident.assignedVehicles.length === 0) {
+            console.log(incident)
+            if (!incident.respondersGroup) {
+                return incident
+            }
+            if (incident.respondersGroup) {
+                await ChannelController.closeChannel(incident.respondersGroup)
+                incident.respondersGroup = null
+                await incident.save()
+
+                const updatedIncident = await Incident.findById(incident._id)
+                    .populate('respondersGroup')
+                    .exec()
+
+                if (!updatedIncident) {
+                    throw new Error(`Incident with ID '${incident._id}' not found`)
+                }
+
+                return updatedIncident
+            }
         }
 
         const isCommanderOnVehicle = incident.assignedVehicles.some((vehicle) =>
