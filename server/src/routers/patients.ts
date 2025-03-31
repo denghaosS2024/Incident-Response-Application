@@ -764,9 +764,15 @@ export default Router()
    */
   .put('/:patientId/location', async (request, response) => {
     const { patientId } = request.params
-
-    const result = await PatientController.updateLocation(patientId, request.body.location)
-      
-    response.json(result)
-    
+    try {
+      const result = await PatientController.updateLocation(patientId, request.body.location)
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      if (error.message === 'Invalid location') {
+        response.status(400).json({ message: error.message })
+      } else {
+        response.status(500).json({ message: error.message })
+      }
+    }
   })
