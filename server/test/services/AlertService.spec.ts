@@ -1,4 +1,4 @@
-import AlertService from '../services/AlertService';
+import AlertService from '../../src/services/AlertService';
 
 describe('AlertService', () => {
     it('should return the same instance on repeated access', () => {
