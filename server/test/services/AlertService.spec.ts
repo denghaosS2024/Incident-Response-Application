@@ -1,4 +1,4 @@
-import { GroupAlertState } from '../../src/models/AlertQueue';
+import { Alert, GroupAlertState } from '../../src/models/AlertQueue';
 import AlertService from '../../src/services/AlertService';
 
 describe('AlertService', () => {
@@ -29,6 +29,32 @@ describe('AlertService', () => {
         alertService.setGroupAlertState(groupId, testGroupAlertState);
         const groupAlertState = alertService.getGroupAlertState(groupId);
         expect(groupAlertState).toEqual(testGroupAlertState);
+    });
+
+    it('should queue alerts', () => {
+        const groupId = 'group-123';
+        const alertService = AlertService;
+        const alert: Alert = {
+            id: '123',
+            message: 'test',
+            priority: 'E',
+            createdAt: new Date(),
+            groupId: groupId,
+            status: 'waiting',
+        };
+        
+        alertService.setGroupAlertState(groupId, {
+            alertQueue: [],
+            ongoingAlert: undefined,
+            timeoutHandle: undefined,
+        });
+
+        alertService.queueAlert(alert);
+        const groupAlertState = alertService.getGroupAlertState(groupId);
+        expect(groupAlertState?.alertQueue).toEqual([alert]);
+        
+        
+        
     });
   });
 
