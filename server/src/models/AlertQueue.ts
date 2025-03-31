@@ -2,7 +2,9 @@ type Priority = 'E' | 'U' | 'H'
 
 export interface Alert {
     id: string;
-    message: string;
+    patientId: string;
+    patientName: string;
+    numNurse: number;
     priority: Priority;
     createdAt: Date;
     groupId: string;

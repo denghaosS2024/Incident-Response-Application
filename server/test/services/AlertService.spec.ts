@@ -36,7 +36,9 @@ describe('AlertService', () => {
         const alertService = AlertService;
         const alert: Alert = {
             id: '123',
-            message: 'test',
+            patientId: '123',
+            patientName: 'test',
+            numNurse: 1,
             priority: 'E',
             createdAt: new Date(),
             groupId: groupId,
@@ -59,7 +61,9 @@ describe('AlertService', () => {
         const alertService = AlertService;
         const alert: Alert = {
             id: '123',
-            message: 'test',
+            patientId: '123',
+            patientName: 'test',
+            numNurse: 1,
             priority: 'E',
             createdAt: new Date(),
             groupId: groupId,
@@ -69,6 +73,36 @@ describe('AlertService', () => {
         alertService.queueAlert(alert);
         const groupAlertState = alertService.getGroupAlertState(groupId);
         expect(groupAlertState?.alertQueue).toEqual([alert]);
+    });
+
+    it('should send alert when there is no ongoing alert', () => {
+        const groupId = 'group-send';
+        const alertService = AlertService;
+        const alert: Alert = {
+            id: '123',
+            patientId: '123',
+            patientName: 'test',
+            numNurse: 1,
+            priority: 'E',
+            createdAt: new Date(),
+            groupId: groupId,
+            status: 'waiting',
+        };
+        
+        alertService.setGroupAlertState(groupId, {
+            alertQueue: [],
+            ongoingAlert: undefined,
+            timeoutHandle: undefined,
+        });
+
+        alertService.queueAlert(alert);
+        const groupAlertState = alertService.getGroupAlertState(groupId);
+        expect(groupAlertState?.alertQueue).toEqual([alert]);
+        
+        alertService.sendAlert(groupId);
+        const groupAlertStateAfter = alertService.getGroupAlertState(groupId);
+        expect(groupAlertStateAfter?.alertQueue).toEqual([]);
+        expect(groupAlertStateAfter?.ongoingAlert).toEqual(alert);
     });
   });
 

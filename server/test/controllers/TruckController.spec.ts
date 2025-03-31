@@ -1,4 +1,5 @@
 import TruckController from '../../src/controllers/TruckController'
+import Incident from '../../src/models/Incident'
 import Truck from '../../src/models/Truck'
 import * as TestDatabase from '../utils/TestDatabase'
 
@@ -56,6 +57,22 @@ describe('TruckController', () => {
 
     const found = await Truck.findById(id)
     expect(found).toBeNull()
+  })
+
+  it('should remove username and deallocate truck from incident if no usernames remain', async () => {
+    await Truck.create({ name: 'Truck1', usernames: ['usr'] })
+    await Incident.create({
+      incidentId: 'Iusr',
+      caller: 'usr',
+      incidentNumber: '123',
+      assignedVehicles: [{ name: 'Truck1', type: 'Truck' }],
+    })
+
+    const updatedTruck = await TruckController.releaseUsernameFromTruck('Truck1', 'usr')
+    expect(updatedTruck.usernames!.length).toBe(0)
+
+    const incidentAfter = await Incident.findOne({ incidentNumber: '123' })
+    expect(incidentAfter?.assignedVehicles.find(v => v.name === 'Truck1')).toBeUndefined()
   })
 
     describe('', () => {  
@@ -150,6 +167,31 @@ describe('TruckController', () => {
         expect(Array.isArray(availableTrucks)).toBe(true);
         expect(availableTrucks.length).toBe(0);
       });
+
+      it('should release a username and update both Truck and Incident if needed', async () => {
+        await Truck.create({
+          name: 'Truck-Integration',
+          usernames: ['usr'],
+        })
+        await Incident.create({
+          caller: 'usr',
+          incidentId: 'Iusr2',
+          incidentNumber: 'INC-999',
+          assignedVehicles: [{ name: 'Truck-Integration', type: 'Truck' }],
+        })
+    
+        const result = await TruckController.releaseUsernameFromTruck('Truck-Integration', 'usr')
+    
+        const updatedTruck = await Truck.findOne({ name: 'Truck-Integration' })
+        expect(updatedTruck).toBeDefined()
+        expect(updatedTruck?.usernames).toEqual([])
+    
+        const updatedIncident = await Incident.findOne({ incidentNumber: 'INC-999' })
+        expect(updatedIncident).toBeDefined()
+        expect(updatedIncident?.assignedVehicles.some(v => v.name === 'Truck-Integration')).toBeUndefined()
+    
+        expect(result.usernames).toEqual([])
+      })
   
       it('should throw an error when database operation fails', async () => {
         // Mock the Car.find method to throw an error

@@ -9,7 +9,7 @@ interface PatientProps {
   index: number
 }
 
-const PatientCard: React.FC<PatientProps> = ({ patient, id, index }) => {
+const PatientCard: React.FC<PatientProps> = ({ patient, index }) => {
   const draggableId = patient.patientId
 
   const userID = localStorage.getItem('uid')

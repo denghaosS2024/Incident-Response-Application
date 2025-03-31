@@ -32,7 +32,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     const isClosed = incidentData?.incidentState === 'Closed'
     const dispatch = useDispatch<AppDispatch>()
     const navigate = useNavigate()
-    const currentUsername = localStorage.getItem('username')
+    const currentUsername = localStorage.getItem('username') ?? ''
     const [unassignedPersonnel, setUnassignedPersonnel] = useState<string[]>([])
     const [amICommander, setAmICommander] = useState(false)
     const [currenCommander, setCurrentCommander] = useState<string | null>(
