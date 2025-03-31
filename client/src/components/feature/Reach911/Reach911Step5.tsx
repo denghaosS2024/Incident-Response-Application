@@ -247,9 +247,14 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             setAmICommander(false)
         }
 
+        const incidentState =
+            incidentData.incidentState === 'Triage'
+                ? 'Assigned'
+                : incidentData.incidentState
         try {
             const updatedIncident = {
                 ...incidentData,
+                incidentState: incidentState,
                 commander: newCommander,
             }
             let updateResponse
@@ -378,9 +383,9 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                     Who is on the Team?
                 </Typography>
-                <Typography>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
                     Owner:{' '}
-                    {amICommander
+                    {incidentData.owner === currentUsername
                         ? `You (${currentUsername})`
                         : incidentData.owner}
                 </Typography>
@@ -393,25 +398,27 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     <FormControl fullWidth>
                         <InputLabel>Commander</InputLabel>
                         <Select
-                            value={currenCommander}
-                            label="Commander"
-                            onChange={(e) =>
-                                handleCommanderChange(e.target.value as string)
-                            }
+                          value={currenCommander}
+                          label="Commander"
+                          onChange={(e) =>
+                            handleCommanderChange(e.target.value as string)
+                          }
                         >
-                            <MenuItem
-                                key={currentUsername}
-                                value={currentUsername}
-                            >
-                                {amICommander
-                                    ? `You (${currentUsername})`
-                                    : incidentData.commander}
+                          <MenuItem
+                            key={currentUsername}
+                            value={currentUsername}
+                          >
+                            {currentUsername === currenCommander
+                              ? `You (${currentUsername})`
+                              : currentUsername}
+                          </MenuItem>
+                          {unassignedPersonnel.map((person) => (
+                            <MenuItem key={person} value={person}>
+                              {person === currentUsername
+                                ? `You (${person})`
+                                : person}
                             </MenuItem>
-                            {unassignedPersonnel.map((person) => (
-                                <MenuItem key={person} value={person}>
-                                    {person}
-                                </MenuItem>
-                            ))}
+                          ))}
                         </Select>
                     </FormControl>
                 )}
