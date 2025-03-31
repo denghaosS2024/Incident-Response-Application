@@ -1,55 +1,29 @@
 import IHospital from '@/models/Hospital'
 import IPatient from '@/models/Patient'
 import { Box, Typography } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Droppable } from 'react-beautiful-dnd'
 import PatientCard from './PatientCard'
-import request from '../../utils/request'
 
 interface HospitalProps {
   hospital: IHospital
   id: string
   index: number
-  patients?: IPatient[]
+  patients: IPatient[]
 }
 
 const HospitalCard: React.FC<HospitalProps> = ({
   hospital,
   id,
   index,
-  patients: patientProp,
+  patients,
 }) => {
   const availableBeds =
-    hospital.totalNumberERBeds - hospital.totalNumberOfPatients || 0
-
-  const [patients, setPatients] = useState<IPatient[]>(patientProp || []) // Use mock patients if provided
-
-  const fetchPatientsByHospitalId = (hospitalId: string) => {
-    if (patientProp) {
-      return
-    }
-    request(`/api/patients?hospitalId=${encodeURIComponent(hospitalId)}`, {
-      method: 'GET',
-    })
-      .then((data) => {
-        console.log(data)
-        setPatients(data)
-      })
-      .catch((error) => {
-        console.error('Error fetching patients by hospital ID:', error)
-        setPatients([])
-      })
-  }
-
-  useEffect(() => {
-    if (!patientProp) {
-      fetchPatientsByHospitalId(hospital.hospitalId)
-    }
-  }, [hospital.hospitalId])
+    hospital.totalNumberERBeds - hospital.patients.length || 0
 
   return (
     <Droppable droppableId={id}>
-      {(provided, snapshot) => (
+      {(provided) => (
         <Box className="border border-gray-300 rounded-lg p-3 mb-2">
           <Box>
             <Typography className="font-extrabold" fontWeight="bold">
@@ -76,7 +50,6 @@ const HospitalCard: React.FC<HospitalProps> = ({
                 id={`patient-${hospital.hospitalId}-${patient.patientId}`}
                 patient={patient}
                 index={patientIndex}
-                isDraggingOver={true}
               />
             ))}
 

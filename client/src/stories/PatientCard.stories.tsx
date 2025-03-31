@@ -1,7 +1,7 @@
-import { Meta, StoryObj } from '@storybook/react'
-import PatientCard from '../components/FindHospital/PatientCard'
 import IPatient from '@/models/Patient'
+import { Meta, StoryObj } from '@storybook/react'
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'
+import PatientCard from '../components/feature/FindHospital/PatientCard'
 
 // Mock Patient Data
 const mockPatient: IPatient = {
