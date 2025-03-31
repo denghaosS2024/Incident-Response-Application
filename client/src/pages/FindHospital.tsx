@@ -132,9 +132,9 @@ const FindHospital: React.FC = () => {
         </Typography>
       </Box>
 
-      <Box className="flex flex-row justify-between gap-x-4">
+      <Box className="flex flex-row justify-between gap-x-4 w-full">
         <DragDropContext onDragEnd={handleDragEnd} key={0}>
-          <Box className="flex flex-row justify-between gap-x-4">
+          <Box className="flex flex-row justify-between gap-x-4 w-full">
             <PatientList patients={unassignedPatients}></PatientList>
             <HospitalList
               hospitals={hospitals}

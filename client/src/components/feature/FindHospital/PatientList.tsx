@@ -9,7 +9,7 @@ interface PatientListProps {
 
 const PatientList: React.FC<PatientListProps> = ({ patients }) => {
   return (
-    <Box className="w-1/3 border border-gray-300 rounded-lg mb-2">
+    <Box className="w-2/5 border border-gray-300 rounded-lg mb-2">
       <Typography className="text-center p-3 rounded-t-lg bg-mui-blue text-white">
         Patients
       </Typography>

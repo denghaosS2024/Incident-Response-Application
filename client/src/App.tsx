@@ -27,6 +27,9 @@ import ResourcesPage from './pages/ResourcesPage'
 import SARIncidentPage from './pages/SARIncidentPage'
 import SARTaskCreationPage from './pages/SARTaskCreationPage'
 import SARTaskPage from './pages/SARTaskPage.tsx'
+import TodoTasksPage from './pages/SarTasks'
+import DoneTasksPage from './pages/SarTasksDone'
+import StatisticsPage from './pages/SarTasksStatistics'
 import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
 import './styles/globals.css'
@@ -113,7 +116,10 @@ export default function App() {
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/create-chart" element={<CreatechartPage />} />
                         <Route path="/sar-task/create" element={<SARTaskCreationPage />} />
-                    </Route>
+                        <Route path="/sartasks/:incidentId" element={<TodoTasksPage />} />
+                        <Route path="/sartasksdone/:incidentId" element={<DoneTasksPage />} />
+                        <Route path="/sartasksstatistics/:incidentId" element={<StatisticsPage />} />
+                        </Route>
 
                     <Route element={<RoutedHome showBackButton isSubPage />}>
                         <Route

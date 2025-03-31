@@ -16,8 +16,8 @@ const PatientCard: React.FC<PatientProps> = ({ patient, id, index }) => {
   const isAssignedToUser = patient.nurseId === userID
 
   const style = [
-    'p-3',
-    'border-b border-gray-300 w-full',
+    'p-2 m-2',
+    'border border-gray-300 rounded-lg',
     isAssignedToUser ? 'bg-gray-300' : 'bg-white',
   ].join(' ')
 
