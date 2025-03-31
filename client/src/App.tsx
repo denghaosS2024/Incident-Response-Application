@@ -24,7 +24,7 @@ import RegisterPage from './pages/RegisterPage'
 import ResourcesPage from './pages/ResourcesPage'
 import SARIncidentPage from './pages/SARIncidentPage'
 import ViewOrganization from './pages/ViewOrganization'
-import SARTaskPage from './pages/SARTaskPage.tsx'
+import SARTaskCreationPage from './pages/SARTaskCreationPage'
 import RoutedHome from './routing/RoutedHome'
 import './styles/globals.css'
 import './styles/tailwind.css'
@@ -108,7 +108,7 @@ export default function App() {
                         />
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/create-chart" element={<CreatechartPage />} />
-                        <Route path="/sar-task" element={<SARTaskPage />} />
+                        <Route path="/sar-task/create" element={<SARTaskCreationPage />} />
                     </Route>
 
                     <Route element={<RoutedHome showBackButton isSubPage />}>

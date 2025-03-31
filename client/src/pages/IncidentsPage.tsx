@@ -207,16 +207,61 @@ function IncidentsPage() {
     }
   }
 
-   const handleAddSARIncident = () => {
+  const handleAddSARIncident = async () => {
     try {
-      // Just navigate to the SAR incident page without creating an incident
+      const username = localStorage.getItem('username')
+      if (!username) throw new Error('Username not found in local storage.')
+
+      // Get the count of SAR incidents for this user
+      let sarIncidentCount = 1
+      try {
+        // Filter for SAR incidents (type 'S') created by this user
+        const userSARIncidents = await request(`/api/incidents?caller=${username}&type=S`)
+        sarIncidentCount = Array.isArray(userSARIncidents)
+          ? userSARIncidents.length + 1
+          : 1
+      } catch (error: any) {
+        if (
+          error &&
+          error.message &&
+          error.message.includes('Unexpected end of JSON input')
+        ) {
+          sarIncidentCount = 1
+        } else {
+          throw error
+        }
+      }
+
+      // Create a unique SAR Incident ID (e.g. "SDena12")
+      const sarIncidentId = `S${username}${sarIncidentCount}`
+      
+      // Create the new SAR incident with the specified properties
+      const newSARIncident = {
+        incidentId: sarIncidentId,
+        caller: username,
+        openingDate: new Date().toISOString(),
+        incidentState: 'Assigned',
+        owner: username,
+        commander: username,
+        type: 'S', // SAR incident type
+      }
+
+      // Save the new SAR incident to the server
+      await request('/api/incidents/new', {
+        method: 'POST',
+        body: JSON.stringify(newSARIncident),
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      // Navigate to the SAR incident page
       navigate('/sar-incident', {
         state: {
-          createSARIncident: true
+          incidentId: sarIncidentId,
+          isCreatedByFirstResponder: true,
         },
       })
     } catch (error) {
-      console.error('Error navigating to SAR incident page:', error)
+      console.error('Error creating new SAR incident:', error)
     }
   }
 
@@ -260,13 +305,27 @@ function IncidentsPage() {
     }
 
     const autoPopulateData = true
-    navigate('/reach911', {
-      state: {
-        incidentId: incident.incidentId,
-        readOnly,
-        autoPopulateData,
-      },
-    })
+    
+    // Check if this is a SAR incident (type 'S')
+    if (incident.type === 'S') {
+      // Navigate to the SAR incident page
+      navigate('/sar-incident', {
+        state: {
+          incidentId: incident.incidentId,
+          readOnly,
+          autoPopulateData,
+        },
+      })
+    } else {
+      // Navigate to the regular Reach911 page for other incident types
+      navigate('/reach911', {
+        state: {
+          incidentId: incident.incidentId,
+          readOnly,
+          autoPopulateData,
+        },
+      })
+    }
   }
 
   const handleCloseCurrentIncident = async () => {
@@ -454,6 +513,7 @@ function IncidentsPage() {
             </>
           )
           }
+          {/* Commented out testing close functionality button
           {hasActiveResponderIncident && (
             <Tooltip title="Close current incident">
               <IconButton
@@ -475,6 +535,7 @@ function IncidentsPage() {
               </IconButton>
             </Tooltip>
           )}
+          */}
         </>
       ) : null}
     </Box>
