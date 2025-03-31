@@ -20,6 +20,7 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
   const taskId = parseInt(searchParams.get('taskId') || '0')
   const [counts, setCounts] = useState<number[]>(categories.map(() => 0))
   const [readOnly, setReadOnly] = useState(false)
+  const [allowTreatVictim, setAllowTreatVictim] = useState(true)
 
   useEffect(() => {
     if (incident === null || incident?.sarTasks === null) return
@@ -27,6 +28,10 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
     setCounts(victims)
 
     setReadOnly(incident?.sarTasks?.at(taskId)?.state === 'Done')
+
+    if (victims.length === categories.length) {
+      setAllowTreatVictim(victims[0] > 0 || victims[1] > 0 || victims[2] > 0)
+    }
   }, [incident]);
 
   const handleCountChange = (index: number, value: string) => {
@@ -35,6 +40,10 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
     newCounts[index] = Math.max(0, parseInt(value) || 0)
     setCounts(newCounts)
     // console.log(newCounts)
+
+    if (newCounts.length === categories.length) {
+      setAllowTreatVictim(newCounts[0] > 0 || newCounts[1] > 0 || newCounts[2] > 0)
+    }
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -133,7 +142,7 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
             href='/patients'  // TODO: redirect to patient page
             className={styles.primaryBtn}
             variant="contained"
-            disabled={readOnly}
+            disabled={readOnly || !allowTreatVictim}
             sx={{ mt: 2, mx: 1 }}
           >
             Treat Victims
