@@ -11,7 +11,6 @@ import '@fontsource/roboto/700.css';
 import '@fontsource/material-icons';
 
 
-/* TODO: update import for your custom Material UI themes */
 import { lightTheme, darkTheme } from '../src/themes/default.theme';
 
 const preview: Preview = {

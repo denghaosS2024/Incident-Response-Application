@@ -29,7 +29,6 @@ const meta: Meta<typeof PatientCard> = {
     patient: mockPatient,
     id: 'hospital-001',
     index: 0,
-    isDraggingOver: false,
   },
 }
 

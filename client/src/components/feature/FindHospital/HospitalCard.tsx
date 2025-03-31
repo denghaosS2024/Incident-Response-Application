@@ -15,7 +15,6 @@ interface HospitalProps {
 const HospitalCard: React.FC<HospitalProps> = ({
   hospital,
   id,
-  index,
   patients,
 }) => {
   const availableBeds =

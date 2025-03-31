@@ -45,7 +45,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
         medicalQuestions = {
             isPatient: false,
             username: '',
-            // age: 1,
+            age: 0,
             sex: '',
             conscious: '',
             breathing: '',
