@@ -11,8 +11,8 @@ interface SARTaskStep3Props {
 }
 
 const SARTaskStep3: React.FC<SARTaskStep3Props> = ({incident }) => {
-    const incidentId = Array.isArray(incident) 
-    ? incident[0]?.incidentId || 'SDena101' 
+    const incidentId = Array.isArray(incident)
+    ? incident[0]?.incidentId || 'SDena101'
     : incident?.incidentId || 'SDena101'
   const handleVictimClick = () => {
     console.log('Victims button clicked')
@@ -20,13 +20,13 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({incident }) => {
 
   return (
     <div className={styles.wrapperStep}>
-      <AddressBar address='4400 Forbes Ave, Pittsburgh, PA 15213' /> {/*TODO: load address dynamically*/}
+      <AddressBar address={incident?.address || 'No Address'} />
       <div className="mt-2"></div> {/* add space between components */}
       <SARTaskTitle
         title={'Victims'}
         subtitle={'Enter the number of victims:'}
       />
-      
+
       <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
         <ReturnToTasksBtn />
         <Button className={styles.primaryBtn} onClick={handleVictimClick} variant="contained"

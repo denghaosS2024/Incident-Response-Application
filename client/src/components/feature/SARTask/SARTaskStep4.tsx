@@ -27,15 +27,15 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
       if (!incident?.sarTask?.hazards || incident.sarTask.hazards.length === 0) {
         return 'No Hazards'
       }
-      
-      return incident.sarTask.hazards.map(hazard => 
+
+      return incident.sarTask.hazards.map(hazard =>
         hazard
       ).join(' ')
     }
 
     const formatVictimCounts = () => {
       const victims = incident?.sarTask?.victims || [];
-      
+
       // Types of victims with their index
       const victimTypes = [
         { type: 'Immediate', index: 0 },
@@ -44,7 +44,7 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
         // { type: 'Dismiss', index: 3 },
         { type: 'Deceased', index: 4 }
       ];
-      
+
       const parts = [];
       for (const typeObj of victimTypes) {
         const count = victims[typeObj.index];
@@ -52,11 +52,11 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
           parts.push(`${count}-${typeObj.type.toLowerCase()}`);
         }
       }
-      
+
       if (parts.length === 0) {
         return 'No Victims';
       }
-      
+
       return parts.join(' ');
     }
 
@@ -87,11 +87,11 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
 
         }
 
-    
+
 
   return (
     <div className={styles.wrapperStep}>
-      <AddressBar address='4400 Forbes Ave, Pittsburgh, PA 15213' /> {/*TODO: load address dynamically*/}
+      <AddressBar address={incident?.address || 'No Address'} />
       <div className="mt-2"></div> {/* add space between components */}
       <SARTaskTitle
         title={'Final Marker'}
