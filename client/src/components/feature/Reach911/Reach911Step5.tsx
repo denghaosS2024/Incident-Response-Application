@@ -18,6 +18,8 @@ import { updateIncident } from '../../../redux/incidentSlice'
 import type { AppDispatch } from '../../../redux/store'
 import request from '../../../utils/request'
 import ConfirmationDialog from '../../common/ConfirmationDialog'
+import { Input } from 'antd'
+import { current } from '@reduxjs/toolkit'
 
 interface Reach911Step5Props {
     incidentId?: string
@@ -32,6 +34,12 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     const isClosed = incidentData?.incidentState === 'Closed'
     const dispatch = useDispatch<AppDispatch>()
     const navigate = useNavigate()
+    const currentUsername = localStorage.getItem('username')
+    const [unassignedPersonnel, setUnassignedPersonnel] = useState<string[]>([])
+    const [amICommander, setAmICommander] = useState(false)
+    const [currenCommander, setCurrentCommander] = useState<string | null>(
+        currentUsername,
+    )
 
     // Two-way mapping between UI and backend values for priority.
     const displayToBackend: Record<string, IncidentPriority> = {
@@ -48,6 +56,56 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         [IncidentPriority.Dismiss]: '3',
         [IncidentPriority.Unset]: 'E',
     }
+
+    // Fetch all personnel and exclude assigned personnel
+    useEffect(() => {
+        const fetchPersonnel = async () => {
+            try {
+                const personnelData = await request('/api/personnel', {
+                    method: 'GET',
+                })
+
+                const assignedPersonnel = await request(`/api/incidents`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                })
+
+                // Assigned personnel are commanders
+                const assignedPersonnelSet = new Set<string>()
+                assignedPersonnel.forEach((incident: IIncident) => {
+                    if (incident.commander) {
+                        assignedPersonnelSet.add(incident.commander)
+                    }
+                })
+                const allPersonnelSet = new Set<string>()
+                personnelData.forEach((person: any) => {
+                    allPersonnelSet.add(person.name)
+                })
+                assignedPersonnel.forEach((incident: IIncident) => {
+                    if (incident.commander) {
+                        assignedPersonnelSet.add(incident.commander)
+                    }
+                })
+                // Filter out assigned personnel from the personnel data
+                const assignedPersonnelArray = Array.from(assignedPersonnelSet)
+                const unassignedPersonnelSet = new Set<string>(
+                    Array.from(allPersonnelSet).filter(
+                        (name) => !assignedPersonnelArray.includes(name),
+                    ),
+                )
+                // Convert the Set back to an array
+                const unassignedPersonnelArray = Array.from(
+                    unassignedPersonnelSet,
+                )
+                console.debug('Unassigned Personnel:', unassignedPersonnelArray)
+
+                setUnassignedPersonnel(unassignedPersonnelArray)
+            } catch (err) {
+                console.error('Error fetching unassigned personnel:', err)
+            }
+        }
+        fetchPersonnel()
+    }, [])
 
     // Fetch incident details and update Redux state
     useEffect(() => {
@@ -67,6 +125,9 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                                 incident.priority as IncidentPriority
                             ] || 'E'
                         setPriority(uiPriority)
+                    }
+                    if (incident.commander === currentUsername) {
+                        setAmICommander(true)
                     }
                 } else {
                     setError('No incident found for this incidentId')
@@ -154,7 +215,6 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             setError('No incident ID found to close')
             return
         }
-
         try {
             setLoading(true)
 
@@ -164,13 +224,66 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     method: 'DELETE',
                 },
             )
-
             dispatch(updateIncident(closedIncident))
             setIncidentData(closedIncident)
             console.log('Incident closed successfully')
         } catch (err: any) {
             console.error('Error closing incident:', err)
             setError(err.message || 'Unknown error while closing incident')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleCommanderChange = async (newCommander: string) => {
+        if (!incidentData) return
+
+        if (newCommander === currentUsername) {
+            setAmICommander(true)
+            if (incidentData?.commander === currentUsername) {
+                return
+            }
+        } else {
+            setAmICommander(false)
+        }
+
+        try {
+            const updatedIncident = {
+                ...incidentData,
+                commander: newCommander,
+            }
+            let updateResponse
+            try {
+                updateResponse = await request('/api/incidents/update', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedIncident),
+                })
+            } catch (e: any) {
+                if (
+                    e.message &&
+                    e.message.includes('Unexpected end of JSON input')
+                ) {
+                    updateResponse = { status: 204 }
+                } else {
+                    throw e
+                }
+            }
+
+            if (updateResponse.status !== 204) {
+                throw new Error('Failed to update incident')
+            }
+
+            dispatch(
+                updateIncident({
+                    ...incidentData,
+                    commander: newCommander,
+                }),
+            )
+            setCurrentCommander(newCommander)
+        } catch (err) {
+            console.error('Error updating incident:', err)
+            setError('Failed to update incident')
         } finally {
             setLoading(false)
         }
@@ -265,8 +378,43 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                     Who is on the Team?
                 </Typography>
-                <Typography>Owner: {incidentData.owner}</Typography>
-                <Typography>Commander: {incidentData.commander}</Typography>
+                <Typography>
+                    Owner:{' '}
+                    {amICommander
+                        ? `You (${currentUsername})`
+                        : incidentData.owner}
+                </Typography>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                    Incident Commander
+                </Typography>
+                {isClosed ? (
+                    <Typography>{incidentData.commander}</Typography>
+                ) : (
+                    <FormControl fullWidth>
+                        <InputLabel>Commander</InputLabel>
+                        <Select
+                            value={currenCommander}
+                            label="Commander"
+                            onChange={(e) =>
+                                handleCommanderChange(e.target.value as string)
+                            }
+                        >
+                            <MenuItem
+                                key={currentUsername}
+                                value={currentUsername}
+                            >
+                                {amICommander
+                                    ? `You (${currentUsername})`
+                                    : incidentData.commander}
+                            </MenuItem>
+                            {unassignedPersonnel.map((person) => (
+                                <MenuItem key={person} value={person}>
+                                    {person}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                )}
             </Box>
 
             {!isClosed && (
@@ -281,7 +429,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     <Button
                         variant="contained"
                         color="error"
-                        sx={{ mt: 2, ml: 2 }}
+                        sx={{ ml: 2 }}
                         onClick={handleCloseIncidentClick}
                     >
                         Close Incident

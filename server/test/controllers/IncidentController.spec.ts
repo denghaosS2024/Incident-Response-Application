@@ -32,6 +32,21 @@ describe('Incident Controller', () => {
         return rawIncident.save()
     }
 
+    const createTestIncidentwithGroup = async (username: string) => {
+        const rawIncident = new Incident({
+            incidentId: `I${username}`,
+            caller: username,
+            openingDate: new Date(),
+            incidentState: 'Waiting',
+            owner: 'System',
+            commander: 'System',
+            incidentCallGroup: new Types.ObjectId(),
+            respondersGroup: new Types.ObjectId(),
+        })
+
+        return rawIncident.save()
+    }
+
     const createTestCar = async (carName: string, usernames: string[] = []) => {
         return await Car.create({
             name: carName,
@@ -163,18 +178,18 @@ describe('Incident Controller', () => {
 
     it('should return incident details for a given channelId', async () => {
         const caller = 'user201'
-        const incident = await createTestIncident(caller)
+        const incident = await createTestIncidentwithGroup(caller)
         let incidents = [] as IIncident[]
-        if (incident.incidentCallGroup) {
+        if (incident.respondersGroup) {
             incidents = await IncidentController.getIncidentByChannelId(
-                incident.incidentCallGroup.toString(),
+                incident.respondersGroup.toString(),
             )
         }
         expect(incidents).toBeDefined()
         expect(incidents.length).toBe(1)
         expect(incidents[0].incidentId).toBe(incident.incidentId)
         expect(
-            incidents[0].incidentCallGroup?.equals(incident.incidentCallGroup),
+            incidents[0].respondersGroup?.equals(incident.respondersGroup),
         ).toBe(true)
     })
 

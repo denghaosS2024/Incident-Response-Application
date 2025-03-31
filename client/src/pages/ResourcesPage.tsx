@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, useMediaQuery } from '@mui/material';
+import { Box, Card, CardContent, Typography, useMediaQuery, Alert } from '@mui/material';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { Button } from '@mui/material';
 import AlertSnackbar from '@/components/common/AlertSnackbar';
@@ -33,6 +33,8 @@ const ResourcesPage: React.FC = () => {
   const [incidents, setIncidents] = useState<IIncident[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [openSuccessSnackbar, setOpenSuccessSnackbar] = useState(false);
   
   // For responsive layout
   const isMobile = useMediaQuery('(max-width:600px)');
@@ -60,6 +62,10 @@ const ResourcesPage: React.FC = () => {
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
+  };
+
+  const handleCloseSuccessSnackbar = () => {
+    setOpenSuccessSnackbar(false);
   };
 
   // Drag and drop logic
@@ -266,13 +272,13 @@ const ResourcesPage: React.FC = () => {
       const myIncidents = incidents.filter(
         (incident) => incident.commander === currentUsername
       );
-      console.log(myIncidents)
-      const response = await request('/api/incidents/updatedVehicles', {
+      await request('/api/incidents/updatedVehicles', {
         method: 'PUT',
         body: JSON.stringify({ incidents: [myIncidents] }),
-      })
-      console.log(response)
-      alert("Success")
+      });
+
+      setSuccessMessage("Submit Successfully!");
+      setOpenSuccessSnackbar(true);
     }catch(e){
       console.log(e)
     }
@@ -280,6 +286,7 @@ const ResourcesPage: React.FC = () => {
 
   return (
     <div className="container-fluid" style={{ padding: '20px' }}>
+
       <Typography variant="h6" align="center" className="mb-4">
         Drag & drop resources:
       </Typography>
@@ -325,6 +332,15 @@ const ResourcesPage: React.FC = () => {
         message={errorMessage || ''}
         onClose={handleCloseSnackbar}
         severity="error"
+        vertical="bottom"
+        horizontal="center"
+      />
+
+      <AlertSnackbar
+        open={openSuccessSnackbar}
+        message={successMessage || ''}
+        onClose={handleCloseSuccessSnackbar}
+        severity="success"
         vertical="bottom"
         horizontal="center"
       />

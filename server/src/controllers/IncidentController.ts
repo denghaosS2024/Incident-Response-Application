@@ -89,7 +89,7 @@ class IncidentController {
                     ? incident.incidentCallGroup
                     : null,
                 sarTask: incident.type === 'S' 
-                ? incident.sarTask || { state: 'Todo', startDate: null }
+                ? incident.sarTask || { state: 'Todo', startDate: null, endDate: null }
                 : undefined
             }).save()
 
@@ -215,8 +215,8 @@ class IncidentController {
      * @returns incident details based on channelId
      */
     async getIncidentByChannelId(channelId: string): Promise<IIncident[]> {
-        const incidentCallGroup = channelId
-        return await Incident.find({ incidentCallGroup }).exec()
+        const respondersGroup = channelId
+        return await Incident.find({ respondersGroup }).exec()
     }
 
     /**

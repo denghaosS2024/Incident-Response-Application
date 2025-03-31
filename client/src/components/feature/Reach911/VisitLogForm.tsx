@@ -1,12 +1,15 @@
 import request from '@/utils/request';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { Box, Button, FormControl, FormControlLabel, IconButton, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
+import { Box, Button, FormControl, FormControlLabel, IconButton, Link, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { RootState } from '../../../redux/store';
 import Loading from '../../common/Loading';
-import { useNavigate } from 'react-router-dom';
+
+const hospitalGroupId = '67e74c979e55e050073d6afb'
+const patientId = '455tt'
 
 // Default: E
 const priorities = [
@@ -423,6 +426,29 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             </Button>
           </Box>
         </FormControl>
+
+        {/*Request Help*/}
+        {localStorage.getItem('role') === 'Nurse' && (
+          <FormControl>
+            <Box display="flex" alignItems="center" gap={2}>
+              <Typography sx={{ width: 120, flexShrink: 0 }}>
+                Request Help:
+              </Typography>
+              <Link 
+                href={`/messages?channelId=${hospitalGroupId}&showAlert=true&patient=${patientId}`}
+                style={{ textDecoration: 'none' }}
+              >
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+              >
+                Request Help
+                </Button>
+              </Link>
+            </Box>
+          </FormControl>
+        )}
 
             <Box display="flex" justifyContent="center" mt={4}>
                 <button

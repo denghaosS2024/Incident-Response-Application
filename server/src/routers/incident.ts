@@ -373,6 +373,86 @@ export default Router()
         }
     })
 
+
+            /**
+         * @swagger
+         * /api/incidents/sar/{incidentId}:
+         *   put:
+         *     summary: Update SAR task details for a SAR incident
+         *     tags: [Incidents]
+         *     parameters:
+         *       - in: path
+         *         name: incidentId
+         *         required: true
+         *         schema:
+         *           type: string
+         *         description: The unique identifier of the SAR incident
+         *     requestBody:
+         *       required: true
+         *       content:
+         *         application/json:
+         *           schema:
+         *             type: object
+         *             properties:
+         *               sarTask:
+         *                 type: object
+         *                 properties:
+         *                   state:
+         *                     type: string
+         *                     enum: [Todo, InProgress, Done]
+         *                   startDate:
+         *                     type: string
+         *                     format: date-time
+         *     responses:
+         *       200:
+         *         description: SAR task updated successfully
+         *         content:
+         *           application/json:
+         *             schema:
+         *               $ref: '#/components/schemas/Incident'
+         *       400:
+         *         description: Bad request - Invalid input
+         *       404:
+         *         description: SAR incident not found
+         */
+        .put('/sar/:incidentId', async (request, response) => {
+            try {
+                const { incidentId } = request.params;
+                const { sarTask } = request.body;
+                
+
+                if (!sarTask) {
+                    return response.status(400).json({ 
+                        message: 'sarTask is required for updating a SAR incident'
+                    });
+                }
+                
+
+                const incidents = await IncidentController.getIncidentByIncidentId(incidentId);
+                
+                if (!incidents || incidents.length === 0) {
+                    return response.status(404).json({ message: 'Incident not found' });
+                }
+                
+                if (incidents[0].type !== 'S') {
+                    return response.status(400).json({ 
+                        message: 'This is not a SAR type incident'
+                    });
+                }
+                
+
+                const updatedIncident = await IncidentController.updateIncident({
+                    incidentId: incidentId,
+                    sarTask: sarTask
+                });
+                
+                return response.status(200).json(updatedIncident);
+            } catch (e) {
+                const error = e as Error;
+                return response.status(400).json({ message: error.message });
+            }
+        })
+
     /**
      * @swagger
      * /api/incidents/:

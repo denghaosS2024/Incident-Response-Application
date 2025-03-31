@@ -39,7 +39,7 @@ const SARTaskPage: React.FC = () => {
   }, [incidentId])
 
   const contents = [
-    <SARTaskStep1 incident={currentIncident}/>,
+    <SARTaskStep1 incident={currentIncident} setIncident={setCurrentIncident} />,
     <SARTaskStep2 incident={currentIncident}/>,
     <SARTaskStep3 incident={currentIncident}/>,
     <SARTaskStep4 incident={currentIncident}/>,

@@ -31,7 +31,8 @@ export interface ISarTask {
     _id?: string
     id?: string
     state: 'Todo' | 'InProgress' | 'Done'
-    startDate?: Date
+    startDate?: Date,
+    endDate?: Date
     name?: string
     description?: string
     location?: {
