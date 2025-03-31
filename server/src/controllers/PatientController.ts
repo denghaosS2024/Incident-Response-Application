@@ -400,6 +400,11 @@ class PatientController {
   async findByLocation(location: string) {
     return await Patient.find({ location }).exec()
   }
+
+  async updateLocation(patientId: string, location: string) {
+    const patient = await Patient.findOneAndUpdate({ patientId }, { location }, { new: true })
+    return patient
+  }
 }
 
 export default new PatientController()

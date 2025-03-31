@@ -41,7 +41,7 @@ describe('Patient Controller', () => {
   it('should be able to change the location of a patient', async () => {
     const patient = await createTestPatient('Zoe')
     const updatedPatient = await PatientController.updateLocation(patient.patientId, 'ER')
-    expect(updatedPatient.location).toBe('ER')
+    expect(updatedPatient?.location).toBe('ER')
   })
 
 })
