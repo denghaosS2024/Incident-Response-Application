@@ -25,7 +25,7 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
       if (!incident) return
       try {
         const response: IIncident = await request(
-          `${import.meta.env.VITE_BACKEND_URL}/api/incidents/sar/${incident.incidentId}`,
+          `/api/incidents/sar/${incident.incidentId}`,
           {
             method: 'PUT',
             body: JSON.stringify({
