@@ -1,6 +1,7 @@
-
+import { GroupAlertState } from "../models/AlertQueue";
 class AlertService {
     private static instance: AlertService;
+    private groupAlertMap: Map<string, GroupAlertState> = new Map();
 
     private constructor() {}
 
@@ -9,6 +10,10 @@ class AlertService {
             AlertService.instance = new AlertService();
         }
         return AlertService.instance;
+    }
+
+    public getGroupAlertState(groupId: string): GroupAlertState | undefined {
+        return this.groupAlertMap.get(groupId);
     }
     
 }
