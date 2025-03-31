@@ -18,8 +18,6 @@ import { updateIncident } from '../../../redux/incidentSlice'
 import type { AppDispatch } from '../../../redux/store'
 import request from '../../../utils/request'
 import ConfirmationDialog from '../../common/ConfirmationDialog'
-import { Input } from 'antd'
-import { current } from '@reduxjs/toolkit'
 
 interface Reach911Step5Props {
     incidentId?: string
@@ -294,6 +292,43 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         }
     }
 
+    const openRespondersChat = async (
+        incidentId: string,
+        navigate: (path: string) => void,
+        setLoading: (loading: boolean) => void,
+        setError: (err: string | null) => void,
+    ) => {
+        try {
+            setLoading(true)
+            setError(null)
+
+            const updatedIncident = await request<IIncident>(
+                `/api/incidents/${incidentId}/responders-group`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                },
+            )
+
+            const respondersGroupId = updatedIncident.respondersGroup?._id
+            if (!respondersGroupId) {
+                throw new Error('No responders group found on this incident.')
+            }
+
+            navigate(`/messages?channelId=${respondersGroupId}`)
+        } catch (err: any) {
+            console.error(
+                'Failed to create or open responders chat group:',
+                err,
+            )
+            setError(err.message || 'Error occurred while creating chat group')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     if (loading) {
         return (
             <Paper elevation={3} sx={{ p: 2, m: 2 }}>
@@ -398,50 +433,68 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     <FormControl fullWidth>
                         <InputLabel>Commander</InputLabel>
                         <Select
-                          value={currenCommander}
-                          label="Commander"
-                          onChange={(e) =>
-                            handleCommanderChange(e.target.value as string)
-                          }
+                            value={currenCommander}
+                            label="Commander"
+                            onChange={(e) =>
+                                handleCommanderChange(e.target.value as string)
+                            }
                         >
-                          <MenuItem
-                            key={currentUsername}
-                            value={currentUsername}
-                          >
-                            {currentUsername === currenCommander
-                              ? `You (${currentUsername})`
-                              : currentUsername}
-                          </MenuItem>
-                          {unassignedPersonnel.map((person) => (
-                            <MenuItem key={person} value={person}>
-                              {person === currentUsername
-                                ? `You (${person})`
-                                : person}
+                            <MenuItem
+                                key={currentUsername}
+                                value={currentUsername}
+                            >
+                                {currentUsername === currenCommander
+                                    ? `You (${currentUsername})`
+                                    : currentUsername}
                             </MenuItem>
-                          ))}
+                            {unassignedPersonnel.map((person) => (
+                                <MenuItem key={person} value={person}>
+                                    {person === currentUsername
+                                        ? `You (${person})`
+                                        : person}
+                                </MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
                 )}
             </Box>
 
             {!isClosed && (
-                <>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Button
                         variant="contained"
                         color="primary"
+                        fullWidth
                         onClick={handleNavigateToResources}
                     >
                         Allocate Resources
                     </Button>
                     <Button
                         variant="contained"
+                        color="primary"
+                        fullWidth
+                        onClick={() =>
+                            incidentId &&
+                            openRespondersChat(
+                                incidentId,
+                                navigate,
+                                setLoading,
+                                setError,
+                            )
+                        }
+                    >
+                        Chat with Responders
+                    </Button>
+
+                    <Button
+                        variant="contained"
                         color="error"
-                        sx={{ ml: 2 }}
+                        fullWidth
                         onClick={handleCloseIncidentClick}
                     >
                         Close Incident
                     </Button>
-                </>
+                </Box>
             )}
 
             {isClosed && (
