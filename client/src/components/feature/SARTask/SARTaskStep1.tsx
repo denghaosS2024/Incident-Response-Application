@@ -31,7 +31,10 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
             body: JSON.stringify({
               sarTask: {
                 state: 'InProgress',
-                startDate: startDate.toISOString()
+                startDate: startDate.toISOString(),
+                endDate: incident?.sarTask?.endDate,
+                hazards: incident?.sarTask?.hazards || [],
+                victims: incident?.sarTask?.victims || [0, 0, 0, 0, 0],
               }
             }),
           }
