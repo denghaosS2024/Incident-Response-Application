@@ -27,6 +27,13 @@ export enum IncidentPriority {
 export interface ISarTask {
     state: 'Todo' | 'InProgress' | 'Done'
     startDate?: Date
+    name?: string
+    description?: string
+    location?: string
+    coordinates?: {
+        latitude: number
+        longitude: number
+    }
 }
 
 export interface IIncident extends Document {
@@ -161,6 +168,29 @@ const IncidentSchema = new Schema({
             },
             startDate: {
                 type: Date,
+                default: null
+            },
+            name: {
+                type: String,
+                default: ''
+            },
+            description: {
+                type: String,
+                default: ''
+            },
+            location: {
+                type: String,
+                default: ''
+            },
+            coordinates: {
+                type: {
+                    latitude: {
+                        type: Number
+                    },
+                    longitude: {
+                        type: Number
+                    }
+                },
                 default: null
             }
         },

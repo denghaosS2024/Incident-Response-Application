@@ -562,6 +562,56 @@ class IncidentController {
         throw new Error(`Failed to retrieve SAR incidents: ${error}`);
     }
 }
+
+    /**
+     * Create or update a SAR task for an incident
+     * @param incidentId - The ID of the incident to update
+     * @param sarTask - The SAR task data containing state, location, and coordinates
+     * @returns The updated incident if found, null otherwise
+     */
+    async createOrUpdateSarTask(
+        incidentId: string,
+        sarTask: {
+            state: 'Todo' | 'InProgress' | 'Done'
+            location?: string
+            coordinates?: { latitude: number; longitude: number }
+            startDate?: Date
+            name?: string
+            description?: string
+        }
+    ): Promise<IIncident | null> {
+        try {
+            // Find the incident
+            const incident = await Incident.findOne({ incidentId }).exec()
+            
+            if (!incident) {
+                throw new Error(`Incident with ID '${incidentId}' not found`)
+            }
+            
+            // Update the incident with the SAR task
+            const updatedIncident = await Incident.findOneAndUpdate(
+                { incidentId },
+                { 
+                    $set: { 
+                        sarTask: {
+                            state: sarTask.state,
+                            startDate: sarTask.startDate || new Date(),
+                            name: sarTask.name || '',
+                            description: sarTask.description || '',
+                            location: sarTask.location || '',
+                            coordinates: sarTask.coordinates || null
+                        }
+                    } 
+                },
+                { new: true }
+            ).exec()
+            
+            return updatedIncident
+        } catch (error) {
+            console.error('Error creating/updating SAR task:', error)
+            throw error
+        }
+    }
 }
 
 export default new IncidentController()

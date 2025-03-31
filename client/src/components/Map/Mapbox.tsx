@@ -177,6 +177,10 @@ const Mapbox: React.FC<MapboxProps> = ({
           checkForUtilMarkers()
         })
 
+        // Emit an event that the map is loaded
+        eventEmitter.emit('map_loaded', mapRef.current)
+        setIsMapLoaded(true)
+
         // If showMarker is true, add a draggable marker
         if (showMarker) {
           markerRef.current = new mapboxgl.Marker({
@@ -216,6 +220,15 @@ const Mapbox: React.FC<MapboxProps> = ({
             console.error('Error triggering geolocation:', err)
           }
         }
+
+        // Add click event for SAR task location selection
+        mapRef.current.on('click', (e) => {
+          // Emit the clicked location for SAR tasks
+          eventEmitter.emit('map_clicked', {
+            longitude: e.lngLat.lng,
+            latitude: e.lngLat.lat
+          });
+        });
       })
       // Handle map errors
       mapRef.current.on('error', (e: any) => {

@@ -16,6 +16,7 @@ import type IIncident from '../../../models/Incident'
 import { updateIncident } from '../../../redux/incidentSlice'
 import type { AppDispatch, RootState } from '../../../redux/store'
 import request from '../../../utils/request'
+import ConfirmationDialog from '../../common/ConfirmationDialog'
 
 interface SARStep5Props {
   incidentId?: string
@@ -26,9 +27,11 @@ const SARStep5: React.FC<SARStep5Props> = ({ incidentId }) => {
   const [error, setError] = useState<string | null>(null)
   const [incidentData, setIncidentData] = useState<IIncident | null>(null)
   const [status, setStatus] = useState<string>('Active')
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
   const incident = useSelector((state: RootState) => state.incidentState.incident)
+  const isClosed = incidentData?.incidentState === 'Closed'
 
   // Status options for SAR incidents
   const statusOptions = [
@@ -134,6 +137,44 @@ const SARStep5: React.FC<SARStep5Props> = ({ incidentId }) => {
     navigate(`/resources`)
   }
 
+  // Close incident handlers
+  const handleCloseIncidentClick = () => {
+    setShowCloseConfirm(true)
+  }
+
+  const handleCancelCloseIncident = () => {
+    setShowCloseConfirm(false)
+  }
+
+  const handleConfirmCloseIncident = async () => {
+    setShowCloseConfirm(false)
+
+    if (!incidentData?.incidentId) {
+      setError('No incident ID found to close')
+      return
+    }
+
+    try {
+      setLoading(true)
+
+      const closedIncident = await request<IIncident>(
+        `/api/incidents/${incidentData.incidentId}`,
+        {
+          method: 'DELETE',
+        },
+      )
+
+      dispatch(updateIncident(closedIncident))
+      setIncidentData(closedIncident)
+      console.log('Incident closed successfully')
+    } catch (err: any) {
+      console.error('Error closing incident:', err)
+      setError(err.message || 'Unknown error while closing incident')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <Paper elevation={3} sx={{ p: 2, m: 2 }}>
@@ -189,20 +230,24 @@ const SARStep5: React.FC<SARStep5Props> = ({ incidentId }) => {
         <Typography variant="h6" sx={{ mb: 1 }}>
           Operation Status
         </Typography>
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel>Status</InputLabel>
-          <Select
-            value={status}
-            label="Status"
-            onChange={(e) => handleStatusChange(e.target.value as string)}
-          >
-            {statusOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {isClosed ? (
+          <Typography>{status}</Typography>
+        ) : (
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={status}
+              label="Status"
+              onChange={(e) => handleStatusChange(e.target.value as string)}
+            >
+              {statusOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
       </Box>
 
       <Box sx={{ mb: 3 }}>
@@ -213,16 +258,72 @@ const SARStep5: React.FC<SARStep5Props> = ({ incidentId }) => {
         <Typography>Commander: {incidentData.commander || 'Not assigned'}</Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleNavigateToResources}
-          size="large"
-        >
-          Allocate Resources
-        </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, gap: 2 }}>
+        {!isClosed && (
+          <>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleNavigateToResources}
+              size="large"
+            >
+              Allocate Resources
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleCloseIncidentClick}
+              size="large"
+            >
+              Close Incident
+            </Button>
+          </>
+        )}
+
+        {isClosed && (
+          <Box
+            sx={{
+              mt: 3,
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 2,
+              pointerEvents: 'auto',
+              position: 'relative',
+              zIndex: 1001,
+            }}
+          >
+            <Typography variant="h6" color="error">
+              Incident is Closed
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              style={{ zIndex: 1001 }}
+              onClick={() => {
+                navigate('/incidents/report', {
+                  state: { incidentData },
+                })
+              }}
+            >
+              Generate Report
+            </Button>
+          </Box>
+        )}
       </Box>
+
+      <ConfirmationDialog
+        open={showCloseConfirm}
+        title="Confirm Close"
+        description="Are you sure you want to close this incident? This action cannot be undone."
+        onConfirm={handleConfirmCloseIncident}
+        onCancel={handleCancelCloseIncident}
+        confirmText="Yes"
+        cancelText="No"
+      />
     </Paper>
   )
 }

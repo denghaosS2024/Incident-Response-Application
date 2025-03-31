@@ -28,8 +28,20 @@ export enum IncidentType {
 }
 
 export interface ISarTask {
+    _id?: string
+    id?: string
     state: 'Todo' | 'InProgress' | 'Done'
     startDate?: Date
+    name?: string
+    description?: string
+    location?: {
+        latitude: number
+        longitude: number
+    }
+    coordinates?: {
+        latitude: number
+        longitude: number
+    }
 }
 
 export default interface IIncident {

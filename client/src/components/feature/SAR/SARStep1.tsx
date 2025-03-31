@@ -1,23 +1,50 @@
-import { Box, TextField, Typography, Button, Chip } from '@mui/material'
+import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material'
 import styles from '../../../styles/Reach911Page.module.css'
 import Map from '../../Map/Mapbox'
 
 import { AddressAutofillRetrieveResponse } from '@mapbox/search-js-core'
 import { AddressAutofill } from '@mapbox/search-js-react'
-import LocationOnIcon from '@mui/icons-material/LocationOn'
 import AddIcon from '@mui/icons-material/Add'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import HomeIcon from '@mui/icons-material/Home'
+import LocationOnIcon from '@mui/icons-material/LocationOn'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 import IIncident from '../../../models/Incident'
 import { updateIncident } from '../../../redux/incidentSlice'
 import { AppDispatch, RootState } from '../../../redux/store'
+import eventEmitter from '../../../utils/eventEmitter'
 import Globals from '../../../utils/Globals'
+import request from '../../../utils/request'
+import AlertSnackbar from '../../common/AlertSnackbar'
 
 interface SARStep1Props {
   autoPopulateData?: boolean
   isCreatedByFirstResponder?: boolean
   incidentId?: string
+}
+
+interface SARTaskForm {
+  name: string
+  description: string
+  status: 'todo' | 'in-progress' | 'done'
+  location?: {
+    latitude: number
+    longitude: number
+  }
+  address?: string
+}
+
+interface SARTaskMarker {
+  id: string
+  name: string
+  status: string
+  location?: {
+    latitude: number
+    longitude: number
+  }
+  address?: string
+  description?: string
 }
 
 const SARStep1: React.FC<SARStep1Props> = ({
@@ -26,35 +53,97 @@ const SARStep1: React.FC<SARStep1Props> = ({
   // but we're now using the incident from Redux store
 }) => {
   const dispatch = useDispatch<AppDispatch>()
-  const navigate = useNavigate()
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
   )
 
   // Local state for the input field
   const [inputAddress, setInputAddress] = useState(incident.address || '')
+  
+  // State for the task creation dialog
+  const [openTaskDialog, setOpenTaskDialog] = useState(false)
+  const [taskForm, setTaskForm] = useState<SARTaskForm>({
+    name: '',
+    description: '',
+    status: 'todo',
+    address: ''
+  })
+  const [taskInputAddress, setTaskInputAddress] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  
+  // State for alert snackbar
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info' as 'error' | 'warning' | 'info' | 'success'
+  })
+  
+  // State for storing the selected map location
+  const [selectedMapLocation, setSelectedMapLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [selectedMapAddress, setSelectedMapAddress] = useState<string>('');
 
-  // Sample SAR task locations - in a real app, these would come from an API
-  const [sarLocations] = useState([
-    {
-      id: 'task1',
-      name: 'Search Area A',
-      status: 'todo',
-      location: { latitude: 37.7749, longitude: -122.4194 },
-    },
-    {
-      id: 'task2',
-      name: 'Search Area B',
-      status: 'in-progress',
-      location: { latitude: 37.7850, longitude: -122.4100 },
-    },
-    {
-      id: 'task3',
-      name: 'Search Area C',
-      status: 'done',
-      location: { latitude: 37.7700, longitude: -122.4300 },
-    },
-  ])
+  // SAR task locations - will be fetched from the backend
+  const [sarLocations, setSarLocations] = useState<Array<{
+    id: string;
+    name: string;
+    description: string;
+    status: string;
+    address?: string;
+    location?: {
+      latitude: number;
+      longitude: number;
+    };
+  }>>([]);
+
+  // Fetch SAR tasks when incident changes
+  useEffect(() => {
+    if (incident._id) {
+      fetchSARTasks(incident._id);
+    }
+  }, [incident._id]);
+
+  // Function to fetch SAR tasks from the backend
+  const fetchSARTasks = async (incidentId: string) => {
+    try {
+      setIsLoading(true);
+      const response = await request(`/api/incident/${incidentId}/sar-task`, {
+        method: 'GET',
+      });
+      
+      console.log('SAR task response:', response);
+      
+      if (response && Array.isArray(response)) {
+        // Convert the tasks from the backend format to our frontend format
+        const tasks = response.map((task: any) => ({
+          id: task._id || `task-${Math.random().toString(36).substr(2, 9)}`,
+          name: task.name || 'Unnamed Task',
+          description: task.description || '',
+          status: task.state?.toLowerCase() === 'todo' ? 'todo' : 
+                 task.state?.toLowerCase() === 'inprogress' ? 'in-progress' : 
+                 task.state?.toLowerCase() === 'done' ? 'done' : 'todo',
+          address: task.location || '',
+          location: task.coordinates || null
+        }));
+        
+        console.log('Processed SAR tasks:', tasks);
+        setSarLocations(tasks);
+      } else {
+        console.log('No SAR tasks found or invalid response format');
+        setSarLocations([]);
+      }
+    } catch (error) {
+      console.error('Error fetching SAR tasks:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to fetch SAR tasks',
+        severity: 'error'
+      });
+      setSarLocations([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Initialize address field from location when component loads
   useEffect(() => {
@@ -125,7 +214,209 @@ const SARStep1: React.FC<SARStep1Props> = ({
     setInputAddress(incident.address);
   }, [incident.address]);
 
-  // No longer creating incidents here - this is now handled by the Incidents page
+  // Handle opening the task creation dialog
+  const handleOpenTaskDialog = () => {
+    // Pre-populate the task form with the current incident address and location
+    setTaskForm({
+      name: '',
+      description: '',
+      status: 'todo',
+      address: selectedMapAddress || '',
+      location: selectedMapLocation || undefined
+    });
+    
+    // Set the address input field to match the incident address
+    setTaskInputAddress(selectedMapAddress || '');
+    
+    setOpenTaskDialog(true);
+  };
+
+  // Handle closing the task creation dialog
+  const handleCloseTaskDialog = () => {
+    setOpenTaskDialog(false);
+  };
+  
+  // Handle closing the snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  // Handle text input changes for task form
+  const handleTaskTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTaskForm({
+      ...taskForm,
+      [name]: value,
+    });
+  };
+
+  // Handle select input changes for task form
+  const handleTaskSelectChange = (e: SelectChangeEvent) => {
+    const { name, value } = e.target;
+    setTaskForm({
+      ...taskForm,
+      [name]: value,
+    });
+  };
+
+  // Handle address input changes for task form
+  const handleTaskAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { value } = e.target;
+    setTaskInputAddress(value);
+  };
+
+  // Handle address selection from autofill for task form
+  const onTaskAddressRetrieve = (res: AddressAutofillRetrieveResponse) => {
+    const newAddress = res.features[0].properties.full_address ?? '';
+    const newLocation = {
+      longitude: res.features[0].geometry.coordinates[0],
+      latitude: res.features[0].geometry.coordinates[1],
+    };
+    setTaskForm({
+      ...taskForm,
+      location: newLocation,
+      address: newAddress,
+    });
+    setTaskInputAddress(newAddress);
+  };
+
+  // When user clicks out of the input, revert to task address
+  const onTaskAddressBlur = () => {
+    setTaskInputAddress(taskForm.address || '');
+  };
+
+  // Map status to backend format
+  const mapStatusToBackend = (status: string): 'Todo' | 'InProgress' | 'Done' => {
+    switch (status) {
+      case 'todo':
+        return 'Todo';
+      case 'in-progress':
+        return 'InProgress';
+      case 'done':
+        return 'Done';
+      default:
+        return 'Todo';
+    }
+  };
+
+  // Create new task
+  const handleCreateTask = async () => {
+    try {
+      if (!taskForm.name) {
+        setSnackbar({
+          open: true,
+          message: 'Task name is required',
+          severity: 'error'
+        });
+        return;
+      }
+      
+      if (!taskForm.address) {
+        setSnackbar({
+          open: true,
+          message: 'Task location is required',
+          severity: 'error'
+        });
+        return;
+      }
+      
+      if (!incident._id) {
+        setSnackbar({
+          open: true,
+          message: 'No incident ID available',
+          severity: 'error'
+        });
+        return;
+      }
+      
+      setIsSubmitting(true);
+      
+      // Prepare the data for the API
+      const sarTaskData = {
+        state: mapStatusToBackend(taskForm.status),
+        location: taskForm.address,
+        coordinates: taskForm.location ? {
+          latitude: taskForm.location.latitude,
+          longitude: taskForm.location.longitude
+        } : undefined,
+        startDate: new Date().toISOString(),
+        name: taskForm.name,
+        description: taskForm.description || ''
+      };
+      
+      // Call the API to create the SAR task
+      const response = await request(`/api/incident/${incident._id}/sar-task`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sarTaskData)
+      });
+      
+      console.log('SAR task created successfully:', response);
+      
+      // Add the new task to the local state
+      const newTask = {
+        id: `task${sarLocations.length + 1}`,
+        name: taskForm.name,
+        status: taskForm.status,
+        address: taskForm.address,
+        description: taskForm.description || ''
+      };
+      
+      const updatedLocations = [...sarLocations, newTask];
+      setSarLocations(updatedLocations);
+      
+      // Close the dialog and show success message
+      setOpenTaskDialog(false);
+      setSnackbar({
+        open: true,
+        message: 'SAR task created successfully',
+        severity: 'success'
+      });
+    } catch (err: any) {
+      console.error('Error creating task:', err);
+      setSnackbar({
+        open: true,
+        message: err.message || 'Failed to create task',
+        severity: 'error'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    eventEmitter.on('map_loaded', () => {});
+  }, []);
+
+  // Listen for map clicks to get the selected location
+  useEffect(() => {
+    const handleMapClick = (location: { latitude: number; longitude: number }) => {
+      console.log('Map clicked at:', location);
+      setSelectedMapLocation(location);
+      
+      // Get the address from the coordinates
+      const accessToken = Globals.getMapboxToken();
+      fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${location.longitude},${location.latitude}.json?access_token=${accessToken}`,
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.features && data.features.length > 0) {
+            const address = data.features[0].place_name;
+            setSelectedMapAddress(address);
+          }
+        })
+        .catch((error) => {
+          console.error('Error geocoding location:', error);
+        });
+    };
+
+    eventEmitter.on('map_clicked', handleMapClick);
+
+    return () => {
+      eventEmitter.removeListener('map_clicked', handleMapClick);
+    };
+  }, []);
 
   return (
     <div className={styles.wrapperStep1}>
@@ -134,7 +425,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
           Search and Rescue (SAR) Incident
         </Typography>
         
-        {incident.incidentId && (
+        {incident._id && (
           <Typography 
             variant="h6" 
             align="center" 
@@ -149,14 +440,29 @@ const SARStep1: React.FC<SARStep1Props> = ({
               display: 'inline-block'
             }}
           >
-            Incident ID: {incident.incidentId}
+            Incident ID: {incident._id}
           </Typography>
         )}
 
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2 }}>
-          <Chip label="Todo" color="default" variant="outlined" />
-          <Chip label="In Progress" color="primary" variant="outlined" />
-          <Chip label="Done" color="success" variant="outlined" />
+          <Chip 
+            icon={<HomeIcon style={{ color: '#f44336' }} />} 
+            label="Todo" 
+            color="default" 
+            variant="outlined" 
+          />
+          <Chip 
+            icon={<HomeIcon style={{ color: '#2196f3' }} />} 
+            label="In Progress" 
+            color="primary" 
+            variant="outlined" 
+          />
+          <Chip 
+            icon={<CheckCircleIcon style={{ color: '#4caf50' }} />} 
+            label="Done" 
+            color="success" 
+            variant="outlined" 
+          />
         </Box>
 
         <Typography
@@ -168,19 +474,17 @@ const SARStep1: React.FC<SARStep1Props> = ({
           SAR Operations Map - Current Tasks and Last Known Location:
         </Typography>
         
-        {/* Create Task Button - Only visible to the creator of the incident */}
-        {incident.caller === localStorage.getItem('username') && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-            <Button
-              variant="contained"
-              color="secondary"
-              startIcon={<AddIcon />}
-              onClick={() => navigate(`/sar/${incident._id}/tasks/new`)}
-            >
-              Create New Task
-            </Button>
-          </Box>
-        )}
+        {/* Create Task Button - Available to all users */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<AddIcon />}
+            onClick={handleOpenTaskDialog}
+          >
+            Create New Task
+          </Button>
+        </Box>
         
         <div className={styles.flexCenter}>
           <Box
@@ -229,6 +533,24 @@ const SARStep1: React.FC<SARStep1Props> = ({
             borderRadius: '8px',
           }}
         >
+          {isLoading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                zIndex: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography variant="h6">Loading SAR tasks...</Typography>
+            </Box>
+          )}
           <Box
             sx={{
               position: 'absolute',
@@ -271,11 +593,8 @@ const SARStep1: React.FC<SARStep1Props> = ({
             >
               <Map
                 autoPopulateData={autoPopulateData}
-                showMarker={true}
+                showMarker={false}
                 disableGeolocation={false}
-                // In a real implementation, we would pass the SAR locations to the Map component
-                // and extend the Map component to display different markers for different task statuses
-                // sarLocations={sarLocations}
               />
             </div>
           </div>
@@ -304,9 +623,19 @@ const SARStep1: React.FC<SARStep1Props> = ({
                   : task.status === 'in-progress'
                   ? 'rgba(33, 150, 243, 0.1)'
                   : 'white',
+              cursor: 'pointer', // Add pointer cursor to indicate clickability
             }}
           >
-            <Typography variant="body1">{task.name}</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {task.status === 'done' ? (
+                <CheckCircleIcon style={{ color: '#4caf50' }} />
+              ) : task.status === 'in-progress' ? (
+                <HomeIcon style={{ color: '#2196f3' }} />
+              ) : (
+                <HomeIcon style={{ color: '#f44336' }} />
+              )}
+              <Typography variant="body1">{task.name}</Typography>
+            </Box>
             <Chip
               label={
                 task.status === 'todo'
@@ -327,6 +656,108 @@ const SARStep1: React.FC<SARStep1Props> = ({
           </Box>
         ))}
       </Box>
+
+      {/* Task Creation Dialog */}
+      <Dialog open={openTaskDialog} onClose={handleCloseTaskDialog} maxWidth="md" fullWidth>
+        <DialogTitle>Create New SAR Task</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="name"
+            label="Task Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={taskForm.name}
+            onChange={handleTaskTextChange}
+            required
+            sx={{ mb: 2, mt: 1 }}
+          />
+          
+          <TextField
+            margin="dense"
+            name="description"
+            label="Description"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={taskForm.description}
+            onChange={handleTaskTextChange}
+            multiline
+            rows={3}
+            sx={{ mb: 2 }}
+          />
+          
+          <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              name="status"
+              value={taskForm.status}
+              label="Status"
+              onChange={handleTaskSelectChange}
+            >
+              <MenuItem value="todo">To Do</MenuItem>
+              <MenuItem value="in-progress">In Progress</MenuItem>
+              <MenuItem value="done">Done</MenuItem>
+            </Select>
+          </FormControl>
+          
+          <Typography variant="subtitle1" sx={{ mt: 1, mb: 1 }}>
+            Task Location
+          </Typography>
+          
+          {selectedMapLocation && (
+            <Box sx={{ mb: 2, p: 1, bgcolor: 'rgba(25, 118, 210, 0.1)', borderRadius: 1, display: 'flex', alignItems: 'center' }}>
+              <LocationOnIcon color="primary" sx={{ mr: 1 }} />
+              <Typography variant="body2">
+                Location selected on map: {selectedMapLocation.latitude.toFixed(6)}, {selectedMapLocation.longitude.toFixed(6)}
+              </Typography>
+            </Box>
+          )}
+          
+          <AddressAutofill
+            onRetrieve={onTaskAddressRetrieve}
+            options={{ streets: false }}
+            accessToken={Globals.getMapboxToken()}
+          >
+            <TextField
+              fullWidth
+              label="Task Location"
+              variant="outlined"
+              value={taskInputAddress}
+              autoComplete="street-address"
+              onBlur={onTaskAddressBlur}
+              onChange={handleTaskAddressChange}
+              required
+              disabled={true} // Disable the field
+              sx={{ mb: 2 }}
+              helperText={selectedMapLocation ? "Using location selected on map" : "Click on the map first to select a location"}
+            />
+          </AddressAutofill>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseTaskDialog} color="primary">
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleCreateTask} 
+            color="primary" 
+            variant="contained"
+            disabled={isSubmitting || !taskForm.name || !taskForm.address}
+          >
+            {isSubmitting ? 'Creating...' : 'Create Task'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Alert Snackbar */}
+      <AlertSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
+      />
     </div>
   );
 };
