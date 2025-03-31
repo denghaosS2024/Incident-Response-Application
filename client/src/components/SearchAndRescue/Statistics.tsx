@@ -2,7 +2,6 @@ import { Box, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Cell, Legend, Pie, PieChart, Tooltip } from 'recharts';
 import request from '../../utils/request';
-
 interface TaskStatsProps {
   incidentId: string;
 }
@@ -13,7 +12,25 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
   const [doneCount, setDoneCount] = useState(0);
   const [totalTimeSpent, setTotalTimeSpent] = useState(0);
   const [averageTaskTime, setAverageTaskTime] = useState(0);
-
+  const [victimStats, setVictimStats] = useState({
+    totalVictims: 0,
+    Immediate: 0,
+    Urgent: 0,
+    CouldWait: 0,
+    Dismiss: 0,
+    Deceased: 0,
+  });
+  const [hazardStats, setHazardStats] = useState({
+    totalHazards: 0,
+    ActiveWire: 0,
+    Dogs: 0,
+    Explosives: 0,
+    Fire: 0,
+    Flood: 0,
+    Gas: 0,
+    Rats: 0,
+    Others: 0,
+  });
   const fetchTaskCounts = async () => {
     try {
       const todoTasks = await request(`/api/sartasks/todo`, { method: 'POST', 
@@ -48,6 +65,92 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
     }
   };
 
+    const fetchVictimStats = async () => {
+    try {
+      const tasks = await request(`/api/sartasks/`, { method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+        }, body: JSON.stringify({ incidentId }) }).catch(() => []);
+      
+      let totalVictims = 0;
+      let counts = { Immediate: 0, Urgent: 0, CouldWait: 0, Dismiss: 0, Deceased: 0 };
+      
+      tasks.forEach((task: any) => {
+        if (task.victims) {
+          task.victims.forEach((victim: any) => {
+            counts.Immediate += parseInt(victim.Immediate) || 0;
+            counts.Urgent += parseInt(victim.Urgent) || 0;
+            counts.CouldWait += parseInt(victim.CouldWait) || 0;
+            counts.Dismiss += parseInt(victim.Dismiss) || 0;
+            counts.Deceased += parseInt(victim.Deceased) || 0;
+            totalVictims += parseInt(victim.Immediate) || 0;
+            totalVictims += parseInt(victim.Urgent) || 0;
+            totalVictims += parseInt(victim.CouldWait) || 0;
+            totalVictims += parseInt(victim.Dismiss) || 0;
+            totalVictims += parseInt(victim.Deceased) || 0;
+          });
+        }
+      });
+      
+      setVictimStats({ totalVictims, ...counts });
+    } catch (error) {
+      console.error('Error fetching victim stats:', error);
+    }
+  };
+  const fetchHazardStats = async () => {
+    try {
+      const tasks = await request(`/api/sartasks/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ incidentId }),
+      }).catch(() => []);
+  
+      let totalHazards = 0;
+      let hazardCounts = {
+        ActiveWire: 0,
+        Dogs: 0,
+        Explosives: 0,
+        Fire: 0,
+        Flood: 0,
+        Gas: 0,
+        Rats: 0,
+        Others: 0,
+      };
+  
+      tasks.forEach((task: any) => {
+        if (task.hazards) {
+          task.hazards.forEach((hazard: any) => {
+            // Directly updating counts
+            hazardCounts.ActiveWire += parseInt(hazard.ActiveWire) || 0;
+            hazardCounts.Dogs += parseInt(hazard.Dogs) || 0;
+            hazardCounts.Explosives += parseInt(hazard.Explosives) || 0;
+            hazardCounts.Fire += parseInt(hazard.Fire) || 0;
+            hazardCounts.Flood += parseInt(hazard.Flood) || 0;
+            hazardCounts.Gas += parseInt(hazard.Gas) || 0;
+            hazardCounts.Rats += parseInt(hazard.Rats) || 0;
+            hazardCounts.Others += parseInt(hazard.Others) || 0;
+  
+            totalHazards += parseInt(hazard.ActiveWire) || 0;
+            totalHazards += parseInt(hazard.Dogs) || 0;
+            totalHazards += parseInt(hazard.Explosives) || 0;
+            totalHazards += parseInt(hazard.Fire) || 0;
+            totalHazards += parseInt(hazard.Flood) || 0;
+            totalHazards += parseInt(hazard.Gas) || 0;
+            totalHazards += parseInt(hazard.Rats) || 0;
+            totalHazards += parseInt(hazard.Others) || 0;
+          });
+        }
+      });
+  
+      setHazardStats({ totalHazards, ...hazardCounts });
+    } catch (error) {
+      console.error('Error fetching hazard stats:', error);
+    }
+  };
+  
+  
   const fetchIncidentById = async () => {
     if (!incidentId) return;
   
@@ -90,6 +193,8 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
   useEffect(() => {
     fetchTaskCounts();
     fetchIncidentById();
+    fetchVictimStats();
+    fetchHazardStats();
   }, [incidentId]);
 
   const data = [
@@ -130,6 +235,28 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
       <Typography>Total time spent: {totalTimeSpent} hours</Typography>
       <Typography>Average task time: {averageTaskTime.toFixed(2)} hours</Typography>
       </Box>
+      <Box sx={{ mt: 4, border: 'solid'}}>
+        <Typography variant="h6" sx={{backgroundColor: 'lightgrey'}}>Total Victims: {victimStats.totalVictims}</Typography>
+        <Typography>Immediate: {victimStats.Immediate}</Typography>
+        <Typography>Urgent: {victimStats.Urgent}</Typography>
+        <Typography>Could Wait: {victimStats.CouldWait}</Typography>
+        <Typography>Dismiss: {victimStats.Dismiss}</Typography>
+        <Typography>Deceased: {victimStats.Deceased}</Typography>
+      </Box>
+      <Box sx={{ mt: 4, border: 'solid' }}>
+      <Typography variant="h6" sx={{ backgroundColor: 'lightgrey' }}>
+        Total Hazards: {hazardStats.totalHazards}
+      </Typography>
+      <Typography>ActiveWire: {hazardStats.ActiveWire}</Typography>
+      <Typography>Dogs: {hazardStats.Dogs}</Typography>
+      <Typography>Explosives: {hazardStats.Explosives}</Typography>
+      <Typography>Fire: {hazardStats.Fire}</Typography>
+      <Typography>Flood: {hazardStats.Flood}</Typography>
+      <Typography>Gas: {hazardStats.Gas}</Typography>
+      <Typography>Rats: {hazardStats.Rats}</Typography>
+      <Typography>Others: {hazardStats.Others}</Typography>
+    </Box>
+
     </Box>
   );
 };
