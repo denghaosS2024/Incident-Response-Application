@@ -31,15 +31,22 @@ const PatientForm: React.FC<{ username?: string }> = ({
     )
     const navigate = useNavigate()
     const medicalQuestions = (incident.questions as MedicalQuestions) ?? {}
-    const sex = medicalQuestions.sex ?? ''
-    const age = medicalQuestions.age ?? 0
-    const name = ''
-    const patientId = incident.patientId || ''
+    const [sex, setSex] = useState(medicalQuestions.sex ?? '')
+    const [age, setAge] = useState(medicalQuestions.age ?? 0)
+    const [name, setName] = useState('')
+    // const age = medicalQuestions.age ?? 0
+    // const name = ''
+
+    // TODO: Find out what the type actually is
+    // IIncident does not have a patientId field
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const patientId = ((incident as any).patientId ?? '') as string
     const [usernameError, setUserNameError] = useState<string>('')
     const [newUsername, setNewUsername] = useState<string>('')
+    const [patientUserId, setPatientUserId] = useState<string | null>(null)
     const [isCreatingNewAccount, setIsCreatingNewAccount] =
         useState<boolean>(false)
-    const [patientUserId, setPatientUserId] = useState<string | null>(null)
     const [patientUsername, setPatientUsername] = useState<string | null>(
         propUsername ?? null,
     )
@@ -138,20 +145,25 @@ const PatientForm: React.FC<{ username?: string }> = ({
         field: string,
         e:
             | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-            | SelectChangeEvent<string>,
+            | SelectChangeEvent<unknown>,
+        onValueUpdate?: ((value: unknown) => void) | undefined,
     ) => {
         const { type, value, checked } = e.target as HTMLInputElement
         const newValue: string | boolean = type === 'checkbox' ? checked : value
 
-        dispatch(
-            updateIncident({
-                ...incident,
-                questions: {
-                    ...(incident.questions ?? {}),
-                    [field]: newValue,
-                } as MedicalQuestions,
-            }),
-        )
+        if (onValueUpdate) {
+            onValueUpdate(newValue)
+        }
+
+        const newIncident = {
+            ...incident,
+            questions: {
+                ...(incident.questions ?? {}),
+                [field]: newValue,
+            } as MedicalQuestions,
+        } as IIncident
+
+        dispatch(updateIncident(newIncident))
 
         // Validate only the changed field
         validateField(field, newValue)
@@ -279,7 +291,9 @@ const PatientForm: React.FC<{ username?: string }> = ({
                         variant="outlined"
                         label="Name"
                         value={name || ''}
-                        onChange={(e) => onChange('name', e)}
+                        onChange={(e) =>
+                            onChange('name', e, (val) => setName(val as string))
+                        }
                         fullWidth
                         error={!!usernameError}
                         helperText={usernameError}
@@ -309,7 +323,11 @@ const PatientForm: React.FC<{ username?: string }> = ({
                         InputLabelProps={{
                             shrink: true, // Ensures the label stays above the input
                         }}
-                        onChange={(e) => onChange('dateOfBirth', e)} // Update the field name accordingly
+                        onChange={(e) =>
+                            onChange('dateOfBirth', e, (val) =>
+                                setAge(val as number),
+                            )
+                        } // Update the field name accordingly
                     />
                 </Box>
 
@@ -322,7 +340,11 @@ const PatientForm: React.FC<{ username?: string }> = ({
                             aria-labelledby="sex-label"
                             name="sex-radio-buttons-group"
                             value={sex}
-                            onChange={(e) => onChange('sex', e)}
+                            onChange={(e) =>
+                                onChange('sex', e, (val) =>
+                                    setSex(val as string),
+                                )
+                            }
                         >
                             <FormControlLabel
                                 value="female"
