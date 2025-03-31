@@ -25,6 +25,12 @@ class AlertService {
         const groupAlertState = this.getGroupAlertState(groupId);
         if (groupAlertState) {
             groupAlertState.alertQueue.push(alert);
+        } else {
+            this.setGroupAlertState(groupId, {
+                alertQueue: [alert],
+                ongoingAlert: undefined,
+                timeoutHandle: undefined,
+            });
         }
     }
 }
