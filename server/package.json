@@ -10,6 +10,7 @@
     "test": "jest --coverage",
     "test:debug": "node --inspect-brk ./node_modules/.bin/jest --runInBand",
     "lint": "eslint 'src/**/*.ts'",
+    "lint-win": "eslint \"src/**/*.ts\"",
     "format": "prettier --write ."
   },
   "dependencies": {
