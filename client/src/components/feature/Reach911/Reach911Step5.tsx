@@ -18,6 +18,7 @@ import { updateIncident } from '../../../redux/incidentSlice'
 import type { AppDispatch } from '../../../redux/store'
 import request from '../../../utils/request'
 import ConfirmationDialog from '../../common/ConfirmationDialog'
+import { set } from 'lodash'
 
 interface Reach911Step5Props {
     incidentId?: string
@@ -38,6 +39,8 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     const [currenCommander, setCurrentCommander] = useState<string | null>(
         currentUsername,
     )
+    const [showCommanderSelect, setShowCommanderSelect] = useState(false)
+    const [newCommander, setNewCommander] = useState<string | null>(null)
 
     // Two-way mapping between UI and backend values for priority.
     const displayToBackend: Record<string, IncidentPriority> = {
@@ -58,6 +61,13 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     // Fetch all personnel and exclude assigned personnel
     useEffect(() => {
         const fetchPersonnel = async () => {
+            if (incidentData?.commander === currentUsername) {
+                setAmICommander(true)
+                setCurrentCommander('You')
+            } else {
+                setCurrentCommander(incidentData?.commander || 'You')
+            }
+
             try {
                 const personnelData = await request('/api/personnel', {
                     method: 'GET',
@@ -103,7 +113,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             }
         }
         fetchPersonnel()
-    }, [])
+    }, [incidentData])
 
     // Fetch incident details and update Redux state
     useEffect(() => {
@@ -203,7 +213,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     }
 
     const handleCancelCloseIncident = () => {
-        setShowCloseConfirm(false)
+        setShowCommanderSelect(false)
     }
 
     const handleConfirmCloseIncident = async () => {
@@ -234,9 +244,20 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     }
 
     const handleCommanderChange = async (newCommander: string) => {
+        setNewCommander(newCommander)
+        setShowCommanderSelect(true)
+    }
+
+    const handleCancelTransferCommand = () => {
+        setShowCommanderSelect(false)
+    }
+
+    const handleConfirmCommanderSelect = async () => {
+        setShowCommanderSelect(false)
         if (!incidentData) return
 
-        if (newCommander === currentUsername) {
+        if (newCommander === 'You') {
+            newCommander(currentUsername)
             setAmICommander(true)
             if (incidentData?.commander === currentUsername) {
                 return
@@ -284,7 +305,11 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     incidentState: incidentState,
                 }),
             )
-            setCurrentCommander(newCommander)
+            if (newCommander === currentUsername) {
+                setAmICommander(true)
+                setCurrentCommander('You')
+            } else
+                setCurrentCommander(newCommander)
         } catch (err) {
             console.error('Error updating incident:', err)
             setError('Failed to update incident')
@@ -441,12 +466,10 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                             }
                         >
                             <MenuItem
-                                key={currentUsername}
-                                value={currentUsername}
+                                key={currenCommander}
+                                value={currenCommander}
                             >
-                                {currentUsername === currenCommander
-                                    ? `You (${currentUsername})`
-                                    : currentUsername}
+                                {currenCommander}
                             </MenuItem>
                             {unassignedPersonnel.map((person) => (
                                 <MenuItem key={person} value={person}>
@@ -535,7 +558,16 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 open={showCloseConfirm}
                 title="Confirm Close"
                 description="Are you sure you want to close this incident? This action cannot be undone."
-                onConfirm={handleConfirmCloseIncident}
+                onConfirm={handleConfirmCommanderSelect}
+                onCancel={handleCancelCloseIncident}
+                confirmText="Yes"
+                cancelText="No"
+            />
+            <ConfirmationDialog
+                open={showCommanderSelect}
+                title="Alert"
+                description={`Are you sure you want to transfer command to ${newCommander}?`}
+                onConfirm={handleConfirmCommanderSelect}
                 onCancel={handleCancelCloseIncident}
                 confirmText="Yes"
                 cancelText="No"
