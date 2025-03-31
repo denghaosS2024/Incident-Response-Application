@@ -1009,7 +1009,6 @@ const Mapbox: React.FC<MapboxProps> = ({
 
         if (longitude === 0 && latitude === 0) {
           // Use default location
-          console.log('in')
           longitude = -122.05964;
           latitude = 37.410271;
         }
@@ -1038,7 +1037,6 @@ const Mapbox: React.FC<MapboxProps> = ({
             .addTo(mapRef.current);
         
         truckRef.current.set(userWithTruck._id, marker);
-        console.log(truckRef.current)
         
     } catch (error) {
         console.error('Error fetching trucks:', error);
