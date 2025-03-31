@@ -290,15 +290,38 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             )}
 
             {isClosed && (
-                <Typography
-                    variant="h6"
-                    color="error"
-                    sx={{ mt: 3, textAlign: 'center' }}
+                <Box
+                    sx={{
+                        mt: 3,
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                        pointerEvents: 'auto',
+                        position: 'relative',
+                        zIndex: 1001,
+                    }}
                 >
-                    Incident is Closed
-                </Typography>
+                    <Typography variant="h6" color="error">
+                        Incident is Closed
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        style={{ zIndex: 1001 }}
+                        onClick={() => {
+                            navigate('/incidents/report', {
+                                state: { incidentData },
+                            })
+                        }}
+                    >
+                        generate report
+                    </Button>
+                </Box>
             )}
-
             <ConfirmationDialog
                 open={showCloseConfirm}
                 title="Confirm Close"
