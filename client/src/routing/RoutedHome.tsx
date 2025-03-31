@@ -35,7 +35,7 @@ interface IProps {
 export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
   const dispatch = useDispatch<AppDispatch>()
   const isLoggedIn = localStorage.getItem('token') ? true : false
-  const role = localStorage.getItem('role') || 'Citizen'
+  const role = localStorage.getItem('role') ?? 'Citizen'
   // Check if there are any unread messages
   // const alerts = useSelector((state: RootState) => state.messageState.alerts)
   // const hasUnreadMessages = Object.values(alerts).some((alert) => alert)

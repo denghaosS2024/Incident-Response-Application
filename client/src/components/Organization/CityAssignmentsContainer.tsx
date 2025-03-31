@@ -67,7 +67,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
   data,
   refreshData,
 }) => {
-  const currentUser = localStorage.getItem('username') || ''
+  const currentUser = localStorage.getItem('username') ?? ''
   const currentUserPersonnel = data.personnel.find(
     (person) => person.name === currentUser,
   )

@@ -121,7 +121,7 @@ export default class MapOverlayHelper {
     | undefined
   > {
     try {
-      const owner = localStorage.getItem('uid') || ''
+      const owner = localStorage.getItem('uid') ?? ''
 
       // Fetch groups the user is participating in
       const myGroups = await request(`/api/channels/groups/${owner}`, {

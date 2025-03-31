@@ -29,7 +29,7 @@ const Contacts: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
   const currentUserId = localStorage.getItem('uid')
-  const currentUserRole = localStorage.getItem('role') || ''
+  const currentUserRole = localStorage.getItem('role') ?? ''
 
   const { contacts, loading } = useSelector(
     (state: RootState) => state.contactState,

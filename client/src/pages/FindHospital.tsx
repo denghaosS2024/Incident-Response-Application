@@ -132,7 +132,7 @@ const FindHospital: React.FC = () => {
       console.log('Batch Update Response:', response)
       console.log('Batch update successful!')
     } catch (err) {
-      let error = err as Error
+      const error = err as Error
       console.error('Batch Update Error:', error)
       console.error(`Batch update failed: ${error.message}`)
     }

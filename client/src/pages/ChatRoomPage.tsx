@@ -12,9 +12,9 @@ const ChatRoomPage: React.FC = () => {
   // Extract channelId from URL
   const channelId = useLocation().pathname.split('/')[2]
   // Retrieve current user ID
-  const currentUserId = localStorage.getItem('uid') || ''
+  const currentUserId = localStorage.getItem('uid') ?? ''
   // Retrieve current user role
-  const currentUserRole = localStorage.getItem('role') || ''
+  const currentUserRole = localStorage.getItem('role') ?? ''
   // Get messages for the current channel from Redux store
   const messages = useSelector(
     (state: RootState) => state.messageState.messages,

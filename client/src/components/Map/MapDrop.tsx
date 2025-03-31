@@ -21,7 +21,7 @@ const MapDrop: React.FC<MapDropProps> = ({
   onDropAirQuality,
 }) => {
   const [value, setValue] = useState(0)
-  const currentUserRole = localStorage.getItem('role') || 'Citizen' // Get role
+  const currentUserRole = localStorage.getItem('role') ?? 'Citizen' // Get role
 
   return (
     <Paper

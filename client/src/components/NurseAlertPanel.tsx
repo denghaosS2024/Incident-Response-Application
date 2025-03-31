@@ -117,7 +117,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 
         // Fetch nurses working at the same hospital
         const hospitalId =
-          localStorage.getItem('hospitalId') || 'default-hospital'
+          localStorage.getItem('hospitalId') ?? 'default-hospital'
         try {
           // Explicitly request only Nurse role users
           const users = await request(

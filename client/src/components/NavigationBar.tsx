@@ -43,7 +43,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const { id } = useParams()
   const [URLSearchParams] = useSearchParams()
   const name = URLSearchParams.get('name')
-  const role = localStorage.getItem('role') || 'Citizen'
+  const role = localStorage.getItem('role') ?? 'Citizen'
 
   const onBackHandler = onBack || (() => navigate(-1))
 
@@ -167,7 +167,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   const navigateToOrganization = () => {
     // Get the user's role from localStorage
-    const userRole = localStorage.getItem('role') || ''
+    const userRole = localStorage.getItem('role') ?? ''
 
     // Use the same role-based logic
     if (['Dispatch', 'Police', 'Fire'].includes(userRole)) {
