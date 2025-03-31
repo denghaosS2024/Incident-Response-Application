@@ -149,6 +149,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     localStorage.removeItem('911Step')
     localStorage.removeItem('username')
     localStorage.removeItem('role')
+    localStorage.clear()
     navigate('/login')
     }
   }

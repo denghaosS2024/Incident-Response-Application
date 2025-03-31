@@ -31,7 +31,10 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
             body: JSON.stringify({
               sarTask: {
                 state: 'InProgress',
-                startDate: startDate.toISOString()
+                startDate: startDate.toISOString(),
+                endDate: incident?.sarTask?.endDate,
+                hazards: incident?.sarTask?.hazards || [],
+                victims: incident?.sarTask?.victims || [0, 0, 0, 0, 0],
               }
             }),
           }
@@ -65,7 +68,9 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
         />
       </div>
 
-      <ReturnToTasksBtn />
+      <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
+        <ReturnToTasksBtn />
+      </div>
     </div>
   )
 }

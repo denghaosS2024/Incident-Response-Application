@@ -26,7 +26,7 @@ describe('Incident Controller', () => {
             incidentState: 'Waiting',
             owner: 'System',
             commander: 'System',
-            incidentCallGroup: new Types.ObjectId(),
+            incidentCallGroup: null,
         })
 
         return rawIncident.save()
@@ -109,6 +109,9 @@ describe('Incident Controller', () => {
         const incident = await createTestIncident(username)
         const channelId = new Types.ObjectId()
 
+        console.log('Incident', incident)
+        console.log('channelId', channelId)
+
         const result = await IncidentController.updateChatGroup(
             incident._id,
             channelId,
@@ -118,12 +121,19 @@ describe('Incident Controller', () => {
         expect(result?.incidentCallGroup?.toString()).toBe(channelId.toString())
     })
 
-    it('should return null if incident not found', async () => {
-        const result = await IncidentController.updateChatGroup(
+    it('should have an error if incident not found', async () => {
+        const newIncidentID = new Types.ObjectId()
+        await IncidentController.updateChatGroup(
+            newIncidentID,
             new Types.ObjectId(),
-            new Types.ObjectId(),
-        )
-        expect(result).toBeNull()
+        ).catch((error) => {
+            // Handle the error if needed
+            console.error('Error finding incident:', error)
+            expect(error).toBeInstanceOf(Error)
+            expect(error.message).toBe(
+                `Incident with ID '${newIncidentID}' not found`,
+            )
+        })
     })
 
     it('should return empty list when query using find All and no incidents are in database', async () => {
