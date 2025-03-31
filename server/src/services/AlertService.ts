@@ -33,6 +33,13 @@ class AlertService {
             });
         }
     }
+
+    public sendAlert(groupId: string): void {
+        const groupAlertState = this.getGroupAlertState(groupId);
+        if (groupAlertState) {
+            groupAlertState.ongoingAlert = groupAlertState.alertQueue.shift();
+        }
+    }
 }
 
 export default AlertService.getInstance();
