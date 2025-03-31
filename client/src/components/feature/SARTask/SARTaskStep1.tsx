@@ -14,8 +14,8 @@ interface SARTaskStep1Props {
 }
 
 const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) => {
-  const now = new Date()
-  const formattedDateTime = formatDateTime(incident?.sarTask?.startDate || now)
+  const startDate = (incident?.sarTask?.startDate) ? new Date(incident?.sarTask?.startDate) : new Date()
+  const formattedDateTime = formatDateTime(startDate)
   const incidentId = incident?.incidentId || 'NullId101'
 
   const leftText = `${incidentId} ${formattedDateTime}`
@@ -31,7 +31,7 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
             body: JSON.stringify({
               sarTask: {
                 state: 'InProgress',
-                startDate: now.toISOString()
+                startDate: startDate.toISOString()
               }
             }),
           }
