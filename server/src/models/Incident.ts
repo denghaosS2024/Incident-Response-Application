@@ -14,7 +14,17 @@ export enum IncidentType {
     Unset = 'U',
     Sar = 'S',
 }
-
+export interface IIncidentStateHistory {
+    timestamp: Date
+    commander: string
+    incidentState: string
+}
+export enum IncidentState {
+    Waiting = 'Waiting',
+    Triage = 'Triage',
+    Assigned = 'Assigned',
+    Closed = 'Closed',
+}
 export enum IncidentPriority {
     Immediate = 'E',
     Urgent = 'One',
@@ -27,10 +37,10 @@ export enum IncidentPriority {
 //   Note: SAR Task/SAR Incident is special type of Incident
 export interface ISarTask {
     state: 'Todo' | 'InProgress' | 'Done'
-    startDate?: Date,
-    endDate?: Date,
-    hazards: string[],
-    victims: number[],  // Array of size 5, {Immediate, Urgent, Could Wait, Dismiss, Deceased}
+    startDate?: Date
+    endDate?: Date
+    hazards: string[]
+    victims: number[] // Array of size 5, {Immediate, Urgent, Could Wait, Dismiss, Deceased}
     name?: string
     description?: string
     address?: string
@@ -46,14 +56,14 @@ export interface IIncident extends Document {
     caller: string
     openingDate: Date
     closingDate?: Date
-    incidentState: 'Waiting' | 'Triage' | 'Assigned' | 'Closed'
+    incidentState: IncidentState
     /*
      TODO in the future: when the app is deployed we can create reserved user System
      and replace String with type of User (same with commander)
      */
     owner: string
     commander: string
-    commanderDetail:IUser
+    commanderDetail: IUser
     address: string
     type: IncidentType
     questions:
@@ -77,6 +87,7 @@ export interface IIncident extends Document {
         usernames: string[]
         user?: IUser | null
     }[]
+    incidentStateHistory?: IIncidentStateHistory[]
     respondersGroup?: Types.ObjectId | null // Reference to Channel model
     sarTasks?: ISarTask[] // Changed from sarTask to sarTasks as an array
 }
@@ -161,58 +172,74 @@ const IncidentSchema = new Schema({
         ],
         default: [],
     },
+    incidentStateHistory: {
+        type: [
+            {
+                timestamp: { type: Date, required: true },
+                commander: { type: String, required: true },
+                incidentState: {
+                    type: String,
+                    enum: ['Waiting', 'Triage', 'Assigned', 'Closed'],
+                    required: true,
+                },
+            },
+        ],
+        default: [],
+    },
     respondersGroup: {
         type: Schema.Types.ObjectId,
         ref: 'Channel',
         default: null,
     },
     sarTasks: {
-        type: [{
-            state: {
-                type: String,
-                enum: ['Todo', 'InProgress', 'Done'],
-                default: 'Todo',
-            },
-            startDate: {
-                type: Date,
-                default: null
-            },
-            endDate: {
-                type: Date,
-                default: null
-            },
-            hazards: {
-                type: [String],
-                default: [],
-            },
-            victims: {
-                type: [Number],
-                default: [0, 0, 0, 0, 0],
-            },
-            name: {
-                type: String,
-                default: ''
-            },
-            description: {
-                type: String,
-                default: ''
-            },
-            location: {
-                type: String,
-                default: ''
-            },
-            coordinates: {
-                type: {
-                    latitude: {
-                        type: Number
-                    },
-                    longitude: {
-                        type: Number
-                    }
+        type: [
+            {
+                state: {
+                    type: String,
+                    enum: ['Todo', 'InProgress', 'Done'],
+                    default: 'Todo',
                 },
-                default: null
-            }
-        }],
+                startDate: {
+                    type: Date,
+                    default: null,
+                },
+                endDate: {
+                    type: Date,
+                    default: null,
+                },
+                hazards: {
+                    type: [String],
+                    default: [],
+                },
+                victims: {
+                    type: [Number],
+                    default: [0, 0, 0, 0, 0],
+                },
+                name: {
+                    type: String,
+                    default: '',
+                },
+                description: {
+                    type: String,
+                    default: '',
+                },
+                location: {
+                    type: String,
+                    default: '',
+                },
+                coordinates: {
+                    type: {
+                        latitude: {
+                            type: Number,
+                        },
+                        longitude: {
+                            type: Number,
+                        },
+                    },
+                    default: null,
+                },
+            },
+        ],
         required: false,
         default: null,
     },
