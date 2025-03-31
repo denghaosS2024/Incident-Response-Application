@@ -22,12 +22,14 @@ import carRouter from './car'
 import cityRouter from './city'
 import dashboard from './dashboard'
 import erBedRouter from './erbed'
+import incidentReportRouter from './incidentReport'
 import patientRouter from './patients'
 import personnelRouter from './personnel'
 import profileRouter from './profile'
 import taskRouter from './sartask'
 import truckRouter from './truck'
 import wildfireAreaRouter from './WildfireArea'
+
 
 export default Router()
     .use('/users', user)
@@ -49,6 +51,7 @@ export default Router()
     .use('/login', login)
     .use('/channels', channel)
     .use('/incidents', incident)
+    .use('/incidentReports', incidentReportRouter)
     .use('/map', map)
     .use('/airQuality', airQuality)
     .use('/cars', carRouter)

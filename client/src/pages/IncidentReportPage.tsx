@@ -1,5 +1,6 @@
 import { Box, Divider, Typography } from '@mui/material'
 import { useLocation } from 'react-router-dom'
+import StatisticsAndAdditionalInfo from '../components/IncidentReport/StatisticsAndAdditionalInfo.tsx'
 import Step1EmergencyDetails from '../components/IncidentReport/Step1EmergencyDetails'
 import Step2EmergencyType from '../components/IncidentReport/Step2EmergencyType'
 import Step3PatientData from '../components/IncidentReport/Step3PatientData.tsx'
@@ -40,8 +41,8 @@ const IncidentReportPage = () => {
 
             <Divider sx={{ my: 3 }} />
 
-            {/* Section 5 */}
-            <Step5ResponseTimeline incidentData={incidentData} />
+            <Step5ResponseTimeline incident={incidentData} />
+            <StatisticsAndAdditionalInfo  incident={incidentData} />
         </Box>
     )
 }
