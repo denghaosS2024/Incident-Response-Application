@@ -6,27 +6,19 @@ import { useNavigate } from 'react-router-dom';
 import request from '../utils/request';
 import ROLES from '../utils/Roles';
 
-// Define hospital interface
-interface Hospital {
-  _id: string;
-  hospitalId: string;
-  hospitalName: string;
-  nurses: string[];
-}
-
 // Define patient types based on categories
-interface PatientItem {
+interface Patient {
   patientId: string;
   name: string;
   priority: string;
-  bedId: string;
+  location: string;
+  incidentId?: string;
 }
 
 interface PatientsByCategory {
-  requesting: PatientItem[];
-  ready: PatientItem[];
-  inUse: PatientItem[];
-  discharged: PatientItem[];
+  toTakeToER: Patient[];
+  atER: Patient[];
+  others: Patient[];
 }
 
 // Styled components
@@ -44,79 +36,119 @@ const PatientListItem = styled(ListItem)(({ theme }) => ({
   border: '1px solid #e0e0e0',
 }));
 
-const NursePatientsPage: React.FC = () => {
+const FirstResponderPatientsPage: React.FC = () => {
   const [patients, setPatients] = useState<PatientsByCategory>({
-    requesting: [],
-    ready: [],
-    inUse: [],
-    discharged: []
+    toTakeToER: [],
+    atER: [],
+    others: []
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [hospitalId, setHospitalId] = useState<string | null>(null);
-  const [hospitalName, setHospitalName] = useState<string>('');
   const navigate = useNavigate();
   
   // Get user information from localStorage
   const userRole = localStorage.getItem('role');
   const userId = localStorage.getItem('uid');
+  const username = localStorage.getItem('username');
   
-  // Only allow nurses to access this page
+  // Only allow Fire and Police to access this page
   useEffect(() => {
-    if (userRole !== ROLES.NURSE) {
+    if (userRole !== ROLES.FIRE && userRole !== ROLES.POLICE) {
       navigate('/');
     }
   }, [userRole, navigate]);
   
-  // Fetch the nurse's hospital information
+  // Fetch patients data for the responder's incidents
   useEffect(() => {
-    const fetchHospitalInfo = async () => {
-      if (!userId) {
+    const fetchPatientsData = async () => {
+      if (!username) {
         setError('User not logged in');
         setLoading(false);
         return;
       }
       
       try {
-        // Get all hospitals and find the one where this nurse is assigned
-        const hospitals = await request('/api/hospital', {
-          method: 'GET',
-        }) as Hospital[];
-        
-        const nurseHospital = hospitals.find(hospital => 
-          hospital.nurses.includes(userId)
-        );
-        
-        if (nurseHospital) {
-          setHospitalId(nurseHospital.hospitalId);
-          setHospitalName(nurseHospital.hospitalName);
-        } else {
-          setError('Nurse is not assigned to any hospital');
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('Error fetching hospital info:', err);
-        setError('Failed to load hospital information');
-        setLoading(false);
-      }
-    };
-
-    fetchHospitalInfo();
-  }, [userId]);
-  
-  // Fetch patients data for the hospital where the nurse works
-  useEffect(() => {
-    const fetchPatientsData = async () => {
-      if (!hospitalId) {
-        return; // Wait until we have the hospitalId
-      }
-      
-      try {
-        const response = await request(`/api/erbed/hospital/${hospitalId}/patients`, {
+        // First get incidents that the responder is associated with
+        const incidents = await request(`/api/incidents?commander=${username}`, {
           method: 'GET',
         });
         
-        setPatients(response);
+        if (!incidents || incidents.length === 0) {
+          setLoading(false);
+          return;
+        }
+        
+        // Get all patients
+        const allPatients = await request('/api/patients', {
+          method: 'GET',
+        });
+        
+        if (!allPatients || allPatients.length === 0) {
+          setLoading(false);
+          return;
+        }
+        
+        // Filter patients related to the responder's incidents
+        const incidentIds = incidents.map((incident: any) => incident.incidentId);
+        
+        const responderPatients = allPatients.filter((patient: any) => {
+          if (!patient.visitLog || patient.visitLog.length === 0) return false;
+          
+          // Check if any visit log entry is associated with one of the responder's incidents
+          return patient.visitLog.some((log: any) => 
+            incidentIds.includes(log.incidentId)
+          );
+        });
+        
+        // Sort and categorize patients
+        const categorizedPatients: PatientsByCategory = {
+          toTakeToER: [],
+          atER: [],
+          others: []
+        };
+        
+        responderPatients.forEach((patient: any) => {
+          // Use the most recent visit log for categorization
+          const recentLog = patient.visitLog.sort((a: any, b: any) => 
+            new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
+          )[0];
+          
+          const patientItem: Patient = {
+            patientId: patient.patientId,
+            name: patient.name,
+            priority: recentLog.priority || '4',
+            location: recentLog.location || 'Unknown',
+            incidentId: recentLog.incidentId
+          };
+          
+          // Categorize based on priority and location
+          if ((patientItem.priority === 'E' || patientItem.priority === '1') && patientItem.location === 'Road') {
+            categorizedPatients.toTakeToER.push(patientItem);
+          } else if ((patientItem.priority === 'E' || patientItem.priority === '1') && patientItem.location === 'ER') {
+            categorizedPatients.atER.push(patientItem);
+          } else {
+            categorizedPatients.others.push(patientItem);
+          }
+        });
+        
+        // Sort patients by priority in each category
+        const priorityOrder: Record<string, number> = {
+          'E': 0,
+          '1': 1,
+          '2': 2,
+          '3': 3,
+          '4': 4
+        };
+        
+        const sortByPriority = (a: Patient, b: Patient) => {
+          return (priorityOrder[a.priority] || 999) - (priorityOrder[b.priority] || 999);
+        };
+        
+        categorizedPatients.toTakeToER.sort(sortByPriority);
+        categorizedPatients.atER.sort(sortByPriority);
+        categorizedPatients.others.sort(sortByPriority);
+        
+        setPatients(categorizedPatients);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching patients:', err);
@@ -125,19 +157,19 @@ const NursePatientsPage: React.FC = () => {
       }
     };
 
-    if (hospitalId) {
-      fetchPatientsData();
-    }
-  }, [hospitalId]);
+    fetchPatientsData();
+  }, [username]);
 
   // Navigate to patient detail page
   const handlePatientClick = (patientId: string) => {
     navigate(`/patient-profile/${patientId}`);
   };
 
-  // Navigate to patient admission page
+  // Navigate to empty patient screen (as per wireframe)
   const handleAddPatient = () => {
-    navigate('/patients/nurse/admit');
+    // As per the wireframe, this leads to an empty patient screen
+    // and is only available to First Responders assigned to a SAR incident
+    // navigate('/sar-incident');
   };
 
   if (loading) {
@@ -158,24 +190,23 @@ const NursePatientsPage: React.FC = () => {
 
   return (
     <Box sx={{ height: '100%', padding: 2, position: 'relative', pb: 10 }}>
-      
-      <Typography variant="body1" sx={{ mb: 2 }}>
-        Drag patients to change category:
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Patients
       </Typography>
       
-      {/* Requesting an ER Bed */}
+      {/* To Take To ER */}
       <CategoryHeader>
         <Typography variant="subtitle1" fontWeight="bold">
-          Requesting an ER Bed
+          To Take To ER
         </Typography>
       </CategoryHeader>
       <List sx={{ width: '100%' }}>
-        {patients.requesting.length === 0 ? (
+        {patients.toTakeToER.length === 0 ? (
           <ListItem>
             <ListItemText primary="No patients in this category" />
           </ListItem>
         ) : (
-          patients.requesting.map((patient) => (
+          patients.toTakeToER.map((patient) => (
             <PatientListItem 
               key={patient.patientId}
               onClick={() => handlePatientClick(patient.patientId)}
@@ -195,19 +226,19 @@ const NursePatientsPage: React.FC = () => {
         )}
       </List>
       
-      {/* With an ER Bed Ready */}
+      {/* At ER */}
       <CategoryHeader>
         <Typography variant="subtitle1" fontWeight="bold">
-          With an ER Bed Ready
+          At ER
         </Typography>
       </CategoryHeader>
       <List sx={{ width: '100%' }}>
-        {patients.ready.length === 0 ? (
+        {patients.atER.length === 0 ? (
           <ListItem>
             <ListItemText primary="No patients in this category" />
           </ListItem>
         ) : (
-          patients.ready.map((patient) => (
+          patients.atER.map((patient) => (
             <PatientListItem 
               key={patient.patientId}
               onClick={() => handlePatientClick(patient.patientId)}
@@ -227,51 +258,19 @@ const NursePatientsPage: React.FC = () => {
         )}
       </List>
       
-      {/* In an ER Bed */}
+      {/* Others */}
       <CategoryHeader>
         <Typography variant="subtitle1" fontWeight="bold">
-          In an ER Bed
+          Others
         </Typography>
       </CategoryHeader>
       <List sx={{ width: '100%' }}>
-        {patients.inUse.length === 0 ? (
+        {patients.others.length === 0 ? (
           <ListItem>
             <ListItemText primary="No patients in this category" />
           </ListItem>
         ) : (
-          patients.inUse.map((patient) => (
-            <PatientListItem 
-              key={patient.patientId}
-              onClick={() => handlePatientClick(patient.patientId)}
-            >
-              <ListItemText 
-                primary={patient.name} 
-                sx={{ flex: '3 1 auto' }}
-              />
-              <Box sx={{ flex: '1 1 auto', textAlign: 'center' }}>
-                <Typography variant="body1">{patient.priority}</Typography>
-              </Box>
-              <IconButton edge="end">
-                <ChevronRightIcon />
-              </IconButton>
-            </PatientListItem>
-          ))
-        )}
-      </List>
-      
-      {/* Discharged from ER */}
-      <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold">
-          Discharged from ER
-        </Typography>
-      </CategoryHeader>
-      <List sx={{ width: '100%' }}>
-        {patients.discharged.length === 0 ? (
-          <ListItem>
-            <ListItemText primary="No patients in this category" />
-          </ListItem>
-        ) : (
-          patients.discharged.map((patient) => (
+          patients.others.map((patient) => (
             <PatientListItem 
               key={patient.patientId}
               onClick={() => handlePatientClick(patient.patientId)}
@@ -303,5 +302,4 @@ const NursePatientsPage: React.FC = () => {
   );
 };
 
-export default NursePatientsPage; 
-
+export default FirstResponderPatientsPage;

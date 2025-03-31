@@ -6,6 +6,7 @@ import Contacts from './pages/Contacts'
 import CreatechartPage from './pages/CreatechartPage.tsx'
 import DashboardPage from './pages/DashboardPage'
 import FindHospital from './pages/FindHospital'
+import FirstResponderPatientsPage from './pages/FirstResponderPatientsPage'
 import GroupInformationPage from './pages/GroupInformationPage'
 import GroupsPage from './pages/GroupsPage'
 import HomePage from './pages/HomePage'
@@ -19,6 +20,7 @@ import NursePatientsPage from './pages/NursePatientsPage.tsx'
 import Organization from './pages/Organization'
 import PatientAdmitPage from './pages/PatientAdmitPage.tsx'
 import PatientProfile from './pages/PatientProfile'
+import PatientsRouter from './pages/PatientsRouter'
 import PatientVisitPage from './pages/PatientVisitPage.tsx'
 import ProfilePage from './pages/ProfilePage'
 import Reach911Page from './pages/Reach911Page'
@@ -80,8 +82,10 @@ export default function App() {
                             path="/patient-profile/:patientId"
                             element={<PatientProfile />}
                         />
-                        <Route path="/patients" element={<NursePatientsPage />} />
-                        <Route path="/patients/admit" element={<PatientAdmitPage />} />
+                        <Route path="/patients" element={<PatientsRouter />} />
+                        <Route path="/patients/first-responder" element={<FirstResponderPatientsPage />} />
+                        <Route path="/patients/nurse" element={<NursePatientsPage />} />
+                        <Route path="/patients/nurse/admit" element={<PatientAdmitPage />} />
                         <Route path='/patient-visit' element={<PatientVisitPage />} />
                         <Route
                             path="/incidents/report"
