@@ -409,6 +409,50 @@ class UserController {
         // Return the least busy dispatcher
         return dispatcherLoads[0].dispatcher
     }
+
+    /**
+     * Create a temporary user account for a patient.
+     * This method automatically generates a temporary username (e.g., "temp1", "temp2", etc.)
+     * and a fixed password "1234", then creates a new user with an empty profile.
+     * @returns An object containing a message and the newly created user object.
+     * @throws Error if the account creation fails.
+     */
+    async createTempUserForPatient() {
+        try {
+            const tempUsers = await User.find({
+                username: { $regex: /^temp\d+$/ },
+            })
+                .sort({ username: -1 })
+                .exec()
+
+            let newTempNumber = 1
+            if (tempUsers.length > 0) {
+                const lastTempUser = tempUsers[0]
+                const num = parseInt(
+                    lastTempUser.username.replace('temp', ''),
+                    10,
+                )
+                newTempNumber = num + 1
+            }
+            const newTempUsername = `temp${newTempNumber}`
+
+            const newUser = new User({
+                username: newTempUsername,
+                password: '1234',
+                role: ROLES.CITIZEN,
+            })
+
+            await newUser.save()
+
+            return {
+                message: 'A new user account has been created for the Patient.',
+                username: newTempUsername,
+            }
+        } catch (error) {
+            console.error('Error creating temporary patient user:', error)
+            throw new Error('Failed to create temporary patient user.')
+        }
+    }
 }
 
 export default new UserController()

@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import request, {IRequestError} from '../utils/request'
-import styles from '../styles/SARTaskPage.module.css'
+import React, {useEffect, useState} from 'react'
+import {useParams} from 'react-router-dom'
 import ClickableStepper, {StepIconStyle} from '../components/ClickableStepper'
 import SARTaskStep1 from '../components/feature/SARTask/SARTaskStep1.tsx'
 import SARTaskStep2 from '../components/feature/SARTask/SARTaskStep2.tsx'
 import SARTaskStep3 from '../components/feature/SARTask/SARTaskStep3.tsx'
 import SARTaskStep4 from '../components/feature/SARTask/SARTaskStep4.tsx'
-import IIncident from '../models/Incident.ts'
+import IIncident, {IncidentType} from '../models/Incident.ts'
+import styles from '../styles/SARTaskPage.module.css'
+import request, {IRequestError} from '../utils/request'
 
 
 const SARTaskPage: React.FC = () => {
@@ -18,10 +18,17 @@ const SARTaskPage: React.FC = () => {
   useEffect(() => {
     const fetchIncident = async () => {
       try {
-        const response: IIncident = await request(`/api/incidents?incidentId=${incidentId}`, {
+        const response: IIncident[] = await request(`/api/incidents?incidentId=${incidentId}`, {
           method: 'GET',
         })
-        setCurrentIncident(response)
+        if (response.length !== 1) {
+          alert(`Fetch Incident ${incidentId}, returned ${response.length} object(s)`)
+        }
+        const incident = response[0]
+        if (incident.type !== IncidentType.Sar) {
+          alert(`Fetch Incident ${incidentId} with type: ${incident.type} (Not SAR Incident)`)
+        }
+        setCurrentIncident(incident)
         // console.log(`Fetch Incident: ${JSON.stringify(response)}`)
       } catch (error) {
         const err = error as IRequestError
@@ -32,10 +39,10 @@ const SARTaskPage: React.FC = () => {
   }, [incidentId])
 
   const contents = [
-    <SARTaskStep1 />,
-    <SARTaskStep2 />,
-    <SARTaskStep3 />,
-    <SARTaskStep4 />,
+    <SARTaskStep1 incident={currentIncident}/>,
+    <SARTaskStep2 incident={currentIncident}/>,
+    <SARTaskStep3 incident={currentIncident}/>,
+    <SARTaskStep4 incident={currentIncident}/>,
   ]
 
   const handleStepChange = (step: number): void => {

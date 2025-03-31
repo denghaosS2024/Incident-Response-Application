@@ -1,4 +1,5 @@
 import React from 'react'
+import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
 import AddressBar from './AddressBar.tsx'
 import FEMAMarker from './FEMAMarker'
@@ -6,13 +7,23 @@ import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import { useCurrentDateTime } from './useCurrentDateTime.tsx'
 
-const SARTaskStep1: React.FC = () => {
-  const { formattedDateTime } = useCurrentDateTime()
-  const incidentId = 'SDena101' //todo
+interface SARTaskStep1Props {
+  incident?: IIncident | null;
+}
 
-  const leftText = formattedDateTime 
-    ? `${incidentId} ${formattedDateTime}`
-    : 'SDena101 04.04.21 1:40pm'
+const SARTaskStep1: React.FC<SARTaskStep1Props> = ({incident }) => {  const { formattedDateTime } = useCurrentDateTime()
+  console.log(incident)
+  const incidentId = Array.isArray(incident) 
+    ? incident[0]?.incidentId || 'SDena101' 
+    : incident?.incidentId || 'SDena101'
+    
+  let leftText = 'SDena101 04.04.21 1:40pm'
+  // if (isReadOnly && incident?.tasks) {
+  //     leftText = `${incidentId} ${formattedDate} ${formattedTime}`
+  //   } // todo: get the date and time from the incident object
+  // } else if (!isReadOnly && formattedDateTime) {
+    leftText = `${incidentId} ${formattedDateTime}`
+  // }
 
   return (
     <div className={styles.wrapperStep}>

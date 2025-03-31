@@ -45,7 +45,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
         medicalQuestions = {
             isPatient: false,
             username: '',
-            age: 0,
+            // age: 1,
             sex: '',
             conscious: '',
             breathing: '',
@@ -55,7 +55,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
 
     const isPatient = medicalQuestions.isPatient ?? false
     const sex = medicalQuestions.sex ?? ''
-    const age = medicalQuestions.age ?? 0
+    const age = medicalQuestions.age
     const conscious = medicalQuestions.conscious ?? ''
     const breathing = medicalQuestions.breathing ?? ''
     const chiefComplaint = medicalQuestions.chiefComplaint ?? ''
@@ -99,14 +99,18 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             [field]: newValue,
         } as MedicalQuestions
 
-        if (await validateField(field, newValue)) {
-            dispatch(
-                updateIncident({
-                    ...incident,
-                    questions: updatedQuestions,
-                }),
-            )
+        const updatedQuestionsModified = updatedQuestions
+        if (!(await validateField(field, newValue))) {
+            delete updatedQuestionsModified[formIndex]?.[
+                field as keyof MedicalQuestions
+            ]
         }
+        dispatch(
+            updateIncident({
+                ...incident,
+                questions: updatedQuestionsModified,
+            }),
+        )
 
         // Validate only the changed field
     }
@@ -140,7 +144,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             }
 
             const response = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL}/api/incidents/${username}/active`,
+                `${import.meta.env.VITE_BACKEND_URL}/api/incidents/${value}/active`,
                 {
                     headers: {
                         'x-application-token': token || '',
@@ -165,6 +169,11 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
 
         // Checks that the age is between 1 and 110
         if (field === 'age') {
+            console.log(value)
+            if (!value) {
+                setAgeError('')
+                return isValid
+            }
             const parsedAge = Number(value) // Convert to number
 
             if (!parsedAge || parsedAge <= 0 || parsedAge > 110) {
@@ -212,11 +221,11 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                                 />
                             }
                             label={
-                              incident.incidentState === 'Assigned' ||
-                              incident.incidentState === 'Triage'
-                                  ? 'Caller is the patient'
-                                  : 'I am the patient'
-                          }
+                                incident.incidentState === 'Assigned' ||
+                                incident.incidentState === 'Triage'
+                                    ? 'Caller is the patient'
+                                    : 'I am the patient'
+                            }
                         />
                     </Box>
                 )}
@@ -241,14 +250,13 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                         <Select
                             labelId="username-label"
                             label="Username"
-                            value={
-                                isPatient
-                                    ? currentUser?.username || ''
-                                    : username || ''
-                            }
+                            value={username}
                             onChange={(e) => onChange('username', e)}
                             fullWidth
                         >
+                            <MenuItem key="unknown" value="unknown">
+                                Unknown
+                            </MenuItem>
                             {contacts.map((user: IUser) => (
                                 <MenuItem key={user._id} value={user.username}>
                                     {user.username}

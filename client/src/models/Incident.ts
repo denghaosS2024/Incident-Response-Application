@@ -24,6 +24,12 @@ export enum IncidentType {
     Medical = 'M',
     Police = 'P',
     Unset = 'U',
+    Sar = 'S',
+}
+
+export interface ISarTask {
+    state: 'Todo' | 'InProgress' | 'Done'
+    startDate?: Date
 }
 
 export default interface IIncident {
@@ -77,4 +83,5 @@ export default interface IIncident {
             status: string
         }[]
     }
+    sarTask?: ISarTask
 }
