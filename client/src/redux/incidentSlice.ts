@@ -58,17 +58,14 @@ const incidentsSlice = createSlice({
             state: IncidentsState,
             action: PayloadAction<IIncident>,
         ) => {
+            if (!action.payload.incidentId) {
+                console.error('No incident payload provided')
+                return
+            }
             console.log('called for update incident', action.payload)
             state.incident = action.payload
             persistState(state)
         },
-
-        // setLoading: (state, action: PayloadAction<boolean>) => {
-        //     state.loading = action.payload;
-        // },
-        // setError: (state, action: PayloadAction<string | null>) => {
-        //     state.error = action.payload;
-        // },
 
         resetIncident: (state) => {
             state.incident = {

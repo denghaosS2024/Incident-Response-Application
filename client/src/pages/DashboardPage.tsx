@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -7,25 +7,27 @@ import {
   CardContent,
   Chip,
   Button,
+  IconButton,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import PieChartIcon from '@mui/icons-material/PieChart'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import ShowChartIcon from '@mui/icons-material/ShowChart'
-import { Handshake } from '@mui/icons-material'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate } from 'react-router-dom'
-
-type ChartType = 'Bar' | 'Line' | 'Pie'
-
+import ChartDisplay from '../components/ChartDisplay'
+import request from '../utils/request'
 
 interface Chart {
+  _id: string
   name: string
-  type: ChartType
-  data: string
-  period?: number // in days
+  type: 'Pie' | 'Bar' | 'Line'
+  dataType: string
+  startDate?: string
+  endDate?: string
 }
 
-const chartIcon = (type: ChartType) => {
+const chartIcon = (type: Chart['type']) => {
   switch (type) {
     case 'Bar':
       return <BarChartIcon color="primary" />
@@ -36,129 +38,139 @@ const chartIcon = (type: ChartType) => {
   }
 }
 
-const mockCharts: Chart[] = [
-  {
-    name: 'Incident Type',
-    type: 'Pie',
-    data: 'Incident Type',
-  },
-  {
-    name: 'Incident Type',
-    type: 'Line',
-    data: 'Incident Type',
-    period: 3,
-  },
-  {
-    name: 'Incident Type',
-    type: 'Bar',
-    data: 'Incident Type',
-    period: 3,
-  },
-  {
-    name: 'Incident Type',
-    type: 'Pie',
-    data: 'Incident Type',
-  },
-  {
-    name: 'Incident Type',
-    type: 'Line',
-    data: 'Incident Type',
-    period: 3,
-  },
-  {
-    name: 'Incident Type',
-    type: 'Bar',
-    data: 'Incident Type',
-    period: 3,
-  },
-]
-
 const DashboardPage: React.FC = () => {
+  const navigate = useNavigate()
+  const [charts, setCharts] = useState<Chart[]>([])
+  const [selectedChart, setSelectedChart] = useState<Chart | null>(null)
 
-    
-    const navigate = useNavigate()
+  useEffect(() => {
+    const fetchCharts = async () => {
+      const uid = localStorage.getItem('uid')
+      if (!uid) return
 
-    const handleAddChart = () => {
-    console.log('Add Chart')
-    navigate('/create-chart')
+      try {
+        const res = await request(`/api/charts/user/${uid}`)
+        setCharts(res.charts)
+      } catch (err) {
+        console.error('Failed to load charts:', err)
+      }
     }
 
+    fetchCharts()
+  }, [])
+
+  const handleAddChart = () => {
+    navigate('/create-chart')
+  }
+
+  const handleBack = () => {
+    setSelectedChart(null)
+  }
+
+  const handleEditChart = (chartId: string) => {
+    localStorage.setItem('editChartId', chartId)
+    navigate('/create-chart')
+  }
+
+  const mockChartData = {
+    labels: ['Fire', 'Police', 'Medical', 'SAR'],
+    data: [4, 3, 5, 2],
+  }
 
   return (
     <Box display="flex" flexDirection="column" padding="16px">
+      {selectedChart === null ? (
+        <>
+          <Typography mb={2} ml={1} mr={1}>
+            Start customizing your dashboard by selecting the '+' sign below to add a new chart.
+          </Typography>
 
-      {/* Description */}
-      <Typography mb={2} ml={1} mr={1}>
-        Start customizing your dashboard by selecting the '+' sign below to add a new chart.
-      </Typography>
-
-      {/* Charts List */}
-        <Box
-        sx={{
-            width: '100%',
-            maxHeight: '70vh',
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            pt: 1, // top padding
-            pr: 1,
-            pl: 1,
-            pb: 2,
-        }}
-        >
-        <Grid container spacing={2} justifyContent="center">
-            {mockCharts.map((chart, index) => (
-            <Grid item xs={12} md={10} key={index}>
-                <Card
-                elevation={3}
-                sx={{
-                    borderRadius: 2,
-                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s',
-                    '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 6,
-                    },
-                }}
-                >
-                <CardContent>
-                    <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box display="flex" alignItems="center">
-                        {chartIcon(chart.type)}
-                        <Typography variant="h6" ml={1}>
-                        {chart.name}
-                        </Typography>
-                    </Box>
-                    <Chip
-                        label={chart.type}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                    />
-                    </Box>
-                    <Typography variant="body2" mt={1}>
-                    Data: {chart.data}
-                    </Typography>
-                    <Typography variant="body2">
-                    Period: {chart.period ? `${chart.period} days` : 'Last 3 days (default)'}
-                    </Typography>
-                </CardContent>
-                </Card>
+          <Box
+            sx={{
+              width: '100%',
+              maxHeight: '70vh',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              pt: 1,
+              pr: 1,
+              pl: 1,
+              pb: 2,
+            }}
+          >
+            <Grid container spacing={2} justifyContent="center">
+              {charts.map((chart) => (
+                <Grid item xs={12} md={10} key={chart._id}>
+                  <Card
+                    elevation={3}
+                    onClick={() => setSelectedChart(chart)}
+                    sx={{
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s ease-in-out, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 6,
+                      },
+                    }}
+                  >
+                    <CardContent>
+                      <Box display="flex" alignItems="center" justifyContent="space-between">
+                        <Box display="flex" alignItems="center">
+                          {chartIcon(chart.type)}
+                          <Typography variant="h6" ml={1}>
+                            {chart.name}
+                          </Typography>
+                        </Box>
+                        <Chip label={chart.type} size="small" color="primary" variant="outlined" />
+                      </Box>
+                      <Typography variant="body2" mt={1}>
+                        Data: {chart.dataType}
+                      </Typography>
+                      <Typography variant="body2">
+                        Period: {chart.startDate?.slice(0, 10)} to {chart.endDate?.slice(0, 10)}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
-            ))}
-        </Grid>
-        </Box>
+          </Box>
 
-      {/* Add Chart Button */}
-      <Box mt={3} display="flex" justifyContent="center">
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddChart}
-          sx={{ borderRadius: '999px' }}
-        >
-          Add Chart
-        </Button>
-      </Box>
+          <Box mt={3} display="flex" justifyContent="center">
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddChart}
+              sx={{ borderRadius: '999px' }}
+            >
+              Add Chart
+            </Button>
+          </Box>
+        </>
+      ) : (
+        <>
+          <Box display="flex" alignItems="center" mb={2} justifyContent="space-between">
+            <Box display="flex" alignItems="center">
+              <IconButton onClick={handleBack}>
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h6" ml={1}>
+                {selectedChart.name}
+              </Typography>
+            </Box>
+            <Button onClick={() => handleEditChart(selectedChart._id)}>Edit</Button>
+          </Box>
+
+          <ChartDisplay
+            title={selectedChart.name}
+            chartType={selectedChart.type}
+            labels={mockChartData.labels}
+            data={mockChartData.data}
+            chartId={selectedChart._id}
+          />
+        </>
+      )}
     </Box>
   )
 }

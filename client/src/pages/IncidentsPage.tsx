@@ -18,6 +18,7 @@ import { resetIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
 import ROLES from "@/utils/Roles"
 import { update } from "lodash"
+import { updateIncident } from '../redux/incidentSlice'
 
 interface IncidentData {
   incidentId: string
@@ -275,16 +276,11 @@ function IncidentsPage() {
   // Navigate to incident description with auto-populate on
   const handleIncidentClick = (incident: IncidentData) => {
     let readOnly = false
-    if (
-      incident.incidentState === 'Closed' ||
-      (incident.commander !== userId && incident.owner !== userId)
-    ) {
-      readOnly = true
-    }
 
+    let updatedIncident = incident
     if (incident.incidentState === 'Waiting' && role === ROLES.DISPATCH) {
       // Update incident's state, owner and commander
-      const updatedIncident = {
+      updatedIncident = {
         ...incident,
         incidentState: 'Triage',
         owner: userId,
@@ -297,12 +293,25 @@ function IncidentsPage() {
           body: JSON.stringify(updatedIncident),
           headers: { 'Content-Type': 'application/json' },
         })
+
       }
       catch (error) {
         console.error('Error updating incident:', error)
       }
 
     }
+
+    if (
+      updatedIncident.incidentState === 'Closed' ||
+      (updatedIncident.commander !== userId && incident.owner !== userId)
+    ) {
+      readOnly = true
+    }
+
+    // Update sate in redux with updated incident
+    console.log('Updated incident:', updatedIncident)
+    // dispatch(resetIncident())
+    // dispatch(updateIncident(updatedIncident))
 
     const autoPopulateData = true
     

@@ -316,6 +316,63 @@ export default Router()
         }
     })
 
+
+        /**
+     * @swagger
+     * /api/incidents/sar:
+     *   get:
+     *     summary: Get incidents for SAR functionality by owner and type S
+     *     tags: [Incidents]
+     *     parameters:
+     *       - in: query
+     *         name: owner
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Owner of the SAR incidents
+     *     responses:
+     *       200:
+     *         description: SAR incidents retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/Incident'
+     *       204:
+     *         description: No SAR incidents found
+     *       400:
+     *         description: Owner parameter is required
+     *       500:
+     *         description: Internal server error
+     */
+    .get('/sar', async (request, response) => {
+        try {
+            const { owner } = request.query
+            
+            if (!owner) {
+                return response.status(400).json({ 
+                    message: 'Owner parameter is required' 
+                })
+            }
+            
+            const result = await IncidentController.getSARIncidentsByOwner(
+                owner as string
+            )
+            
+            if (!result || result.length === 0) {
+                return response
+                    .status(204)
+                    .json({ message: 'No SAR incidents found' })
+            }
+            
+            return response.json(result)
+        } catch (e) {
+            const error = e as Error
+            return response.status(500).json({ message: error.message })
+        }
+    })
+
     /**
      * @swagger
      * /api/incidents/:
@@ -351,6 +408,12 @@ export default Router()
      *         schema:
      *          type: string
      *         description: Retrieve incident details by commander.
+     *       - in: query
+     *         name: incidentState
+     *         required: false
+     *         schema:
+     *          type: string
+     *         description: Retrieve incident details by incidentState.
      *     responses:
      *       200:
      *         description: Incidents retrieved successfully.
@@ -397,6 +460,7 @@ export default Router()
             const { incidentId } = request.query
             const { channelId } = request.query
             const { commander } = request.query
+            const { incidentState } = request.query
 
             if (commander) {
                 const result = await IncidentController.getIncidentByCommander(
@@ -423,6 +487,14 @@ export default Router()
             } else if (channelId) {
                 result = await IncidentController.getIncidentByChannelId(
                     channelId as string,
+                )
+                if (!result || result.length === 0) {
+                    response.status(404).json({ message: 'No incidents found' })
+                    return
+                }
+            } else if (incidentState) {
+                result = await IncidentController.getIncidentByIncidentState(
+                    incidentState as string,
                 )
                 if (!result || result.length === 0) {
                     response.status(404).json({ message: 'No incidents found' })
@@ -499,15 +571,15 @@ export default Router()
     })
     /**
      * @swagger
-     * /api/incidents/{id}:
+     * /api/incidents/{incidentId}:
      *   delete:
-     *     summary: Close an incident
+     *     summary: Close an incident by incidentId
      *     tags: [Incidents]
      *     parameters:
      *       - in: path
-     *         name: id
+     *         name: incidentId
      *         required: true
-     *         description: ID of the incident to close
+     *         description: The `incidentId` (e.g., "ITest") to close the incident
      *         schema:
      *           type: string
      *     responses:
@@ -518,20 +590,21 @@ export default Router()
      *       500:
      *         description: Internal server error
      */
-    .delete('/:id', async (request, response) => {
-        const { id } = request.params
+    .delete('/:incidentId', async (request, response) => {
+        const { incidentId } = request.params
         try {
-            const result = await IncidentController.closeIncident(id)
+            const result = await IncidentController.closeIncident(incidentId)
             if (!result) {
                 response.status(404).json({ message: 'Incident not found' })
                 return
             }
-            response.json(result)
+            response.status(200).json(result)
         } catch (e) {
             const error = e as Error
             response.status(500).json({ message: error.message })
         }
     })
+
     /**
      * @swagger
      * /api/incidents/updatedVehicles:
@@ -592,6 +665,7 @@ export default Router()
         const { incidents } = request.body
         try {
             for (const incident of incidents[0]) {
+                console.log(incident)
                 await IncidentController.updateVehicleHistory(incident)
             }
             response.status(200).json({ message: 'success' })

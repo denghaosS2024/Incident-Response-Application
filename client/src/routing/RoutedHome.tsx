@@ -12,9 +12,11 @@ import {
   setShowIncidentAlert,
 } from '@/redux/notifySlice'
 import IrSnackbar from '../components/common/IrSnackbar'
-import DirectNurseAlert from '../components/DirectNurseAlert'
+import GlobalAlertListener from '../components/GlobalAlertListener'
+import IncidentAlert from '../components/IncidentAlert'
 import ManagedTabBar from '../components/layout/ManagedTabBar'
 import NavigationBar from '../components/NavigationBar'
+import { addAlert } from '../redux/alertQueueSlice'
 import { loadContacts } from '../redux/contactSlice'
 import {
   acknowledgeMessage,
@@ -23,7 +25,6 @@ import {
 } from '../redux/messageSlice'
 import { AppDispatch } from '../redux/store'
 import SocketClient from '../utils/Socket'
-import IncidentAlert from '../components/IncidentAlert'
 
 interface IProps {
   showBackButton?: boolean
@@ -235,76 +236,21 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       setupAlertTimeout()
     })
     socket.on('nurse-alert', (message: IMessage) => {
-      console.log('[DEBUG] Received nurse-alert:', message)
+      console.log('[DEBUG] Received nurse-alert in RoutedHome:', message)
+      // Add to regular messages
       dispatch(addMessage(message))
-
-      // Only show the alert for nurses that are in the responders list
-      const currentUserId = localStorage.getItem('uid')
-      const isResponder = message.responders?.some(
-        (responder) =>
-          responder._id === currentUserId ||
-          (typeof responder === 'string' && responder === currentUserId),
-      )
-
-      console.log('[DEBUG] Nurse alert checks:', {
-        currentUserId,
-        role,
-        isNurse: role === 'Nurse',
-        isResponder,
-        responders: message.responders,
-        content: message.content,
-      })
-
-      if (isResponder && role === 'Nurse') {
-        // Parse the alert content to get the type and patient name
-        const content = message.content || ''
-        let alertType: 'E' | 'U' | '' = ''
-        let patientName = ''
-
-        // Support both new format "E HELP - Patient: PatientName - Nurses: X"
-        // and old format "E HELP-PatientName"
-        const patientMatch = content.match(/Patient:\s*([^-]+)/)
-
-        if (content.startsWith('E HELP')) {
-          alertType = 'E'
-          if (patientMatch && patientMatch[1]) {
-            patientName = patientMatch[1].trim()
-          } else if (content.includes('-')) {
-            // Fallback to old format
-            patientName = content.split('-')[1] || ''
-          }
-        } else if (content.startsWith('U HELP')) {
-          alertType = 'U'
-          if (patientMatch && patientMatch[1]) {
-            patientName = patientMatch[1].trim()
-          } else if (content.includes('-')) {
-            // Fallback to old format
-            patientName = content.split('-')[1] || ''
-          }
-        } else if (content.includes(' HELP')) {
-          alertType = ''
-          patientName = content.split('-')[1] || ''
-        }
-
-        console.log('[DEBUG] Setting nurse alert with:', {
-          alertType,
-          patientName,
-          messageId: message._id,
-        })
-
-        // Update state with alert data
-        setNurseAlertData({
-          alertType,
-          patientName,
-          messageId: message._id,
-          channelId: message.channelId,
-        })
-
-        // Show the alert
-        console.log('[DEBUG] Setting nurse alert visible to true')
-        setNurseAlertVisible(true)
-        setupAlertTimeout()
+      
+      // CRITICAL: Add to the alert queue for GlobalAlertListener to pick up
+      // IMPORTANT: Keep the original channelId so it only shows to nurses in that channel
+      // Make sure channelId is set if missing
+      const nurseAlertMessage = { ...message };
+      if (!nurseAlertMessage.channelId) {
+        console.warn('[DEBUG] Alert missing channelId, using default channel');
+        nurseAlertMessage.channelId = 'nurse-alerts';
       }
+      
+      console.log('[DEBUG] Adding nurse alert to Redux alert queue with original channelId:', nurseAlertMessage.channelId);
+      dispatch(addAlert(nurseAlertMessage));
     })
     socket.on('send-mayday', handleMaydayReceived)
     socket.on('user-status-changed', () => {
@@ -352,6 +298,8 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
 
   return (
     <>
+      {!isLoggedIn && <Navigate to="/login" />}
+      <GlobalAlertListener />
       {isLoggedIn ? (
         <>
           <NavigationBar showMenu={true} showBackButton={showBackButton} />
@@ -408,15 +356,6 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
               </Typography>
             </Box>
           </Modal>
-
-          {nurseAlertVisible && (
-            <DirectNurseAlert
-              alertType={nurseAlertData.alertType}
-              patientName={nurseAlertData.patientName}
-              onAccept={handleNurseAlertAccept}
-              onBusy={handleNurseAlertBusy}
-            />
-          )}
 
           {assignedIncident && (
             <IncidentAlert

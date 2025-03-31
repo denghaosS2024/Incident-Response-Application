@@ -32,6 +32,15 @@ describe('Incident Controller', () => {
         return rawIncident.save()
     }
 
+    const createTestCar = async (carName: string, usernames: string[] = []) => {
+        return await Car.create({
+            name: carName,
+            usernames,
+            assignedIncident: null,
+            assignedCity: 'TestCity',
+        })
+    }
+
     it('will create a new incident', async () => {
         const username: string = 'test-username-1'
         const newIncident = await IncidentController.create(username)
@@ -468,6 +477,25 @@ describe('Incident Controller', () => {
         expect(updatedIncident?.incidentState).toBe('Closed')
     })
 
+    it('should return incidents with matching state', async () => {
+        // Create test incidents with different states
+        const waitingIncident = await createTestIncident('user-waiting');
+        await Incident.create({
+            incidentId: 'Iassigned',
+            caller: 'user-assigned',
+            openingDate: new Date(),
+            incidentState: 'Assigned',
+            owner: 'System',
+            commander: 'System'
+        });
+
+        // Test for Waiting state
+        const waitingResults = await IncidentController.getIncidentByIncidentState('Waiting');
+        expect(waitingResults).toBeDefined();
+        expect(waitingResults.length).toBe(1);
+        expect(waitingResults[0].incidentId).toBe(waitingIncident.incidentId);
+    });
+
     describe('Incident Responders Group functionality', () => {
         it('should create a new responders group from responders on assigned vehicles', async () => {
             await UserController.register(
@@ -515,5 +543,60 @@ describe('Incident Controller', () => {
 
             expect(updatedIncident.respondersGroup).toBeDefined()
         })
+
+        it('should de-allocate vehicle from incident', async () => {
+            const username = 'test-deallocate-user-1'
+            const carName = 'test-deallocate-car-1'
+
+            const car = await createTestCar(carName, [username])
+            const incident = await createTestIncident(username)
+
+            incident.assignedVehicles.push({
+                name: carName,
+                type: 'Car',
+                usernames: [username],
+            })
+            await incident.save()
+
+            car.assignedIncident = incident.incidentId
+            await car.save()
+
+            incident.assignedVehicles = []
+
+            const updatedIncident = await IncidentController.updateVehicleHistory(
+                incident
+            )
+
+            const updatedCar = await Car.findOne({ name: carName })
+
+            expect(updatedIncident).toBeDefined()
+            expect(updatedIncident?.assignedVehicles.find(v => v.name === carName)).toBeUndefined()
+            expect(updatedCar).toBeDefined()
+            expect(updatedCar!.assignedIncident).toBe(null)
+        })
+
+        it('should prevet deallocating commander\'s vehicle', async () => {
+            const username = 'test-deallocate-user'
+            const carName = 'test-deallocate-car'
+
+            const car = await createTestCar(carName, [username])
+            const incident = await createTestIncident(username)
+
+            incident.assignedVehicles.push({
+                name: carName,
+                type: 'Car',
+                usernames: [username, 'System'],
+            })
+            await incident.save()
+
+            car.assignedIncident = incident.incidentId
+            await car.save()
+
+            incident.assignedVehicles = []
+
+            await expect(
+                IncidentController.updateVehicleHistory(incident),
+            ).rejects.toThrow('Cannot deallocate commander\'s vehicle')
+        })        
     })
 })

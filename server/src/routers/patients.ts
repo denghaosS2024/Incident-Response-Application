@@ -1,6 +1,6 @@
-import { Router } from 'express'
+import { Router } from 'express';
 
-import PatientController from '../controllers/PatientController'
+import PatientController from '../controllers/PatientController';
 
 export default Router()
   /**
@@ -299,33 +299,18 @@ export default Router()
    *         name: patientId
    *         description: ID of the patient to retrieve.
    *         required: false
-   *         schema:
-   *           type: string
+   *         type: string
    *       - in: query
    *         name: hospitalId
    *         description: ID of the hospital to retrieve patients from.
    *         required: false
-   *         schema:
-   *           type: string
    *     responses:
    *       200:
    *         description: Patients retrieved successfully.
    *         content:
    *           application/json:
    *             schema:
-   *               type: array
-   *               items:
-   *                 type: object
-   *                 properties:
-   *                   id:
-   *                     type: string
-   *                     description: Unique identifier for the patient.
-   *                   name:
-   *                     type: string
-   *                     description: Name of the patient.
-   *                   hospitalId:
-   *                     type: string
-   *                     description: ID of the hospital the patient is associated with.
+   *               $ref: '#/components/schemas/Patient'
    *       400:
    *         description: Invalid request parameters.
    *       500:
@@ -358,6 +343,81 @@ export default Router()
     }
   })
 
+  /**
+   * @swagger
+   * /unassigned:
+   *   get:
+   *     summary: Get unassigned patients
+   *     description: Retrieves a list of patients who are currently unassigned to a nurse.
+   *     operationId: getUnassignedPatients
+   *     tags:
+   *       - Patients
+   *     responses:
+   *       '200':
+   *         description: A list of unassigned patients
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   patientId:
+   *                     type: string
+   *                     description: The ID of the patient
+   *                   name:
+   *                     type: string
+   *                     description: The name of the patient
+   *                   nameLower:
+   *                     type: string
+   *                     description: The lowercase version of the patient's name for easier searching
+   *                   visitLog:
+   *                     type: array
+   *                     items:
+   *                       type: object
+   *                       properties:
+   *                         date:
+   *                           type: string
+   *                           format: date
+   *                           description: The date of the patient's visit
+   *                         location:
+   *                           type: string
+   *                           description: The location of the visit
+   *                         link:
+   *                           type: string
+   *                           description: A link to more details about the visit
+   *                   nurseId:
+   *                     type: string
+   *                     nullable: true
+   *                     description: The ID of the nurse assigned to the patient, null if unassigned
+   *                   hospitalId:
+   *                     type: string
+   *                     nullable: true
+   *                     description: The ID of the hospital where the patient is located
+   *                   priority:
+   *                     type: string
+   *                     nullable: true
+   *                     description: The priority level of the patient (e.g., high, medium, low)
+   *                   status:
+   *                     type: string
+   *                     nullable: true
+   *                     description: The current status of the patient (e.g., pending, in progress)
+   *                   location:
+   *                     type: string
+   *                     nullable: true
+   *                     description: The current location of the patient
+   *       '400':
+   *         description: Bad request, possibly due to server issues or database errors
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   description: Error message
+   *                   example: "Failed to fetch unassigned patients"
+   */
   .get('/unassigned', async (_, response) => {
     try {
       const result = await PatientController.getUnassignedPatients()
@@ -374,7 +434,7 @@ export default Router()
    *   post:
    *     summary: Create a new visit log for a patient
    *     description: >
-   *       Adds a new visit log entry to the specified patient. 
+   *       Adds a new visit log entry to the specified patient.
    *       If the patient has any existing active visit logs, they will be marked as inactive.
    *       The new visit will be created and marked as active.
    *     tags: [Patient]
@@ -486,11 +546,16 @@ export default Router()
     try {
       const { patientId, visitLog } = request.body
       if (!patientId || !visitLog) {
-        response.status(400).json({ message: 'patientId and visitLog are required' })
+        response
+          .status(400)
+          .json({ message: 'patientId and visitLog are required' })
         return
       }
 
-      const result = await PatientController.createPatientVisit(patientId as string, visitLog)
+      const result = await PatientController.createPatientVisit(
+        patientId as string,
+        visitLog,
+      )
       response.status(201).json(result)
     } catch (e) {
       const error = e as Error
@@ -613,7 +678,9 @@ export default Router()
     try {
       const { patientId, updatedVisitData } = request.body
       if (!patientId || !updatedVisitData) {
-        response.status(400).json({ message: 'patientId and updatedVisitData are required' })
+        response
+          .status(400)
+          .json({ message: 'patientId and updatedVisitData are required' })
         return
       }
 

@@ -22,10 +22,18 @@ export enum IncidentPriority {
     Unset = 'U',
 }
 
+// All dedicated field for 'SAR Task' goes here
+//   Note: SAR Task/SAR Incident is special type of Incident
+export interface ISarTask {
+    state: 'Todo' | 'InProgress' | 'Done'
+    startDate?: Date
+}
+
 export interface IIncident extends Document {
     incidentId: string
     caller: string
     openingDate: Date
+    closingDate?: Date
     incidentState: 'Waiting' | 'Triage' | 'Assigned' | 'Closed'
     /*
      TODO in the future: when the app is deployed we can create reserved user System
@@ -42,7 +50,7 @@ export interface IIncident extends Document {
         | EmergencyQuestions
         | null
     priority: IncidentPriority // The priority of the incident
-    incidentCallGroup?: Types.ObjectId // Reference to Channel model
+    incidentCallGroup?: Types.ObjectId | null // Reference to Channel model
     assignedVehicles: {
         type: 'Car' | 'Truck'
         name: string
@@ -55,7 +63,8 @@ export interface IIncident extends Document {
         isAssign: boolean
         usernames: string[]
     }[]
-    respondersGroup?: Types.ObjectId // Reference to Channel model
+    respondersGroup?: Types.ObjectId | null // Reference to Channel model
+    sarTask?: ISarTask
 }
 
 const IncidentSchema = new Schema({
@@ -71,6 +80,10 @@ const IncidentSchema = new Schema({
     openingDate: {
         type: Date,
         default: Date.now,
+    },
+    closingDate: {
+        type: Date,
+        default: null,
     },
     incidentState: {
         type: String,
@@ -137,6 +150,21 @@ const IncidentSchema = new Schema({
     respondersGroup: {
         type: Schema.Types.ObjectId,
         ref: 'Channel',
+        default: null,
+    },
+    sarTask: {
+        type: {
+            state: {
+                type: String,
+                enum: ['Todo', 'InProgress', 'Done'],
+                default: 'Todo',
+            },
+            startDate: {
+                type: Date,
+                default: null
+            }
+        },
+        required: false,
         default: null,
     },
 })

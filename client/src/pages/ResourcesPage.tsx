@@ -63,6 +63,88 @@ const ResourcesPage: React.FC = () => {
   };
 
   // Drag and drop logic
+  // const onDragEnd = async (result: DropResult) => {
+  //   const { source, destination, draggableId } = result;
+  //   if (!destination) return;
+  //   if (
+  //     source.droppableId === destination.droppableId &&
+  //     source.index === destination.index
+  //   ) {
+  //     return;
+  //   }
+    
+  //   const [itemType, itemName] = draggableId.split('::');
+  //   const destDroppable = destination.droppableId;
+  //   const currentUsername: string | null = localStorage.getItem('username');
+    
+  //   if (destDroppable.startsWith('incident-')) {
+  //     const incidentId = destDroppable.replace('incident-', '');
+  //     try {
+  //       const currentIncident: IIncident | undefined = incidents.find(
+  //         (inc) => inc.incidentId === incidentId,
+  //       );
+        
+  //       if (!currentIncident) {
+  //         setErrorMessage('Incident not found');
+  //         setOpenSnackbar(true);
+  //         return;
+  //       } else if (currentIncident.commander !== currentUsername) {
+  //         setErrorMessage('You are not the commander of this incident');
+  //         setOpenSnackbar(true);
+  //         return;
+  //       }
+
+  //       const isDuplicate = currentIncident.assignedVehicles.some(
+  //         (v) => v.name === itemName && v.type === itemType,
+  //       );
+
+  //       if (isDuplicate) {
+  //         setErrorMessage('Vehicle already assigned to this incident');
+  //         setOpenSnackbar(true);
+  //         return;
+  //       }
+
+  //       const matchingVehicle =
+  //         itemType === 'Car'
+  //           ? cars.find((car) => car.name === itemName)
+  //           : trucks.find((truck) => truck.name === itemName);
+
+  //       // Prepare the updated incident with the new vehicle
+  //       const updatedIncident: IIncident = {
+  //         ...currentIncident,
+  //         assignedVehicles: [
+  //           ...currentIncident.assignedVehicles,
+  //           {
+  //             type: itemType,
+  //             name: itemName,
+  //             usernames: matchingVehicle?.usernames || [],
+  //           },
+  //         ],
+  //       };
+
+  //       // Update the local state immediately for responsiveness
+  //       setIncidents((prevIncidents) =>
+  //         prevIncidents.map((inc) =>
+  //           inc.incidentId === incidentId ? updatedIncident : inc,
+  //         ),
+  //       );
+
+  //       if (itemType === 'Car') {
+  //         setCars((prevCars) => prevCars.filter((car) => car.name !== itemName));
+  //       } else if (itemType === 'Truck') {
+  //         setTrucks((prevTrucks) =>
+  //           prevTrucks.filter((truck) => truck.name !== itemName),
+  //         );
+  //       }
+  //     } catch (e: any) {
+  //       if (e.message && e.message.includes('Unexpected end of JSON input')) {
+  //         // Fix for Lint error - can add proper handling here if needed
+  //       } else {
+  //         console.error('Error assigning item to incident:', e);
+  //       }
+  //     }
+  //   }
+  // };
   const onDragEnd = async (result: DropResult) => {
     const { source, destination, draggableId } = result;
     if (!destination) return;
@@ -72,18 +154,17 @@ const ResourcesPage: React.FC = () => {
     ) {
       return;
     }
-    
+  
     const [itemType, itemName] = draggableId.split('::');
     const destDroppable = destination.droppableId;
+    const sourceDroppable = source.droppableId;
     const currentUsername: string | null = localStorage.getItem('username');
-    
+  
     if (destDroppable.startsWith('incident-')) {
       const incidentId = destDroppable.replace('incident-', '');
       try {
-        const currentIncident: IIncident | undefined = incidents.find(
-          (inc) => inc.incidentId === incidentId,
-        );
-        
+        const currentIncident = incidents.find((inc) => inc.incidentId === incidentId);
+  
         if (!currentIncident) {
           setErrorMessage('Incident not found');
           setOpenSnackbar(true);
@@ -93,23 +174,22 @@ const ResourcesPage: React.FC = () => {
           setOpenSnackbar(true);
           return;
         }
-
+  
         const isDuplicate = currentIncident.assignedVehicles.some(
           (v) => v.name === itemName && v.type === itemType,
         );
-
+  
         if (isDuplicate) {
           setErrorMessage('Vehicle already assigned to this incident');
           setOpenSnackbar(true);
           return;
         }
-
+  
         const matchingVehicle =
           itemType === 'Car'
             ? cars.find((car) => car.name === itemName)
             : trucks.find((truck) => truck.name === itemName);
-
-        // Prepare the updated incident with the new vehicle
+  
         const updatedIncident: IIncident = {
           ...currentIncident,
           assignedVehicles: [
@@ -121,20 +201,17 @@ const ResourcesPage: React.FC = () => {
             },
           ],
         };
-
-        // Update the local state immediately for responsiveness
+  
         setIncidents((prevIncidents) =>
           prevIncidents.map((inc) =>
             inc.incidentId === incidentId ? updatedIncident : inc,
           ),
         );
-
+  
         if (itemType === 'Car') {
           setCars((prevCars) => prevCars.filter((car) => car.name !== itemName));
         } else if (itemType === 'Truck') {
-          setTrucks((prevTrucks) =>
-            prevTrucks.filter((truck) => truck.name !== itemName),
-          );
+          setTrucks((prevTrucks) => prevTrucks.filter((truck) => truck.name !== itemName));
         }
       } catch (e: any) {
         if (e.message && e.message.includes('Unexpected end of JSON input')) {
@@ -144,7 +221,43 @@ const ResourcesPage: React.FC = () => {
         }
       }
     }
+  
+    // Handle dragging resource BACK to list
+    else if (destDroppable === 'cars' || destDroppable === 'trucks') {
+      const incidentId = sourceDroppable.replace('incident-', '');
+      const currentIncident = incidents.find((inc) => inc.incidentId === incidentId);
+      if (!currentIncident) return;
+    
+      const removedVehicle = currentIncident.assignedVehicles.find(
+        (v) => v.name === itemName && v.type === itemType,
+      );
+      if (!removedVehicle) return;
+    
+      const updatedVehicles = currentIncident.assignedVehicles.filter(
+        (v) => !(v.name === itemName && v.type === itemType),
+      );
+    
+      const updatedIncident: IIncident = {
+        ...currentIncident,
+        assignedVehicles: updatedVehicles,
+      };
+
+      console.log(updatedIncident)
+    
+      setIncidents((prevIncidents) =>
+        prevIncidents.map((inc) =>
+          inc.incidentId === incidentId ? updatedIncident : inc,
+        ),
+      );
+    
+      if (itemType === 'Car') {
+        setCars((prevCars) => [...prevCars, removedVehicle as Car]);
+      } else if (itemType === 'Truck') {
+        setTrucks((prevTrucks) => [...prevTrucks, removedVehicle as Truck]);
+      }
+    }
   };
+  
 
   const onSubmit = async () => {
     try{

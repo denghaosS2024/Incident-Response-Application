@@ -88,6 +88,9 @@ class IncidentController {
                 incidentCallGroup: incident.incidentCallGroup
                     ? incident.incidentCallGroup
                     : null,
+                sarTask: incident.type === 'S' 
+                ? incident.sarTask || { state: 'Todo', startDate: null }
+                : undefined
             }).save()
 
             const notifyDispatchers = async (
@@ -225,6 +228,15 @@ class IncidentController {
     }
 
     /**
+     * Get incident details based on incidentState
+     * @param incidentState
+     * @returns incident details based on incidentState
+     */
+    async getIncidentByIncidentState(incidentState: string): Promise<IIncident[]> {
+        return await Incident.find({ incidentState: incidentState }).exec()
+    }
+
+    /**
      *
      * @param personnel which is the user object
      * @param commandingIncident which is the incident commanding by the user
@@ -241,11 +253,17 @@ class IncidentController {
             assignedCar?: string
             assignedTruck?: string
             assignedIncident?: string
-          },
+        },
         commandingIncident: IIncident,
         vehicle: ICar | ITruck,
     ) {
         try {
+            console.log(
+                'addVehicleToIncident',
+                personnel,
+                commandingIncident,
+                vehicle,
+            )
             if (vehicle.assignedIncident) {
                 const assignedIncident = await Incident.findOne({
                     incidentId: vehicle.assignedIncident,
@@ -285,6 +303,12 @@ class IncidentController {
                     !personnel.assignedCar &&
                     !personnel.assignedTruck
                 ) {
+                    const allUsers = [
+                        ...new Set([
+                            ...(vehicle.usernames || []),
+                            personnel.name,
+                        ]),
+                    ]
                     // Create an update operation to add the username to the specific vehicle's usernames
                     const updatedIncident = await Incident.findByIdAndUpdate(
                         commandingIncident._id,
@@ -296,7 +320,7 @@ class IncidentController {
                                             ? 'Car'
                                             : 'Truck',
                                     name: vehicle.name,
-                                    usernames: vehicle.usernames,
+                                    usernames: allUsers,
                                 },
                             },
                         },
@@ -312,11 +336,39 @@ class IncidentController {
     }
 
     async closeIncident(incidentId: string): Promise<IIncident | null> {
-        return await Incident.findOneAndUpdate(
-            { incidentId },
-            { $set: { incidentState: 'Closed' } },
-            { new: true },
-        ).exec()
+        const incident = await Incident.findOne({ incidentId }).exec()
+        if (!incident) {
+            throw new Error(`Incident with ID '${incidentId}' not found`)
+        }
+
+        // Update incident state to 'Closed' and record the closing date/time
+        incident.incidentState = 'Closed'
+        incident.closingDate = new Date()
+
+        // Un-allocate all resources by updating each assigned vehicle's assignedIncident to null
+        for (const vehicle of incident.assignedVehicles) {
+            if (vehicle.type === 'Car') {
+                await CarController.updateIncident(vehicle.name, null)
+            } else if (vehicle.type === 'Truck') {
+                await TruckController.updateIncident(vehicle.name, null)
+            }
+        }
+
+        incident.assignedVehicles = []
+
+        if (incident.incidentCallGroup) {
+            await ChannelController.closeChannel(incident.incidentCallGroup)
+            incident.incidentCallGroup = null
+        }
+
+        if (incident.respondersGroup) {
+            await ChannelController.closeChannel(incident.respondersGroup)
+            incident.respondersGroup = null
+        }
+
+        await incident.save()
+
+        return incident
     }
 
     async updateVehicleHistory(incident: IIncident): Promise<IIncident | null> {
@@ -359,17 +411,27 @@ class IncidentController {
 
             //Notify the first responder
             v.usernames.forEach(async (username) => {
-              const user = await User.findOne({username})
-              if(!user) return
-              const id = user._id.toHexString()
-              if (!UserConnections.isUserConnected(id)) return
-        
-              const connection = UserConnections.getUserConnection(id)!
-              connection.emit('join-new-incident',incidentId)
+                const user = await User.findOne({ username })
+                if (!user) return
+                const id = user._id.toHexString()
+                if (!UserConnections.isUserConnected(id)) return
+
+                const connection = UserConnections.getUserConnection(id)!
+                console.log('emit')
+                connection.emit('join-new-incident', incidentId)
             })
         }
 
         for (const v of removeVehicleSet) {
+            // check whether incident.commander is in the vehicle
+            const isCommanderInVehicle = v.usernames.includes(
+                existingIncident.commander,
+            )
+            if (isCommanderInVehicle) {
+                throw new Error(
+                    'Cannot deallocate commander\'s vehicle',
+                )
+            }
             existingIncident.assignHistory.push({
                 timestamp: now,
                 usernames: v.usernames,
@@ -378,27 +440,49 @@ class IncidentController {
                 type: v.type,
             })
             if (v.type == 'Car') {
-                await CarController.updateIncident(v.name, incidentId)
+                await CarController.updateIncident(v.name, null)
             } else {
-                await TruckController.updateIncident(v.name, incidentId)
+                await TruckController.updateIncident(v.name, null)
             }
         }
 
         existingIncident.assignedVehicles = currentVehicleKeys
 
-        return await existingIncident.save()
+        const exits = await existingIncident.save()
+
+        try {
+            const updated = await this.createOrUpdateRespondersGroup(exits)
+            console.log(updated)
+            return updated
+        } catch (e) {
+            console.log(e)
+            return exits
+        }
     }
 
     async createOrUpdateRespondersGroup(
         incident: IIncident,
     ): Promise<IIncident> {
-        if (
-            !incident.assignedVehicles ||
-            incident.assignedVehicles.length === 0
-        ) {
-            throw new Error(
-                'No assigned vehicles available to create responders group.',
-            )
+        if (!incident.assignedVehicles || incident.assignedVehicles.length === 0) {
+            console.log(incident)
+            if (!incident.respondersGroup) {
+                return incident
+            }
+            if (incident.respondersGroup) {
+                await ChannelController.closeChannel(incident.respondersGroup)
+                incident.respondersGroup = null
+                await incident.save()
+
+                const updatedIncident = await Incident.findById(incident._id)
+                    .populate('respondersGroup')
+                    .exec()
+
+                if (!updatedIncident) {
+                    throw new Error(`Incident with ID '${incident._id}' not found`)
+                }
+
+                return updatedIncident
+            }
         }
 
         const isCommanderOnVehicle = incident.assignedVehicles.some((vehicle) =>
@@ -466,6 +550,18 @@ class IncidentController {
 
         return updatedIncident
     }
+
+    async getSARIncidentsByOwner(owner: string): Promise<IIncident[]> {
+    try {
+        return await Incident.find({
+            owner: owner,
+            type: 'S'
+        }).sort({ openingDate: -1 }).exec(); 
+    } catch (error) {
+        console.error('Error fetching SAR incidents:', error);
+        throw new Error(`Failed to retrieve SAR incidents: ${error}`);
+    }
+}
 }
 
 export default new IncidentController()

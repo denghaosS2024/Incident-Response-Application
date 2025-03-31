@@ -1,6 +1,6 @@
 import Car, { ICar } from '../models/Car'
 import City from '../models/City'
-import { IIncident } from '../models/Incident'
+import Incident, { IIncident } from '../models/Incident'
 
 class CarController {
     async getAllCars() {
@@ -152,6 +152,23 @@ class CarController {
             { $pull: { usernames: username } },
             { new: true },
         )
+
+        if (!updatedCar) {
+            throw new Error(`Failed to update car '${carName}'`)
+        }
+
+        if (!updatedCar.usernames || updatedCar.usernames.length === 0) {
+            await Incident.findOneAndUpdate(
+                { 'assignedVehicles.name': carName },
+                {
+                    $pull: {
+                        assignedVehicles: { name: carName },
+                    },
+                },
+                { new: true },
+            )
+        }
+
         return updatedCar
     }
 
@@ -176,14 +193,6 @@ class CarController {
     }
 
     async updateIncident(carName: string, incidentId: string | null) {
-        if (!incidentId) {
-            const updatedCar = await Car.findOneAndUpdate(
-                { name: carName },
-                { assignedCity: null },
-                { new: true },
-            )
-            return updatedCar
-        }
         const car = await Car.findOne({ name: carName })
         if (!car) {
             throw new Error(`Car with name '${carName}' does not exist`)

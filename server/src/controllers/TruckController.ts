@@ -1,5 +1,5 @@
 import City from '../models/City'
-import { IIncident } from '../models/Incident'
+import Incident, { IIncident } from '../models/Incident'
 import Truck, { ITruck } from '../models/Truck'
 class TruckController {
     async getAllTrucks() {
@@ -145,6 +145,22 @@ class TruckController {
             { $pull: { usernames: username } },
             { new: true },
         )
+
+        if (!updatedTruck) {
+            throw new Error(`Failed to retrieve / update truck '${truckName}'`)
+        }
+
+        if (!updatedTruck.usernames || updatedTruck.usernames.length === 0) {
+            await Incident.findOneAndUpdate(
+                { 'assignedVehicles.name': truckName },
+                {
+                    $pull: {
+                        assignedVehicles: { name: truckName },
+                    },
+                },
+                { new: true },
+            )
+        }
         return updatedTruck
     }
 
@@ -164,24 +180,16 @@ class TruckController {
     }
 
     async updateIncident(truckName: string, incidentId: string | null) {
-        if (!incidentId) {
-            const updatedTruck = await Truck.findOneAndUpdate(
-                { name: truckName },
-                { assignedCity: null },
-                { new: true },
-            )
-            return updatedTruck
-        }
-        const car = await Truck.findOne({ name: truckName })
-        if (!car) {
+        const truck = await Truck.findOne({ name: truckName })
+        if (!truck) {
             throw new Error(`Car with name '${truckName}' does not exist`)
         }
-        const updatedCar = await Truck.findOneAndUpdate(
+        const updatedTruck = await Truck.findOneAndUpdate(
             { name: truckName },
             { assignedIncident: incidentId },
             { new: true },
         )
-        return updatedCar
+        return updatedTruck
     }
 }
 

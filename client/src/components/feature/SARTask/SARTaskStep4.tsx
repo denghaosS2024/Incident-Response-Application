@@ -1,11 +1,53 @@
-import React, { useEffect, useState } from 'react'
+import { Button } from '@mui/material'
+import React from 'react'
+import IIncident from '../../../models/Incident.ts'
+import styles from '../../../styles/SARTaskPage.module.css'
+import AddressBar from './AddressBar.tsx'
+import FEMAMarker from './FEMAMarker'
+import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
+import SARTaskTitle from './SARTaskTitle.tsx'
+import { useCurrentDateTime } from './useCurrentDateTime.tsx'
 
+interface SARTaskStep4Props {
+  incident?: IIncident | null;
+}
 
-const SARTaskStep4: React.FC = () => {
+const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident }) => {
+    const incidentId = Array.isArray(incident) 
+    ? incident[0]?.incidentId || 'SDena101' 
+    : incident?.incidentId || 'SDena101'
+    const { formattedDateTime } = useCurrentDateTime()
+    const handleDoneClick = () => {
+    // TODO
+    alert('Task marked as done!')
+  }
 
   return (
-    <div>
-      <h1>SARTask - Step 4</h1>
+    <div className={styles.wrapperStep}>
+      <AddressBar address='4400 Forbes Ave, Pittsburgh, PA 15213' /> {/*TODO: load address dynamically*/}
+      <div className="mt-2"></div> {/* add space between components */}
+      <SARTaskTitle
+        title={'Final Marker'}
+        subtitle={'Update the marker on the wall, next to the main entrance:'}
+      />
+
+      <div className={styles.flexCenter}>
+        <FEMAMarker
+          top={formattedDateTime}
+          right='[FAKE] Dogs Foods'
+          bottom='[FAKE] 1-Immediate 2-Urgent'
+          left='[FAKE] SDena101 04.04.21 1:40pm'
+          size={300}
+        />
+      </div>
+
+      <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
+        <ReturnToTasksBtn />
+        <Button className={styles.primaryBtn} onClick={handleDoneClick} variant="contained"
+        sx={{ mt: 2, mx: 1 }}>
+          Done
+        </Button>
+      </div>
     </div>
   )
 }

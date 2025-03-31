@@ -1,6 +1,10 @@
 import { uuidv4 } from 'mongodb-memory-server-core/lib/util/utils'
 import { IHospital } from '../models/Hospital'
-import Patient, { IPatientBase, IVisitLog, PatientSchema } from '../models/Patient'
+import Patient, {
+  IPatientBase,
+  IVisitLog,
+  PatientSchema,
+} from '../models/Patient'
 import { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
 import HospitalController from './HospitalController'
@@ -45,9 +49,31 @@ class PatientController {
    * @returns an array of patient documents with no assigned hospital.
    */
   async getUnassignedPatients() {
-    return await Patient.find({
-      hospitalId: { $in: [null, ''] }, // Query for both null and empty string
-    })
+    try {
+      const priorityOrder = { E: 0, '1': 1, '2': 2, '3': 3, '4': 4 } // Custom priority order
+
+      const unassignedPatients = await Patient.find({
+        hospitalId: { $in: [null, ''] }, // Patients with no assigned hospital
+        location: 'Road', // Only fetch patients where location is "Road"
+        priority: { $in: ['E', '1'] },
+      })
+        .sort({
+          priority: 1, // Sort by priority first
+          name: 1, // Sort alphabetically within the same priority
+        })
+        .lean()
+
+      // Ensure sorting follows the custom priority order
+      return unassignedPatients.sort(
+        (a, b) =>
+          priorityOrder[a.priority ?? Number.MAX_SAFE_INTEGER] -
+            priorityOrder[b.priority ?? Number.MAX_SAFE_INTEGER] ||
+          a.name.localeCompare(b.name),
+      )
+    } catch (error) {
+      console.error('Error fetching unassigned patients:', error)
+      throw new Error('An error occurred while retrieving unassigned patients.')
+    }
   }
 
   /**
@@ -281,16 +307,16 @@ class PatientController {
 
   /**
    * Creates a new visit log for a patient.
-   * 
+   *
    * If the patient has any active visits, they are marked as inactive.
    * The new visit is marked as active and appended to the patient's visitLog.
-   * 
+   *
    * @param patientId - The unique ID of the patient
    * @param patientVisitData - The visit details to log for the patient
    * @returns The updated patient document
    * @throws Error if the patient with the given ID does not exist
    */
-  async createPatientVisit (patientId: string, patientVisitData:IVisitLog) {
+  async createPatientVisit(patientId: string, patientVisitData: IVisitLog) {
     const patient = await Patient.findOne({ patientId })
     if (!patient) {
       throw new Error(`Patient with ID ${patientId} does not exist`)
@@ -340,11 +366,9 @@ class PatientController {
     return patient
   }
 
-  
-
   /**
    * Update the active visit log entry of a patient.
-   * 
+   *
    * @param patientId - ID of the patient to update
    * @param updatedVisitData - The updated visit details to log for the patient
    * @returns The updated patient document with the modified visit log
@@ -355,19 +379,19 @@ class PatientController {
     if (!patient) {
       throw new Error(`Patient with ID ${patientId} does not exist`)
     }
-  
+
     const activeVisit = patient.visitLog?.find((visit) => visit.active)
     if (!activeVisit) {
       throw new Error(`No active visit log found for patient ID ${patientId}`)
     }
-  
+
     // Update only the provided fields
     Object.entries(updatedVisitData).forEach(([key, value]) => {
       if (value !== undefined && key !== 'active') {
         activeVisit[key] = value
       }
     })
-  
+
     await patient.save()
     const updatedPatient = await Patient.findOne({ patientId })
     return updatedPatient

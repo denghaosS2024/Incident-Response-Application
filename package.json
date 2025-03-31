@@ -29,6 +29,7 @@
         }
     },
     "dependencies": {
-        "@types/react": "^19.0.11"
+        "@types/react": "^19.0.11",
+        "prettier": "^3.5.3"
     }
 }

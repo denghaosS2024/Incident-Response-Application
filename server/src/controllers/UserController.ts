@@ -1,9 +1,8 @@
-// UserController handles user-related operations such as registration, login, and listing users.
-// It interacts with the User model and manages user authentication.
-
 import Channel from '../models/Channel'
 import Incident from '../models/Incident'
 import User, { IUser } from '../models/User'
+import Car from '../models/Car'
+import Truck from '../models/Truck'
 import ROLES from '../utils/Roles'
 import SystemGroupConfigs from '../utils/SystemDefinedGroups'
 import * as Token from '../utils/Token'
@@ -240,6 +239,104 @@ class UserController {
     }
 
     /**
+     * Handle incident commander logout and transfer the command of incident to other un-assigned first responder
+     * @param username - The username of the incident commanders logging out
+     * @throws Error if an error occurs during logout or incident transfer
+     */
+    async CommanderLogout(username: string) {
+        try {
+            // 1. Find all incident commanders
+            const incidentCommanderUsernames = await Incident.find({
+                commander: { $nin: ['System'] },
+                incidentState: 'Assigned'
+            }).select('commander');
+
+            // 2. Find one first responder who is not an incident commander
+            const firstResponderNotCommander = await User.findOne({
+                role: { $in: [ROLES.POLICE, ROLES.FIRE] },
+                username: { $nin: incidentCommanderUsernames.map(ic => ic.commander)}
+            });
+
+            // 3. If there are other un-assigned first responder, transfer incidents
+            if (firstResponderNotCommander) {
+                // Transfer the command of incident to this first responder
+                await Incident.updateOne(
+                    { commander: username },
+                    { $set: { commander: firstResponderNotCommander.username } }
+                );
+            }
+
+            // 3. Perform standard logout
+            await this.logout(username)
+        } catch (error) {
+            console.error('Error during commander logout:', error)
+            throw error
+        }
+    }
+
+    /**
+     * Handle first responder logout and un-assigns them from their Vehicle
+     * @param username - The username of the incident commanders logging out
+     * @param isCommander - Whether the user is the incident commander or not
+     * @throws Error if an error occurs during logout or un-assigns vehicle
+     */
+    async FirstResponderLogout(username: string, isCommander: boolean) {
+        try {
+            const user = await User.findOne({ username });
+            if (!user) {
+                throw new Error('User not found');
+            }
+    
+            if (user.role === ROLES.FIRE && user.assignedTruck) {
+                // Remove user from assigned truck
+                await Truck.updateOne(
+                    { name: user.assignedTruck },
+                    { $pull: { usernames: username } }
+                );
+    
+                // Remove user from incidents where this truck is assigned
+                await Incident.updateMany(
+                    { 'assignedVehicles.type': 'Truck', 'assignedVehicles.name': user.assignedTruck },
+                    { $pull: { 'assignedVehicles.$.usernames': username } }
+                );
+    
+                // Clear user's assignedTruck field
+                await User.updateOne({ username }, { assignedTruck: null });
+            }
+    
+            if (user.role === ROLES.POLICE && user.assignedCar) {
+                // Remove user from assigned car
+                await Car.updateOne(
+                    { name: user.assignedCar },
+                    { $pull: { usernames: username } }
+                );
+    
+                // Remove user from incidents where this car is assigned
+                await Incident.updateMany(
+                    { 'assignedVehicles.type': 'Car', 'assignedVehicles.name': user.assignedCar },
+                    { $pull: { 'assignedVehicles.$.usernames': username } }
+                );
+    
+                // Clear user's assignedCar field
+                await User.updateOne({ username }, { assignedCar: null });
+            }
+
+            if (isCommander) {
+                await this.CommanderLogout(username);
+                return
+            }
+
+            // Perform standard logout
+            await this.logout(username);
+    
+            
+        } catch (error) {
+            console.error('Error during first responder logout:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Handle dispatcher logout and transfer triage incidents to another dispatcher
      * @param username - The username of the dispatcher logging out
      * @throws Error if an error occurs during logout or incident transfer
@@ -311,6 +408,50 @@ class UserController {
 
         // Return the least busy dispatcher
         return dispatcherLoads[0].dispatcher
+    }
+
+    /**
+     * Create a temporary user account for a patient.
+     * This method automatically generates a temporary username (e.g., "temp1", "temp2", etc.)
+     * and a fixed password "1234", then creates a new user with an empty profile.
+     * @returns An object containing a message and the newly created user object.
+     * @throws Error if the account creation fails.
+     */
+    async createTempUserForPatient() {
+        try {
+            const tempUsers = await User.find({
+                username: { $regex: /^temp\d+$/ },
+            })
+                .sort({ username: -1 })
+                .exec()
+
+            let newTempNumber = 1
+            if (tempUsers.length > 0) {
+                const lastTempUser = tempUsers[0]
+                const num = parseInt(
+                    lastTempUser.username.replace('temp', ''),
+                    10,
+                )
+                newTempNumber = num + 1
+            }
+            const newTempUsername = `temp${newTempNumber}`
+
+            const newUser = new User({
+                username: newTempUsername,
+                password: '1234',
+                role: ROLES.CITIZEN,
+            })
+
+            await newUser.save()
+
+            return {
+                message: 'A new user account has been created for the Patient.',
+                username: newTempUsername,
+            }
+        } catch (error) {
+            console.error('Error creating temporary patient user:', error)
+            throw new Error('Failed to create temporary patient user.')
+        }
     }
 }
 

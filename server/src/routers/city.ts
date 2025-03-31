@@ -248,4 +248,57 @@ cityRouter.put(
     },
 )
 
+/**
+ * @swagger
+ * /api/cities/assignments/{type}/{name}:
+ *   delete:
+ *     summary: Unassign an entity from its current city
+ *     description: >
+ *       Removes the assignment of a Car, Truck, or Personnel from its current city by setting its `assignedCity` field to null.
+ *       This operation uses a DELETE request with the entity type and name to trigger the unassignment.
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: type
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [Car, Truck, Personnel]
+ *         example: Truck
+ *         description: The type of the entity to unassign.
+ *       - in: path
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: Truck55
+ *         description: The name of the entity to unassign.
+ *     responses:
+ *       200:
+ *         description: The entity has been successfully unassigned.
+ *       400:
+ *         description: Unassignment failed due to invalid input or internal error.
+ */
+
+cityRouter.delete(
+    '/assignments/:type/:name',
+    async (req: Request, res: Response) => {
+        try {
+            const { type, name } = req.params
+            const formattedType =
+                type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()
+            const result = await CityController.addCityAssignment(
+                '',
+                formattedType as 'Car' | 'Truck' | 'Personnel',
+                name,
+            )
+            res.json(result)
+        } catch (err) {
+            const error = err as Error
+            res.status(400).json({ error: error.message })
+        }
+    },
+)
+
 export default cityRouter

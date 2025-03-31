@@ -93,6 +93,9 @@ export default class MapOverlayHelper {
     Areas: () => eventEmitter.emit('area_util'),
     Pollution: () => eventEmitter.emit('toggle_airQuality'),
     Hospitals: () => eventEmitter.emit('toggle_hospital'),
+    Incidents: () => eventEmitter.emit('toggle_incidents'),
+    Trucks: () => eventEmitter.emit('toggle_trucks'),
+    Cars: () => eventEmitter.emit('toggle_cars')
   }
 
   /**
