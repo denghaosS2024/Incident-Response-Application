@@ -128,11 +128,19 @@ class IncidentController {
     ): Promise<IIncident | null> {
         // Convert string id to MongoDB ObjectId
         const _id = id
-        return Incident.findOneAndUpdate(
-            { _id },
-            { incidentCallGroup: channelId },
-            { new: true },
-        ).exec()
+        const incident = await Incident.findById(_id);
+        if (!incident) {
+            return null
+        }
+        // Check if the incident already has a chat group
+        if (incident.incidentCallGroup) {
+            throw new Error(
+                `Incident with ID '${_id}' already has a chat group`,
+            )
+        }
+        incident.incidentCallGroup = channelId;
+        await incident.save();
+        return incident
     }
 
     /**
