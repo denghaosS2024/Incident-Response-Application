@@ -15,7 +15,10 @@ class AlertService {
     public getGroupAlertState(groupId: string): GroupAlertState | undefined {
         return this.groupAlertMap.get(groupId);
     }
-    
+
+    public setGroupAlertState(groupId: string, groupAlertState: GroupAlertState): void {
+        this.groupAlertMap.set(groupId, groupAlertState);
+    }
 }
 
 export default AlertService.getInstance();
