@@ -1,50 +1,33 @@
 import React, { useEffect } from 'react'
-import IIncident from '../../../models/Incident.ts'
+import IIncident, {IncidentType} from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
 import AddressBar from './AddressBar.tsx'
 import FEMAMarker from './FEMAMarker'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import formatDateTime from './useCurrentDateTime.tsx'
+import request, {IRequestError} from '../../../utils/request.ts'
 
 interface SARTaskStep1Props {
-  incident?: IIncident | null;
+  incident: IIncident | null
+  setIncident: (incident: IIncident) => void
 }
 
-const SARTaskStep1: React.FC<SARTaskStep1Props> = ({incident }) => {  
-  console.log(incident)
-  const now = new Date();
-  
-  const formattedDateTime = formatDateTime(now)
-  const incidentId = Array.isArray(incident) 
-    ? incident[0]?.incidentId || 'SDena101' 
-    : incident?.incidentId || 'SDena101'
-    
+const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) => {
+  const now = new Date()
+  const formattedDateTime = formatDateTime(incident?.sarTask?.startDate || now)
+  const incidentId = incident?.incidentId || 'NullId101'
+
   const leftText = `${incidentId} ${formattedDateTime}`
-  
+
   useEffect(() => {
     const updateSARTask = async () => {
       if (!incident) return
-      
       try {
-        const token = localStorage.getItem('token')
-        const uid = localStorage.getItem('uid')
-        
-        if (!token || !uid) {
-          console.error('No authentication token or uid found')
-          return
-        }
-        
-        
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/incidents/sar/${incidentId}`,
+        const response: IIncident = await request(
+          `${import.meta.env.VITE_BACKEND_URL}/api/incidents/sar/${incident.incidentId}`,
           {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-application-token': token,
-              'x-application-uid': uid,
-            },
             body: JSON.stringify({
               sarTask: {
                 state: 'InProgress',
@@ -53,24 +36,22 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({incident }) => {
             }),
           }
         )
-        
-        if (!response.ok) {
-          throw new Error(`Failed to update SAR task: ${response.status}`)
-        }
-        
-        const updatedIncident = await response.json()
-        console.log('SAR task updated successfully:', updatedIncident)
+        console.log('SAR task updated successfully:', JSON.stringify(response))
+        setIncident(response)
       } catch (error) {
-        console.error('Error updating SAR task:', error)
+        const err = error as IRequestError
+        console.error('Error updating SAR task:', err.message)
       }
     }
-    
-    updateSARTask()
-  }, [incident, incidentId, formattedDateTime])
+
+    if (incident?.type === IncidentType.Sar && incident?.sarTask?.state === 'Todo') {
+      updateSARTask().then()
+    }
+  }, [incident])
 
   return (
     <div className={styles.wrapperStep}>
-      <AddressBar address='4400 Forbes Ave, Pittsburgh, PA 15213' /> {/*TODO: load address dynamically*/}
+      <AddressBar address={incident?.address || 'No Address'} />
       <div className="mt-2"></div> {/* add space between components */}
       <SARTaskTitle
         title={'Initial Marker'}
