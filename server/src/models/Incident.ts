@@ -74,7 +74,7 @@ export interface IIncident extends Document {
         usernames: string[]
     }[]
     respondersGroup?: Types.ObjectId | null // Reference to Channel model
-    sarTask?: ISarTask
+    sarTasks?: ISarTask[] // Changed from sarTask to sarTasks as an array
 }
 
 const IncidentSchema = new Schema({
@@ -162,8 +162,8 @@ const IncidentSchema = new Schema({
         ref: 'Channel',
         default: null,
     },
-    sarTask: {
-        type: {
+    sarTasks: {
+        type: [{
             state: {
                 type: String,
                 enum: ['Todo', 'InProgress', 'Done'],
@@ -176,8 +176,39 @@ const IncidentSchema = new Schema({
             endDate: {
                 type: Date,
                 default: null
+            },
+            hazards: {
+                type: [String],
+                default: [],
+            },
+            victims: {
+                type: [Number],
+                default: [0, 0, 0, 0, 0],
+            },
+            name: {
+                type: String,
+                default: ''
+            },
+            description: {
+                type: String,
+                default: ''
+            },
+            location: {
+                type: String,
+                default: ''
+            },
+            coordinates: {
+                type: {
+                    latitude: {
+                        type: Number
+                    },
+                    longitude: {
+                        type: Number
+                    }
+                },
+                default: null
             }
-        },
+        }],
         required: false,
         default: null,
     },

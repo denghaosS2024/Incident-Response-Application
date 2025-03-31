@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { Types } from 'mongoose'
 
 import IncidentController from '../controllers/IncidentController'
+import Incident from '../models/Incident'
 import type { IIncident } from '../models/Incident'
 /**
  * @swagger
@@ -404,17 +405,17 @@ export default Router()
          *                     type: string
          *                     format: date-time
          *     responses:
-         *       200:
-         *         description: SAR task updated successfully
-         *         content:
-         *           application/json:
-         *             schema:
-         *               $ref: '#/components/schemas/Incident'
-         *       400:
-         *         description: Bad request - Invalid input
-         *       404:
-         *         description: SAR incident not found
-         */
+     *       200:
+     *         description: SAR task updated successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Incident'
+     *       400:
+     *         description: Bad request - Invalid input
+     *       404:
+     *         description: SAR incident not found
+     */
         .put('/sar/:incidentId', async (request, response) => {
             try {
                 const { incidentId } = request.params;
@@ -443,7 +444,7 @@ export default Router()
 
                 const updatedIncident = await IncidentController.updateIncident({
                     incidentId: incidentId,
-                    sarTask: sarTask
+                    sarTasks: sarTask
                 });
                 
                 return response.status(200).json(updatedIncident);
@@ -758,8 +759,8 @@ export default Router()
     /**
      * @swagger
      * /api/incidents/{incidentId}/sar-task:
-     *   post:
-     *     summary: Create or update a SAR task for an incident
+     *   get:
+     *     summary: Get SAR tasks for an incident
      *     tags: [Incidents]
      *     parameters:
      *       - in: path
@@ -767,43 +768,85 @@ export default Router()
      *         required: true
      *         schema:
      *           type: string
-     *         description: The incident ID
+     *     responses:
+     *       200:
+     *         description: List of SAR tasks
+     *       404:
+     *         description: Incident not found
+     *       500:
+     *         description: Server error
+     */
+    .get('/:incidentId/sar-task', async (request, response) => {
+        try {
+            const { incidentId } = request.params
+            
+            // Find the incident
+            const incident = await Incident.findOne({ incidentId }).exec()
+            
+            if (!incident) {
+                return response.status(404).json({ error: `Incident with ID '${incidentId}' not found` })
+            }
+            
+            // Return the SAR tasks array
+            return response.json(incident.sarTasks || [])
+        } catch (error: any) {
+            console.error('Error getting SAR tasks:', error)
+            
+            if (error.message && error.message.includes('not found')) {
+                return response.status(404).json({ error: error.message })
+            }
+            
+            return response.status(500).json({ error: error.message || 'Internal server error' })
+        }
+    })
+    
+    /**
+     * @swagger
+     * /api/incidents/{incidentId}/sar-task:
+     *   post:
+     *     summary: Create a new SAR task for an incident
+     *     tags: [Incidents]
+     *     parameters:
+     *       - in: path
+     *         name: incidentId
+     *         required: true
+     *         schema:
+     *           type: string
      *     requestBody:
      *       required: true
      *       content:
      *         application/json:
      *           schema:
      *             type: object
+     *             required:
+     *               - state
      *             properties:
      *               state:
      *                 type: string
      *                 enum: [Todo, InProgress, Done]
-     *                 description: The state of the SAR task
      *               location:
      *                 type: string
-     *                 description: The location for the SAR task (optional)
+     *               coordinates:
+     *                 type: object
+     *                 properties:
+     *                   latitude:
+     *                     type: number
+     *                   longitude:
+     *                     type: number
      *               startDate:
      *                 type: string
      *                 format: date-time
-     *                 description: The start date for the SAR task (optional)
-     *               coordinates:
-     *                 type: string
-     *                 description: The coordinates for the SAR task (optional)
      *               name:
      *                 type: string
-     *                 description: The name of the SAR task (optional)
      *               description:
      *                 type: string
-     *                 description: The description of the SAR task (optional)
      *             required:
      *               - state
      *     responses:
      *       200:
-     *         description: The updated incident with the SAR task
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/Incident'
+     *         description: Updated incident with new SAR task
+     *       400:
+     *         description: Invalid request
      *       404:
      *         description: Incident not found
      *       500:
@@ -812,7 +855,7 @@ export default Router()
     .post('/:incidentId/sar-task', async (request, response) => {
         try {
             const { incidentId } = request.params
-            const { state, location, coordinates, startDate, name, description } = request.body
+            const { state, location, coordinates, startDate, name, description, hazards, victims } = request.body
             
             // Validate required fields
             if (!state) {
@@ -832,7 +875,9 @@ export default Router()
                 coordinates,
                 startDate: startDate ? new Date(startDate) : undefined,
                 name,
-                description
+                description,
+                hazards,
+                victims
             }
             
             const updatedIncident = await IncidentController.createOrUpdateSarTask(
@@ -840,7 +885,8 @@ export default Router()
                 sarTaskData
             )
             
-            return response.json(updatedIncident)
+            // Return the updated list of SAR tasks
+            return response.json(updatedIncident?.sarTasks || [])
         } catch (error: any) {
             console.error('Error creating/updating SAR task:', error)
             
@@ -848,48 +894,6 @@ export default Router()
                 return response.status(404).json({ error: error.message })
             }
             
-            return response.status(500).json({ error: error.message || 'Internal server error' })
-        }
-    })
-    
-    /**
-     * @swagger
-     * /api/incidents/{incidentId}/sar-task:
-     *   get:
-     *     summary: Get SAR task for an incident
-     *     tags: [Incidents]
-     *     parameters:
-     *       - in: path
-     *         name: incidentId
-     *         required: true
-     *         schema:
-     *           type: string
-     *     responses:
-     *       200:
-     *         description: The incident with its SAR task
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/Incident'
-     *       404:
-     *         description: Incident not found
-     *       500:
-     *         description: Server error
-     */
-    .get('/:incidentId/sar-task', async (request, response) => {
-        try {
-            const { incidentId } = request.params
-            
-            // Get the incident with the SAR task
-            const incident = await IncidentController.getIncidentByIncidentId(incidentId)
-            
-            if (!incident || incident.length === 0) {
-                return response.status(404).json({ error: `Incident with ID '${incidentId}' not found` })
-            }
-            
-            return response.json(incident[0])
-        } catch (error: any) {
-            console.error('Error retrieving SAR task:', error)
             return response.status(500).json({ error: error.message || 'Internal server error' })
         }
     })

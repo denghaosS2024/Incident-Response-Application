@@ -88,9 +88,7 @@ class IncidentController {
                 incidentCallGroup: incident.incidentCallGroup
                     ? incident.incidentCallGroup
                     : null,
-                sarTask: incident.type === 'S'
-                    ? incident.sarTask || { state: 'Todo', startDate: null, endDate: null, hazards: [], victims: [0, 0, 0, 0, 0] }
-                    : null
+                sarTasks: []
             }).save()
 
             const notifyDispatchers = async (
@@ -203,11 +201,18 @@ class IncidentController {
     }
 
     /**
-     * Get incident details based on incidentId
-     * @returns incident details based on incidentId
+     * Get incident by incidentId
+     * @param incidentId - The incident ID
+     * @returns The incident if found, empty array otherwise
      */
     async getIncidentByIncidentId(incidentId: string): Promise<IIncident[]> {
-        return await Incident.find({ incidentId }).exec()
+        try {
+            const incident = await Incident.find({ incidentId }).exec()
+            return incident
+        } catch (error) {
+            console.error('Error getting incident by incidentId:', error)
+            return []
+        }
     }
 
     /**
@@ -565,9 +570,9 @@ class IncidentController {
 
     /**
      * Create or update a SAR task for an incident
-     * @param incidentId - The ID of the incident to update
-     * @param sarTask - The SAR task data containing state, location, and coordinates
-     * @returns The updated incident if found, null otherwise
+     * @param incidentId - ID of the incident
+     * @param sarTask - SAR task data
+     * @returns Updated incident with the SAR task
      */
     async createOrUpdateSarTask(
         incidentId: string,
@@ -578,6 +583,8 @@ class IncidentController {
             startDate?: Date
             name?: string
             description?: string
+            hazards?: string[]
+            victims?: number[]
         }
     ): Promise<IIncident | null> {
         try {
@@ -588,19 +595,25 @@ class IncidentController {
                 throw new Error(`Incident with ID '${incidentId}' not found`)
             }
             
-            // Update the incident with the SAR task
+            // Create the new SAR task object
+            const newSarTask = {
+                state: sarTask.state,
+                startDate: sarTask.startDate || new Date(),
+                name: sarTask.name || '',
+                description: sarTask.description || '',
+                location: sarTask.location || '',
+                coordinates: sarTask.coordinates || null,
+                hazards: sarTask.hazards || [],
+                victims: sarTask.victims || [0, 0, 0, 0, 0],
+                endDate: null
+            }
+            
+            // Update the incident with the new SAR task added to the array
             const updatedIncident = await Incident.findOneAndUpdate(
                 { incidentId },
                 { 
-                    $set: { 
-                        sarTask: {
-                            state: sarTask.state,
-                            startDate: sarTask.startDate || new Date(),
-                            name: sarTask.name || '',
-                            description: sarTask.description || '',
-                            location: sarTask.location || '',
-                            coordinates: sarTask.coordinates || null
-                        }
+                    $push: { 
+                        sarTasks: newSarTask
                     } 
                 },
                 { new: true }

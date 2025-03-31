@@ -59,6 +59,9 @@ const SARStep1: React.FC<SARStep1Props> = ({
 
   // Local state for the input field
   const [inputAddress, setInputAddress] = useState(incident.address || '')
+  const [inputLocation, setInputLocation] = useState<{ latitude: number; longitude: number } | null>(
+    incident.location ? { latitude: incident.location.latitude, longitude: incident.location.longitude } : null
+  )
   
   // State for the task creation dialog
   const [openTaskDialog, setOpenTaskDialog] = useState(false)
@@ -79,10 +82,6 @@ const SARStep1: React.FC<SARStep1Props> = ({
     severity: 'info' as 'error' | 'warning' | 'info' | 'success'
   })
   
-  // State for storing the selected map location
-  const [selectedMapLocation, setSelectedMapLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [selectedMapAddress, setSelectedMapAddress] = useState<string>('');
-
   // SAR task locations - will be fetched from the backend
   const [sarLocations, setSarLocations] = useState<Array<{
     id: string;
@@ -98,16 +97,16 @@ const SARStep1: React.FC<SARStep1Props> = ({
 
   // Fetch SAR tasks when incident changes
   useEffect(() => {
-    if (incident._id) {
-      fetchSARTasks(incident._id);
+    if (incident.incidentId) {
+      fetchSARTasks(incident.incidentId);
     }
-  }, [incident._id]);
+  }, [incident.incidentId]);
 
   // Function to fetch SAR tasks from the backend
   const fetchSARTasks = async (incidentId: string) => {
     try {
       setIsLoading(true);
-      const response = await request(`/api/incident/${incidentId}/sar-task`, {
+      const response = await request(`/api/incidents/${incidentId}/sar-task`, {
         method: 'GET',
       });
       
@@ -188,13 +187,19 @@ const SARStep1: React.FC<SARStep1Props> = ({
     setInputAddress(value);
   };
 
-  // If a user clicks on a suggestion from the autofill dropdown, we update the incident with the new location
+  // If a user clicks on a suggestion from the autofill dropdown, we update both input address and location
   function onRetrieve(res: AddressAutofillRetrieveResponse) {
     const newAddress = res.features[0].properties.full_address ?? '';
     const newLocation = {
       longitude: res.features[0].geometry.coordinates[0],
       latitude: res.features[0].geometry.coordinates[1],
     };
+    
+    // Update the input values
+    setInputAddress(newAddress);
+    setInputLocation(newLocation);
+    
+    // Also update the incident in the store
     dispatch(
       updateIncident({
         ...incident,
@@ -212,7 +217,13 @@ const SARStep1: React.FC<SARStep1Props> = ({
   // We listen to incident's location changes, and update the text field accordingly. We do this to support manual changes from the map's pin.
   useEffect(() => {
     setInputAddress(incident.address);
-  }, [incident.address]);
+    if (incident.location) {
+      setInputLocation({
+        latitude: incident.location.latitude,
+        longitude: incident.location.longitude
+      });
+    }
+  }, [incident.address, incident.location]);
 
   // Handle opening the task creation dialog
   const handleOpenTaskDialog = () => {
@@ -221,12 +232,12 @@ const SARStep1: React.FC<SARStep1Props> = ({
       name: '',
       description: '',
       status: 'todo',
-      address: selectedMapAddress || '',
-      location: selectedMapLocation || undefined
+      address: inputAddress || '',
+      location: inputLocation || undefined
     });
     
     // Set the address input field to match the incident address
-    setTaskInputAddress(selectedMapAddress || '');
+    setTaskInputAddress(inputAddress || '');
     
     setOpenTaskDialog(true);
   };
@@ -272,12 +283,14 @@ const SARStep1: React.FC<SARStep1Props> = ({
       longitude: res.features[0].geometry.coordinates[0],
       latitude: res.features[0].geometry.coordinates[1],
     };
+    
+    // Update both the task form and the input location
     setTaskForm({
       ...taskForm,
-      location: newLocation,
       address: newAddress,
     });
     setTaskInputAddress(newAddress);
+    setInputLocation(newLocation);
   };
 
   // When user clicks out of the input, revert to task address
@@ -311,16 +324,16 @@ const SARStep1: React.FC<SARStep1Props> = ({
         return;
       }
       
-      if (!taskForm.address) {
+      if (!inputLocation) {
         setSnackbar({
           open: true,
-          message: 'Task location is required',
+          message: 'Task location is required. Please select a location on the map first.',
           severity: 'error'
         });
         return;
       }
       
-      if (!incident._id) {
+      if (!incident.incidentId) {
         setSnackbar({
           open: true,
           message: 'No incident ID available',
@@ -334,10 +347,10 @@ const SARStep1: React.FC<SARStep1Props> = ({
       // Prepare the data for the API
       const sarTaskData = {
         state: mapStatusToBackend(taskForm.status),
-        location: taskForm.address,
-        coordinates: taskForm.location ? {
-          latitude: taskForm.location.latitude,
-          longitude: taskForm.location.longitude
+        location: inputAddress, // Use inputAddress as per memory requirement
+        coordinates: inputLocation ? {
+          latitude: inputLocation.latitude,
+          longitude: inputLocation.longitude
         } : undefined,
         startDate: new Date().toISOString(),
         name: taskForm.name,
@@ -345,7 +358,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
       };
       
       // Call the API to create the SAR task
-      const response = await request(`/api/incident/${incident._id}/sar-task`, {
+      const response = await request(`/api/incidents/${incident.incidentId}/sar-task`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sarTaskData)
@@ -392,7 +405,12 @@ const SARStep1: React.FC<SARStep1Props> = ({
   useEffect(() => {
     const handleMapClick = (location: { latitude: number; longitude: number }) => {
       console.log('Map clicked at:', location);
-      setSelectedMapLocation(location);
+      
+      // Update the inputLocation directly
+      setInputLocation({
+        latitude: location.latitude,
+        longitude: location.longitude
+      });
       
       // Get the address from the coordinates
       const accessToken = Globals.getMapboxToken();
@@ -403,11 +421,17 @@ const SARStep1: React.FC<SARStep1Props> = ({
         .then((data) => {
           if (data.features && data.features.length > 0) {
             const address = data.features[0].place_name;
-            setSelectedMapAddress(address);
+            // Update the inputAddress with the new address
+            setInputAddress(address);
           }
         })
         .catch((error) => {
           console.error('Error geocoding location:', error);
+          // Still update the inputLocation even if geocoding fails
+          setInputLocation({
+            latitude: location.latitude,
+            longitude: location.longitude
+          });
         });
     };
 
@@ -416,7 +440,53 @@ const SARStep1: React.FC<SARStep1Props> = ({
     return () => {
       eventEmitter.removeListener('map_clicked', handleMapClick);
     };
-  }, []);
+  }, [incident, dispatch]);
+
+  // Handle task click to update input location and address
+  const handleTaskClick = (task: any) => {
+    if (task.location && task.location.latitude && task.location.longitude) {
+      // Update the input location with the task's location
+      setInputLocation({
+        latitude: task.location.latitude,
+        longitude: task.location.longitude
+      });
+      
+      // If the task has an address, update the input address
+      if (task.address) {
+        setInputAddress(task.address);
+      } else {
+        // If no address, try to get one from the coordinates
+        const accessToken = Globals.getMapboxToken();
+        fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${task.location.longitude},${task.location.latitude}.json?access_token=${accessToken}`,
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.features && data.features.length > 0) {
+              const address = data.features[0].place_name;
+              setInputAddress(address);
+            }
+          })
+          .catch((error) => {
+            console.error('Error geocoding location:', error);
+          });
+      }
+      
+      // Show a success message
+      setSnackbar({
+        open: true,
+        message: 'Location updated from selected task',
+        severity: 'success'
+      });
+    } else {
+      // Show an error message if the task doesn't have location data
+      setSnackbar({
+        open: true,
+        message: 'No location data available for this task',
+        severity: 'warning'
+      });
+    }
+  };
 
   return (
     <div className={styles.wrapperStep1}>
@@ -425,7 +495,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
           Search and Rescue (SAR) Incident
         </Typography>
         
-        {incident._id && (
+        {incident.incidentId && (
           <Typography 
             variant="h6" 
             align="center" 
@@ -440,7 +510,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
               display: 'inline-block'
             }}
           >
-            Incident ID: {incident._id}
+            Incident ID: {incident.incidentId}
           </Typography>
         )}
 
@@ -625,6 +695,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
                   : 'white',
               cursor: 'pointer', // Add pointer cursor to indicate clickability
             }}
+            onClick={() => handleTaskClick(task)}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               {task.status === 'done' ? (
@@ -707,11 +778,11 @@ const SARStep1: React.FC<SARStep1Props> = ({
             Task Location
           </Typography>
           
-          {selectedMapLocation && (
+          {inputLocation && (
             <Box sx={{ mb: 2, p: 1, bgcolor: 'rgba(25, 118, 210, 0.1)', borderRadius: 1, display: 'flex', alignItems: 'center' }}>
               <LocationOnIcon color="primary" sx={{ mr: 1 }} />
               <Typography variant="body2">
-                Location selected on map: {selectedMapLocation.latitude.toFixed(6)}, {selectedMapLocation.longitude.toFixed(6)}
+                Location selected: {inputLocation.latitude.toFixed(6)}, {inputLocation.longitude.toFixed(6)}
               </Typography>
             </Box>
           )}
@@ -730,9 +801,9 @@ const SARStep1: React.FC<SARStep1Props> = ({
               onBlur={onTaskAddressBlur}
               onChange={handleTaskAddressChange}
               required
-              disabled={true} // Disable the field
+              disabled={true} // Disable the field as per memory requirement
               sx={{ mb: 2 }}
-              helperText={selectedMapLocation ? "Using location selected on map" : "Click on the map first to select a location"}
+              helperText={inputLocation ? "Using input location" : "Please select a location first"}
             />
           </AddressAutofill>
         </DialogContent>
