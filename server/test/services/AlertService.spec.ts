@@ -31,7 +31,7 @@ describe('AlertService', () => {
         expect(groupAlertState).toEqual(testGroupAlertState);
     });
 
-    it('should queue alerts', () => {
+    it('should queue alert for existing group', () => {
         const groupId = 'group-123';
         const alertService = AlertService;
         const alert: Alert = {
@@ -52,9 +52,23 @@ describe('AlertService', () => {
         alertService.queueAlert(alert);
         const groupAlertState = alertService.getGroupAlertState(groupId);
         expect(groupAlertState?.alertQueue).toEqual([alert]);
-        
-        
-        
+    });
+
+    it('should create group alert state and queue alert if it does not exist when queue alert', () => {
+        const groupId = 'group-new';
+        const alertService = AlertService;
+        const alert: Alert = {
+            id: '123',
+            message: 'test',
+            priority: 'E',
+            createdAt: new Date(),
+            groupId: groupId,
+            status: 'waiting',
+        };
+
+        alertService.queueAlert(alert);
+        const groupAlertState = alertService.getGroupAlertState(groupId);
+        expect(groupAlertState?.alertQueue).toEqual([alert]);
     });
   });
 
