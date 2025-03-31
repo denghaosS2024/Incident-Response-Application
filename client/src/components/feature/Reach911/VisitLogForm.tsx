@@ -1,3 +1,4 @@
+import request from '@/utils/request';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { Box, FormControl, FormControlLabel, IconButton, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
@@ -8,11 +9,16 @@ import Loading from '../../common/Loading';
 
 // Default: E
 const priorities = [
-    { value: 'Immediate', label: 'E' },
-    { value: 'Urgent', label: '1' },
-    { value: 'Could Wait', label: '2' },
-    { value: 'Dismiss', label: '3' },
-    { value: 'Dead', label: '4' },
+    // { value: 'Immediate', label: 'E' },
+    // { value: 'Urgent', label: '1' },
+    // { value: 'Could Wait', label: '2' },
+    // { value: 'Dismiss', label: '3' },
+    // { value: 'Dead', label: '4' },
+    { value: 'E', label: 'E' },
+    { value: '1', label: '1' },
+    { value: '2', label: '2' },
+    { value: '3', label: '3' },
+    { value: '4', label: '4' },
 ]
 
 const locations = [
@@ -52,7 +58,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     username: propUsername,
 }) => {
     const [formData, setFormData] = useState({
-        priority: 'Immediate', // Default value, { value: 'Immediate', label: 'E' },
+        priority: 'E', // Default value, { value: 'E', label: 'E' },
         location: 'Road',
         age: '',
         conscious: 'Yes',
@@ -125,7 +131,27 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
         }    
     }
 
-    // Update the form data when 
+    // Save the form data
+    const saveFormData = async () => {
+        // Post the form data to the server
+        const message = await request('/api/patients', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: propUsername,
+                nameLower: propUsername?.toLowerCase(),
+                visitLog:[{
+                ...formData,
+                age: formData.age === '' ? null : parseInt(formData.age),
+                incidentId: incidentId,
+                dateTime: visitTime,
+            }]}),
+        });
+        console.log('Form data saved:', message);
+        // check if the message is successful
+        if (message.status === 'success') {
+            alert('Form data saved successfully');
+        }
+    }
     
     // Check the role when the component mounts
     React.useEffect(() => {
@@ -253,7 +279,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                         sx={{ gap: 2 }}
                     >
                         <FormControlLabel
-                            value="Yes"
+                            value={true}
                             control={<Radio />}
                             label="Yes"
                             sx={{ marginRight: 3 }}
@@ -362,6 +388,25 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                     />
                 </Box>
             </FormControl>
+
+            <Box display="flex" justifyContent="center" mt={4}>
+                <button
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#1976d2',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                    }}
+                    onClick={() => {
+                        saveFormData();
+                    }}
+                >
+                    Save
+                </button>
+                </Box>
         </Box>
     )
 }

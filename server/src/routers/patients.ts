@@ -1,6 +1,6 @@
-import { Router } from 'express'
+import { Router } from 'express';
 
-import PatientController from '../controllers/PatientController'
+import PatientController from '../controllers/PatientController';
 
 export default Router()
   /**
