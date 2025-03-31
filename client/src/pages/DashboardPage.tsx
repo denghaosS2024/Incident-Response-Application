@@ -72,10 +72,6 @@ const DashboardPage: React.FC = () => {
     navigate('/create-chart')
   }
 
-  const mockChartData = {
-    labels: ['Fire', 'Police', 'Medical', 'SAR'],
-    data: [4, 3, 5, 2],
-  }
 
   return (
     <Box display="flex" flexDirection="column" padding="16px">
@@ -163,10 +159,6 @@ const DashboardPage: React.FC = () => {
           </Box>
 
           <ChartDisplay
-            title={selectedChart.name}
-            chartType={selectedChart.type}
-            labels={mockChartData.labels}
-            data={mockChartData.data}
             chartId={selectedChart._id}
           />
         </>

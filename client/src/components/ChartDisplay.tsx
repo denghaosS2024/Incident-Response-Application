@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Box,
   Button,
+  Typography,
+  CircularProgress,
 } from '@mui/material'
 import {
   Chart as ChartJS,
@@ -17,6 +19,7 @@ import {
 } from 'chart.js'
 import { Pie, Bar, Line } from 'react-chartjs-2'
 import { useNavigate } from 'react-router-dom'
+import request from '../utils/request'
 
 ChartJS.register(
   ArcElement,
@@ -32,23 +35,43 @@ ChartJS.register(
 
 type ChartType = 'Pie' | 'Bar' | 'Line'
 
+interface Dataset {
+  label: string
+  data: number[]
+}
+
 interface ChartDisplayProps {
-  title: string
-  chartType: ChartType
-  labels: string[]
-  data: number[] | number[][]
   chartId: string
 }
 
 const colors = ['#1976d2', '#ff9800', '#4caf50', '#03a9f4', '#f44336', '#9c27b0']
 
-const ChartDisplay: React.FC<ChartDisplayProps> = ({ title, chartType, labels, data, chartId}) => {
-  
+const ChartDisplay: React.FC<ChartDisplayProps> = ({ chartId }) => {
   const navigate = useNavigate()
-  const handleEdit = () => {
-    localStorage.setItem('editChartId', chartId)
-    navigate('/create-chart')
-  }
+  const [loading, setLoading] = useState(true)
+  const [chartType, setChartType] = useState<ChartType>('Pie')
+  const [title, setTitle] = useState('')
+  const [labels, setLabels] = useState<string[]>([])
+  const [datasets, setDatasets] = useState<Dataset[]>([])
+
+  useEffect(() => {
+    const fetchChart = async () => {
+      try {
+        const res = await request(`/api/charts/${chartId}`)
+        setTitle(res.title)
+        setChartType(res.chartType)
+        setLabels(res.labels)
+        setDatasets(res.datasets)
+        setLoading(false)
+      } catch (err) {
+        console.error('Failed to fetch chart:', err)
+        navigate('/dashboard')
+      }
+    }
+
+    fetchChart()
+  }, [chartId, navigate])
+
   const renderChart = () => {
     if (chartType === 'Pie') {
       return (
@@ -57,10 +80,35 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ title, chartType, labels, d
             labels,
             datasets: [
               {
-                data: data as number[],
+                data: datasets[0]?.data || [],
                 backgroundColor: colors.slice(0, labels.length),
               },
             ],
+          }}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'bottom',
+              },
+            },
+          }}
+        />
+      )
+    }
+
+    if (chartType === 'Line') {
+      return (
+        <Line
+          data={{
+            labels,
+            datasets: datasets.map((ds, idx) => ({
+              label: ds.label,
+              data: ds.data,
+              borderColor: colors[idx % colors.length],
+              fill: false,
+              tension: 0.3,
+            })),
           }}
           options={{
             responsive: true,
@@ -79,15 +127,14 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ title, chartType, labels, d
         <Bar
           data={{
             labels,
-            datasets: (data as number[][]).map((dayData, idx) => ({
-              label: `Day ${idx + 1}`,
-              data: dayData,
+            datasets: datasets.map((ds, idx) => ({
+              label: ds.label,
+              data: ds.data,
               backgroundColor: colors[idx % colors.length],
             })),
           }}
           options={{
             responsive: true,
-            indexAxis: 'y',
             plugins: {
               legend: {
                 position: 'bottom',
@@ -98,38 +145,24 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ title, chartType, labels, d
       )
     }
 
-    if (chartType === 'Line') {
-      return (
-        <Line
-          data={{
-            labels,
-            datasets: (data as number[][]).map((dayData, idx) => ({
-              label: ['Fire', 'Police', 'Medical', 'SAR'][idx],
-              data: dayData,
-              fill: false,
-              borderColor: colors[idx % colors.length],
-              tension: 0.3,
-            })),
-          }}
-          options={{
-            responsive: true,
-            plugins: {
-              legend: {
-                position: 'bottom',
-              },
-            },
-          }}
-        />
-      )
-    }
+    return <Typography textAlign="center">Unsupported chart type</Typography>
+  }
 
-    return <div>Unsupported chart type</div>
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+        <CircularProgress />
+      </Box>
+    )
   }
 
   return (
-    <div style={{ width: '100%', maxWidth: 500, margin: '0 auto' }}>
+    <Box width="100%" maxWidth={600} mx="auto">
+      <Typography variant="h6" fontWeight="bold" textAlign="center" mb={2}>
+        {title}
+      </Typography>
       {renderChart()}
-    </div>
+    </Box>
   )
 }
 
