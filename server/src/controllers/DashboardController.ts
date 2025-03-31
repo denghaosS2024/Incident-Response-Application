@@ -1,26 +1,153 @@
 import { Request, Response } from 'express';
 import Chart, { ChartDataType, ChartType, IChart, IncidentTypeLabelMap } from '../models/Dashboard';
 import Incident from '../models/Incident';
+import Message from '../models/Message';
+import Patient from '../models/Patient';
 
 /**
  * Function: Get chart data formatted for a Pie Chart
  * Returns total counts per label (Incident Type).
  */
-const getPieChartData = async (startDate: Date, endDate: Date) => {
-  const incidents = await Incident.aggregate([
-    { $match: { openingDate: { $gte: startDate, $lte: endDate } } },
-    {
-      $group: {
-        _id: "$type",
-        count: { $sum: 1 }
-      }
-    }
-  ]);
+const getPieChartData = async (dataType: ChartDataType, startDate: Date, endDate: Date) => {
+  switch (dataType) {
+    case ChartDataType.IncidentType:
+      return await Incident.aggregate([
+        { $match: { openingDate: { $gte: startDate, $lte: endDate } } },
+        { $group: { _id: "$type", count: { $sum: 1 } } }
+      ]).then(results => ({
+        labels: results.map(item => item._id),
+        datasets: [{ data: results.map(item => item.count) }]
+      }));
 
-  return {
-    labels: incidents.map((item) => IncidentTypeLabelMap[item._id] || item._id),
-    datasets: [{ data: incidents.map((item) => item.count) }]
-  };
+    case ChartDataType.IncidentPriority:
+      return await Incident.aggregate([
+        { $match: { openingDate: { $gte: startDate, $lte: endDate } } },
+        { $group: { _id: "$priority", count: { $sum: 1 } } }
+      ]).then(results => ({
+        labels: results.map(item => item._id),
+        datasets: [{ data: results.map(item => item.count) }]
+      }));
+
+    case ChartDataType.IncidentState:
+      return await Incident.aggregate([
+        { $match: { openingDate: { $gte: startDate, $lte: endDate } } },
+        { $group: { _id: "$incidentState", count: { $sum: 1 } } }
+      ]).then(results => ({
+        labels: results.map(item => item._id),
+        datasets: [{ data: results.map(item => item.count) }]
+      }));
+
+    case ChartDataType.IncidentResources:
+      return await Incident.aggregate([
+        { $match: { openingDate: { $gte: startDate, $lte: endDate } } },
+        { $project: {
+          commanders: "$commander",
+          police: { $cond: [{ $eq: ["$type", "P"] }, 1, 0] },
+          firefighters: { $cond: [{ $eq: ["$type", "F"] }, 1, 0] },
+          cars: {
+            $size: {
+              $filter: {
+                input: "$assignedVehicles",
+                as: "vehicle",
+                cond: { $eq: ["$$vehicle.type", "Car"] }
+              }
+            }
+          },
+          trucks: {
+            $size: {
+              $filter: {
+                input: "$assignedVehicles",
+                as: "vehicle",
+                cond: { $eq: ["$$vehicle.type", "Truck"] }
+              }
+            }
+          }
+        } },
+        { $group: {
+          _id: null,
+          commanders: { $sum: 1 },
+          police: { $sum: "$police" },
+          firefighters: { $sum: "$firefighters" },
+          cars: { $sum: "$cars" },
+          trucks: { $sum: "$trucks" }
+        } }
+      ]).then(results => {
+        const data = results[0];
+        return {
+          labels: ["Commanders", "Police Officers", "Firefighters", "Cars", "Trucks"],
+          datasets: [{ data: [data.commanders, data.police, data.firefighters, data.cars, data.trucks] }]
+        };
+      });
+
+    case ChartDataType.PatientLocation:
+      return await Patient.aggregate([
+        { $unwind: "$visitLog" },
+        { $match: {
+          "visitLog.dateTime": { $gte: startDate, $lte: endDate },
+          "visitLog.location": { $in: ["Road", "ER"] }
+        } },
+        { $group: { _id: "$visitLog.location", count: { $sum: 1 } } }
+      ]).then(results => ({
+        labels: results.map(item => item._id),
+        datasets: [{ data: results.map(item => item.count) }]
+      }));
+
+    case ChartDataType.SARTasks:
+      return await Incident.aggregate([
+        { $match: { type: "S", openingDate: { $gte: startDate, $lte: endDate } } },
+        { $group: { _id: "$incidentState", count: { $sum: 1 } } }
+      ]).then(results => ({
+        labels: results.map(item => item._id),
+        datasets: [{ data: results.map(item => item.count) }]
+      }));
+
+    case ChartDataType.SARVictims:
+      return await Patient.aggregate([
+        { $unwind: "$visitLog" },
+        { $match: {
+          "visitLog.dateTime": { $gte: startDate, $lte: endDate },
+          "visitLog.priority": { $in: ["E", "1", "2", "3", "4"] }
+        } },
+        { $group: { _id: "$visitLog.priority", count: { $sum: 1 } } }
+      ]).then(results => ({
+        labels: results.map(item => item._id),
+        datasets: [{ data: results.map(item => item.count) }]
+      }));
+
+    case ChartDataType.FirePoliceAlerts:
+      return await Message.aggregate([
+        { $match: { isAlert: true, timestamp: { $gte: startDate, $lte: endDate } } },
+        { $group: { _id: "$content", count: { $sum: 1 } } }
+      ]).then(results => ({
+        labels: results.map(item => item._id),
+        datasets: [{ data: results.map(item => item.count) }]
+      }));
+
+    case ChartDataType.AlertAcknowledgmentTime:
+      return await Message.aggregate([
+        { $match: { isAlert: true, timestamp: { $gte: startDate, $lte: endDate }, acknowledgedAt: { $exists: true, $not: { $size: 0 } } } },
+        { $project: {
+          duration: {
+            $subtract: [
+              { $arrayElemAt: ["$acknowledgedAt", 0] },
+              "$timestamp"
+            ]
+          }
+        } },
+        { $bucket: {
+          groupBy: "$duration",
+          boundaries: [0, 60000, 300000, 86400000],
+          default: "More than 5 min",
+          output: { count: { $sum: 1 } }
+        } }
+      ]).then(results => ({
+        labels: ["<1 min", "1-5 min", ">5 min"],
+        datasets: [{ data: results.map(item => item.count) }]
+      }));
+
+    default:
+      return { labels: [], datasets: [] };
+  }
 };
 
 /**
@@ -162,7 +289,7 @@ export const getChart = async (req: Request, res: Response) => {
 
     switch (chart.type) {
       case "Pie":
-        formattedData = await getPieChartData(chart.startDate, chart.endDate);
+        formattedData = await getPieChartData(chart.dataType, chart.startDate, chart.endDate);
         break;
       case "Line":
         formattedData = await getLineChartData(chart.startDate, chart.endDate);
@@ -178,6 +305,7 @@ export const getChart = async (req: Request, res: Response) => {
       title: chart.name,
       chartType: chart.type,
       labels: formattedData.labels,
+      dataType: chart.dataType,
       datasets: formattedData.datasets,
       customPeriod: { startDate: chart.startDate, endDate: chart.endDate }
     });

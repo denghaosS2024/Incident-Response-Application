@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react'
+import AddIcon from '@mui/icons-material/Add'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import BarChartIcon from '@mui/icons-material/BarChart'
+import PieChartIcon from '@mui/icons-material/PieChart'
+import ShowChartIcon from '@mui/icons-material/ShowChart'
 import {
   Box,
-  Typography,
-  Grid,
+  Button,
   Card,
   CardContent,
   Chip,
-  Button,
+  Grid,
   IconButton,
+  Typography,
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import PieChartIcon from '@mui/icons-material/PieChart'
-import BarChartIcon from '@mui/icons-material/BarChart'
-import ShowChartIcon from '@mui/icons-material/ShowChart'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ChartDisplay from '../components/ChartDisplay'
 import request from '../utils/request'
@@ -152,7 +152,7 @@ const DashboardPage: React.FC = () => {
                 <ArrowBackIcon />
               </IconButton>
               <Typography variant="h6" ml={1}>
-                {selectedChart.name}
+                {selectedChart.dataType}
               </Typography>
             </Box>
             <Button onClick={() => handleEditChart(selectedChart._id)}>Edit</Button>
