@@ -325,5 +325,41 @@ describe('Router - Incident', () => {
         expect(car2?.assignedIncident).toBe(null)
     })
 
+    it('should return 404 when updating an incident that does not exist', async () => {
+        await request(app)
+            .put('/api/incidents/update')
+            .send({ incidentId: new Types.ObjectId().toString() })
+            .expect(404)
+    })
+
+    it('should update an incident', async () => {
+        await request(app)
+            .put(`/api/incidents/update`)
+            .send({ incidentId: 'ITest', incidentState: 'Assigned' })
+            .expect(204)
+    })
+
+    it('should return 400 when the incidentId is not provided for update', async () => {
+        await request(app)
+            .put(`/api/incidents/update`)
+            .send({ incidentState: 'Assigned' })
+            .expect(400)
+    })
+
+    it('should return 400 when the incidentId is not provided for chat group', async () => {
+        await request(app)
+            .put(`/api/incidents/ITest/chat-group`)
+            .send({ channelId: new Types.ObjectId().toString() })
+            .expect(400)
+    })
+
+    it('should return 400 when body has incomplete fields', async () => {
+        await request(app)
+            .post('/api/incidents/new')
+            .send({ incidentId: 'ITest'})
+            .expect(400)
+    })
+    
+
     afterAll(TestDatabase.close)
 })
