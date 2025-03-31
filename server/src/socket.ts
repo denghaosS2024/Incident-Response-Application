@@ -7,6 +7,7 @@
 
 import SocketIO from 'socket.io'
 
+import UserController from './controllers/UserController'
 import { ROLES } from './utils/Roles'
 import * as Token from './utils/Token'
 import UserConnections from './utils/UserConnections'
@@ -27,7 +28,7 @@ class Socket {
 
     server.on('connection', (socket: SocketIO.Socket) => {
       // Handle user login
-      socket.on('login', (message: ILoginMessage) => {
+      socket.on('login', async (message: ILoginMessage) => {
         // Validate the user's token
         if (
           message.uid &&
@@ -37,6 +38,19 @@ class Socket {
         ) {
           // Save the socket instance for the user
           UserConnections.addUserConnection(message.uid, socket, message.role)
+
+          // If the user is a Nurse, join their hospital room
+          if (message.role === ROLES.NURSE) {
+            const user = await UserController.getUserById(message.uid); // Fetch user details
+            if (user && user.hospitalId) {
+              UserConnections.joinHospitalRoom(message.uid, user.hospitalId);
+            } else {
+              console.warn(
+                `Nurse ${message.uid} does not have a hospitalId associated.`,
+              );
+            }
+          }
+
           // Notify other users that this user's status has changed
           socket.broadcast.emit('user-status-changed', { uid: message.uid })
         } else {

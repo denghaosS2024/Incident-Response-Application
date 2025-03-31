@@ -7,8 +7,8 @@
  */
 
 // Import the ROLES enum from the Roles utility
-import { ROLES } from './Roles'
-import SocketIO from 'socket.io'
+import SocketIO from 'socket.io';
+import { ROLES } from './Roles';
 
 // Map to store user connections, with user ID as key and socket as value
 const connections = new Map<string, SocketIO.Socket>()
@@ -109,6 +109,19 @@ class UserConnections {
     // Use server instance to broadcast to room
     this.io.to(`role:${role}`).emit(eventName, data);
   }
+
+  /**
+   * Add a user to their hospital room
+   * @param uid - The user ID
+   * @param hospitalId - The hospital ID
+   */
+  joinHospitalRoom = (uid: string, hospitalId: string) => {
+    const socket = connections.get(uid);
+    if (socket && hospitalId) {
+      socket.join(`hospital:${hospitalId}`);
+      console.log(`Nurse ${uid} joined hospital room: hospital:${hospitalId}`);
+    }
+  };
 }
 
 // Export a singleton instance of UserConnections
