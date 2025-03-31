@@ -1,3 +1,4 @@
+import AlertSnackbar from '@/components/common/AlertSnackbar'
 import HospitalList from '@/components/feature/FindHospital/HospitalList'
 import PatientList from '@/components/feature/FindHospital/PatientList'
 import IPatient from '@/models/Patient'
@@ -26,6 +27,11 @@ const FindHospital: React.FC = () => {
     Record<string, IPatient[]>
   >({})
   const [unassignedPatients, setUnassignedPatients] = useState<IPatient[]>([])
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>(
+    'success',
+  )
 
   useEffect(() => {
     const fetchData = async () => {
@@ -130,11 +136,17 @@ const FindHospital: React.FC = () => {
       })
 
       console.log('Batch Update Response:', response)
-      console.log('Batch update successful!')
+      setSnackbarMessage('Patients assigned to hospital successful!')
+      setSnackbarSeverity('success')
+      setSnackbarOpen(true)
     } catch (err) {
       const error = err as Error
       console.error('Batch Update Error:', error)
-      console.error(`Batch update failed: ${error.message}`)
+      setSnackbarMessage(
+        `Failed to assign patients to hospitals: ${error.message}`,
+      )
+      setSnackbarSeverity('error')
+      setSnackbarOpen(true)
     }
   }
 
@@ -187,6 +199,15 @@ const FindHospital: React.FC = () => {
           Cancel
         </Button>
       </Box>
+
+      <AlertSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={() => setSnackbarOpen(false)}
+        vertical="bottom"
+        horizontal="center"
+      />
     </Box>
   )
 }
