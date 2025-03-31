@@ -259,12 +259,22 @@ class UserController {
                 role: { $in: [ROLES.POLICE, ROLES.FIRE] },
                 username: { $nin: incidentCommanderUsernames.map(ic => ic.commander) }
             })
+
+            const prevCommander = await User.findOne({
+                username: username,
+            })
+
+            if (!prevCommander) {
+                throw new Error(`Previous commander ${username} not found`)
+            }
+
+            console.log('Previous Commander:', prevCommander)
     
             if (!firstResponderNotCommander) {
-                throw new Error('No available first responder to transfer command to.')
+                await this.logout(username)
+                return
             }
     
-            const now = new Date()
             const incidents = await IncidentController.getIncidentByCommander(username)
     
             if (incidents.length === 0) {
@@ -276,59 +286,52 @@ class UserController {
     
             // Make a shallow copy to avoid mutation issues during iteration
             const originalVehicles = [...incident.assignedVehicles]
+            console.log('Original Vehicles:', originalVehicles)
     
             // Deallocate vehicles where the commander is present
             for (const vehicle of originalVehicles) {
-                if (vehicle.usernames.includes(username)) {
-                    // Record unassignment in history
-                    incident.assignHistory = incident.assignHistory || []
-                    incident.assignHistory.push({
-                        timestamp: now,
-                        usernames: vehicle.usernames,
-                        isAssign: false,
-                        name: vehicle.name,
-                        type: vehicle.type,
-                    })
-    
+                if (vehicle.name === prevCommander.assignedCar || vehicle.name === prevCommander.assignedTruck) {
                     // Remove vehicle from assignment
                     incident.assignedVehicles = incident.assignedVehicles.filter(
                         (v) => v.name !== vehicle.name
                     )
 
+                    console.log(`Vehicle '${vehicle.name}' deallocated from incident '${incident.incidentId}'`)
                     await incident.save()
     
                     // Deallocate vehicle in DB
                     if (vehicle.type === 'Car') {
                         await CarController.updateIncident(vehicle.name, null)
     
-                        if (firstResponderNotCommander.assignedCar) {
-                            await CarController.updateIncident(firstResponderNotCommander.assignedCar, incident.incidentId)
+                        // if (firstResponderNotCommander.assignedCar) {
+                        //     await CarController.updateIncident(firstResponderNotCommander.assignedCar, incident.incidentId)
     
-                            const newAssignCar = await CarController.getCarByName(firstResponderNotCommander.assignedCar)
-                            incident.assignedVehicles.push({
-                                type: 'Car',
-                                name: firstResponderNotCommander.assignedCar,
-                                usernames: newAssignCar?.usernames || [firstResponderNotCommander.username],
-                            })
-                        }
+                        //     const newAssignCar = await CarController.getCarByName(firstResponderNotCommander.assignedCar)
+                        //     incident.assignedVehicles.push({
+                        //         type: 'Car',
+                        //         name: firstResponderNotCommander.assignedCar,
+                        //         usernames: newAssignCar?.usernames || [firstResponderNotCommander.username],
+                        //     })
+                        // }
                     } else {
                         await TruckController.updateIncident(vehicle.name, null)
     
-                        if (firstResponderNotCommander.assignedTruck) {
-                            await TruckController.updateIncident(firstResponderNotCommander.assignedTruck, incident.incidentId)
+                        // if (firstResponderNotCommander.assignedTruck) {
+                        //     await TruckController.updateIncident(firstResponderNotCommander.assignedTruck, incident.incidentId)
     
-                            const newAssignTruck = await TruckController.getTruckByName(firstResponderNotCommander.assignedTruck)
-                            incident.assignedVehicles.push({
-                                type: 'Truck',
-                                name: firstResponderNotCommander.assignedTruck,
-                                usernames: newAssignTruck?.usernames || [firstResponderNotCommander.username],
-                            })
-                        }
+                        //     const newAssignTruck = await TruckController.getTruckByName(firstResponderNotCommander.assignedTruck)
+                        //     incident.assignedVehicles.push({
+                        //         type: 'Truck',
+                        //         name: firstResponderNotCommander.assignedTruck,
+                        //         usernames: newAssignTruck?.usernames || [firstResponderNotCommander.username],
+                        //     })
+                        // }
                     }
     
                     console.log(`Vehicle '${vehicle.name}' deallocated from incident '${incident.incidentId}'`)
                 }
             }
+            
     
             // Transfer command to the new responder and save updated vehicles
             incident.commander = firstResponderNotCommander.username
