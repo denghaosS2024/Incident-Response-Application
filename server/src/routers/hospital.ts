@@ -44,7 +44,7 @@ export default Router()
         })
       }
       const result = await HospitalController.create(hospitalData)
-      // TODO : Trigger a socket event here to update all screens
+      UserConnections.broadcast('registerHospital', result)
       return response.status(201).send(result)
     } catch (e) {
       const error = e as Error
@@ -319,12 +319,12 @@ export default Router()
       if (!deletedHospital) {
         return response.status(404).json({ message: 'No Hospital found.' })
       }
-      return response
-        .status(200)
-        .json({
-          message: 'Hospital deleted successfully',
-          hospital: deletedHospital,
-        })
+
+      UserConnections.broadcast('deleteHospital', hospitalId)
+      return response.status(200).json({
+        message: 'Hospital deleted successfully',
+        hospital: deletedHospital,
+      })
     } catch (e) {
       const error = e as Error
       return response.status(500).json({ message: error.message })
