@@ -76,8 +76,9 @@ router
                 return res.status(404).json({ message: 'User not found' })
             }
             return res.json(result)
-        } catch (error) {
-            return res.status(500).json({ message: 'Internal Server Error' })
+        } catch (e) {
+            const error = e as Error
+            return res.status(500).send({ message: error.message })
         }
     })
 
