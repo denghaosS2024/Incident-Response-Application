@@ -1987,15 +1987,17 @@ const Mapbox: React.FC<MapboxProps> = ({
   }, [])
 
   // Function to update SAR task markers on the map
-  const updateSARTaskMarkers = (tasks: any[]) => {
+  const updateSARTaskMarkers = (data: { tasks: any[], incidentId?: string }) => {
     if (!mapRef.current) return;
+
+    const { tasks, incidentId } = data;
 
     // Clear existing SAR task markers
     sarTaskRef.current.forEach(marker => marker.remove());
     sarTaskRef.current.clear();
 
     // Add new markers for each SAR task
-    tasks.forEach(task => {
+    tasks.forEach((task, index) => {
       if (task.location && task.location.latitude && task.location.longitude) {
         // Create marker element with appropriate icon based on status
         const markerElement = document.createElement('div');
@@ -2018,13 +2020,26 @@ const Mapbox: React.FC<MapboxProps> = ({
           );
         }
 
-        // Create popup content
+        // Add cursor pointer style to indicate clickability
+        markerElement.style.cursor = 'pointer';
+
+        // Create popup content with task details and link
         const popupContent = document.createElement('div');
+        
         popupContent.innerHTML = `
-          <h3 style="margin: 0 0 5px 0; font-size: 14px;">${task.name}</h3>
-          <p style="margin: 0 0 5px 0; font-size: 12px;">${task.description || 'No description'}</p>
-          <p style="margin: 0 0 5px 0; font-size: 12px;">${task.address || 'No address'}</p>
-          <p style="margin: 0; font-size: 12px;">Status: ${task.status}</p>
+          <div style="padding: 8px;">
+            <h3 style="margin: 0 0 5px 0; font-size: 16px;">${task.name}</h3>
+            <p style="margin: 0 0 10px 0; font-size: 12px;">${task.address || 'No address'}</p>
+            <p style="margin: 0 0 5px 0; font-size: 12px;">${task.description || 'No description'}</p>
+            <p style="margin: 0 0 10px 0; font-size: 12px;">Status: ${task.status}</p>
+            ${incidentId ? `
+              <a href="/sar-task/${incidentId}?taskId=${index}" 
+                 style="display: inline-block; padding: 6px 12px; background-color: #1976d2; color: white; 
+                        text-decoration: none; border-radius: 4px; font-size: 12px;">
+                View Task Details
+              </a>
+            ` : ''}
+          </div>
         `;
 
         const popup = new mapboxgl.Popup({ offset: 25 })

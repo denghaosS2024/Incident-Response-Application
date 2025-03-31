@@ -98,7 +98,8 @@ const SARStep1: React.FC<SARStep1Props> = ({
   // Function to update SAR task markers on the map
   const updateSARTaskMarkers = (tasks: any[]) => {
     // Emit an event to update the markers on the map
-    eventEmitter.emit('update_sar_tasks', tasks);
+    // Include the incident ID so it can be used for task links
+    eventEmitter.emit('update_sar_tasks', { tasks, incidentId: incident.incidentId });
   };
 
   // Fetch SAR tasks when incident changes
