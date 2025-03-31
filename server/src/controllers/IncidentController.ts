@@ -88,6 +88,9 @@ class IncidentController {
                 incidentCallGroup: incident.incidentCallGroup
                     ? incident.incidentCallGroup
                     : null,
+                sarTask: incident.type === 'S' 
+                ? incident.sarTask || { state: 'Todo', startDate: null }
+                : undefined
             }).save()
 
             const notifyDispatchers = async (
