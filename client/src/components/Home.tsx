@@ -64,7 +64,7 @@ const roleTabs: Record<string, ITab[]> = {
 }
 
 const Home: FunctionComponent = () => {
-  const role = localStorage.getItem('role') || 'Citizen'
+  const role = localStorage.getItem('role') ?? 'Citizen'
   const tabs = roleTabs[role] || roleTabs['Citizen']
   return (
     <List sx={{ width: '100%', maxWidth: 320, mx: 'auto', padding: 0 }}>

@@ -38,13 +38,13 @@ const Reach911Page: React.FC = () => {
         readOnly,
     } = location.state || {}
     const role = localStorage.getItem('role')
+    const uid = localStorage.getItem('uid')
 
     useEffect(() => {
         const initializeIncident = async () => {
             try {
                 const username = localStorage.getItem('username')
                 const token = localStorage.getItem('token')
-                const uid = localStorage.getItem('uid')
 
                 if (!username || !uid) {
                     setError('No username or uid found')
@@ -65,7 +65,6 @@ const Reach911Page: React.FC = () => {
                     },
                 )
                 if (response.status === 404) {
-                    console.log('-------------404---------------')
                     const createResponse = await fetch(
                         `${import.meta.env.VITE_BACKEND_URL}/api/incidents/new`,
                         {
@@ -81,7 +80,7 @@ const Reach911Page: React.FC = () => {
                                 incidentState: 'Waiting',
                                 openingDate: new Date().toISOString(),
                                 commander: 'System',
-                                incidentCallerGroup: uid,
+                                incidentCallGroup: uid,
                             }),
                         },
                     )

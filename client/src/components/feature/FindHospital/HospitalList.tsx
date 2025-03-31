@@ -1,31 +1,18 @@
 import IHospital from '@/models/Hospital'
-import { fetchHospitals, sortHospitalsByDistance } from '@/redux/hospitalSlice'
-import { AppDispatch, RootState } from '@/redux/store'
+import IPatient from '@/models/Patient'
+import { RootState } from '@/redux/store'
 import { Box, CircularProgress, Typography } from '@mui/material'
-import { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import HospitalCard from './HospitalCard'
 
-const HospitalList: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
-  const hospitals: IHospital[] = useSelector(
-    (state: RootState) => state.hospital.hospitals,
-  )
-
-  useEffect(() => {
-    const fetchHospitalsList = async () => {
-      await dispatch(fetchHospitals())
-      await dispatch(sortHospitalsByDistance())
-    }
-
-    fetchHospitalsList()
-  }, [dispatch])
-
-  useEffect(() => {
-    console.log('Current Hospital List: ')
-    console.log(hospitals)
-  }, [hospitals])
-
+interface HospitalListProps {
+  hospitals: IHospital[]
+  draggedPatients: Record<string, IPatient[]>
+}
+const HospitalList: React.FC<HospitalListProps> = ({
+  hospitals,
+  draggedPatients,
+}) => {
   const loading: boolean = useSelector(
     (state: RootState) => state.hospital.loading,
   )
@@ -61,13 +48,14 @@ const HospitalList: React.FC = () => {
   }
 
   return (
-    <Box className="w-2/3">
+    <Box className="w-3/5">
       {hospitals.length > 0 ? (
         hospitals.map((hospital, index) => (
           <HospitalCard
             key={hospital.hospitalId}
             id={hospital.hospitalId}
             hospital={hospital}
+            patients={draggedPatients[hospital.hospitalId] || []}
             index={index}
           />
         ))

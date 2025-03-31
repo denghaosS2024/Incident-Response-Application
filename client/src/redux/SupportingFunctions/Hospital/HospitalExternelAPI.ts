@@ -8,6 +8,8 @@ export const fetcHospitalCoordinates = async (
   hospital: IHospital,
 ): Promise<number[]> => {
   try {
+
+    
     const response = await fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${hospital.hospitalAddress}.json?access_token=${accessToken}`,
     )

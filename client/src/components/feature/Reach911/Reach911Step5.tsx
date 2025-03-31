@@ -18,8 +18,6 @@ import { updateIncident } from '../../../redux/incidentSlice'
 import type { AppDispatch } from '../../../redux/store'
 import request from '../../../utils/request'
 import ConfirmationDialog from '../../common/ConfirmationDialog'
-import { Input } from 'antd'
-import { current } from '@reduxjs/toolkit'
 
 interface Reach911Step5Props {
     incidentId?: string
@@ -34,7 +32,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     const isClosed = incidentData?.incidentState === 'Closed'
     const dispatch = useDispatch<AppDispatch>()
     const navigate = useNavigate()
-    const currentUsername = localStorage.getItem('username')
+    const currentUsername = localStorage.getItem('username') ?? ''
     const [unassignedPersonnel, setUnassignedPersonnel] = useState<string[]>([])
     const [amICommander, setAmICommander] = useState(false)
     const [currenCommander, setCurrentCommander] = useState<string | null>(
@@ -247,9 +245,14 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             setAmICommander(false)
         }
 
+        const incidentState =
+            incidentData.incidentState === 'Triage'
+                ? 'Assigned'
+                : incidentData.incidentState
         try {
             const updatedIncident = {
                 ...incidentData,
+                incidentState: incidentState,
                 commander: newCommander,
             }
             let updateResponse
@@ -284,6 +287,43 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         } catch (err) {
             console.error('Error updating incident:', err)
             setError('Failed to update incident')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const openRespondersChat = async (
+        incidentId: string,
+        navigate: (path: string) => void,
+        setLoading: (loading: boolean) => void,
+        setError: (err: string | null) => void,
+    ) => {
+        try {
+            setLoading(true)
+            setError(null)
+
+            const updatedIncident = await request<IIncident>(
+                `/api/incidents/${incidentId}/responders-group`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                },
+            )
+
+            const respondersGroupId = updatedIncident.respondersGroup?._id
+            if (!respondersGroupId) {
+                throw new Error('No responders group found on this incident.')
+            }
+
+            navigate(`/messages?channelId=${respondersGroupId}`)
+        } catch (err: any) {
+            console.error(
+                'Failed to create or open responders chat group:',
+                err,
+            )
+            setError(err.message || 'Error occurred while creating chat group')
         } finally {
             setLoading(false)
         }
@@ -378,9 +418,9 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                     Who is on the Team?
                 </Typography>
-                <Typography>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
                     Owner:{' '}
-                    {amICommander
+                    {incidentData.owner === currentUsername
                         ? `You (${currentUsername})`
                         : incidentData.owner}
                 </Typography>
@@ -403,13 +443,15 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                                 key={currentUsername}
                                 value={currentUsername}
                             >
-                                {amICommander
+                                {currentUsername === currenCommander
                                     ? `You (${currentUsername})`
-                                    : incidentData.commander}
+                                    : currentUsername}
                             </MenuItem>
                             {unassignedPersonnel.map((person) => (
                                 <MenuItem key={person} value={person}>
-                                    {person}
+                                    {person === currentUsername
+                                        ? `You (${person})`
+                                        : person}
                                 </MenuItem>
                             ))}
                         </Select>
@@ -418,23 +460,41 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             </Box>
 
             {!isClosed && (
-                <>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Button
                         variant="contained"
                         color="primary"
+                        fullWidth
                         onClick={handleNavigateToResources}
                     >
                         Allocate Resources
                     </Button>
                     <Button
                         variant="contained"
+                        color="primary"
+                        fullWidth
+                        onClick={() =>
+                            incidentId &&
+                            openRespondersChat(
+                                incidentId,
+                                navigate,
+                                setLoading,
+                                setError,
+                            )
+                        }
+                    >
+                        Chat with Responders
+                    </Button>
+
+                    <Button
+                        variant="contained"
                         color="error"
-                        sx={{ ml: 2 }}
+                        fullWidth
                         onClick={handleCloseIncidentClick}
                     >
                         Close Incident
                     </Button>
-                </>
+                </Box>
             )}
 
             {isClosed && (

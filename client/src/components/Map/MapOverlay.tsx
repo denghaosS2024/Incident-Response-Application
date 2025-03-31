@@ -124,6 +124,14 @@ const MapOverlay: React.FC = () => {
       layer: string
       visible: boolean
     }) => {
+      // If any util layer becomes visible, also mark the Util main button as active
+      if (data.visible && data.layer !== 'Util') {
+        setActiveMainButtons((prev) => ({
+          ...prev,
+          util: true,
+        }));
+      }
+      
       setActiveUtil((prev) => ({
         ...prev,
         [data.layer]: data.visible,
@@ -141,6 +149,15 @@ const MapOverlay: React.FC = () => {
   useEffect(() => {
     eventEmitter.emit('you_button_clicked', true)
   }, [])
+
+  // Check if any util layers are active and expand the Util section if needed
+  useEffect(() => {
+    // If any util layer is active, select the Util dropdown
+    const hasActiveUtil = Object.values(activeUtil).some(isActive => isActive);
+    if (hasActiveUtil && activeMainButtons.util) {
+      setSelectedIndex(1);
+    }
+  }, [activeUtil, activeMainButtons.util]);
 
   const handleContactsClick = () => {
     if (selectedIndex === 2) {

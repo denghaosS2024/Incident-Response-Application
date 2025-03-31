@@ -26,8 +26,8 @@ interface NurseAlertPanelProps {
 }
 
 interface Patient {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
@@ -37,7 +37,8 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 }) => {
   const dispatch = useDispatch<AppDispatch>()
   const [patients, setPatients] = useState<Patient[]>([])
-  const [selectedPatientId, setSelectedPatientId] = useState<string>(preSelectedPatient)
+  const [selectedPatientId, setSelectedPatientId] =
+    useState<string>(preSelectedPatient)
   const [nursesCount, setNursesCount] = useState<number>(1)
   const [nurseUsers, setNurseUsers] = useState<IUser[]>([])
   const [totalNurses, setTotalNurses] = useState<number>(0)
@@ -70,8 +71,11 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
             patientsData.length > 0
           ) {
             patientsList = patientsData.map((patient: any) => ({
-              id: patient.patientId || patient._id || String(Math.random()).substring(2, 8),
-              name: patient.username || patient.name || 'Unknown Patient'
+              id:
+                patient.patientId ||
+                patient._id ||
+                String(Math.random()).substring(2, 8),
+              name: patient.username || patient.name || 'Unknown Patient',
             }))
           } else {
             // Fallback to mock data if API returns empty array
@@ -85,9 +89,9 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
               { id: '455tt', name: 'Stanford Patient' },
             ]
           }
-          
+
           // Always ensure Stanford Patient is in the list
-          if (!patientsList.some(p => p.id === '455tt')) {
+          if (!patientsList.some((p) => p.id === '455tt')) {
             patientsList.push({ id: '455tt', name: 'Stanford Patient' })
           }
         } catch (patientError) {
@@ -105,7 +109,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 
         setPatients(patientsList)
         console.log('Setting patients:', patientsList)
-        
+
         // If we have a preSelectedPatient (ID), select it
         if (preSelectedPatient && preSelectedPatient !== selectedPatientId) {
           setSelectedPatientId(preSelectedPatient)
@@ -113,7 +117,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 
         // Fetch nurses working at the same hospital
         const hospitalId =
-          localStorage.getItem('hospitalId') || 'default-hospital'
+          localStorage.getItem('hospitalId') ?? 'default-hospital'
         try {
           // Explicitly request only Nurse role users
           const users = await request(
@@ -156,7 +160,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 
   // Helper function to get patient name from ID
   const getPatientNameById = (patientId: string): string => {
-    const patient = patients.find(p => p.id === patientId)
+    const patient = patients.find((p) => p.id === patientId)
     return patient ? patient.name : `Patient ${patientId}`
   }
 
@@ -296,10 +300,6 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 
   return (
     <Box sx={{ p: 3, width: 400, maxWidth: '100%' }}>
-      <Typography variant="h6" gutterBottom>
-        Nurse Alert Panel
-      </Typography>
-
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel id="patient-select-label">Patient</InputLabel>
         <Select

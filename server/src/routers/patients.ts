@@ -1,6 +1,6 @@
-import { Router } from 'express';
+import { Router } from 'express'
 
-import PatientController from '../controllers/PatientController';
+import PatientController from '../controllers/PatientController'
 
 export default Router()
   /**
@@ -689,6 +689,50 @@ export default Router()
         updatedVisitData,
       )
       response.status(200).json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/location:
+   *   get:
+   *     summary: Get patients by location
+   *     description: Retrieve a list of patients filtered by their location.
+   *     tags: [Patient]
+   *     parameters:
+   *       - in: query
+   *         name: location
+   *         description: The location to filter patients by (e.g., "Road").
+   *         required: true
+   *         type: string
+   *     responses:
+   *       200:
+   *         description: Patients retrieved successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Patient'
+   *       400:
+   *         description: Invalid request parameters.
+   *       500:
+   *         description: Internal server error.
+   */
+  .get('/location', async (request, response) => {
+    try {
+      const { location } = request.query
+
+      if (!location) {
+        response.status(400).json({ message: 'Location is required' })
+        return
+      }
+
+      const result = await PatientController.findByLocation(location as string)
+      response.json(result)
     } catch (e) {
       const error = e as Error
       response.status(500).json({ message: error.message })

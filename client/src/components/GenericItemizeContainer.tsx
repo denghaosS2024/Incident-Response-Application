@@ -107,7 +107,7 @@ const GenericItemizeContainer = <T,>({
                   {columns.map((column) => (
                     <TableCell
                       key={`${getKey(item)}-${column.key}`}
-                      align={column.align || 'center'}
+                      align={column.align ?? 'center'}
                       sx={{
                         padding: '8px 16px',
                         whiteSpace: 'normal',

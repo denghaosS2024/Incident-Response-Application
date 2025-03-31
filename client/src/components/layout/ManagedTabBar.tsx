@@ -19,7 +19,7 @@ import { AppDispatch, RootState } from '../../redux/store'
 import TabBar, { Link } from '../common/TabBar'
 export default function ManagedTabBar() {
   const dispatch = useDispatch<AppDispatch>()
-  const role = localStorage.getItem('role') || 'Citizen'
+  const role = localStorage.getItem('role') ?? 'Citizen'
   const notifyState = useSelector((state: RootState) => state.notifyState)
   // Check if there are any unread messages
   const alerts = useSelector((state: RootState) => state.messageState.alerts)

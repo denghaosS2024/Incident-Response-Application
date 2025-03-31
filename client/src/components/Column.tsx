@@ -86,7 +86,7 @@ const Column: React.FC<ColumnProps> = ({
   canDrag,
   onGroupDrop,
 }) => {
-  const owner = localStorage.getItem('uid') || ''
+  const owner = localStorage.getItem('uid') ?? ''
   const [groups, setGroups] = useState<{ _id: string; name: string }[]>([])
 
   useEffect(() => {

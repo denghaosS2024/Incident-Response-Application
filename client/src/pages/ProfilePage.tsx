@@ -89,7 +89,7 @@ export default function ProfilePage() {
     const handleAddressSelect = (newAddress: string) => {
         setAddress(newAddress)
         const savedAddresses = JSON.parse(
-            localStorage.getItem('savedAddresses') || '[]',
+            localStorage.getItem('savedAddresses') ?? '[]',
         )
         if (!savedAddresses.includes(newAddress)) {
             savedAddresses.push(newAddress)

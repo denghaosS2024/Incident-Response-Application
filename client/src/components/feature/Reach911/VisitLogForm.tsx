@@ -95,7 +95,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     // If the Visit is created by a Nurse, the default Location is ER
     const checkRole = () => {
         if (role === 'Fire' || role === 'Police' || role === 'Administrator') {
-            const incidentId = (JSON.parse(localStorage.getItem('incidentState') || '{}')?.incident?.incidentId) || '';
+            const incidentId = (JSON.parse(localStorage.getItem('incidentState') ?? '{}')?.incident?.incidentId) || '';
             setIncidentId(incidentId);
             // Set the location to Road, if the role is First Responder
             setFormData((prev) => ({
@@ -116,7 +116,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
     // Pulls Age, Conscious, Breathing, and Chief Complaint from the Incident if available
     const setPatientData = () => {
-        const incident = JSON.parse(localStorage.getItem('incidentState') || '{}')?.incident;
+        const incident = JSON.parse(localStorage.getItem('incidentState') ?? '{}')?.incident;
         if (incident && incident.questions && incident.questions.length > 0) {
             for (const question of incident.questions) {
                 if (question.isPatient && question.username === propUsername) {

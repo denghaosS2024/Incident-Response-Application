@@ -36,7 +36,7 @@ const loadFilteredContacts = createAsyncThunk(
     }
     
     const users = await request<IUser[]>('/api/users')
-    const owner = localStorage.getItem('uid') || ''
+    const owner = localStorage.getItem('uid') ?? ''
     const allowedRoles = roleContactMap[currentUserRole] || []
     let filteredUsers = users.filter(user => user._id !== owner && allowedRoles.includes(user.role))
     filteredUsers = filteredUsers.filter(user => user.username!="System");

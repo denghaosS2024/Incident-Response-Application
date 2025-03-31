@@ -27,12 +27,15 @@ export enum IncidentType {
     Sar = 'S',
 }
 
+// Make sure this is consistent with server ISarTask
 export interface ISarTask {
     _id?: string
     id?: string
     state: 'Todo' | 'InProgress' | 'Done'
     startDate?: Date,
-    endDate?: Date
+    endDate?: Date,
+    hazards: string[],
+    victims: number[],
     name?: string
     description?: string
     location?: {
@@ -70,7 +73,7 @@ export default interface IIncident {
         latitude: number
         longitude: number
     }
-    assignedVehicles: { type: string; name: string; usernames: string[] }[] // List of vehicles assigned to the incident
+    assignedVehicles?: { type: string; name: string; usernames: string[] }[] // List of vehicles assigned to the incident
     resources?: {
         id: string
         type: string

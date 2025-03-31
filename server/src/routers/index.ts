@@ -25,6 +25,7 @@ import erBedRouter from './erbed'
 import patientRouter from './patients'
 import personnelRouter from './personnel'
 import profileRouter from './profile'
+import taskRouter from './sartask'
 import truckRouter from './truck'
 import wildfireAreaRouter from './WildfireArea'
 
@@ -59,3 +60,7 @@ export default Router()
     .use('/hospital', HospitalRouter)
     .use('/erbed', erBedRouter)
     .use('/charts', dashboard)
+
+    .use('/sartasks', taskRouter)
+    .use('/sartasksdone', taskRouter)
+    .use(',sartasksstatistics', taskRouter)

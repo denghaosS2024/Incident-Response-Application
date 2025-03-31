@@ -14,13 +14,13 @@ const initialState: PatientState = {
 /* ---------------------- Async Thunk to Fetch Patients ---------------------- */
 const fetchPatients = createAsyncThunk('patient/fetchPatients', async () => {
   try {
-    const response = await request('/api/patients/unassigned', {
+    const response = await request('/api/patients/location?location=Road', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
     return response
   } catch (error) {
-    console.error('Error fetching patients:', error)
+    console.error('Error fetching patients with location "Road":', error)
     throw error
   }
 })
@@ -69,7 +69,8 @@ const patientsSlice = createSlice({
         (state, action: PayloadAction<IPatient[]>) => {
           state.patients = action.payload
           state.loading = false
-        })
+        },
+      )
       .addCase(fetchPatients.rejected, (state, action) => {
         state.loading = false
         state.error = action.error.message ?? 'Failed to fetch patients'

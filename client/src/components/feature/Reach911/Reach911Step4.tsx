@@ -27,8 +27,8 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useDispatch<AppDispatch>()
-  const currentUserId = localStorage.getItem('uid') || ''
-  const currentUserRole = localStorage.getItem('role') || ''
+  const currentUserId = localStorage.getItem('uid') ?? ''
+  const currentUserRole = localStorage.getItem('role') ?? ''
   const [chatTitle, setChatTitle] = useState<string>('911 Call')
 
   const incident: IIncident = useSelector(
@@ -37,7 +37,7 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
 
   const messages =
     useSelector((state: RootState) => state.messageState.messages)[
-      channelId || ''
+      channelId ?? ''
     ] || []
 
   const sendMessage = async (content: string, channelId: string) => {
@@ -64,12 +64,12 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
 
   useEffect(() => {
     const setupIncidentChat = async () => {
-      if (!incident || !incident._id) {
+      if (!incident?._id) {
         return
       }
       try {
         const incidentCaller = incident.caller
-        const username = localStorage.getItem('username')
+        const username = localStorage.getItem('username') ?? ''
         const role = localStorage.getItem('role')
         const uid = localStorage.getItem('uid')
 
@@ -78,11 +78,11 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
 
         // New incident
         if (!incidentCaller) {
-          incident.caller = username
+          incident.caller = username 
           incident.incidentCallGroup = uid
         }
 
-        if (role === ROLES.FIRST_RESPONDER || role === ROLES.DISPATCH) {
+        if (role === ROLES.FIRE || role == ROLES.POLICE || role === ROLES.DISPATCH) {
           setChatTitle(`${incidentCaller}_911`)
         }
 
@@ -93,7 +93,6 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
             method: 'GET',
           },
         )
-
         console.log('Active Incident:', activeIncident)
 
         if (activeIncident.incidentCallGroup) {

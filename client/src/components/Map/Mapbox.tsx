@@ -68,7 +68,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   const geoLocateRef = useRef<mapboxgl.GeolocateControl | null>(null)
 
   // get role from localStorage
-  const role = localStorage.getItem('role') || 'Citizen'
+  const role = localStorage.getItem('role') ?? 'Citizen'
 
   // refs for areaClick
   const areaRef = useRef<boolean>(false)
@@ -122,24 +122,50 @@ const Mapbox: React.FC<MapboxProps> = ({
     const hasPins = pinRef.current.size > 0
     const hasRoadblocks = roadblockRef.current.size > 0
     const hasHydrants = fireHydrantRef.current.size > 0
+    const hasAirQuality = airQualityRef.current.size > 0
     const hasHospitals = hospitalRef.current.size > 0
+    const hasIncidents = incidentRef.current.size > 0
+    const hasTrucks = truckRef.current.size > 0
+    const hasCars = carRef.current.size > 0
 
-    if (hasPins || hasRoadblocks || hasHydrants || hasHospitals) {
+    // Check which layers are actually visible based on state
+    if (
+      hasPins || 
+      hasRoadblocks || 
+      hasHydrants || 
+      hasAirQuality || 
+      hasHospitals || 
+      hasIncidents || 
+      hasTrucks || 
+      hasCars
+    ) {
       // Emit event to mark the main Util button as active
-      eventEmitter.emit('selectUtil', { layer: 'Util', visible: true })
+      eventEmitter.emit('utilVisibility', { layer: 'Util', visible: true })
 
-      // Emit events for each util type that exists
-      if (hasPins) {
-        eventEmitter.emit('selectUtil', { layer: 'Pins', visible: true })
+      // Emit events for each util type that exists and is visible
+      if (hasPins && pinsVisible) {
+        eventEmitter.emit('utilVisibility', { layer: 'Pins', visible: true })
       }
-      if (hasRoadblocks) {
-        eventEmitter.emit('selectUtil', { layer: 'Blocks', visible: true })
+      if (hasRoadblocks && roadblocksVisible) {
+        eventEmitter.emit('utilVisibility', { layer: 'Blocks', visible: true })
       }
-      if (hasHydrants) {
-        eventEmitter.emit('selectUtil', { layer: 'Hydrants', visible: true })
+      if (hasHydrants && fireHydrantsVisible) {
+        eventEmitter.emit('utilVisibility', { layer: 'Hydrants', visible: true })
       }
-      if (hasHospitals) {
-        eventEmitter.emit('selectUtil', { layer: 'Hospitals', visible: true })
+      if (hasAirQuality && airQualityVisible) {
+        eventEmitter.emit('utilVisibility', { layer: 'Pollution', visible: true })
+      }
+      if (hasHospitals && hospitalsVisible) {
+        eventEmitter.emit('utilVisibility', { layer: 'Hospitals', visible: true })
+      }
+      if (hasIncidents && incidentsVisible) {
+        eventEmitter.emit('utilVisibility', { layer: 'Incidents', visible: true })
+      }
+      if (hasTrucks && trucksVisible) {
+        eventEmitter.emit('utilVisibility', { layer: 'Trucks', visible: true })
+      }
+      if (hasCars && carsVisible) {
+        eventEmitter.emit('utilVisibility', { layer: 'Cars', visible: true })
       }
     }
   }
@@ -1487,7 +1513,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   ) => {
     const data = MapBoxHelper.getMapboxDraw().getAll()
     if (data.features.length > 0 && mapRef.current) {
-      const areaId: string = e.features[0]?.id?.toString() || ''
+      const areaId: string = e.features[0]?.id?.toString() ?? ''
       if (areaId == '') return
       const geometry = e.features[0].geometry as Geometry & { coordinates: any }
       const coordinates = geometry.coordinates
@@ -1662,7 +1688,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       return
     }
 
-    const areaId: string = e.features[0]?.id?.toString() || ''
+    const areaId: string = e.features[0]?.id?.toString() ?? ''
     if (areaId == '') return
 
     MapBoxHelper.deleteWildfireArea(areaId)

@@ -6,6 +6,7 @@ import Contacts from './pages/Contacts'
 import CreatechartPage from './pages/CreatechartPage.tsx'
 import DashboardPage from './pages/DashboardPage'
 import FindHospital from './pages/FindHospital'
+import FirstResponderPatientsPage from './pages/FirstResponderPatientsPage'
 import GroupInformationPage from './pages/GroupInformationPage'
 import GroupsPage from './pages/GroupsPage'
 import HomePage from './pages/HomePage'
@@ -15,9 +16,11 @@ import IncidentsPage from './pages/IncidentsPage'
 import LoginPage from './pages/LoginPage'
 import MapPage from './pages/MapPage'
 import Messages from './pages/Messages'
+import NursePatientsPage from './pages/NursePatientsPage.tsx'
 import Organization from './pages/Organization'
-import PatientPage from './pages/PatientPage.tsx'
+import PatientAdmitPage from './pages/PatientAdmitPage.tsx'
 import PatientProfile from './pages/PatientProfile'
+import PatientsRouter from './pages/PatientsRouter'
 import PatientVisitPage from './pages/PatientVisitPage.tsx'
 import ProfilePage from './pages/ProfilePage'
 import Reach911Page from './pages/Reach911Page'
@@ -26,6 +29,9 @@ import RegisterPage from './pages/RegisterPage'
 import ResourcesPage from './pages/ResourcesPage'
 import SARIncidentPage from './pages/SARIncidentPage'
 import SARTaskPage from './pages/SARTaskPage.tsx'
+import TodoTasksPage from './pages/SarTasks'
+import DoneTasksPage from './pages/SarTasksDone'
+import StatisticsPage from './pages/SarTasksStatistics'
 import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
 import './styles/globals.css'
@@ -75,7 +81,10 @@ export default function App() {
                             path="/patient-profile/:patientId"
                             element={<PatientProfile />}
                         />
-                        <Route path="/patients" element={<PatientPage />} />
+                        <Route path="/patients" element={<PatientsRouter />} />
+                        <Route path="/patients/first-responder" element={<FirstResponderPatientsPage />} />
+                        <Route path="/patients/nurse" element={<NursePatientsPage />} />
+                        <Route path="/patients/nurse/admit" element={<PatientAdmitPage />} />
                         <Route path='/patient-visit' element={<PatientVisitPage />} />
                         <Route
                             path="/incidents/report"
@@ -111,7 +120,10 @@ export default function App() {
                         />
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/create-chart" element={<CreatechartPage />} />
-                    </Route>
+                        <Route path="/sartasks/:incidentId" element={<TodoTasksPage />} />
+                        <Route path="/sartasksdone/:incidentId" element={<DoneTasksPage />} />
+                        <Route path="/sartasksstatistics/:incidentId" element={<StatisticsPage />} />
+                        </Route>
 
                     <Route element={<RoutedHome showBackButton isSubPage />}>
                         <Route

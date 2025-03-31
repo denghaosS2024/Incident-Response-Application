@@ -1,5 +1,6 @@
 import GenericItemizeContainer from '@/components/GenericItemizeContainer'
-import { Add, NavigateNext as Arrow, Settings, Close } from '@mui/icons-material'
+import ROLES from "@/utils/Roles"
+import { Add, NavigateNext as Arrow, Close, Settings } from '@mui/icons-material'
 import {
   Box,
   FormControl,
@@ -16,9 +17,6 @@ import { useNavigate } from 'react-router-dom'
 import { IncidentType } from '../models/Incident'
 import { resetIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
-import ROLES from "@/utils/Roles"
-import { update } from "lodash"
-import { updateIncident } from '../redux/incidentSlice'
 
 interface IncidentData {
   incidentId: string
@@ -37,7 +35,7 @@ function IncidentsPage() {
   const [error, setError] = useState<string | null>(null)
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null)
   const [selectedType, setSelectedType] = useState('All')
-  const [userId] = useState(localStorage.getItem('username') || '')
+  const [userId] = useState(localStorage.getItem('username') ?? '')
   const [filteredData, setFilteredData] = useState<IncidentData[]>([])
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -497,7 +495,7 @@ function IncidentsPage() {
                   sx={{
                     position: 'fixed',
                     bottom: 16,
-                    left: 250,
+                    right: 70,
                     width: 56,
                     height: 56,
                   }}
@@ -510,7 +508,7 @@ function IncidentsPage() {
             <IconButton
               sx={{
                 position: 'fixed',
-                bottom: 30,
+                bottom: 16,
                 right: 10,
                 width: 56,
                 height: 56,

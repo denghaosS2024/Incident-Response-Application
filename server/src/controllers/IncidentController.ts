@@ -88,9 +88,9 @@ class IncidentController {
                 incidentCallGroup: incident.incidentCallGroup
                     ? incident.incidentCallGroup
                     : null,
-                sarTask: incident.type === 'S' 
-                ? incident.sarTask || { state: 'Todo', startDate: null, endDate: null }
-                : undefined
+                sarTask: incident.type === 'S'
+                    ? incident.sarTask || { state: 'Todo', startDate: null, endDate: null, hazards: [], victims: [0, 0, 0, 0, 0] }
+                    : null
             }).save()
 
             const notifyDispatchers = async (
@@ -101,8 +101,8 @@ class IncidentController {
                     ROLES.DISPATCH,
                     'new-incident-created',
                     {
-                        username,
                         incidentId,
+                        username,
                         message: `New incident ${incidentId} created by ${username}`,
                     },
                 )
@@ -556,7 +556,7 @@ class IncidentController {
         return await Incident.find({
             owner: owner,
             type: 'S'
-        }).sort({ openingDate: -1 }).exec(); 
+        }).sort({ openingDate: -1 }).exec();
     } catch (error) {
         console.error('Error fetching SAR incidents:', error);
         throw new Error(`Failed to retrieve SAR incidents: ${error}`);

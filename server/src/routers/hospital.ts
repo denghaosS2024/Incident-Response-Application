@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import HospitalController from '../controllers/HospitalController'
+import PatientController from '../controllers/PatientController'
 import type { IHospital } from '../models/Hospital'
 import HttpError from '../utils/HttpError'
 
@@ -180,6 +181,24 @@ export default Router()
       }
 
       const results = await HospitalController.updateMultipleHospitals(updates)
+
+      const patientUpdatePromises = updates.flatMap((update) =>
+        update.patients.map(async (patientId) => {
+          const updatedPatient = await PatientController.setHospital(
+            patientId,
+            update.hospitalId,
+          )
+          if (!updatedPatient) {
+            throw new HttpError(
+              `Failed to update patient with ID ${patientId}`,
+              404,
+            )
+          }
+          return updatedPatient
+        }),
+      )
+
+      await Promise.all(patientUpdatePromises)
 
       return response.status(200).send(results)
     } catch (e) {

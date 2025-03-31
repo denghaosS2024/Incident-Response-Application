@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import request from 'supertest'
 
 import app from '../../src/app'
+import Patient from '../../src/models/Patient'
 import * as TestDatabase from '../utils/TestDatabase'
 
 describe('Router - Hospital', () => {
@@ -15,6 +16,16 @@ describe('Router - Hospital', () => {
         hospitalAddress: '123 Main St',
       })
     return response.body.hospitalId // Return the generated hospitalId
+  }
+
+  const createPatient = async (patientId: string) => {
+    const name = `Patient ${patientId}`
+    await Patient.create({
+      patientId,
+      name,
+      nameLower: name.toLowerCase(),
+      hospitalId: null,
+    })
   }
 
   it('should update the hospital', async () => {
@@ -41,6 +52,10 @@ describe('Router - Hospital', () => {
     const patient1 = new mongoose.Types.ObjectId().toString()
     const patient2 = new mongoose.Types.ObjectId().toString()
     const patient3 = new mongoose.Types.ObjectId().toString()
+
+    await createPatient(patient1)
+    await createPatient(patient2)
+    await createPatient(patient3)
 
     const hospitalId1 = await createHospital(hospitalName1)
     const hospitalId2 = await createHospital(hospitalName2)
@@ -76,6 +91,10 @@ describe('Router - Hospital', () => {
     const patient2 = new mongoose.Types.ObjectId().toString()
     const patient3 = new mongoose.Types.ObjectId().toString()
 
+    await createPatient(patient1)
+    await createPatient(patient2)
+    await createPatient(patient3)
+
     const hospitalId1 = await createHospital(hospitalName1)
 
     const updates = [
@@ -110,6 +129,7 @@ describe('Router - Hospital', () => {
     // Arrange
     const hospitalName1 = 'hospital1'
     const patient1 = new mongoose.Types.ObjectId().toString()
+    await createPatient(patient1)
 
     const hospitalId1 = await createHospital(hospitalName1)
 

@@ -31,7 +31,7 @@ export interface IAddGroupFormProps {
 const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   channelProps: IAddGroupFormProps,
 ) => {
-  const owner = localStorage.getItem('uid') || ''
+  const owner = localStorage.getItem('uid') ?? ''
   const currentUsername = localStorage.getItem('username')
 
   const [closed, setClosed] = useState<boolean>(false)
@@ -54,8 +54,8 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
     // set state in itself
     setNameError('')
 
-    setName(channelProps.currentGroup?.name || '')
-    setDescription(channelProps.currentGroup?.description || '')
+    setName(channelProps.currentGroup?.name ?? '')
+    setDescription(channelProps.currentGroup?.description ?? '')
     setClosed(channelProps.currentGroup?.closed || false)
 
     const isSysGroup = isSystemGroup(group)

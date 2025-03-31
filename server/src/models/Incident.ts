@@ -27,7 +27,9 @@ export enum IncidentPriority {
 export interface ISarTask {
     state: 'Todo' | 'InProgress' | 'Done'
     startDate?: Date,
-    endDate?: Date
+    endDate?: Date,
+    hazards: string[],
+    victims: number[],  // Array of size 5, {Immediate, Urgent, Could Wait, Dismiss, Deceased}
     name?: string
     description?: string
     location?: string
@@ -173,29 +175,6 @@ const IncidentSchema = new Schema({
             },
             endDate: {
                 type: Date,
-                default: null
-            },
-            name: {
-                type: String,
-                default: ''
-            },
-            description: {
-                type: String,
-                default: ''
-            },
-            location: {
-                type: String,
-                default: ''
-            },
-            coordinates: {
-                type: {
-                    latitude: {
-                        type: Number
-                    },
-                    longitude: {
-                        type: Number
-                    }
-                },
                 default: null
             }
         },
