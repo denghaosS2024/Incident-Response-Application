@@ -191,12 +191,11 @@ export default function ManagedTabBar() {
     })
   }
 
-  if (role == 'Nurse') {
+  if (role === 'Nurse') {
     orderedTabs.push({
       prefix: '/patients',
       key: 'patients',
       icon: <BedIcon />,
-      //TODO:change the router when implementing patients page
       to: '/patients',
       onClick: () => setSelectedTab('patients'),
     })

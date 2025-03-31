@@ -37,7 +37,7 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Incidents', link: '/incidents', icon: <ErrorOutlineIcon /> },
     // please add route here
     { text: 'Resource Allocation', link: '/resources' },
-    { text: 'Patients', link: '/' },
+    { text: 'Patients', link: '/patients/first-responder' },
     { text: 'Find Hospital', link: '/find-hospital' },
     { text: 'Dashboard', link: '/dashboard' },
   ],
@@ -49,7 +49,7 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Incidents', link: '/incidents', icon: <ErrorOutlineIcon /> },
     // please add route here
     { text: 'Resource Allocation', link: '/resources' },
-    { text: 'Patients', link: '/' },
+    { text: 'Patients', link: '/patients/first-responder' },
     { text: 'Find Hospital', link: '/find-hospital' },
     { text: 'Dashboard', link: '/dashboard' },
   ],
@@ -59,7 +59,7 @@ const roleTabs: Record<string, ITab[]> = {
     { text: 'Groups', link: '/groups', icon: <Groups2Icon /> },
     { text: 'Map', link: '/map', icon: <LocationIcon /> },
     // please add route here, now there will be no navigate
-    { text: 'Patients', link: '/' },
+    { text: 'Patients', link: '/patients/nurse' },
   ],
 }
 
