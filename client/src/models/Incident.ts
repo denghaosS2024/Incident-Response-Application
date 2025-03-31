@@ -29,23 +29,18 @@ export enum IncidentType {
 
 // Make sure this is consistent with server ISarTask
 export interface ISarTask {
-    _id?: string
-    id?: string
-    state: 'Todo' | 'InProgress' | 'Done'
-    startDate?: Date,
-    endDate?: Date,
-    hazards: string[],
-    victims: number[],
-    name?: string
-    description?: string
-    location?: {
-        latitude: number
-        longitude: number
-    }
-    coordinates?: {
-        latitude: number
-        longitude: number
-    }
+  state: 'Todo' | 'InProgress' | 'Done'
+  startDate?: Date,
+  endDate?: Date,
+  hazards: string[],
+  victims: number[],  // Array of size 5, {Immediate, Urgent, Could Wait, Dismiss, Deceased}
+  name?: string
+  description?: string
+  location?: string
+  coordinates?: {
+    latitude: number
+    longitude: number
+  }
 }
 
 export default interface IIncident {

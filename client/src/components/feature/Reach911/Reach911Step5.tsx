@@ -281,6 +281,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 updateIncident({
                     ...incidentData,
                     commander: newCommander,
+                    incidentState: incidentState,
                 }),
             )
             setCurrentCommander(newCommander)

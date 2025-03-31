@@ -57,7 +57,7 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
 
   return (
     <div className={styles.wrapperStep}>
-      <AddressBar address={incident?.address || 'No Address'} />
+      <AddressBar address={incident?.sarTasks?.at(taskId)?.location || 'No Address'} />
       <div className="mt-2"></div> {/* add space between components */}
       <SARTaskTitle
         title={'Initial Marker'}

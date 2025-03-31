@@ -61,8 +61,10 @@ const RegisterHospital: React.FC = () => {
         typeof nurse === 'object' ? nurse._id === userId : nurse === userId,
     )
 
-     // Local state for the address input field
-    const [inputAddress, setInputAddress] = useState(hospitalData.hospitalAddress || '')
+    // Local state for the address input field
+    const [inputAddress, setInputAddress] = useState(
+        hospitalData.hospitalAddress || '',
+    )
 
     /* ------------------------------ USE EFFECTS ------------------------------ */
 
@@ -87,19 +89,18 @@ const RegisterHospital: React.FC = () => {
 
     // If a user clicks on a suggestion from the autofil dropdown, we update the the new location!
     async function onRetrieve(res: AddressAutofillRetrieveResponse) {
-    const newAddress = res.features[0].properties.full_address ?? ''
-    setHospitalData({...hospitalData, hospitalAddress: newAddress})
+        const newAddress = res.features[0].properties.full_address ?? ''
+        setHospitalData({ ...hospitalData, hospitalAddress: newAddress })
     }
 
     // When user clicks out of the input, we revert it back to the original location
     function onBlur() {
-        setInputAddress(hospitalData.hospitalAddress ?? '');
+        setInputAddress(hospitalData.hospitalAddress ?? '')
     }
 
-    useEffect(() => {        
+    useEffect(() => {
         setInputAddress(hospitalData.hospitalAddress)
     }, [hospitalData.hospitalAddress])
-
 
     /* ------------------------------ API CALLS ------------------------------ */
 
@@ -155,20 +156,23 @@ const RegisterHospital: React.FC = () => {
         }
     }
 
-    const registerNurseToHospital = async (userId: string, hospitalId: string) => {
+    const registerNurseToHospital = async (
+        userId: string,
+        hospitalId: string,
+    ) => {
         try {
-          const response = await request(`/api/users/${userId}/hospital`, {
-            method: 'PUT',
-            body: JSON.stringify({ hospitalId }),
-            headers: { 'Content-Type': 'application/json' },
-          });
-          console.log('Nurse registered to hospital successfully:', response);
-          return response;
+            const response = await request(`/api/users/${userId}/hospital`, {
+                method: 'PUT',
+                body: JSON.stringify({ hospitalId }),
+                headers: { 'Content-Type': 'application/json' },
+            })
+            console.log('Nurse registered to hospital successfully:', response)
+            return response
         } catch (error) {
-          console.error('Error registering nurse to hospital:', error);
-          return null;
+            console.error('Error registering nurse to hospital:', error)
+            return null
         }
-      };
+    }
 
     /* ------------------------------ FUNCTIONS ------------------------------ */
 
@@ -188,21 +192,23 @@ const RegisterHospital: React.FC = () => {
             if (!hospital) return
 
             const hospitalGroup = hospital.hospitalGroupId
-                    
-            if (hospitalGroup != null) {
 
-                const channel = await request(`/api/channels/${hospitalGroup}`, {
-                    method: 'GET',
-                })
+            if (hospitalGroup != null) {
+                const channel = await request(
+                    `/api/channels/${hospitalGroup}`,
+                    {
+                        method: 'GET',
+                    },
+                )
 
                 // if the current user is not registerd
-                if (!channel.users.includes(currentUserId)){
+                if (!channel.users.includes(currentUserId)) {
                     // If the hospital already has a discussion group, we only need make sure that new nurses are added to it
                     await request(`/api/channels`, {
                         method: 'PUT',
                         body: JSON.stringify({
-                        _id: hospitalGroup,
-                        users: [...hospitalData.nurses],
+                            _id: hospitalGroup,
+                            users: [...hospitalData.nurses],
                         }),
                     })
                 }
@@ -253,29 +259,43 @@ const RegisterHospital: React.FC = () => {
             return
         }
         console.log('Submitting hospital:', hospitalData)
-        
+
         let response
 
         // Check if hospitalId exists: update if true, else register new hospital
         if (hospitalId) {
             response = await updateHospital(hospitalData)
             // If the user is a nurse and has checked the checkbox, register the nurse to the hospital
-            if (role === 'Nurse' && userId && hospitalData.nurses.includes(userId)) {
-                const nurseResponse = await registerNurseToHospital(userId, response.hospitalId);
+            if (
+                role === 'Nurse' &&
+                userId &&
+                hospitalData.nurses.includes(userId)
+            ) {
+                const nurseResponse = await registerNurseToHospital(
+                    userId,
+                    response.hospitalId,
+                )
                 if (nurseResponse) {
-                console.log('Nurse successfully registered to hospital');
+                    console.log('Nurse successfully registered to hospital')
                 } else {
-                console.error('Failed to register nurse to hospital');
+                    console.error('Failed to register nurse to hospital')
                 }
             }
         } else {
             response = await registerHospital(hospitalData)
-            if (role === 'Nurse' && userId && hospitalData.nurses.includes(userId)) {
-                const nurseResponse = await registerNurseToHospital(userId, response.hospitalId);
+            if (
+                role === 'Nurse' &&
+                userId &&
+                hospitalData.nurses.includes(userId)
+            ) {
+                const nurseResponse = await registerNurseToHospital(
+                    userId,
+                    response.hospitalId,
+                )
                 if (nurseResponse) {
-                console.log('Nurse successfully registered to hospital');
+                    console.log('Nurse successfully registered to hospital')
                 } else {
-                console.error('Failed to register nurse to hospital');
+                    console.error('Failed to register nurse to hospital')
                 }
             }
         }
@@ -312,9 +332,49 @@ const RegisterHospital: React.FC = () => {
     }
 
     /* Handle deletion of existing hospital (SEM-2565) */
-    const handleDelete = () => {
-        console.log('Deleting hospital entry')
-        // TODO: Implement delete functionality
+    const handleDelete = async () => {
+        // Check if there are existing patients
+        if (
+            (hospitalData.patients && hospitalData.patients.length > 0) ||
+            (hospitalData.totalNumberOfPatients &&
+                hospitalData.totalNumberOfPatients > 0)
+        ) {
+            // Show a popup message (using window.alert) and do nothing else
+            window.alert(
+                'There are existing patients in the Hospital. You cannot delete it while patients are present.',
+            )
+            return
+        }
+
+        // Ask for confirmation before deletion
+        const confirmDelete = window.confirm(
+            'Are you sure you want to delete the Hospital?',
+        )
+
+        if (confirmDelete) {
+            try {
+                const response = await request(
+                    `/api/hospital?hospitalId=${hospitalData.hospitalId}`,
+                    {
+                        method: 'DELETE',
+                    },
+                )
+
+                console.log('Hospital deleted successfully:', response)
+                showSnackbar('Hospital deleted successfully!', 'success')
+
+                // Wait 2 seconds before navigating away
+                setTimeout(() => {
+                    navigate('/hospitals')
+                }, 2000)
+            } catch (error) {
+                console.error('Error deleting hospital:', error)
+                showSnackbar('Error deleting hospital.', 'error')
+            }
+        } else {
+            // User cancelled the deletion, do nothing.
+            console.log('Deletion cancelled by user.')
+        }
     }
 
     /* ------------------------------ RENDER PAGE ------------------------------ */
@@ -330,7 +390,7 @@ const RegisterHospital: React.FC = () => {
                     setHospitalData({
                         ...hospitalData,
                         hospitalName: e.target.value,
-                    });
+                    })
                 }}
                 error={errors.hospitalName}
                 helperText={
@@ -338,38 +398,38 @@ const RegisterHospital: React.FC = () => {
                 }
                 sx={{
                     '& .MuiOutlinedInput-input': {
-                        padding: '25px', 
-                    }
+                        padding: '25px',
+                    },
                 }}
             />
 
             {/* Hospital Address */}
             <form>
-            <AddressAutofill
-                onRetrieve={onRetrieve}
-                options={{ streets: false }}
-                accessToken={Globals.getMapboxToken()}
-              >
-            <TextField
-                label="Address"
-                fullWidth
-                margin="normal"
-                value={inputAddress}
-                onChange={(e) => {
-                    setInputAddress(
-                        e.target.value
-                    );
-                }}
-                onBlur={onBlur}
-                error={errors.hospitalAddress}
-                helperText={errors.hospitalAddress ? 'Address is required' : ''}
-                sx={{
-                    '& .MuiOutlinedInput-input': {
-                        padding: '25px', 
-                    }
-                }}
-            />
-            </AddressAutofill>
+                <AddressAutofill
+                    onRetrieve={onRetrieve}
+                    options={{ streets: false }}
+                    accessToken={Globals.getMapboxToken()}
+                >
+                    <TextField
+                        label="Address"
+                        fullWidth
+                        margin="normal"
+                        value={inputAddress}
+                        onChange={(e) => {
+                            setInputAddress(e.target.value)
+                        }}
+                        onBlur={onBlur}
+                        error={errors.hospitalAddress}
+                        helperText={
+                            errors.hospitalAddress ? 'Address is required' : ''
+                        }
+                        sx={{
+                            '& .MuiOutlinedInput-input': {
+                                padding: '25px',
+                            },
+                        }}
+                    />
+                </AddressAutofill>
             </form>
 
             {/* Hospital Description */}
@@ -410,7 +470,7 @@ const RegisterHospital: React.FC = () => {
                         pattern: '[0-9]*', // Ensures only numbers are entered
                         max: 110,
                         min: 1,
-                      },
+                    },
                 }}
             />
 

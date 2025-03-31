@@ -41,8 +41,8 @@ const SARTaskPage: React.FC = () => {
   const contents = [
     <SARTaskStep1 incident={currentIncident} setIncident={setCurrentIncident} />,
     <SARTaskStep2 incident={currentIncident} setIncident={setCurrentIncident} />,
-    <SARTaskStep3 incident={currentIncident}/>,
-    <SARTaskStep4 incident={currentIncident} setIncident={setCurrentIncident}/>,
+    <SARTaskStep3 incident={currentIncident} setIncident={setCurrentIncident} />,
+    <SARTaskStep4 incident={currentIncident} setIncident={setCurrentIncident} />,
   ]
 
   const handleStepChange = (step: number): void => {
