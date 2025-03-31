@@ -1,161 +1,194 @@
-// import { Flag } from '@mui/icons-material'
-
-// const Step5ResponseTimeline = () => {
-//   const items = [
-//     {
-//       icon: <Flag className="text-gray-500" />,
-//       label: 'Open Waiting',
-//       time: '07.02.03-03:25',
-//     },
-//     {
-//       icon: <Flag className="text-gray-500" />,
-//       label: 'Open Triage',
-//       commander: '911 Ana',
-//       commanderColor: 'text-red-500',
-//       time: '07.02.03-03:25',
-//     },
-//     {
-//       icon: <img src="/911-icon.png" alt="fire" className="w-5 h-5 mt-1" />,
-//       label: 'Open Assigned',
-//       commander: '🔥 Lili',
-//       commanderColor: 'text-red-500',
-//       time: '07.02.03-03:25',
-//     },
-//     // {
-//     //   icon: <Flag className="text-gray-500" />,
-//     //   label: 'Close',
-//     //   time: '07.02.03-05:00',
-//     // },
-//   ]
-
-//   const closeTime = '07.02.03-05:00'
-
-//   return (
-//     <div className="w-full px-8 py-6 bg-white min-h-[80vh] relative">
-//       <div className="relative w-full flex items-center pl-4 pr-10 mb-4">
-//         <div className="flex-grow h-0.5 bg-gray-400" />
-//         <div className="absolute right-0 w-6 h-6 rounded-full bg-gray-300 border border-gray-500 flex items-center justify-center text-sm font-semibold">
-//           5
-//         </div>
-//       </div>
-
-//       <h3 className="text-2xl font-bold mb-6">Response Timeline</h3>
-
-//       <div className="relative flex">
-//         <div className="flex flex-col items-center mr-4 relative">
-//           <div className="absolute top-0 bottom-0 w-0.5 bg-gray-300 left-1/2 transform -translate-x-1/2" />
-//           {items.map((item, idx) => (
-//             <div key={idx} className="my-4 z-10">
-//               {item.icon}
-//             </div>
-//           ))}
-//           <div className="mt-6 z-10">
-//             <Flag className="text-gray-500" />
-//           </div>
-//         </div>
-
-//         <div className="flex flex-col gap-6">
-//           {items.map((item, idx) => (
-//             <div key={idx}>
-//               <p className="text-sm text-gray-800 font-semibold">
-//                 {item.label}
-//                 {item.commander && (
-//                   <span className={`ml-2 font-bold ${item.commanderColor}`}>
-//                     Commander: {item.commander}
-//                   </span>
-//                 )}
-//               </p>
-//               <p className="text-xs text-gray-500">{item.time}</p>
-//             </div>
-//           ))}
-
-//           <div className="mt-8">
-//             <p className="text-sm font-semibold text-gray-800">Close</p>
-//             <p className="text-xs text-gray-500">{closeTime}</p>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   )
-// }
-
-// export default Step5ResponseTimeline
-import { Flag } from '@mui/icons-material'
+import {
+  DirectionsCar,
+  Flag,
+  LocalHospital,
+  LocalPolice,
+  LocalShipping,
+  Person,
+  PriorityHigh,
+} from '@mui/icons-material'
 import { Box, Typography } from '@mui/material'
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { updateIncident } from '../../redux/incidentSlice'
-import request from '../../utils/request'
 
-const Step5ResponseTimeline = () => {
-  const dispatch = useDispatch()
-  const incident = useSelector((state) => state.incidents.incident)
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+type AssignHistoryItem = {
+  name: string
+  type: string
+  isAssign: boolean
+  usernames: string[]
+  timestamp: string
+}
 
-  useEffect(() => {
-    async function fetchTimelineData() {
-      try {
-        const data = await request(
-          `/api/incidents/${incident.incidentId}/timeline`,
-        )
-        setItems(data)
-        dispatch(updateIncident(data))
-      } catch (err) {
-        setError('Failed to load timeline data')
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    if (incident.incidentId) {
-      fetchTimelineData()
-    }
-  }, [incident.incidentId, dispatch])
+type Incident = {
+  assignHistory: AssignHistoryItem[]
+  openingDate: string
+  closingDate: string
+  commander: string
+  priority: string
+  patientName?: string
+}
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error: {error}</div>
+type Step5ResponseTimelineProps = {
+  incident: Incident
+}
+
+const typeIconMap: Record<string, JSX.Element> = {
+  Car: <DirectionsCar />,
+  Truck: <LocalShipping />,
+  Ambulance: <LocalHospital />,
+  Police: <LocalPolice />,
+  Person: <Person />,
+  Priority: <PriorityHigh />,
+  Flag: <Flag />,
+}
+
+const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
+  incident,
+}) => {
+  const {
+    assignHistory = [],
+    openingDate,
+    closingDate,
+    commander,
+    priority,
+    patientName,
+  } = incident
+
+  const timelineItems = [
+    {
+      icon: typeIconMap.Flag,
+      label: 'Open Waiting',
+      time: formatTime(openingDate),
+    },
+    ...assignHistory.map((item) => ({
+      icon: typeIconMap[item.type] || typeIconMap.Flag,
+      label: `${capitalize(item.name)} ${item.isAssign ? 'true' : 'false'}`,
+      subtext: item.usernames,
+      time: formatTime(item.timestamp),
+    })),
+    {
+      icon: typeIconMap.Police,
+      label: 'Commander:',
+      subtext: [commander],
+      time: formatTime(openingDate),
+    },
+    {
+      icon: typeIconMap.Priority,
+      label: `Priority: ${priority}`,
+      time: formatTime(openingDate),
+    },
+    ...(patientName
+      ? [
+          {
+            icon: typeIconMap.Person,
+            label: 'Patient treated on road',
+            subtext: [`Name: ${patientName}`],
+            time: formatTime(openingDate),
+          },
+          {
+            icon: typeIconMap.Person,
+            label: 'Patient at the ER',
+            subtext: [`Name: ${patientName}`],
+            time: formatTime(openingDate),
+          },
+        ]
+      : []),
+    {
+      icon: typeIconMap.Flag,
+      label: 'Close',
+      time: formatTime(closingDate),
+    },
+  ]
 
   return (
-    <Box sx={{ padding: 2, backgroundColor: '#fff', minHeight: '80vh' }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ px: 4, py: 3, backgroundColor: '#fff', minHeight: '80vh' }}>
+      <Typography variant="h5"  align="center"  mb={3}>
         Response Timeline
       </Typography>
-      {items.map((item, idx) => (
-        <Box
-          key={idx}
-          sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}
-        >
-          {item.icon === 'flag' ? (
-            <Flag className="text-gray-500" />
-          ) : (
-            <img src="/911-icon.png" alt="fire" className="w-5 h-5 mt-1" />
-          )}
-          <Typography sx={{ marginLeft: 2, fontWeight: 'bold' }}>
-            {item.label}
-          </Typography>
-          {item.commander && (
-            <Typography sx={{ marginLeft: 1, color: item.commanderColor }}>
-              {item.commander}
-            </Typography>
-          )}
-          <Typography sx={{ marginLeft: 'auto', color: 'gray' }}>
-            {item.time}
-          </Typography>
-        </Box>
-      ))}
-      <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 4 }}>
-        <Flag className="text-gray-500" />
-        <Typography sx={{ marginLeft: 2, fontWeight: 'bold' }}>
-          Close
-        </Typography>
-        <Typography sx={{ marginLeft: 'auto', color: 'gray' }}>
-          {items[items.length - 1]?.time || 'N/A'}
-        </Typography>
+
+      <Box display="flex" flexDirection="column" gap={3}>
+        {timelineItems.map((item, idx) => (
+          <Box key={idx} display="flex" gap={2} alignItems="flex-start">
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: 28,
+                height: 28,
+                mt: '4px',
+              }}
+            >
+              {item.icon}
+            </Box>
+
+            <Box
+              sx={{
+                width: '2px',
+                backgroundColor: '#ccc',
+                height: '100%',
+                mt: '4px',
+              }}
+            />
+
+            <Box>
+              <Typography fontSize="14px" fontWeight={600}>
+                {item.label}
+              </Typography>
+
+              {item.subtext?.map((sub, i) => (
+                <Box
+                  key={i}
+                  display="flex"
+                  alignItems="center"
+                  gap={0.5}
+                  mt={0.5}
+                >
+                  {renderIconByLabel(item.label)}
+                  <Typography fontSize="14px">{sub}</Typography>
+                </Box>
+              ))}
+
+              <Typography fontSize="12px" color="gray">
+                {item.time}
+              </Typography>
+            </Box>
+          </Box>
+        ))}
       </Box>
     </Box>
   )
+}
+
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+function formatTime(timestamp: string) {
+  const date = new Date(timestamp)
+  return date
+    .toLocaleString('en-GB', {
+      year: '2-digit',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+    .replace(',', '')
+}
+
+function renderIconByLabel(label: string) {
+  if (label.toLowerCase().includes('car')) {
+    return <DirectionsCar sx={{ fontSize: 16, color: 'red' }} />
+  }
+  if (label.toLowerCase().includes('truck')) {
+    return <LocalHospital sx={{ fontSize: 16, color: 'red' }} />
+  }
+  if (label.toLowerCase().includes('commander')) {
+    return <LocalPolice sx={{ fontSize: 16, color: 'red' }} />
+  }
+  if (label.toLowerCase().includes('patient')) {
+    return <Person sx={{ fontSize: 16, color: 'gray' }} />
+  }
+  return null
 }
 
 export default Step5ResponseTimeline
