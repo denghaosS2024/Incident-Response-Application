@@ -41,5 +41,15 @@ describe('Router - Patient', () => {
    expect(response.body[0].hospitalId).toBe('hospital123')
   })
 
+  it('should be able to change the location of a patient', async () => {
+    const patient = await createPatient()
+    const updatedPatient = await request(app)
+      .put(`/api/patients/${patient.body.patientId}/location`)
+      .send({ location: 'Road' })
+      .expect(200)  
+
+    expect(updatedPatient.body.location).toBe('Road')
+  })
+
   afterAll(TestDatabase.close)
 })
