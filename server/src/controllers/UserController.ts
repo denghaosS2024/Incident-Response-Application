@@ -303,29 +303,29 @@ class UserController {
                     if (vehicle.type === 'Car') {
                         await CarController.updateIncident(vehicle.name, null)
     
-                        // if (firstResponderNotCommander.assignedCar) {
-                        //     await CarController.updateIncident(firstResponderNotCommander.assignedCar, incident.incidentId)
+                        if (firstResponderNotCommander.assignedCar) {
+                            await CarController.updateIncident(firstResponderNotCommander.assignedCar, incident.incidentId)
     
-                        //     const newAssignCar = await CarController.getCarByName(firstResponderNotCommander.assignedCar)
-                        //     incident.assignedVehicles.push({
-                        //         type: 'Car',
-                        //         name: firstResponderNotCommander.assignedCar,
-                        //         usernames: newAssignCar?.usernames || [firstResponderNotCommander.username],
-                        //     })
-                        // }
+                            const newAssignCar = await CarController.getCarByName(firstResponderNotCommander.assignedCar)
+                            incident.assignedVehicles.push({
+                                type: 'Car',
+                                name: firstResponderNotCommander.assignedCar,
+                                usernames: newAssignCar?.usernames || [firstResponderNotCommander.username],
+                            })
+                        }
                     } else {
                         await TruckController.updateIncident(vehicle.name, null)
     
-                        // if (firstResponderNotCommander.assignedTruck) {
-                        //     await TruckController.updateIncident(firstResponderNotCommander.assignedTruck, incident.incidentId)
+                        if (firstResponderNotCommander.assignedTruck) {
+                            await TruckController.updateIncident(firstResponderNotCommander.assignedTruck, incident.incidentId)
     
-                        //     const newAssignTruck = await TruckController.getTruckByName(firstResponderNotCommander.assignedTruck)
-                        //     incident.assignedVehicles.push({
-                        //         type: 'Truck',
-                        //         name: firstResponderNotCommander.assignedTruck,
-                        //         usernames: newAssignTruck?.usernames || [firstResponderNotCommander.username],
-                        //     })
-                        // }
+                            const newAssignTruck = await TruckController.getTruckByName(firstResponderNotCommander.assignedTruck)
+                            incident.assignedVehicles.push({
+                                type: 'Truck',
+                                name: firstResponderNotCommander.assignedTruck,
+                                usernames: newAssignTruck?.usernames || [firstResponderNotCommander.username],
+                            })
+                        }
                     }
     
                     console.log(`Vehicle '${vehicle.name}' deallocated from incident '${incident.incidentId}'`)
