@@ -68,7 +68,9 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
         />
       </div>
 
-      <ReturnToTasksBtn />
+      <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
+        <ReturnToTasksBtn />
+      </div>
     </div>
   )
 }

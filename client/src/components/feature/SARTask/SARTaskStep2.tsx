@@ -112,7 +112,7 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
       hazards.push(otherHazardText.trim())
     }
 
-    alert('Form to be submitted: ' + JSON.stringify(hazards))
+    // alert('Form to be submitted: ' + JSON.stringify(hazards))
     updateSARTask(hazards).then()
   }
 
