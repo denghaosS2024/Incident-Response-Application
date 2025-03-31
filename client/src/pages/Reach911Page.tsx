@@ -80,7 +80,7 @@ const Reach911Page: React.FC = () => {
                                 incidentState: 'Waiting',
                                 openingDate: new Date().toISOString(),
                                 commander: 'System',
-                                incidentCallerGroup: uid,
+                                incidentCallGroup: uid,
                             }),
                         },
                     )
