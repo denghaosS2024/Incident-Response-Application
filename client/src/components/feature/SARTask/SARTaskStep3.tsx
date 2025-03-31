@@ -7,10 +7,11 @@ import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 
 interface SARTaskStep3Props {
-  incident?: IIncident | null;
+  incident?: IIncident | null
+  setIncident: (incident: IIncident) => void
 }
 
-const SARTaskStep3: React.FC<SARTaskStep3Props> = ({incident }) => {
+const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) => {
 
   return (
     <div className={styles.wrapperStep}>
