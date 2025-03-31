@@ -61,6 +61,26 @@ router
         response.send(users)
     })
 
+    .get('/findByUsername', async (req, res) => {
+        const { username } = req.query
+
+        if (!username) {
+            return res.status(400).json({ error: 'Username is required' })
+        }
+
+        try {
+            const result = await UserController.findUserIdByUsername(
+                username as string,
+            )
+            if (!result) {
+                return res.status(404).json({ message: 'User not found' })
+            }
+            return res.json(result)
+        } catch (error) {
+            return res.status(500).json({ message: 'Internal Server Error' })
+        }
+    })
+
     /**
      * Get user's last known location
      * @route GET /api/users/:id/location
