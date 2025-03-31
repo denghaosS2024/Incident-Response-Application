@@ -2,6 +2,7 @@ import { Button } from '@mui/material'
 import React from 'react'
 import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
+import request, { IRequestError } from '../../../utils/request.ts'
 import AddressBar from './AddressBar.tsx'
 import FEMAMarker from './FEMAMarker'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
@@ -10,57 +11,83 @@ import formatDateTime from './useCurrentDateTime.tsx'
 
 interface SARTaskStep4Props {
   incident?: IIncident | null;
+  setIncident: (incident: IIncident) => void
 }
 
-const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident }) => {
-    const currentIncident = Array.isArray(incident) ? incident[0] : incident;
-    console.log('Current Incident:', currentIncident)
-    const incidentId = currentIncident?.incidentId
+const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => {
+    const startDate = incident?.sarTask?.startDate
+    const incidentId = incident?.incidentId
     const now = new Date();
-    const formattedDateTime = formatDateTime(now)
-    const handleDoneClick = async () => {
-          try {
-            const token = localStorage.getItem('token')
-            const uid = localStorage.getItem('uid')
-            
-            if (!token || !uid) {
-              console.error('No authentication token or uid found')
-              return
-            }            
-            const currentSarTask = currentIncident?.sarTask || {};
-            
-            const response = await fetch(
-              `${import.meta.env.VITE_BACKEND_URL}/api/incidents/sar/${incidentId}`,
-              {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'x-application-token': token,
-                  'x-application-uid': uid,
-                },
-                body: JSON.stringify({
-                  sarTask: {
-                    ...currentSarTask,
-                    state: 'Done',
-                    endDate: now.toISOString()
-                  }
-                }),
-              }
-            )
-            
-            if (!response.ok) {
-              throw new Error(`Failed to update SAR task: ${response.status}`)
-            }
-            
-            const updatedIncident = await response.json()
-            alert('Task marked as done!')
-            
+    const endTime = formatDateTime(now)
+    const leftText = `${incidentId || 'NullId101'} ${
+      startDate ? formatDateTime(new Date(startDate)) : ''
+    }`;
 
-          } catch (error) {
-            console.error('Error updating SAR task:', error)
-            alert('Failed to mark task as done. Please try again.')
-          }
+    const formatHazards = () => {
+      if (!incident?.sarTask?.hazards || incident.sarTask.hazards.length === 0) {
+        return 'No Hazards'
+      }
+      
+      return incident.sarTask.hazards.map(hazard => 
+        hazard
+      ).join(' ')
+    }
+
+    const formatVictimCounts = () => {
+      const victims = incident?.sarTask?.victims || [];
+      
+      // Types of victims with their index
+      const victimTypes = [
+        { type: 'Immediate', index: 0 },
+        { type: 'Urgent', index: 1 },
+        // { type: 'Could Wait', index: 2 },
+        // { type: 'Dismiss', index: 3 },
+        { type: 'Deceased', index: 4 }
+      ];
+      
+      const parts = [];
+      for (const typeObj of victimTypes) {
+        const count = victims[typeObj.index];
+        if (count && count > 0) {
+          parts.push(`${count}-${typeObj.type.toLowerCase()}`);
         }
+      }
+      
+      if (parts.length === 0) {
+        return 'No Victims';
+      }
+      
+      return parts.join(' ');
+    }
+
+    const handleDoneClick = async () => {
+
+            const currentSarTask = incident?.sarTask || {};
+
+
+            try {
+              const response: IIncident = await request(
+                `/api/incidents/sar/${incidentId}`,
+                {
+                  method: 'PUT',
+                  body: JSON.stringify({
+                    sarTask: {
+                      ...currentSarTask,
+                      state: 'Done',
+                      endDate: now.toISOString()
+                    }
+                  }),
+                }
+              )
+              setIncident(response)
+            } catch (error) {
+              const err = error as IRequestError
+              console.error('Error updating SAR task:', err.message)
+            }
+
+        }
+
+    
 
   return (
     <div className={styles.wrapperStep}>
@@ -73,20 +100,20 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident }) => {
 
       <div className={styles.flexCenter}>
         <FEMAMarker
-          top={formattedDateTime}
-          right='[FAKE] Dogs Foods'
-          bottom='[FAKE] 1-Immediate 2-Urgent'
-          left='[FAKE] SDena101 04.04.21 1:40pm'
+          top={endTime}
+          right={formatHazards()}
+          bottom={formatVictimCounts()}
+          left={leftText}
           size={300}
         />
       </div>
 
       <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
         <ReturnToTasksBtn />
-        <Button className={styles.primaryBtn} onClick={handleDoneClick} variant="contained"
+        {incident?.sarTask?.state !== 'Done' && (<Button className={styles.primaryBtn} onClick={handleDoneClick} variant="contained"
         sx={{ mt: 2, mx: 1 }}>
           Done
-        </Button>
+        </Button>)}
       </div>
     </div>
   )
