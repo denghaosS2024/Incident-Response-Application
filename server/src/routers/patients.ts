@@ -771,6 +771,8 @@ export default Router()
       const error = e as Error
       if (error.message === 'Invalid location') {
         response.status(400).json({ message: error.message })
+      } else if (error.message === `Patient with ID ${patientId} does not exist`) {
+        response.status(404).json({ message: error.message })
       } else {
         response.status(500).json({ message: error.message })
       }
