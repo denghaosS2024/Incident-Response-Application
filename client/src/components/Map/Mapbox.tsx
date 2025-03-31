@@ -1,8 +1,10 @@
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
 import FireTruckIcon from '@mui/icons-material/FireTruck'
 import FlagIcon from '@mui/icons-material/Flag'
+import HomeIcon from '@mui/icons-material/Home'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import { Snackbar } from '@mui/material'
 import { Geometry } from 'geojson'
@@ -52,6 +54,7 @@ const Mapbox: React.FC<MapboxProps> = ({
   const incidentRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const truckRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const carRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const sarTaskRef = useRef<Map<string, mapboxgl.Marker>>(new Map()); // New ref for SAR tasks - explicitly initialize with a new Map to avoid null issues
 
   // Visibility states for the map layers
   const [pinsVisible, setPinsVisible] = useState(true)
@@ -196,7 +199,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         zoom: initialZoom,
       })
       // When the map loads, add a draggable marker and update the address
-      mapRef.current.on('load', () => {
+      mapRef.current?.on('load', () => {
         // Add a draggable marker at the current location
         mapRef.current!.setProjection({ name: 'globe' })
         fetchAndRenderMarkers().then(() => {
@@ -223,7 +226,6 @@ const Mapbox: React.FC<MapboxProps> = ({
           // Update address and location initially if they're not already set
           const hasLocation =
             incident.location?.latitude && incident.location?.longitude
-          const hasAddress = incident.address && incident.address.trim() !== ''
 
           // If we don't have a location or the location doesn't match our current coordinates,
           // update from the coordinates (this ensures the pin and address stay in sync)
@@ -241,14 +243,14 @@ const Mapbox: React.FC<MapboxProps> = ({
         // Trigger geolocation if the map was initialized with default coordinates
         if (initialZoom == 1 && !disableGeolocation) {
           try {
-            geoLocateRef.current!.trigger()
+            geoLocateRef.current?.trigger()
           } catch (err) {
             console.error('Error triggering geolocation:', err)
           }
         }
 
         // Add click event for SAR task location selection
-        mapRef.current.on('click', (e) => {
+        mapRef.current?.on('click', (e) => {
           // Emit the clicked location for SAR tasks
           eventEmitter.emit('map_clicked', {
             longitude: e.lngLat.lng,
@@ -257,7 +259,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         });
       })
       // Handle map errors
-      mapRef.current.on('error', (e: any) => {
+      mapRef.current?.on('error', (e: any) => {
         console.error('Mapbox error:', e)
         setMapError('Failed to load map')
       })
@@ -270,9 +272,9 @@ const Mapbox: React.FC<MapboxProps> = ({
           showAccuracyCircle: true,
           showUserLocation: true,
         })
-        mapRef.current.addControl(geoLocateRef.current)
+        mapRef.current?.addControl(geoLocateRef.current)
         // Update marker position when geolocation is triggered
-        geoLocateRef.current.on('geolocate', (e: any) => {
+        geoLocateRef.current?.on('geolocate', (e: any) => {
           const { longitude, latitude } = e.coords
           if (markerRef.current && showMarker) {
             markerRef.current.setLngLat([longitude, latitude])
@@ -281,7 +283,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         })
 
         // Add error handler for geolocation errors
-        geoLocateRef.current.on('error', (error: any) => {
+        geoLocateRef.current?.on('error', (error: any) => {
           console.error('Geolocation error:', error)
           setMapError(
             'Unable to get your location. Please enter your address manually.',
@@ -563,6 +565,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           incidentRef.current.forEach(marker => marker.remove())
           truckRef.current.forEach(marker => marker.remove())
           carRef.current.forEach(marker => marker.remove())
+          sarTaskRef.current.forEach(marker => marker.remove()) // Remove SAR task markers
 
           pinRef.current.clear()
           roadblockRef.current.clear()
@@ -571,6 +574,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           incidentRef.current.clear()
           truckRef.current.clear()
           carRef.current.clear()
+          sarTaskRef.current.clear() // Clear SAR task markers
 
           // Remove the map itself
           mapRef.current.remove()
@@ -774,9 +778,7 @@ const Mapbox: React.FC<MapboxProps> = ({
             popup.on('open', () => {
               const editButton = document.getElementById(`edit-pin-${id}`)
               const deleteButton = document.getElementById(`delete-pin-${id}`)
-              const navigateButton = document.getElementById(
-                `navigate-pin-${id}`,
-              )
+              const navigateButton = document.getElementById(`navigate-pin-${id}`)
               const trendingIcon = document.getElementById(
                 `trending-icon-${id}`,
               )
@@ -1371,7 +1373,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       eventEmitter.removeListener('toggle_roadblock', toggleRoadblocks)
       eventEmitter.removeListener('toggle_fireHydrant', toggleFireHydrants)
       eventEmitter.removeListener('toggle_airQuality', toggleAirQuality)
-      eventEmitter.off('toggle_hospital', toggleHospitals)
+      eventEmitter.removeListener('toggle_hospital', toggleHospitals)
       eventEmitter.removeListener('toggle_incidents', toggleIncidents);
       eventEmitter.removeListener('toggle_trucks', toggleTrucks);
       eventEmitter.removeListener('toggle_cars', toggleCars);
@@ -1379,6 +1381,8 @@ const Mapbox: React.FC<MapboxProps> = ({
       // eventEmitter.off('area_util', toggleAreaUtil)
     }
   }, [])
+
+  // -------------------------------- map layer toggle end --------------------------------
 
   // -------------------------------- reach 911 features start --------------------------------
 
@@ -1981,6 +1985,69 @@ const Mapbox: React.FC<MapboxProps> = ({
       socket.off('airQualityUpdate') // Clean up the listener
     }
   }, [])
+
+  // Function to update SAR task markers on the map
+  const updateSARTaskMarkers = (tasks: any[]) => {
+    if (!mapRef.current) return;
+
+    // Clear existing SAR task markers
+    sarTaskRef.current.forEach(marker => marker.remove());
+    sarTaskRef.current.clear();
+
+    // Add new markers for each SAR task
+    tasks.forEach(task => {
+      if (task.location && task.location.latitude && task.location.longitude) {
+        // Create marker element with appropriate icon based on status
+        const markerElement = document.createElement('div');
+        
+        // Set icon based on task status
+        if (task.status === 'done') {
+          // Green CheckCircleIcon for done tasks
+          markerElement.innerHTML = ReactDOMServer.renderToString(
+            <CheckCircleIcon style={{ color: '#4caf50', fontSize: '32px' }} />
+          );
+        } else if (task.status === 'in-progress') {
+          // Blue HomeIcon for in-progress tasks
+          markerElement.innerHTML = ReactDOMServer.renderToString(
+            <HomeIcon style={{ color: '#2196f3', fontSize: '32px' }} />
+          );
+        } else {
+          // Red HomeIcon for todo tasks
+          markerElement.innerHTML = ReactDOMServer.renderToString(
+            <HomeIcon style={{ color: '#f44336', fontSize: '32px' }} />
+          );
+        }
+
+        // Create popup content
+        const popupContent = document.createElement('div');
+        popupContent.innerHTML = `
+          <h3 style="margin: 0 0 5px 0; font-size: 14px;">${task.name}</h3>
+          <p style="margin: 0 0 5px 0; font-size: 12px;">${task.description || 'No description'}</p>
+          <p style="margin: 0 0 5px 0; font-size: 12px;">${task.address || 'No address'}</p>
+          <p style="margin: 0; font-size: 12px;">Status: ${task.status}</p>
+        `;
+
+        const popup = new mapboxgl.Popup({ offset: 25 })
+          .setDOMContent(popupContent);
+
+        // Create and add marker
+        const marker = new mapboxgl.Marker({ element: markerElement })
+          .setLngLat([task.location.longitude, task.location.latitude])
+          .setPopup(popup)
+          .addTo(mapRef.current!);
+
+        // Store the marker in the ref
+        sarTaskRef.current.set(task.id, marker);
+      }
+    });
+  };
+
+  useEffect(() => {
+    eventEmitter.on('update_sar_tasks', updateSARTaskMarkers);
+    return () => {
+      eventEmitter.removeListener('update_sar_tasks', updateSARTaskMarkers);
+    }
+  }, []);
 
   // -------------------------------- wildfire features end --------------------------------
 

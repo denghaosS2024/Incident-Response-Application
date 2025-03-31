@@ -1,4 +1,4 @@
-import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material'
+import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material'
 import styles from '../../../styles/Reach911Page.module.css'
 import Map from '../../Map/Mapbox'
 
@@ -68,7 +68,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
   const [taskForm, setTaskForm] = useState<SARTaskForm>({
     name: '',
     description: '',
-    status: 'todo',
+    status: 'todo', // Always default to 'todo'
     address: ''
   })
   const [taskInputAddress, setTaskInputAddress] = useState('')
@@ -94,6 +94,12 @@ const SARStep1: React.FC<SARStep1Props> = ({
       longitude: number;
     };
   }>>([]);
+
+  // Function to update SAR task markers on the map
+  const updateSARTaskMarkers = (tasks: any[]) => {
+    // Emit an event to update the markers on the map
+    eventEmitter.emit('update_sar_tasks', tasks);
+  };
 
   // Fetch SAR tasks when incident changes
   useEffect(() => {
@@ -127,6 +133,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
         
         console.log('Processed SAR tasks:', tasks);
         setSarLocations(tasks);
+        updateSARTaskMarkers(tasks); // Call the new function to update the markers
       } else {
         console.log('No SAR tasks found or invalid response format');
         setSarLocations([]);
@@ -261,15 +268,6 @@ const SARStep1: React.FC<SARStep1Props> = ({
     });
   };
 
-  // Handle select input changes for task form
-  const handleTaskSelectChange = (e: SelectChangeEvent) => {
-    const { name, value } = e.target;
-    setTaskForm({
-      ...taskForm,
-      [name]: value,
-    });
-  };
-
   // Handle address input changes for task form
   const handleTaskAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { value } = e.target;
@@ -296,20 +294,6 @@ const SARStep1: React.FC<SARStep1Props> = ({
   // When user clicks out of the input, revert to task address
   const onTaskAddressBlur = () => {
     setTaskInputAddress(taskForm.address || '');
-  };
-
-  // Map status to backend format
-  const mapStatusToBackend = (status: string): 'Todo' | 'InProgress' | 'Done' => {
-    switch (status) {
-      case 'todo':
-        return 'Todo';
-      case 'in-progress':
-        return 'InProgress';
-      case 'done':
-        return 'Done';
-      default:
-        return 'Todo';
-    }
   };
 
   // Create new task
@@ -346,7 +330,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
       
       // Prepare the data for the API
       const sarTaskData = {
-        state: mapStatusToBackend(taskForm.status),
+        state: 'Todo', // Always use 'Todo' status for new tasks
         location: inputAddress, // Use inputAddress as per memory requirement
         coordinates: inputLocation ? {
           latitude: inputLocation.latitude,
@@ -370,13 +354,14 @@ const SARStep1: React.FC<SARStep1Props> = ({
       const newTask = {
         id: `task${sarLocations.length + 1}`,
         name: taskForm.name,
-        status: taskForm.status,
+        status: 'todo',
         address: taskForm.address,
         description: taskForm.description || ''
       };
       
       const updatedLocations = [...sarLocations, newTask];
       setSarLocations(updatedLocations);
+      updateSARTaskMarkers(updatedLocations); // Call the new function to update the markers
       
       // Close the dialog and show success message
       setOpenTaskDialog(false);
@@ -397,9 +382,21 @@ const SARStep1: React.FC<SARStep1Props> = ({
     }
   };
 
+  // Listen for map loaded event and update markers
   useEffect(() => {
-    eventEmitter.on('map_loaded', () => {});
-  }, []);
+    const handleMapLoaded = () => {
+      console.log('Map loaded, updating SAR task markers');
+      if (sarLocations.length > 0) {
+        updateSARTaskMarkers(sarLocations);
+      }
+    };
+
+    eventEmitter.on('map_loaded', handleMapLoaded);
+
+    return () => {
+      eventEmitter.removeListener('map_loaded', handleMapLoaded);
+    };
+  }, [sarLocations]);
 
   // Listen for map clicks to get the selected location
   useEffect(() => {
@@ -759,20 +756,6 @@ const SARStep1: React.FC<SARStep1Props> = ({
             rows={3}
             sx={{ mb: 2 }}
           />
-          
-          <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              name="status"
-              value={taskForm.status}
-              label="Status"
-              onChange={handleTaskSelectChange}
-            >
-              <MenuItem value="todo">To Do</MenuItem>
-              <MenuItem value="in-progress">In Progress</MenuItem>
-              <MenuItem value="done">Done</MenuItem>
-            </Select>
-          </FormControl>
           
           <Typography variant="subtitle1" sx={{ mt: 1, mb: 1 }}>
             Task Location
