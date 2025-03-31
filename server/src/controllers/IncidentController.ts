@@ -2,7 +2,7 @@ import { Types } from 'mongoose'
 import { ICar } from '../models/Car'
 import Incident, { IncidentPriority, type IIncident } from '../models/Incident'
 import { ITruck } from '../models/Truck'
-import User from '../models/User'
+import User, { IUser } from '../models/User'
 import { ROLES } from '../utils/Roles'
 import UserConnections from '../utils/UserConnections'
 import CarController from './CarController'
@@ -193,7 +193,35 @@ class IncidentController {
      */
     async getAllIncidents(): Promise<IIncident[]> {
         try {
-            return await Incident.find().exec()
+            const incidents = await Incident.find().lean().exec()
+
+            const enriched = await Promise.all(
+            incidents.map(async (incident) => {
+                const commanderDetail = await UserController.getUserByUsername(incident.commander)
+
+                const enrichedAssignHistory = await Promise.all(
+                    (incident.assignHistory || []).map(async (entry) => {
+                        let user: IUser | null = null
+                      if (entry.usernames && entry.usernames.length > 0) {
+                        user = await UserController.getUserByUsername(entry.usernames[0])
+                      }
+                      return {
+                        ...entry,
+                        user: user ?? null,
+                      }
+                    })
+                  )
+
+                return {
+                ...incident,
+                commanderDetail,
+                assignHistory: enrichedAssignHistory,
+                } as IIncident
+            })
+            )
+            
+
+            return enriched
         } catch (error) {
             // MongoDB error
             throw new Error(`Database Error: ${error}`)
@@ -215,8 +243,34 @@ class IncidentController {
      */
     async getIncidentByIncidentId(incidentId: string): Promise<IIncident[]> {
         try {
-            const incident = await Incident.find({ incidentId }).exec()
-            return incident
+            const incidents = await Incident.find({ incidentId }).lean().exec()
+
+        const enriched = await Promise.all(
+            incidents.map(async (incident) => {
+                const commanderDetail = await UserController.getUserByUsername(incident.commander)
+
+                const enrichedAssignHistory = await Promise.all(
+                    (incident.assignHistory || []).map(async (entry) => {
+                        let user: IUser | null = null
+                        if (entry.usernames && entry.usernames.length > 0) {
+                            user = await UserController.getUserByUsername(entry.usernames[0])
+                        }
+                        return {
+                            ...entry,
+                            user: user ?? null,
+                        }
+                    })
+                )
+
+                return {
+                    ...incident,
+                    commanderDetail,
+                    assignHistory: enrichedAssignHistory,
+                } as IIncident
+            })
+        )
+
+        return enriched
         } catch (error) {
             console.error('Error getting incident by incidentId:', error)
             return []

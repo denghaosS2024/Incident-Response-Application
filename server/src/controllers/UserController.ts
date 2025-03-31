@@ -92,6 +92,16 @@ class UserController {
         return user
     }
 
+    async getUserByUsername(username: string) {
+        try {
+            const user = await User.findOne({ username }).lean().exec()
+            return user || null
+        } catch (error) {
+            console.error('Error getting user by username:', error)
+            return null
+        }
+    }
+
     /**
      * Check if a user exists
      * @param userId - The ID of the user

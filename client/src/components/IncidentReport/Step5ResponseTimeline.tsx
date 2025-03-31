@@ -8,6 +8,7 @@ import {
   PriorityHigh,
 } from '@mui/icons-material'
 import { Box, Typography } from '@mui/material'
+import getRoleIcon from '../common/RoleIcon'
 import StepIndicator from '../common/StepIndicator'
 
 type AssignHistoryItem = {
@@ -16,6 +17,10 @@ type AssignHistoryItem = {
   isAssign: boolean
   usernames: string[]
   timestamp: string
+  user?: {
+    username: string
+    role: string
+  } | null
 }
 
 type Incident = {
@@ -23,6 +28,10 @@ type Incident = {
   openingDate: string
   closingDate: string
   commander: string
+  commanderDetail?: {
+    username: string
+    role: string
+  }
   priority: string
   patientName?: string
 }
@@ -49,9 +58,13 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
     openingDate,
     closingDate,
     commander,
+    commanderDetail,
     priority,
     patientName,
   } = incident
+
+  const assignedItems = assignHistory.filter((item) => item.isAssign)
+  const unassignedItems = assignHistory.filter((item) => !item.isAssign)
 
   const timelineItems = [
     {
@@ -59,17 +72,23 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
       label: 'Open Waiting',
       time: formatTime(openingDate),
     },
-    ...assignHistory.map((item) => ({
+    ...assignedItems.map((item) => ({
       icon: typeIconMap[item.type] || typeIconMap.Flag,
-      label: `${capitalize(item.name)} ${item.isAssign ? 'true' : 'false'}`,
-      subtext: item.usernames,
+      label: `${capitalize(item.name)} assigned`,
+      subtext: item.user
+        ? [`${item.user.username}`]
+        : item.usernames,
       time: formatTime(item.timestamp),
+      role: item.user?.role,
     })),
     {
       icon: typeIconMap.Police,
       label: 'Commander:',
-      subtext: [commander],
+      subtext: commanderDetail
+        ? [`${commanderDetail.username}`]
+        : [commander],
       time: formatTime(openingDate),
+      role: commanderDetail?.role,
     },
     {
       icon: typeIconMap.Priority,
@@ -92,6 +111,15 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
           },
         ]
       : []),
+    ...unassignedItems.map((item) => ({
+      icon: typeIconMap[item.type] || typeIconMap.Flag,
+      label: `${capitalize(item.name)} unassigned`,
+      subtext: item.user
+        ? [`${item.user.username}`]
+        : item.usernames,
+      time: formatTime(item.timestamp),
+      role: item.user?.role,
+    })),
     {
       icon: typeIconMap.Flag,
       label: 'Close',
@@ -102,7 +130,7 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
   return (
     <Box sx={{ mt: 3, mb: 4 }}>
       <StepIndicator currentStep={5} totalSteps={5} />
-      <Typography variant="h5"  align="center"  mb={3}>
+      <Typography variant="h5" align="center" mb={3}>
         Response Timeline
       </Typography>
 
@@ -144,7 +172,7 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
                   gap={0.5}
                   mt={0.5}
                 >
-                  {renderIconByLabel(item.label)}
+                  {item.role ? getRoleIcon(item.role) : renderIconByLabel(item.label)}
                   <Typography fontSize="14px">{sub}</Typography>
                 </Box>
               ))}
