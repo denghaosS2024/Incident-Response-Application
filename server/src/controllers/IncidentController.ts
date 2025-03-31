@@ -88,7 +88,7 @@ class IncidentController {
                 incidentCallGroup: incident.incidentCallGroup
                     ? incident.incidentCallGroup
                     : null,
-                sarTasks: []
+                sarTasks: [],
             }).save()
 
             const notifyDispatchers = async (
@@ -126,7 +126,7 @@ class IncidentController {
     ): Promise<IIncident | null> {
         // Convert string id to MongoDB ObjectId
         const _id = id
-        const incident = await Incident.findById(_id);
+        const incident = await Incident.findById(_id)
         if (!incident) {
             return null
         }
@@ -136,8 +136,8 @@ class IncidentController {
                 `Incident with ID '${_id}' already has a chat group`,
             )
         }
-        incident.incidentCallGroup = channelId;
-        await incident.save();
+        incident.incidentCallGroup = channelId
+        await incident.save()
         return incident
     }
 
@@ -299,7 +299,9 @@ class IncidentController {
      * @param incidentState
      * @returns incident details based on incidentState
      */
-    async getIncidentByIncidentState(incidentState: string): Promise<IIncident[]> {
+    async getIncidentByIncidentState(
+        incidentState: string,
+    ): Promise<IIncident[]> {
         return await Incident.find({ incidentState: incidentState }).exec()
     }
 
@@ -425,12 +427,10 @@ class IncidentController {
 
         if (incident.incidentCallGroup) {
             await ChannelController.closeChannel(incident.incidentCallGroup)
-            incident.incidentCallGroup = null
         }
 
         if (incident.respondersGroup) {
             await ChannelController.closeChannel(incident.respondersGroup)
-            incident.respondersGroup = null
         }
 
         await incident.save()
@@ -495,9 +495,7 @@ class IncidentController {
                 existingIncident.commander,
             )
             if (isCommanderInVehicle) {
-                throw new Error(
-                    'Cannot deallocate commander\'s vehicle',
-                )
+                throw new Error("Cannot deallocate commander's vehicle")
             }
             existingIncident.assignHistory.push({
                 timestamp: now,
@@ -530,7 +528,10 @@ class IncidentController {
     async createOrUpdateRespondersGroup(
         incident: IIncident,
     ): Promise<IIncident> {
-        if (!incident.assignedVehicles || incident.assignedVehicles.length === 0) {
+        if (
+            !incident.assignedVehicles ||
+            incident.assignedVehicles.length === 0
+        ) {
             console.log(incident)
             if (!incident.respondersGroup) {
                 return incident
@@ -545,7 +546,9 @@ class IncidentController {
                     .exec()
 
                 if (!updatedIncident) {
-                    throw new Error(`Incident with ID '${incident._id}' not found`)
+                    throw new Error(
+                        `Incident with ID '${incident._id}' not found`,
+                    )
                 }
 
                 return updatedIncident
@@ -619,16 +622,18 @@ class IncidentController {
     }
 
     async getSARIncidentsByOwner(owner: string): Promise<IIncident[]> {
-    try {
-        return await Incident.find({
-            owner: owner,
-            type: 'S'
-        }).sort({ openingDate: -1 }).exec();
-    } catch (error) {
-        console.error('Error fetching SAR incidents:', error);
-        throw new Error(`Failed to retrieve SAR incidents: ${error}`);
+        try {
+            return await Incident.find({
+                owner: owner,
+                type: 'S',
+            })
+                .sort({ openingDate: -1 })
+                .exec()
+        } catch (error) {
+            console.error('Error fetching SAR incidents:', error)
+            throw new Error(`Failed to retrieve SAR incidents: ${error}`)
+        }
     }
-}
 
     /**
      * Create or update a SAR task for an incident
@@ -647,16 +652,16 @@ class IncidentController {
             description?: string
             hazards?: string[]
             victims?: number[]
-        }
+        },
     ): Promise<IIncident | null> {
         try {
             // Find the incident
             const incident = await Incident.findOne({ incidentId }).exec()
-            
+
             if (!incident) {
                 throw new Error(`Incident with ID '${incidentId}' not found`)
             }
-            
+
             // Create the new SAR task object
             const newSarTask = {
                 state: sarTask.state,
@@ -667,20 +672,20 @@ class IncidentController {
                 coordinates: sarTask.coordinates || null,
                 hazards: sarTask.hazards || [],
                 victims: sarTask.victims || [0, 0, 0, 0, 0],
-                endDate: null
+                endDate: null,
             }
-            
+
             // Update the incident with the new SAR task added to the array
             const updatedIncident = await Incident.findOneAndUpdate(
                 { incidentId },
-                { 
-                    $push: { 
-                        sarTasks: newSarTask
-                    } 
+                {
+                    $push: {
+                        sarTasks: newSarTask,
+                    },
                 },
-                { new: true }
+                { new: true },
             ).exec()
-            
+
             return updatedIncident
         } catch (error) {
             console.error('Error creating/updating SAR task:', error)

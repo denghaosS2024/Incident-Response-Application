@@ -4,6 +4,7 @@ import MedicalServicesIcon from '@mui/icons-material/MedicalServices'
 import { Box, CircularProgress, Paper, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import type IIncident from '../../models/Incident'
+import request from '../../utils/request'
 import StepIndicator from '../common/StepIndicator'
 
 interface Step4CommunicationProps {
@@ -22,18 +23,16 @@ interface Message {
 const Step4Communication: React.FC<Step4CommunicationProps> = ({
     incidentData,
 }) => {
-    const [callerGroupMessages, setCallerGroupMessages] = useState<Message[]>(
-        [],
-    )
-    const [responderGroupMessages, setResponderGroupMessages] = useState<
-        Message[]
-    >([])
+    const [messages, setMessages] = useState<Message[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         const fetchMessagesWithSenders = async () => {
-            if (!incidentData.incidentCallGroup) {
+            if (
+                !incidentData.incidentCallGroup &&
+                !incidentData.respondersGroup
+            ) {
                 return
             }
 
@@ -41,89 +40,135 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
             setError(null)
 
             try {
-                const callerGroupId = incidentData.incidentCallGroup
-                const callerResponse = await fetch(
-                    `/api/channels/${callerGroupId}/messages`,
-                )
+                const allMessages: Message[] = []
 
-                if (!callerResponse.ok) {
-                    throw new Error(
-                        `Failed to fetch caller messages: ${callerResponse.status}`,
-                    )
-                }
-
-                const callerMessages: Message[] = await callerResponse.json()
-
-                const messagesWithSenders = await Promise.all(
-                    callerMessages.map(async (message) => {
-                        try {
-                            const userResponse = await fetch(
-                                `/api/users/${message.sender}`,
-                            )
-
-                            if (userResponse.ok) {
-                                const userData = await userResponse.json()
-                                return {
-                                    ...message,
-                                    senderName: userData.username,
-                                    senderRole: userData.role,
-                                }
-                            }
-                            return message
-                        } catch (error) {
-                            console.warn(
-                                `Error fetching user info for ${message.sender}`,
-                                error,
-                            )
-                            return message
-                        }
-                    }),
-                )
-
-                setCallerGroupMessages(messagesWithSenders)
-
-                if (incidentData.respondersGroup) {
-                    const responderGroupId = incidentData.respondersGroup
-                    const responderResponse = await fetch(
-                        `/api/channels/${responderGroupId}/messages`,
+                if (incidentData.incidentCallGroup) {
+                    console.log(
+                        `Fetching messages for group: ${incidentData.incidentCallGroup}`,
                     )
 
-                    if (responderResponse.ok) {
-                        const responderMessages: Message[] =
-                            await responderResponse.json()
-
-                        const responderMessagesWithSenders = await Promise.all(
-                            responderMessages.map(async (message) => {
-                                try {
-                                    const userResponse = await fetch(
-                                        `/api/users/${message.sender}`,
-                                    )
-
-                                    if (userResponse.ok) {
-                                        const userData =
-                                            await userResponse.json()
-                                        return {
-                                            ...message,
-                                            senderName: userData.username,
-                                            senderRole: userData.role,
-                                        }
-                                    }
-                                    return message
-                                } catch (error) {
-                                    console.warn(
-                                        `Error fetching user info for ${message.sender}`,
-                                        error,
-                                    )
-                                    return message
-                                }
-                            }),
+                    try {
+                        const callerResponse = await request(
+                            `/api/channels/${incidentData.incidentCallGroup}/messages`,
+                            {
+                                method: 'GET',
+                            },
                         )
 
-                        setResponderGroupMessages(responderMessagesWithSenders)
+                        console.log(callerResponse)
+
+                        const callerMessages = Array.isArray(callerResponse)
+                            ? callerResponse
+                            : []
+
+                        for (const message of callerMessages) {
+                            try {
+                                allMessages.push({
+                                    _id: message._id,
+                                    content: message.content,
+                                    sender:
+                                        message.sender._id || message.sender,
+                                    timestamp: message.timestamp,
+                                    senderName:
+                                        message.sender.username ||
+                                        'Unknown User',
+                                    senderRole: message.sender.role || '',
+                                })
+                            } catch (error) {
+                                console.warn(
+                                    `Error processing message data:`,
+                                    error,
+                                )
+                                allMessages.push({
+                                    _id: message._id,
+                                    content: message.content,
+                                    sender:
+                                        typeof message.sender === 'object'
+                                            ? message.sender._id
+                                            : message.sender,
+                                    timestamp: message.timestamp,
+                                    senderName: 'Unknown User',
+                                    senderRole: '',
+                                })
+                            }
+                        }
+                    } catch (fetchError) {
+                        console.error(
+                            'Error fetching caller messages:',
+                            fetchError,
+                        )
+                        setError('Failed to load caller messages')
                     }
                 }
+
+                if (incidentData.respondersGroup) {
+                    console.log(
+                        `Fetching messages for responders group: ${incidentData.respondersGroup}`,
+                    )
+
+                    try {
+                        const respondersResponse = await request(
+                            `/api/channels/${incidentData.respondersGroup}/messages`,
+                            {
+                                method: 'GET',
+                            },
+                        )
+
+                        const responderMessages = Array.isArray(
+                            respondersResponse,
+                        )
+                            ? respondersResponse
+                            : []
+
+                        for (const message of responderMessages) {
+                            try {
+                                allMessages.push({
+                                    _id: message._id,
+                                    content: message.content,
+                                    sender:
+                                        message.sender._id || message.sender,
+                                    timestamp: message.timestamp,
+                                    senderName:
+                                        message.sender.username ||
+                                        'Unknown User',
+                                    senderRole: message.sender.role || '',
+                                })
+                            } catch (error) {
+                                console.warn(
+                                    `Error processing responder message data:`,
+                                    error,
+                                )
+                                allMessages.push({
+                                    _id: message._id,
+                                    content: message.content,
+                                    sender:
+                                        typeof message.sender === 'object'
+                                            ? message.sender._id
+                                            : message.sender,
+                                    timestamp: message.timestamp,
+                                    senderName: 'Unknown User',
+                                    senderRole: '',
+                                })
+                            }
+                        }
+                    } catch (fetchError) {
+                        console.error(
+                            'Error fetching responder messages:',
+                            fetchError,
+                        )
+                        setError('Failed to load responder messages')
+                    }
+                }
+
+                allMessages.sort(
+                    (a, b) =>
+                        new Date(a.timestamp).getTime() -
+                        new Date(b.timestamp).getTime(),
+                )
+
+                setMessages(allMessages)
             } catch (err) {
-                console.error('Error fetching messages:', err)
+                console.error('Error in fetchMessagesWithSenders:', err)
                 setError('Failed to load communication messages')
             } finally {
                 setLoading(false)
@@ -131,17 +176,11 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
         }
 
         fetchMessagesWithSenders()
-    }, [incidentData.incidentCallGroup, incidentData.respondersGroup])
-
-    const getAllMessages = () => {
-        const allMessages = [...callerGroupMessages, ...responderGroupMessages]
-        return allMessages.sort(
-            (a, b) =>
-                new Date(a.timestamp).getTime() -
-                new Date(b.timestamp).getTime(),
-        )
-    }
-
+    }, [
+        incidentData.incidentCallGroup,
+        incidentData.respondersGroup,
+        incidentData.caller,
+    ])
     const getMessageIcon = (message: Message) => {
         const role = message.senderRole || ''
         const name = message.senderName || ''
@@ -216,15 +255,13 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
         )
     }
 
-    if (error) {
+    if (error && messages.length === 0) {
         return (
             <Box sx={{ mt: 4, mb: 4 }}>
                 <Typography color="error">{error}</Typography>
             </Box>
         )
     }
-
-    const messages = getAllMessages()
 
     return (
         <Box sx={{ mt: 4, mb: 4 }}>

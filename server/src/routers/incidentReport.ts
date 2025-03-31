@@ -41,24 +41,30 @@ const incidentReportRouter = Router()
  *         description: Missing required fields
  */
 incidentReportRouter.post('/', async (req, res) => {
-  try {
-    const { incidentId, effectiveness, resourceAllocation, team, additionalInfo } = req.body
+    try {
+        const {
+            incidentId,
+            effectiveness,
+            resourceAllocation,
+            team,
+            additionalInfo,
+        } = req.body
 
-    if (!incidentId) {
-      res.status(400).json({ message: 'incidentId is required' })
+        if (!incidentId) {
+            res.status(400).json({ message: 'incidentId is required' })
+        }
+
+        const result = await IncidentReport.findOneAndUpdate(
+            { incidentId },
+            { effectiveness, resourceAllocation, team, additionalInfo },
+            { upsert: true, new: true },
+        )
+
+        res.status(201).json(result)
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ message: 'Failed to save report' })
     }
-
-    const result = await IncidentReport.findOneAndUpdate(
-      { incidentId },
-      { effectiveness, resourceAllocation, team, additionalInfo },
-      { upsert: true, new: true }
-    )
-
-    res.status(201).json(result)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Failed to save report' })
-  }
 })
 
 /**
@@ -80,18 +86,20 @@ incidentReportRouter.post('/', async (req, res) => {
  *         description: Report not found
  */
 incidentReportRouter.get('/:incidentId', async (req, res) => {
-  try {
-    const report = await IncidentReport.findOne({ incidentId: req.params.incidentId })
+    try {
+        const report = await IncidentReport.findOne({
+            incidentId: req.params.incidentId,
+        })
 
-    if (!report) {
-      res.status(404).json({ message: 'Report not found' })
+        if (!report) {
+            return res.status(404).json({ message: 'Report not found' })
+        }
+
+        return res.status(200).json(report)
+    } catch (err) {
+        console.error(err)
+        return res.status(500).json({ message: 'Failed to fetch report' })
     }
-
-    res.status(200).json(report)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Failed to fetch report' })
-  }
 })
 
 export default incidentReportRouter
