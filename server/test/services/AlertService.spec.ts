@@ -118,6 +118,9 @@ describe('AlertService', () => {
             groupId: groupId,
             status: 'waiting',
         }
+        jest.spyOn(alertService, 'getGroupAlertState').mockReturnValue(undefined);
+        jest.spyOn(alertService, 'setGroupAlertState').mockImplementation(() => {});
+
         AlertService.queueOrSendAlert(alert)
         // expect getGroupAlertState to be called
         expect(alertService.getGroupAlertState).toHaveBeenCalledWith(groupId);

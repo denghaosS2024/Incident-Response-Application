@@ -32,6 +32,7 @@ class AlertService {
                 timeoutHandle: undefined,
             });
         }
+        console.log('alertState', groupId, this.groupAlertMap)
     }
 
     public sendAlert(groupId: string): void {
@@ -39,7 +40,27 @@ class AlertService {
         if (groupAlertState) {
             groupAlertState.ongoingAlert = groupAlertState.alertQueue.shift();
         }
+        console.log('alertState', groupId, this.groupAlertMap)
+
     }
+
+    // private static comparePriority(a: string, b: string): number {
+    //     const priorityRank: Record<string, number> = {
+    //       'E': 3, 'U': 2, 'H': 1
+    //     };
+    //     return priorityRank[a] - priorityRank[b];
+    //   }
+
+    public queueOrSendAlert(alert: Alert): void {
+        const groupId = alert.groupId;
+        let state = this.getGroupAlertState(groupId);
+
+        if (!state) {
+            state = { alertQueue: [], ongoingAlert: undefined, timeoutHandle: undefined };
+            this.setGroupAlertState(groupId, state);
+        }
+    }
+      
 }
 
 export default AlertService.getInstance();
