@@ -538,6 +538,18 @@ class IncidentController {
 
         return updatedIncident
     }
+
+    async getSARIncidentsByOwner(owner: string): Promise<IIncident[]> {
+    try {
+        return await Incident.find({
+            owner: owner,
+            type: 'S'
+        }).sort({ openingDate: -1 }).exec(); 
+    } catch (error) {
+        console.error('Error fetching SAR incidents:', error);
+        throw new Error(`Failed to retrieve SAR incidents: ${error}`);
+    }
+}
 }
 
 export default new IncidentController()

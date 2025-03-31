@@ -316,6 +316,63 @@ export default Router()
         }
     })
 
+
+        /**
+     * @swagger
+     * /api/incidents/sar:
+     *   get:
+     *     summary: Get incidents for SAR functionality by owner and type S
+     *     tags: [Incidents]
+     *     parameters:
+     *       - in: query
+     *         name: owner
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Owner of the SAR incidents
+     *     responses:
+     *       200:
+     *         description: SAR incidents retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/Incident'
+     *       204:
+     *         description: No SAR incidents found
+     *       400:
+     *         description: Owner parameter is required
+     *       500:
+     *         description: Internal server error
+     */
+    .get('/sar', async (request, response) => {
+        try {
+            const { owner } = request.query
+            
+            if (!owner) {
+                return response.status(400).json({ 
+                    message: 'Owner parameter is required' 
+                })
+            }
+            
+            const result = await IncidentController.getSARIncidentsByOwner(
+                owner as string
+            )
+            
+            if (!result || result.length === 0) {
+                return response
+                    .status(204)
+                    .json({ message: 'No SAR incidents found' })
+            }
+            
+            return response.json(result)
+        } catch (e) {
+            const error = e as Error
+            return response.status(500).json({ message: error.message })
+        }
+    })
+
     /**
      * @swagger
      * /api/incidents/:

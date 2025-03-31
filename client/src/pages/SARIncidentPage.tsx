@@ -66,23 +66,41 @@ const SARIncidentPage: React.FC = () => {
                 if (response.status === 404) {
                     console.log('Creating new SAR incident')
                     let sarCount = 1
-                    try {
-                        const countResponse = await fetch(
-                            `${import.meta.env.VITE_BACKEND_URL}/api/incidents/${username}/count?type=S`,
-                            {
-                                headers: {
-                                    'x-application-token': token || '',
-                                    'x-application-uid': uid || '',
-                                },
-                            }
-                        )
-                        if (countResponse.ok) {
-                            const countData = await countResponse.json()
-                            sarCount = (countData.count || 0) + 1
+                try {
+                    const sarResponse = await fetch(
+                        `${import.meta.env.VITE_BACKEND_URL}/api/incidents/sar?owner=${username}`,
+                        {
+                            headers: {
+                                'x-application-token': token || '',
+                                'x-application-uid': uid || '',
+                            },
                         }
-                    } catch (countError) {
-                        console.error('Error getting SAR count, using default:', countError)
+                    )
+                    
+                    console.log('SAR count response:', sarResponse);
+                    
+                    if (sarResponse.status === 204) {
+                        console.log('No SAR incidents found, using count 1');
+                        sarCount = 1;
+                    } else if (sarResponse.ok) {
+                        try {
+                            const sarData = await sarResponse.json();
+                            sarCount = (Array.isArray(sarData) ? sarData.length : 0) + 1;
+                            console.log('Found SAR incidents, new count:', sarCount);
+                        } catch (jsonError) {
+                            console.log('Error parsing JSON response, using default count');
+                            sarCount = 1;
+                        }
+                    } else {
+                        console.log(`Error response: ${sarResponse.status}, using default count`);
+                        sarCount = 1;
                     }
+                } catch (countError) {
+                    console.error('Error getting SAR incidents, using default count:', countError);
+                    sarCount = 1;
+                }
+
+
                     const sarIncidentId = `S${username}${sarCount}`
 
 
