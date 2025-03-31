@@ -155,6 +155,21 @@ const RegisterHospital: React.FC = () => {
         }
     }
 
+    const registerNurseToHospital = async (userId: string, hospitalId: string) => {
+        try {
+          const response = await request(`/api/users/${userId}/hospital`, {
+            method: 'PUT',
+            body: JSON.stringify({ hospitalId }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+          console.log('Nurse registered to hospital successfully:', response);
+          return response;
+        } catch (error) {
+          console.error('Error registering nurse to hospital:', error);
+          return null;
+        }
+      };
+
     /* ------------------------------ FUNCTIONS ------------------------------ */
 
     /* Function to create or update the hospital discussion (SEM-2563) */
@@ -238,13 +253,31 @@ const RegisterHospital: React.FC = () => {
             return
         }
         console.log('Submitting hospital:', hospitalData)
+        
         let response
 
         // Check if hospitalId exists: update if true, else register new hospital
         if (hospitalId) {
             response = await updateHospital(hospitalData)
+            // If the user is a nurse and has checked the checkbox, register the nurse to the hospital
+            if (role === 'Nurse' && userId && hospitalData.nurses.includes(userId)) {
+                const nurseResponse = await registerNurseToHospital(userId, response.hospitalId);
+                if (nurseResponse) {
+                console.log('Nurse successfully registered to hospital');
+                } else {
+                console.error('Failed to register nurse to hospital');
+                }
+            }
         } else {
             response = await registerHospital(hospitalData)
+            if (role === 'Nurse' && userId && hospitalData.nurses.includes(userId)) {
+                const nurseResponse = await registerNurseToHospital(userId, response.hospitalId);
+                if (nurseResponse) {
+                console.log('Nurse successfully registered to hospital');
+                } else {
+                console.error('Failed to register nurse to hospital');
+                }
+            }
         }
 
         if (response) {
