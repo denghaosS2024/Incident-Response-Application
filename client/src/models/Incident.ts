@@ -24,6 +24,7 @@ export enum IncidentType {
     Medical = 'M',
     Police = 'P',
     Unset = 'U',
+    Sar = 'S',
 }
 
 export interface ISarTask {

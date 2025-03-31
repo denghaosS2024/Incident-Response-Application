@@ -6,7 +6,7 @@ const ReturnToTasksBtn: React.FC = () => {
   return (
     <Button
       component={Link}
-      href='/incidents'  // TODO: replace with correct URL
+      href='/sar-incident'
       variant='outlined'
       color='primary'
       sx={{ mt: 2, mx: 1 }}
