@@ -189,6 +189,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     closeMenu()
   }
 
+  const navigateToResource = () => {
+    if (['Police', 'Fire'].includes(role)) {
+      navigate('/resources')
+    }
+    closeMenu()
+  }
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -232,6 +239,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
             role === 'Police' ||
             role === 'Fire') && (
             <MenuItem onClick={navigateToDashboard}>Dashboard</MenuItem>
+          )}
+          {(role === 'Fire' ||
+            role === 'Police' ) && (
+            <MenuItem onClick={navigateToDashboard}>Resource Allocation</MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
