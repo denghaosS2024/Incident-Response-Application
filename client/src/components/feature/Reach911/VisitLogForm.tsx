@@ -1,3 +1,4 @@
+import IHospital from '@/models/Hospital';
 import request from '@/utils/request';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -59,7 +60,7 @@ const getCurrentDateTime = () => {
 };
 
 const VisitLogForm: React.FC<{ username?: string }> = ({
-    username: propUsername,
+    username: propUsername
 }) => {
     const [formData, setFormData] = useState({
         priority: 'E', // Default value, { value: 'E', label: 'E' },
@@ -171,6 +172,19 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
     const handleClick = () => {
         navigate('/find-hospital')
+    }
+
+    const handelRequestHelpBtnClick = async () => {
+      const uid = localStorage.getItem('uid')
+      console.log(uid)
+      const user = await request(`/api/users/${uid}`);
+      console.log(user)
+      const hospitalId = user.hospitalId;
+
+      const hospital: IHospital = await request(`/api/hospital?hospitalId=${hospitalId}`);
+      const channelId = hospital.hospitalGroupId;
+      console.log(channelId)
+      navigate(`/messages?channelId=${channelId}&showAlert=true&patient=${patientId}`)
     }
 
     if (loading) return <Loading />
@@ -435,15 +449,16 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                 Request Help:
               </Typography>
               <Link 
-                href={`/messages?channelId=${hospitalGroupId}&showAlert=true&patient=${patientId}`}
+                // href={`/messages?channelId=${hospitalGroupId}&showAlert=true&patient=${patientId}`}
                 style={{ textDecoration: 'none' }}
               >
                 <Button
                   fullWidth
                   variant="contained"
                   color="primary"
-              >
-                Request Help
+                  onClick={handelRequestHelpBtnClick}
+                >
+                  Request Help
                 </Button>
               </Link>
             </Box>
