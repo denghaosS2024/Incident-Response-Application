@@ -7,4 +7,12 @@ describe('AlertService', () => {
   
       expect(instance1).toBe(instance2);
     });
+
+    it('should return undefined if group alert state is not set', () => {
+        const groupId = '123';
+        const alertService = AlertService;
+        const groupAlertState = alertService.getGroupAlertState(groupId);
+        expect(groupAlertState).toBeUndefined();
+    });
   });
+
