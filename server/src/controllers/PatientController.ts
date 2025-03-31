@@ -402,8 +402,12 @@ class PatientController {
   }
 
   async updateLocation(patientId: string, location: string) {
-    const patient = await Patient.findOneAndUpdate({ patientId }, { location }, { new: true })
-    return patient
+    const patient = await this.findById(patientId)
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`)
+    }
+    const updatedPatient = await Patient.findOneAndUpdate({ patientId }, { location }, { new: true })
+    return updatedPatient
   }
 }
 
