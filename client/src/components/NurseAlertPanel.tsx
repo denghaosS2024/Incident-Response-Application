@@ -259,6 +259,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         })
       } else if (result.queued) {
         // Alert is queued
+        window.alert("The alert is being delayed by other alerts and will be sent as soon as possible.");
         setNotification({
           open: true,
           message: result.message,
