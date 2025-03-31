@@ -1,5 +1,5 @@
 import GenericItemizeContainer from '@/components/GenericItemizeContainer'
-import { Add, NavigateNext as Arrow, Settings, Close as X } from '@mui/icons-material'
+import { Add, NavigateNext as Arrow, Settings, Close } from '@mui/icons-material'
 import {
   Box,
   FormControl,
@@ -16,6 +16,9 @@ import { useNavigate } from 'react-router-dom'
 import { IncidentType } from '../models/Incident'
 import { resetIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
+import ROLES from "@/utils/Roles"
+import { update } from "lodash"
+import { updateIncident } from '../redux/incidentSlice'
 
 interface IncidentData {
   incidentId: string
@@ -205,22 +208,19 @@ function IncidentsPage() {
     }
   }
 
-   const handleAddSARIncident = async () => {
+  const handleAddSARIncident = async () => {
     try {
       const username = localStorage.getItem('username')
       if (!username) throw new Error('Username not found in local storage.')
 
-      // Count existing SAR incidents for this user to determine the sequence number
+      // Get the count of SAR incidents for this user
       let sarIncidentCount = 1
       try {
-        const userIncidents = await request(`/api/incidents?caller=${username}`)
-        if (Array.isArray(userIncidents)) {
-          // Filter to count only SAR incidents
-          const sarIncidents = userIncidents.filter(
-            (incident) => incident.type === 'S'
-          )
-          sarIncidentCount = sarIncidents.length + 1
-        }
+        // Filter for SAR incidents (type 'S') created by this user
+        const userSARIncidents = await request(`/api/incidents?caller=${username}&type=S`)
+        sarIncidentCount = Array.isArray(userSARIncidents)
+          ? userSARIncidents.length + 1
+          : 1
       } catch (error: any) {
         if (
           error &&
@@ -233,26 +233,34 @@ function IncidentsPage() {
         }
       }
 
-      // Create unique SAR incident ID (e.g. "SDena12")
-      const incidentId = `S${username}${sarIncidentCount}`
+      // Create a unique SAR Incident ID (e.g. "SDena12")
+      const sarIncidentId = `S${username}${sarIncidentCount}`
       
-      // Create the new SAR incident
+      // Create the new SAR incident with the specified properties
       const newSARIncident = {
-        incidentId,
+        incidentId: sarIncidentId,
         caller: username,
         openingDate: new Date().toISOString(),
         incidentState: 'Assigned',
         owner: username,
         commander: username,
-        type: 'S'
+        type: 'S', // SAR incident type
       }
 
+      // Save the new SAR incident to the server
       await request('/api/incidents/new', {
         method: 'POST',
         body: JSON.stringify(newSARIncident),
         headers: { 'Content-Type': 'application/json' },
       })
 
+      // Navigate to the SAR incident page
+      navigate('/sar-incident', {
+        state: {
+          incidentId: sarIncidentId,
+          isCreatedByFirstResponder: true,
+        },
+      })
     } catch (error) {
       console.error('Error creating new SAR incident:', error)
     }
@@ -268,20 +276,102 @@ function IncidentsPage() {
   // Navigate to incident description with auto-populate on
   const handleIncidentClick = (incident: IncidentData) => {
     let readOnly = false
+
+    let updatedIncident = incident
+    if (incident.incidentState === 'Waiting' && role === ROLES.DISPATCH) {
+      // Update incident's state, owner and commander
+      updatedIncident = {
+        ...incident,
+        incidentState: 'Triage',
+        owner: userId,
+        commander: userId,
+      }
+      try {
+        //todo: refactor incident endpoint to comply with REST best practices
+          request('/api/incidents/update', {
+            method: 'PUT',
+          body: JSON.stringify(updatedIncident),
+          headers: { 'Content-Type': 'application/json' },
+        })
+
+      }
+      catch (error) {
+        console.error('Error updating incident:', error)
+      }
+
+    }
+
     if (
-      incident.incidentState === 'Closed' ||
-      (incident.commander !== userId && incident.owner !== userId)
+      updatedIncident.incidentState === 'Closed' ||
+      (updatedIncident.commander !== userId && incident.owner !== userId)
     ) {
       readOnly = true
     }
+
+    // Update sate in redux with updated incident
+    console.log('Updated incident:', updatedIncident)
+    // dispatch(resetIncident())
+    // dispatch(updateIncident(updatedIncident))
+
     const autoPopulateData = true
-    navigate('/reach911', {
-      state: {
-        incidentId: incident.incidentId,
-        readOnly,
-        autoPopulateData,
-      },
-    })
+    
+    // Check if this is a SAR incident (type 'S')
+    if (incident.type === 'S') {
+      // Navigate to the SAR incident page
+      navigate('/sar-incident', {
+        state: {
+          incidentId: incident.incidentId,
+          readOnly,
+          autoPopulateData,
+        },
+      })
+    } else {
+      // Navigate to the regular Reach911 page for other incident types
+      navigate('/reach911', {
+        state: {
+          incidentId: incident.incidentId,
+          readOnly,
+          autoPopulateData,
+        },
+      })
+    }
+  }
+
+  const handleCloseCurrentIncident = async () => {
+    try {
+      // Find the user's active incident (where they are commander or owner)
+      const activeIncident = data.find(
+        (incident) => 
+          (incident.commander === userId || incident.owner === userId) &&
+          incident.incidentState !== 'Closed'
+      )
+
+      if (!activeIncident) {
+        console.error('No active incident found to close')
+        return
+      }
+
+      // Update the incident state to 'Closed'
+      const updatedIncident = {
+        ...activeIncident,
+        incidentState: 'Closed'
+      }
+
+      // Send the update to the server
+      await request('/api/incidents/update', {
+        method: 'PUT',
+        body: JSON.stringify(updatedIncident),
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      // Refresh the incident list
+      const refreshedData = await request('/api/incidents')
+      setData(refreshedData)
+
+      console.log(`Incident ${activeIncident.incidentId} has been closed`)
+    } catch (error) {
+      console.error('Error closing incident:', error)
+    }
   }
 
   // Render the page
@@ -399,7 +489,7 @@ function IncidentsPage() {
               </FormControl>
             </MenuItem>
           </Menu>
-          {!hasActiveResponderIncident && 
+          {!hasActiveResponderIncident &&
           (
             <>
               <Tooltip title="Create new SAR incident">
@@ -413,10 +503,10 @@ function IncidentsPage() {
                   }}
                   onClick={handleAddSARIncident}
                 >
-                  <X fontSize="large" />
+                  <Close fontSize="large" />
                 </IconButton>
               </Tooltip>
-            
+
             <IconButton
               sx={{
                 position: 'fixed',
@@ -432,6 +522,29 @@ function IncidentsPage() {
             </>
           )
           }
+          {/* Commented out testing close functionality button
+          {hasActiveResponderIncident && (
+            <Tooltip title="Close current incident">
+              <IconButton
+                sx={{
+                  position: 'fixed',
+                  bottom: 30,
+                  right: 70,
+                  width: 56,
+                  height: 56,
+                  bgcolor: 'error.main',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: 'error.dark',
+                  },
+                }}
+                onClick={handleCloseCurrentIncident}
+              >
+                <Close fontSize="large" />
+              </IconButton>
+            </Tooltip>
+          )}
+          */}
         </>
       ) : null}
     </Box>

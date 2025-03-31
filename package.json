@@ -30,6 +30,6 @@
     },
     "dependencies": {
         "@types/react": "^19.0.11",
-        "util": "^0.12.5"
+        "prettier": "^3.5.3"
     }
 }

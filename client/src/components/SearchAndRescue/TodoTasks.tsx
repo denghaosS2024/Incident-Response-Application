@@ -7,18 +7,18 @@ import request from '../../utils/request'
 const getTaskImage = (status: string) => {
   return status === 'IN-PROGRESS' ? '/src/SarTaskProgress.jpeg' : '/src/SarTaskTodo.png'
 }
-
-const TaskDirectory: React.FC = () => {
+interface TaskStatsProps {
+  incidentId: string;
+}
+const TaskDirectory: React.FC<TaskStatsProps> = ({ incidentId }) => {
   const [tasks, setTasks] = useState<ITask[]>([])
 
   const fetchNotDoneTasks = async () => {
     try {
-      const allTasks = await request(`/api/sartasks/notdone`, { method: 'GET' }).catch(
-        (error) => {
-          console.error('Error fetching tasks:', error)
-          return []
-        }
-      )
+      const allTasks = await request(`/api/sartasks/notdone`, { method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+        }, body: JSON.stringify({ incidentId }) }).catch(() => []);
 
       const sortedTasks = allTasks.sort((a: ITask, b: ITask) =>
         a.address.localeCompare(b.address)

@@ -4,17 +4,19 @@ import { useEffect, useState } from 'react'
 import type { ITask } from '../../../../server/src/models/SarTask'
 import request from '../../utils/request'
 
-const TaskDirectory: React.FC = () => {
+interface TaskStatsProps {
+  incidentId: string;
+}
+
+const TaskDirectory: React.FC<TaskStatsProps> = ({ incidentId }) => {
   const [tasks, setTasks] = useState<ITask[]>([])
 
   const fetchDoneTasks = async () => {
     try {
-      const allTasks = await request(`/api/sartasks/done`, { method: 'GET' }).catch(
-        (error) => {
-          console.error('Error fetching tasks:', error)
-          return []
-        }
-      )
+      const allTasks = await request(`/api/sartasks/done`, { method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+        }, body: JSON.stringify({ incidentId }) }).catch(() => []);
 
       const sortedTasks = allTasks.sort((a: ITask, b: ITask) =>
         a.address.localeCompare(b.address)
@@ -54,7 +56,7 @@ const TaskDirectory: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                 <ListItemAvatar>
                   <Avatar
-                    src={'src/SarTaskDone.png'}
+                    src={'/src/SarTaskDone.png'}
                     alt={task.address}
                     sx={{ width: 50, height: 50, mr: 2 }}
                   />

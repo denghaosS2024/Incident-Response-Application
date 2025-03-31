@@ -11,6 +11,11 @@ export interface MedicalQuestions {
     chiefComplaint: string // The chief complain of the patient
 }
 
+// export interface MedicalQuestionsList {
+//     count: number
+//     questions: MedicalQuestions[]
+// }
+
 /**
  * Interface representing the medical questions
  */
@@ -33,4 +38,7 @@ export interface PoliceQuestions {
     crimeDetails: string // Details about the crime
 }
 
-export interface EmergencyQuestions extends MedicalQuestions, FireQuestions, PoliceQuestions { }
+export interface EmergencyQuestions
+    extends MedicalQuestions,
+        FireQuestions,
+        PoliceQuestions {}

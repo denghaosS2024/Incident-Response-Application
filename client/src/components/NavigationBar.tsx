@@ -56,6 +56,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     '/groups': 'Groups',
     '/reach911': '911 Call',
     '/incidents': 'Incidents',
+    '/patients': 'Patient',
+    '/patient-visit': 'Patient Visit',
     '/organization': 'Organization',
     '/organization/view': 'Organization',
     '/map': 'Map',
@@ -85,6 +87,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
   }
   if (pathname === '/incidents/report') {
     title = 'Incident Report'
+  }
+
+  if (pathname.startsWith('/sar-task')) {
+    title = 'SAR Task'
   }
 
   if (pathname.startsWith('/messages/') && name) {

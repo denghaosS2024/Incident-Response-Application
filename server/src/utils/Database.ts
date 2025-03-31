@@ -44,7 +44,7 @@ export const connect = async (
       dbName = dbName.slice(1)
     }
 
-    url = `${baseUrl}/${dbName}`
+    url = `${baseUrl}`
   }
 
   // If TLS is not provided, use the environment variables

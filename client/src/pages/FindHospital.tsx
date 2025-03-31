@@ -1,14 +1,63 @@
-import HospitalList from '@/components/FindHospital/HospitalList'
-import PatientList from '@/components/FindHospital/PatientList'
+import HospitalList from '@/components/feature/FindHospital/HospitalList'
+import PatientList from '@/components/feature/FindHospital/PatientList'
+import IPatient from '@/models/Patient'
+import { fetchHospitals, sortHospitalsByDistance } from '@/redux/hospitalSlice'
+import { fetchPatients } from '@/redux/patientSlice'
+import { AppDispatch, RootState } from '@/redux/store'
 import eventEmitter from '@/utils/eventEmitter'
 import { Map as MapIcon } from '@mui/icons-material'
 import { Box, Button, Typography } from '@mui/material'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { DragDropContext, DropResult } from 'react-beautiful-dnd'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 const FindHospital: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
+
+  const hospitals = useSelector((state: RootState) => state.hospital.hospitals)
+  const patients = useSelector(
+    (state: RootState) => state.patientState.patients,
+  )
+
+  const [draggedPatients, setDraggedPatients] = useState<
+    Record<string, IPatient[]>
+  >({})
+  const [unassignedPatients, setUnassignedPatients] = useState<IPatient[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await dispatch(fetchHospitals())
+      await dispatch(sortHospitalsByDistance())
+      await dispatch(fetchPatients())
+    }
+    fetchData()
+  }, [dispatch])
+
+  // inital the state data
+  useEffect(() => {
+    const initialDraggedPatients: Record<string, IPatient[]> = {}
+    hospitals.forEach((hospital) => {
+      initialDraggedPatients[hospital.hospitalId] = hospital.patients
+        ? hospital.patients
+            .map((patientId) =>
+              patients.find((patient) => patient.patientId === patientId),
+            )
+            .filter((patient): patient is IPatient => !!patient)
+        : []
+    })
+
+    const assignedPatientIds = hospitals.flatMap(
+      (hospital) => hospital.patients || [],
+    )
+    const initialUnassignedPatients = patients.filter(
+      (patient) => !assignedPatientIds.includes(patient.patientId),
+    )
+
+    setDraggedPatients(initialDraggedPatients)
+    setUnassignedPatients(initialUnassignedPatients)
+  }, [hospitals, patients])
 
   // Navigate to map and activate hospital layer
   const redirectToMapWithHospitals = () => {
@@ -25,21 +74,54 @@ const FindHospital: React.FC = () => {
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result
+
     if (!destination || source.droppableId === destination.droppableId) return
 
-    if (draggableId.startsWith('patient-')) {
-      // // Handle group card drop
-      // const groupId = draggableId.slice(6) // Extract group ID from the draggableId
-      // //handleGroupClick(groupId) // This will handle adding users of the group to the 'done' column
-      // return
-      console.log('drag')
+    const draggedPatient =
+      unassignedPatients.find((p) => p.patientId === draggableId) ||
+      Object.values(draggedPatients)
+        .flat()
+        .find((p) => p.patientId === draggableId)
+
+    if (!draggedPatient) return
+
+    if (source.droppableId === 'patients') {
+      setUnassignedPatients((prev) =>
+        prev.filter((p) => p.patientId !== draggableId),
+      )
+    } else {
+      setDraggedPatients((prev) => {
+        const updated = { ...prev }
+        updated[source.droppableId] = updated[source.droppableId].filter(
+          (p) => p.patientId !== draggableId,
+        )
+        return updated
+      })
     }
 
-    //const task = findItemById(String(draggableId), [...todo, ...done]) // Ensure ID is a string
-    //if (!task) return // Prevent errors if the task is not found
+    if (destination.droppableId === 'patients') {
+      setUnassignedPatients((prev) => [...prev, draggedPatient])
+    } else {
+      setDraggedPatients((prev) => {
+        const updated = { ...prev }
+        if (!updated[destination.droppableId]) {
+          updated[destination.droppableId] = []
+        }
+        updated[destination.droppableId].push(draggedPatient)
+        return updated
+      })
+    }
+  }
 
-    //deletePreviousState(source.droppableId, draggableId)
-    //setNewState(destination.droppableId, task)
+  const handleBatchUpdate = () => {
+    const requestBody = Object.entries(draggedPatients).map(
+      ([hospitalId, patients]) => ({
+        hospitalId,
+        patients: patients.map((patient) => patient.patientId),
+      }),
+    )
+
+    console.log('Batch Update Request Body:', requestBody)
   }
 
   return (
@@ -52,8 +134,13 @@ const FindHospital: React.FC = () => {
 
       <Box className="flex flex-row justify-between gap-x-4">
         <DragDropContext onDragEnd={handleDragEnd} key={0}>
-          <PatientList></PatientList>
-          <HospitalList></HospitalList>
+          <Box className="flex flex-row justify-between gap-x-4">
+            <PatientList patients={unassignedPatients}></PatientList>
+            <HospitalList
+              hospitals={hospitals}
+              draggedPatients={draggedPatients}
+            ></HospitalList>
+          </Box>
         </DragDropContext>
       </Box>
 
@@ -66,6 +153,16 @@ const FindHospital: React.FC = () => {
           size="large"
         >
           See Hospitals on Map
+        </Button>
+
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleBatchUpdate}
+          size="large"
+          style={{ marginLeft: '16px' }}
+        >
+          Submit Changes
         </Button>
       </Box>
     </Box>

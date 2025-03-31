@@ -1,5 +1,7 @@
 import IHospital from '@/models/Hospital'
 import { setHospital } from '@/redux/hospitalSlice'
+import { AddressAutofillRetrieveResponse } from '@mapbox/search-js-core'
+import { AddressAutofill } from '@mapbox/search-js-react'
 import {
     Alert,
     Box,
@@ -15,6 +17,7 @@ import {
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
+import Globals from '../utils/Globals'
 import request from '../utils/request'
 
 const RegisterHospital: React.FC = () => {
@@ -27,6 +30,7 @@ const RegisterHospital: React.FC = () => {
         hospitalDescription: '',
         totalNumberERBeds: 0,
         totalNumberOfPatients: 0,
+        patients: [],
         nurses: [],
     }
 
@@ -49,13 +53,16 @@ const RegisterHospital: React.FC = () => {
     const role = localStorage.getItem('role')
     const userId = localStorage.getItem('uid')
     const username = localStorage.getItem('username')
-    const hospitalFromSlice = useSelector(
+    const hospitalFromSlice: IHospital = useSelector(
         (state: any) => state.hospital.hospitalData,
     )
 
     const isNurseRegistered = hospitalData.nurses?.some((nurse: any) =>
         typeof nurse === 'object' ? nurse._id === userId : nurse === userId,
     )
+
+     // Local state for the address input field
+    const [inputAddress, setInputAddress] = useState(hospitalData.hospitalAddress || '')
 
     /* ------------------------------ USE EFFECTS ------------------------------ */
 
@@ -75,6 +82,24 @@ const RegisterHospital: React.FC = () => {
 
         getHospital()
     }, [hospitalId])
+
+    /* ------------------------------ ADDRESS AUTOFILL ------------------------------ */
+
+    // If a user clicks on a suggestion from the autofil dropdown, we update the the new location!
+    async function onRetrieve(res: AddressAutofillRetrieveResponse) {
+    const newAddress = res.features[0].properties.full_address ?? ''
+    setHospitalData({...hospitalData, hospitalAddress: newAddress})
+    }
+
+    // When user clicks out of the input, we revert it back to the original location
+    function onBlur() {
+        setInputAddress(hospitalData.hospitalAddress ?? '');
+    }
+
+    useEffect(() => {        
+        setInputAddress(hospitalData.hospitalAddress)
+    }, [hospitalData.hospitalAddress])
+
 
     /* ------------------------------ API CALLS ------------------------------ */
 
@@ -268,33 +293,51 @@ const RegisterHospital: React.FC = () => {
                 fullWidth
                 margin="normal"
                 value={hospitalData.hospitalName}
-                onChange={(e) =>
+                onChange={(e) => {
                     setHospitalData({
                         ...hospitalData,
                         hospitalName: e.target.value,
-                    })
-                }
+                    });
+                }}
                 error={errors.hospitalName}
                 helperText={
                     errors.hospitalName ? 'Hospital name is required' : ''
                 }
+                sx={{
+                    '& .MuiOutlinedInput-input': {
+                        padding: '25px', 
+                    }
+                }}
             />
 
             {/* Hospital Address */}
+            <form>
+            <AddressAutofill
+                onRetrieve={onRetrieve}
+                options={{ streets: false }}
+                accessToken={Globals.getMapboxToken()}
+              >
             <TextField
                 label="Address"
                 fullWidth
                 margin="normal"
-                value={hospitalData.hospitalAddress}
-                onChange={(e) =>
-                    setHospitalData({
-                        ...hospitalData,
-                        hospitalAddress: e.target.value,
-                    })
-                }
+                value={inputAddress}
+                onChange={(e) => {
+                    setInputAddress(
+                        e.target.value
+                    );
+                }}
+                onBlur={onBlur}
                 error={errors.hospitalAddress}
                 helperText={errors.hospitalAddress ? 'Address is required' : ''}
+                sx={{
+                    '& .MuiOutlinedInput-input': {
+                        padding: '25px', 
+                    }
+                }}
             />
+            </AddressAutofill>
+            </form>
 
             {/* Hospital Description */}
             <TextField

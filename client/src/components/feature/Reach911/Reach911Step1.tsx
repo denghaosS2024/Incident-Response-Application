@@ -63,6 +63,7 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
         .catch((error) => {
           console.error('Error geocoding location:', error)
         })
+
     }
   }, [incident.location, incident.address, dispatch])
 
@@ -103,7 +104,7 @@ const Reach911Step1: React.FC<Reach911Step1Props> = ({
     <div className={styles.wrapperStep1}>
       <div className={styles.flexCenterColumn}>
         <Typography variant="h6" align="center" gutterBottom>
-          {isCreatedByFirstResponder
+          {incident.incidentState === 'Assigned' || incident.incidentState === 'Triage'
             ? `Incident ID: ${incidentId}`
             : 'You have reached 911.'}
         </Typography>
