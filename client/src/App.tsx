@@ -20,7 +20,6 @@ import NursePatientsPage from './pages/NursePatientsPage.tsx'
 import Organization from './pages/Organization'
 import PatientAdmitPage from './pages/PatientAdmitPage.tsx'
 import PatientFirstResponderAdmitPage from './pages/PatientFirstResponderAdmitPage'
-import PatientProfile from './pages/PatientProfile'
 import PatientsRouter from './pages/PatientsRouter'
 import PatientVisitPage from './pages/PatientVisitPage.tsx'
 import ProfilePage from './pages/ProfilePage'
@@ -76,18 +75,36 @@ export default function App() {
                         <Route path="/reach911" element={<Reach911Page />} />
                         <Route path="/map" element={<MapPage />} />
                         <Route path="/incidents" element={<IncidentsPage />} />
-                        <Route path="/sar-incident" element={<SARIncidentPage />} />
-                        <Route path="/sar-task/:incidentId" element={<SARTaskPage />} />
                         <Route
-                            path="/patient-profile/:patientId"
-                            element={<PatientProfile />}
+                            path="/sar-incident"
+                            element={<SARIncidentPage />}
                         />
+                        <Route
+                            path="/sar-task/:incidentId"
+                            element={<SARTaskPage />}
+                        />
+
                         <Route path="/patients" element={<PatientsRouter />} />
-                        <Route path="/patients/first-responder" element={<FirstResponderPatientsPage />} />
-                        <Route path="/patients/first-responder/admit" element={<PatientFirstResponderAdmitPage />} />
-                        <Route path="/patients/nurse" element={<NursePatientsPage />} />
-                        <Route path="/patients/nurse/admit" element={<PatientAdmitPage />} />
-                        <Route path='/patient-visit' element={<PatientVisitPage />} />
+                        <Route
+                            path="/patients/first-responder"
+                            element={<FirstResponderPatientsPage />}
+                        />
+                        <Route
+                            path="/patients/first-responder/admit"
+                            element={<PatientFirstResponderAdmitPage />}
+                        />
+                        <Route
+                            path="/patients/nurse"
+                            element={<NursePatientsPage />}
+                        />
+                        <Route
+                            path="/patients/nurse/admit"
+                            element={<PatientAdmitPage />}
+                        />
+                        <Route
+                            path="/patient-visit"
+                            element={<PatientVisitPage />}
+                        />
                         <Route
                             path="/incidents/report"
                             element={<IncidentReportPage />}
@@ -100,7 +117,11 @@ export default function App() {
                             path="/organization/view"
                             element={<ViewOrganization />}
                         />
-                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route
+                            path="/profile/:username?"
+                            element={<ProfilePage />}
+                        />
+
                         <Route
                             path="/register-hospital"
                             element={<RegisterHospital />}
@@ -121,11 +142,23 @@ export default function App() {
                             element={<FindHospital />}
                         />
                         <Route path="/dashboard" element={<DashboardPage />} />
-                        <Route path="/create-chart" element={<CreatechartPage />} />
-                        <Route path="/sartasks/:incidentId" element={<TodoTasksPage />} />
-                        <Route path="/sartasksdone/:incidentId" element={<DoneTasksPage />} />
-                        <Route path="/sartasksstatistics/:incidentId" element={<StatisticsPage />} />
-                        </Route>
+                        <Route
+                            path="/create-chart"
+                            element={<CreatechartPage />}
+                        />
+                        <Route
+                            path="/sartasks/:incidentId"
+                            element={<TodoTasksPage />}
+                        />
+                        <Route
+                            path="/sartasksdone/:incidentId"
+                            element={<DoneTasksPage />}
+                        />
+                        <Route
+                            path="/sartasksstatistics/:incidentId"
+                            element={<StatisticsPage />}
+                        />
+                    </Route>
 
                     <Route element={<RoutedHome showBackButton isSubPage />}>
                         <Route

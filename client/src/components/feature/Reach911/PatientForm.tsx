@@ -34,11 +34,94 @@ const PatientForm: React.FC<{ username?: string }> = ({
     const sex = medicalQuestions.sex ?? ''
     const age = medicalQuestions.age ?? 0
     const name = ''
-
+    const patientId = incident.patientId || ''
     const [usernameError, setUserNameError] = useState<string>('')
     const [newUsername, setNewUsername] = useState<string>('')
     const [isCreatingNewAccount, setIsCreatingNewAccount] =
         useState<boolean>(false)
+    const [patientUserId, setPatientUserId] = useState<string | null>(null)
+    const [patientUsername, setPatientUsername] = useState<string | null>(
+        propUsername ?? null,
+    )
+
+    const handleProfileClick = async () => {
+        if (patientUsername) {
+            try {
+                console.log(
+                    `Sending request to: /api/users/findByUsername?username=${patientUsername}`,
+                )
+                const response = await request(
+                    `/api/users/findByUsername?username=${patientUsername}`,
+                    {
+                        method: 'GET',
+                    },
+                )
+                console.log('Response received:', response)
+
+                if (response && response.userId) {
+                    const newPatientUserId = response.userId
+                    if (typeof newPatientUserId === 'string') {
+                        setPatientUserId(newPatientUserId)
+
+                        console.log('Navigating to profile:', newPatientUserId)
+                        navigate(`/profile/${newPatientUserId}`)
+                    } else {
+                        console.error('Invalid userId format')
+                    }
+                } else {
+                    console.error('User not found')
+                    alert('User not found in the system.')
+                }
+            } catch (error) {
+                console.error('Failed to fetch user ID from username:', error)
+                alert(
+                    'Failed to retrieve user information. Please try again later.',
+                )
+            }
+        } else {
+            alert('No valid username provided.')
+        }
+    }
+
+    useEffect(() => {
+        const fetchUserId = async () => {
+            if (patientUsername) {
+                try {
+                    console.log(
+                        `Sending request to: /api/users/findByUsername?username=${patientUsername}`,
+                    )
+                    const response = await request(
+                        `/api/users/findByUsername?username=${patientUsername}`,
+                        {
+                            method: 'GET',
+                        },
+                    )
+                    console.log('Response received:', response)
+
+                    if (response && response.userId) {
+                        setPatientUserId(response.userId)
+                        console.log(
+                            'User ID fetched from database:',
+                            response.userId,
+                        )
+                    } else {
+                        console.error('User not found')
+                        alert('User not found in the database.')
+                    }
+                } catch (error) {
+                    console.error(
+                        'Failed to fetch user ID from the database:',
+                        error,
+                    )
+                    alert(
+                        'Failed to retrieve user information. Please try again later.',
+                    )
+                }
+            }
+        }
+
+        fetchUserId()
+    }, [patientUsername])
 
     // Loads contacts upon page loading
     useEffect(() => {
@@ -84,15 +167,21 @@ const PatientForm: React.FC<{ username?: string }> = ({
     }
 
     const createNewPatientAccount = () => {
+        setIsCreatingNewAccount(true)
         request('/api/users/createTemp', { method: 'POST' })
             .then((data) => {
-                if (data.username) {
+                if (data.userId && data.username) {
+                    setPatientUserId(data.userId)
+                    setPatientUsername(data.username)
                     setNewUsername(data.username)
+
                     alert(
                         `A new user account has been created for the Patient. \nTemporary Username: ${data.username}, Password: 1234`,
                     )
                 } else {
-                    alert('Failed to retrieve new username from server.')
+                    alert(
+                        'Failed to retrieve new userId or username from server.',
+                    )
                 }
             })
             .catch((error) => {
@@ -266,9 +355,7 @@ const PatientForm: React.FC<{ username?: string }> = ({
                         cursor: 'pointer',
                         fontSize: '16px',
                     }}
-                    onClick={() =>
-                        navigate(`/patient-profile/${incident.patientId || ''}`)
-                    }
+                    onClick={handleProfileClick}
                 >
                     Profile
                 </button>
@@ -378,17 +465,20 @@ const PatientForm: React.FC<{ username?: string }> = ({
                             display: 'flex',
                             justifyContent: 'flex-end',
                             marginTop: '10px',
-                        }}>
-                        <AddIcon 
+                        }}
+                    >
+                        <AddIcon
                             onClick={() => {
                                 if (propUsername) {
-                                    navigate(`/patient-visit?username=${encodeURIComponent(propUsername)}`)
+                                    navigate(
+                                        `/patient-visit?username=${encodeURIComponent(propUsername)}`,
+                                    )
                                 } else {
                                     navigate('/patient-visit')
                                 }
                             }}
                             style={{ cursor: 'pointer' }}
-                        /> 
+                        />
                     </div>
                 </Box>
             </Box>
