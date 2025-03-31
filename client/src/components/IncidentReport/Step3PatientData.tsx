@@ -392,7 +392,6 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
                 Patient's medical data (latest):
             </Typography>
-            //according to the incident type, render different questions
             {renderQuestionsByType()}
         </Box>
     )
