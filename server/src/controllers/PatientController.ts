@@ -402,6 +402,9 @@ class PatientController {
   }
 
   async updateLocation(patientId: string, location: string) {
+    if (location !== 'ER' && location !== 'Road') {
+      throw new Error('Invalid location')
+    }
     const patient = await this.findById(patientId)
     if (!patient) {
       throw new Error(`Patient with ID ${patientId} does not exist`)
