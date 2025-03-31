@@ -215,8 +215,8 @@ class IncidentController {
      * @returns incident details based on channelId
      */
     async getIncidentByChannelId(channelId: string): Promise<IIncident[]> {
-        const incidentCallGroup = channelId
-        return await Incident.find({ incidentCallGroup }).exec()
+        const respondersGroup = channelId
+        return await Incident.find({ respondersGroup }).exec()
     }
 
     /**

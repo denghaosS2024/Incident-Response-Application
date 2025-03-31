@@ -20,7 +20,7 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({incident }) => {
     ? incident[0]?.incidentId || 'SDena101' 
     : incident?.incidentId || 'SDena101'
     
-  let leftText = `${incidentId} ${formattedDateTime}`
+  const leftText = `${incidentId} ${formattedDateTime}`
   
   useEffect(() => {
     const updateSARTask = async () => {
