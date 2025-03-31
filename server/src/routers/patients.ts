@@ -738,3 +738,35 @@ export default Router()
       response.status(500).json({ message: error.message })
     }
   })
+
+  /**
+   * @swagger
+   * /api/patients:
+   *   put:
+   *     summary: Update a patient's location
+   *     description: Update a patient's location
+   *     tags: [Patient]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - patientId
+   *               - location
+   *             properties:
+   *               patientId:
+   *                 type: string
+   *               location:
+   *                 type: string
+   *                 enum: [ER, Road]
+   */
+  .put('/:patientId/location', async (request, response) => {
+    const { patientId } = request.params
+
+    const result = await PatientController.updateLocation(patientId, request.body.location)
+      
+    response.json(result)
+    
+  })

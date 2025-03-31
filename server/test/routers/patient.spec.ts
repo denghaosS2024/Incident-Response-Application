@@ -30,6 +30,18 @@ describe('Router - Patient', () => {
     })
   }
 
+  const createPatient3 = () => {
+    return request(app).post('/api/patients').send({
+      patientId: 'IZzzz',
+      name: 'Zoe zzzz',
+      nameLower: 'zoet',
+      hospitalId: 'hospital1299t3',
+      priority: 'could_wait',
+      status: 'at_er',
+      location: 'ER',
+    })
+  }
+
   it('should be able to search for a patient who belongs to a certain hospital', async () => {
     await createPatient().expect(201)
     await createPatient2().expect(201)
@@ -42,7 +54,7 @@ describe('Router - Patient', () => {
   })
 
   it('should be able to change the location of a patient', async () => {
-    const patient = await createPatient()
+    const patient = await createPatient3()
     const updatedPatient = await request(app)
       .put(`/api/patients/${patient.body.patientId}/location`)
       .send({ location: 'Road' })
