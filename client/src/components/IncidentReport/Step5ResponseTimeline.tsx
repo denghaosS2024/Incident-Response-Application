@@ -1,6 +1,5 @@
 import {
     DirectionsCar,
-    LocalFireDepartment as FireIcon,
     Flag,
     LocalHospital,
     LocalPolice,
@@ -83,25 +82,13 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
             icon: typeIconMap.Flag,
             label: 'Open Triage',
             subtext: [
-                <Box
-                    key="commander"
-                    display="inline-flex"
-                    alignItems="center"
-                    gap={0.5}
-                >
-                    Commander:
-                    <img
-                        src="/911-icon-red.png"
-                        alt="Red 911 Icon"
-                        style={{
-                            width: '18px',
-                            height: '18px',
-                            borderRadius: '8px',
-                            marginLeft: '4px',
-                        }}
-                    />
-                    Ana
-                </Box>,
+                <span key="commander">
+                    Commander:{' '}
+                    {commanderDetail?.role
+                        ? getRoleIcon(commanderDetail.role)
+                        : null}{' '}
+                    {commanderDetail ? commanderDetail.username : commander}
+                </span>,
             ],
             time: formatTime(openingDate),
         },
@@ -110,22 +97,31 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
             label: 'Open Assigned',
             subtext: [
                 <span key="commander">
-                    Commander: <FireIcon sx={{ color: 'red' }} /> Lili
+                    Commander:{' '}
+                    {commanderDetail?.role
+                        ? getRoleIcon(commanderDetail.role)
+                        : null}{' '}
+                    {commanderDetail ? commanderDetail.username : commander}
                 </span>,
             ],
             time: formatTime(openingDate),
         },
-        ...assignHistory.map((item) => ({
+
+        ...assignedItems.map((item) => ({
             icon: typeIconMap[item.type] || typeIconMap.Flag,
-            label: `${capitalize(item.name)} ${item.isAssign ? 'true' : 'false'}`,
-            subtext: item.usernames,
+            label: `${capitalize(item.name)} assigned`,
+            subtext: item.user ? [`${item.user.username}`] : item.usernames,
             time: formatTime(item.timestamp),
+            role: item.user?.role,
         })),
         {
             icon: typeIconMap.Police,
             label: 'Commander:',
-            subtext: [commander],
+            subtext: commanderDetail
+                ? [`${commanderDetail.username}`]
+                : [commander],
             time: formatTime(openingDate),
+            role: commanderDetail?.role,
         },
         {
             icon: typeIconMap.Priority,
@@ -148,6 +144,13 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
                   },
               ]
             : []),
+        ...unassignedItems.map((item) => ({
+            icon: typeIconMap[item.type] || typeIconMap.Flag,
+            label: `${capitalize(item.name)} unassigned`,
+            subtext: item.user ? [`${item.user.username}`] : item.usernames,
+            time: formatTime(item.timestamp),
+            role: item.user?.role,
+        })),
         {
             icon: typeIconMap.Flag,
             label: 'Close',
