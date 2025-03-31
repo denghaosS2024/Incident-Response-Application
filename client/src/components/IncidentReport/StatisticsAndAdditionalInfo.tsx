@@ -10,7 +10,7 @@ import {
 import React, { useEffect, useRef, useState } from 'react'
 import request from '../../utils/request'
 import StarRating from '../common/StarRating'
-  
+
   type AssignHistoryItem = {
     name: string
     type: string
@@ -18,7 +18,7 @@ import StarRating from '../common/StarRating'
     usernames: string[]
     timestamp: string
   }
-  
+
   type Incident = {
     incidentId: string
     assignHistory: AssignHistoryItem[]
@@ -28,11 +28,11 @@ import StarRating from '../common/StarRating'
     priority: string
     patientName?: string
   }
-  
+
   type Props = {
     incident: Incident
   }
-  
+
   const StatisticsAndAdditionalInformation: React.FC<Props> = ({ incident }) => {
     const [effectiveness, setEffectiveness] = useState(0)
     const [resourceAllocation, setResourceAllocation] = useState(0)
@@ -49,9 +49,9 @@ import StarRating from '../common/StarRating'
       team: { name: string; rating: number }[]
       additionalInfo: string
     }>(null)
-  
+
     const contentRef = useRef<HTMLDivElement>(null)
-  
+
     const loadReport = async () => {
       try {
         const response = await request(`/api/incidentReports/${incident.incidentId}`)
@@ -59,17 +59,17 @@ import StarRating from '../common/StarRating'
         const res = response?.resourceAllocation ?? 0
         const teamList = response?.team ?? []
         const info = response?.additionalInfo ?? ''
-  
+
         setEffectiveness(eff)
         setResourceAllocation(res)
-  
+
         const teamMap: Record<string, number> = {}
         teamList.forEach((member: { name: string; rating: number }) => {
           teamMap[member.name] = member.rating
         })
         setTeamRatings((prev) => ({ ...prev, ...teamMap }))
         setAdditionalInfo(info)
-  
+
         setInitialData({
           effectiveness: eff,
           resourceAllocation: res,
@@ -80,15 +80,15 @@ import StarRating from '../common/StarRating'
         console.error('Failed to fetch existing report:', err)
       }
     }
-  
+
     useEffect(() => {
       loadReport()
     }, [incident.incidentId])
-  
+
     const handleTeamRatingChange = (name: string, rating: number) => {
       setTeamRatings((prev) => ({ ...prev, [name]: rating }))
     }
-  
+
     const saveReport = async () => {
       const report = {
         incidentId: incident.incidentId,
@@ -100,7 +100,7 @@ import StarRating from '../common/StarRating'
         })),
         additionalInfo,
       }
-  
+
       try {
         const response = await request('/api/incidentReports', {
           method: 'POST',
@@ -113,13 +113,13 @@ import StarRating from '../common/StarRating'
         alert('Error saving the report.')
       }
     }
-  
+
     const unsaveReport = () => {
       if (!initialData) return
-  
+
       setEffectiveness(initialData.effectiveness)
       setResourceAllocation(initialData.resourceAllocation)
-  
+
       const teamMap: Record<string, number> = {}
       initialData.team.forEach((member) => {
         teamMap[member.name] = member.rating
@@ -127,11 +127,11 @@ import StarRating from '../common/StarRating'
       setTeamRatings((prev) => ({ ...prev, ...teamMap }))
       setAdditionalInfo(initialData.additionalInfo)
     }
-  
+
     const generateReport = () => {
       const printContent = contentRef.current?.innerHTML
       if (!printContent) return
-  
+
       const printWindow = window.open('', '_blank')
       if (printWindow) {
         printWindow.document.write(`
@@ -153,9 +153,9 @@ import StarRating from '../common/StarRating'
         printWindow.close()
       }
     }
-  
+
     const statisticsList = generateIncidentStatistics(incident)
-  
+
     return (
       <Box maxWidth="500px" mx="auto" p={3} ref={contentRef}>
         <Box component="section">
@@ -170,7 +170,7 @@ import StarRating from '../common/StarRating'
             ))}
           </List>
         </Box>
-  
+
         <Box component="section" mt={4}>
           <Typography variant="h5" align="center" gutterBottom>
             Assessment
@@ -185,7 +185,7 @@ import StarRating from '../common/StarRating'
             rating={resourceAllocation}
             onChange={setResourceAllocation}
           />
-  
+
           <Typography variant="body1" fontWeight={600} mt={2}>
             Rate Your Team:
           </Typography>
@@ -198,7 +198,7 @@ import StarRating from '../common/StarRating'
             />
           ))}
         </Box>
-  
+
         <Box component="section" mt={4}>
           <Typography variant="h5" align="center" gutterBottom>
             Additional Information
@@ -213,7 +213,7 @@ import StarRating from '../common/StarRating'
             variant="outlined"
           />
         </Box>
-  
+
         <Stack direction="row" spacing={2} justifyContent="center" mt={3}>
           <Button variant="contained" color="primary" onClick={saveReport}>
             Save
@@ -228,7 +228,7 @@ import StarRating from '../common/StarRating'
       </Box>
     )
   }
-  
+
   function generateIncidentStatistics(incident: Incident): string[] {
     const duration = calculateDuration(incident.openingDate, incident.closingDate)
     const responders = new Set()
@@ -239,10 +239,10 @@ import StarRating from '../common/StarRating'
       truck: 0,
       car: 0,
     }
-  
+
     incident.assignHistory.forEach((item) => {
       item.usernames.forEach((u) => responders.add(u))
-  
+
       const name = item.name.toLowerCase()
       if (name.includes('commander')) typeCounter.commander++
       if (name.includes('truck')) typeCounter.truck++
@@ -252,7 +252,7 @@ import StarRating from '../common/StarRating'
       if (name.includes('fabien')) typeCounter.car++
       if (name.includes('dena')) typeCounter.commander++
     })
-  
+
     return [
       `Incident duration: ${duration}`,
       `Number of first responders: ${responders.size}`,
@@ -266,7 +266,7 @@ import StarRating from '../common/StarRating'
       `Average time to ER: 30min`,
     ]
   }
-  
+
   function calculateDuration(start: string, end: string): string {
     const startDate = new Date(start)
     const endDate = new Date(end)
@@ -276,6 +276,5 @@ import StarRating from '../common/StarRating'
     const minutes = diffMins % 60
     return `${hours}h${minutes}min`
   }
-  g
+
   export default StatisticsAndAdditionalInformation
-  
