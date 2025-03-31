@@ -103,4 +103,31 @@ router
             response.status(400).send({ message: error.message })
         }
     })
+
+    /**
+     * Get user by ID
+     * @route GET /api/users/:id
+     * @param {string} request.params.id - User ID
+     * @returns {Object} User object without password
+     * @throws {404} If user not found
+     */
+    .get('/:id', async (request, response) => {
+        const { id } = request.params
+        try {
+            const user = await UserController.getUserById(id)
+            if (!user) {
+                return response.status(404).send({ message: 'User not found' })
+            }
+
+            // Remove sensitive information before sending the response
+            const userObject = user.toObject()
+            delete userObject.password
+            delete userObject.__v
+            response.send(userObject)
+            return
+        } catch (e) {
+            const error = e as Error
+            return response.status(400).send({ message: error.message })
+        }
+    })
 export default router
