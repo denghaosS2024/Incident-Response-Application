@@ -2,8 +2,8 @@ import { Router } from 'express'
 import { Types } from 'mongoose'
 
 import IncidentController from '../controllers/IncidentController'
-import Incident from '../models/Incident'
 import type { IIncident } from '../models/Incident'
+import Incident from '../models/Incident'
 /**
  * @swagger
  * components:
@@ -792,14 +792,15 @@ export default Router()
 
             // Return the SAR tasks array
             return response.json(incident.sarTasks || [])
-        } catch (error: any) {
+        } catch (error) {
+            const errorMessage = error as Error
             console.error('Error getting SAR tasks:', error)
 
-            if (error.message && error.message.includes('not found')) {
-                return response.status(404).json({ error: error.message })
+            if (errorMessage.message && errorMessage.message.includes('not found')) {
+                return response.status(404).json({ error: errorMessage.message })
             }
 
-            return response.status(500).json({ error: error.message || 'Internal server error' })
+            return response.status(500).json({ error: errorMessage.message || 'Internal server error' })
         }
     })
 
@@ -890,13 +891,14 @@ export default Router()
 
             // Return the updated list of SAR tasks
             return response.json(updatedIncident?.sarTasks || [])
-        } catch (error: any) {
+        } catch (error) {
+            const errorMessage = error as Error
             console.error('Error creating/updating SAR task:', error)
 
-            if (error.message && error.message.includes('not found')) {
-                return response.status(404).json({ error: error.message })
+            if (errorMessage.message && errorMessage.message.includes('not found')) {
+                return response.status(404).json({ error: errorMessage.message })
             }
 
-            return response.status(500).json({ error: error.message || 'Internal server error' })
+            return response.status(500).json({ error: errorMessage.message || 'Internal server error' })
         }
     })
