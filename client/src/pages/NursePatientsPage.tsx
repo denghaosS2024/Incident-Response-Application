@@ -137,7 +137,7 @@ const NursePatientsPage: React.FC = () => {
 
   // Navigate to patient admission page
   const handleAddPatient = () => {
-    navigate('/patients/nurse/admit');
+    navigate('/patients/admit');
   };
 
   if (loading) {

@@ -398,8 +398,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                                     ? currentUser?.username || ''
                                     : username || ''
                                 const targetUrl = selectedUsername
-                                    ? `/patients?username=${encodeURIComponent(selectedUsername)}`
-                                    : '/patients'
+                                    ? `/patients/admit?username=${encodeURIComponent(selectedUsername)}`
+                                    : '/patients/admit'
                                 window.location.href = targetUrl
                             }}
                         >
