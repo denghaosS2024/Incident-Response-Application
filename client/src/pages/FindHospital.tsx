@@ -158,25 +158,33 @@ const FindHospital: React.FC = () => {
         </DragDropContext>
       </Box>
 
-      <Box display="flex" justifyContent="center" marginY={3}>
+      <Box display="flex" justifyContent="center" marginY={2} gap={2}>
         <Button
           variant="contained"
           color="primary"
           startIcon={<MapIcon />}
           onClick={redirectToMapWithHospitals}
-          size="large"
+          size="medium"
         >
-          See Hospitals on Map
+          Map
         </Button>
 
         <Button
           variant="contained"
-          color="secondary"
+          color="primary"
           onClick={handleBatchUpdate}
-          size="large"
-          style={{ marginLeft: '16px' }}
+          size="medium"
         >
-          Submit Changes
+          Submit
+        </Button>
+
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => navigate(-1)}
+          size="medium"
+        >
+          Cancel
         </Button>
       </Box>
     </Box>
