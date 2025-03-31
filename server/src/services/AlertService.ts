@@ -1,4 +1,4 @@
-import { GroupAlertState } from "../models/AlertQueue";
+import { Alert, GroupAlertState } from "../models/AlertQueue";
 class AlertService {
     private static instance: AlertService;
     private groupAlertMap: Map<string, GroupAlertState> = new Map();
@@ -18,6 +18,14 @@ class AlertService {
 
     public setGroupAlertState(groupId: string, groupAlertState: GroupAlertState): void {
         this.groupAlertMap.set(groupId, groupAlertState);
+    }
+
+    public queueAlert(alert: Alert): void {
+        const groupId = alert.groupId;
+        const groupAlertState = this.getGroupAlertState(groupId);
+        if (groupAlertState) {
+            groupAlertState.alertQueue.push(alert);
+        }
     }
 }
 
