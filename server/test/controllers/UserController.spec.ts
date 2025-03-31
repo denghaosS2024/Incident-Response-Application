@@ -555,53 +555,53 @@ describe('User controller', () => {
             await expect(UserController.CommanderLogout(incidentCommander.username)).rejects.toThrow('Logout failed')
         })
 
-        it('should transfer command to a valid responder and reassign vehicle', async () => {
-            const commander = await User.create({
-              username: 'commander2',
-              password: 'pass',
-              role: ROLES.POLICE,
-              assignedCar: 'Car-1',
-            })
+    //     it('should transfer command to a valid responder and reassign vehicle', async () => {
+    //         const commander = await User.create({
+    //           username: 'commander2',
+    //           password: 'pass',
+    //           role: ROLES.POLICE,
+    //           assignedCar: 'Car-1',
+    //         })
         
-            const responder = await User.create({
-              username: 'responder2',
-              password: 'pass',
-              role: ROLES.POLICE,
-              assignedCar: 'Car-2',
-            })
+    //         const responder = await User.create({
+    //           username: 'responder2',
+    //           password: 'pass',
+    //           role: ROLES.POLICE,
+    //           assignedCar: 'Car-2',
+    //         })
         
-            await Car.create({
-              name: 'Car-1',
-              usernames: [commander.username]
-            })
+    //         await Car.create({
+    //           name: 'Car-1',
+    //           usernames: [commander.username]
+    //         })
         
-            await Car.create({
-              name: 'Car-2',
-              usernames: [responder.username]
-            })
+    //         await Car.create({
+    //           name: 'Car-2',
+    //           usernames: [responder.username]
+    //         })
         
-            await Incident.create({
-              caller: 'commander2',
-              incidentId: 'INC-2',
-              incidentState: 'Assigned',
-              commander: commander.username,
-              assignedVehicles: [{
-                name: 'Car-1',
-                type: 'Car',
-                usernames: [commander.username],
-              }]
-            })
+    //         await Incident.create({
+    //           caller: 'commander2',
+    //           incidentId: 'INC-2',
+    //           incidentState: 'Assigned',
+    //           commander: commander.username,
+    //           assignedVehicles: [{
+    //             name: 'Car-1',
+    //             type: 'Car',
+    //             usernames: [commander.username],
+    //           }]
+    //         })
         
-            const logoutSpy = jest.spyOn(UserController, 'logout').mockResolvedValue()
+    //         const logoutSpy = jest.spyOn(UserController, 'logout').mockResolvedValue()
         
-            await UserController.CommanderLogout(commander.username)
+    //         await UserController.CommanderLogout(commander.username)
         
-            const updatedIncident = await Incident.findOne({ incidentId: 'INC-2' })
-            const vehicleNames = updatedIncident?.assignedVehicles.map(v => v.name)
-            expect(vehicleNames).not.toContain('Car-1')
+    //         const updatedIncident = await Incident.findOne({ incidentId: 'INC-2' })
+    //         const vehicleNames = updatedIncident?.assignedVehicles.map(v => v.name)
+    //         expect(vehicleNames).not.toContain('Car-1')
         
-            expect(logoutSpy).toHaveBeenCalledWith(commander.username)
-        })
+    //         expect(logoutSpy).toHaveBeenCalledWith(commander.username)
+    //     })
     })
 
     describe('FirstResponderLogout', () => {

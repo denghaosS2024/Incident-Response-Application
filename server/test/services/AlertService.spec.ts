@@ -1,13 +1,12 @@
-// import { Alert, GroupAlertState } from '../../src/models/AlertQueue';
-// import AlertService from '../../src/services/AlertService';
+import AlertService from '../../src/services/AlertService';
 
-// describe('AlertService', () => {
-//     it('should return the same instance on repeated access', () => {
-//       const instance1 = AlertService;
-//       const instance2 = AlertService;
+describe('AlertService', () => {
+    it('should return the same instance on repeated access', () => {
+      const instance1 = AlertService;
+      const instance2 = AlertService;
   
-//       expect(instance1).toBe(instance2);
-//     });
+      expect(instance1).toBe(instance2);
+    });
 
 //     it('should return undefined if group alert state is not set', () => {
 //         const groupId = '123';
@@ -131,5 +130,5 @@
 //             timeoutHandle: undefined,
 //         });
 //     })
-//   });
+  });
 
