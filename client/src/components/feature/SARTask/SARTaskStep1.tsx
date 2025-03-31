@@ -7,6 +7,7 @@ import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import formatDateTime from './useCurrentDateTime.tsx'
 import request, {IRequestError} from '../../../utils/request.ts'
+import {useSearchParams} from 'react-router-dom'
 
 interface SARTaskStep1Props {
   incident: IIncident | null
@@ -14,7 +15,9 @@ interface SARTaskStep1Props {
 }
 
 const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) => {
-  const startDate = (incident?.sarTask?.startDate) ? new Date(incident?.sarTask?.startDate) : new Date()
+  const [searchParams] = useSearchParams()
+  const taskId = parseInt(searchParams.get('taskId') || '0')
+  const startDate = (incident?.sarTasks?.at(taskId)?.startDate) ? new Date(incident?.sarTasks?.at(taskId)?.startDate || '') : new Date()
   const formattedDateTime = formatDateTime(startDate)
   const incidentId = incident?.incidentId || 'NullId101'
 
@@ -24,17 +27,17 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
     const updateSARTask = async () => {
       if (!incident) return
       try {
+        const currentSarTask = incident?.sarTasks?.at(taskId)
         const response: IIncident = await request(
           `/api/incidents/sar/${incident.incidentId}`,
           {
             method: 'PUT',
             body: JSON.stringify({
+              taskId: taskId,
               sarTask: {
+                ...currentSarTask,
                 state: 'InProgress',
                 startDate: startDate.toISOString(),
-                endDate: incident?.sarTask?.endDate,
-                hazards: incident?.sarTask?.hazards || [],
-                victims: incident?.sarTask?.victims || [0, 0, 0, 0, 0],
               }
             }),
           }
@@ -47,7 +50,7 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
       }
     }
 
-    if (incident?.type === IncidentType.Sar && incident?.sarTask?.state === 'Todo') {
+    if (incident?.type === IncidentType.Sar && incident?.sarTasks?.at(taskId)?.state === 'Todo') {
       updateSARTask().then()
     }
   }, [incident])

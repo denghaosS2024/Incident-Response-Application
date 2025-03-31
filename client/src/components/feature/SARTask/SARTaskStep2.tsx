@@ -6,6 +6,7 @@ import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import {Box, FormControl, FormGroup, FormControlLabel, Checkbox, TextField, Button} from '@mui/material'
 import request, {IRequestError} from "@/utils/request.ts";
+import {useSearchParams} from 'react-router-dom'
 
 const hazardTypes = [
   'Active Electric Wire',
@@ -28,14 +29,16 @@ interface SARTaskStep2Props {
 }
 
 const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) => {
+  const [searchParams] = useSearchParams()
+  const taskId = parseInt(searchParams.get('taskId') || '0')
   const [selectedHazards, setSelectedHazards] = useState<HazardSelections>({})
   const [otherHazardText, setOtherHazardText] = useState<string>('')
   const [readOnly, setReadOnly] = useState(false)
 
   // update form states
   useEffect(() => {
-    if (incident === null || incident?.sarTask === null) return
-    const hazards = incident?.sarTask?.hazards || []
+    if (incident === null || incident?.sarTasks === null) return
+    const hazards = incident?.sarTasks?.at(taskId)?.hazards || []
 
     // update selectedHazards
     const newSelectedHazards: HazardSelections = {}
@@ -61,7 +64,7 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
     setOtherHazardText(otherHazard)
 
     // update readOnly
-    setReadOnly(incident?.sarTask?.state === 'Done')
+    setReadOnly(incident?.sarTasks?.at(taskId)?.state === 'Done')
   }, [incident])
 
   const handleHazardChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -80,17 +83,16 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
     const updateSARTask = async (hazards: string[]) => {
       if (!incident) return
       try {
+        const currentSarTask = incident?.sarTasks?.at(taskId)
         const response: IIncident = await request(
           `/api/incidents/sar/${incident.incidentId}`,
           {
             method: 'PUT',
             body: JSON.stringify({
+              taskId: taskId,
               sarTask: {
-                state: incident?.sarTask?.state,
-                startDate: incident?.sarTask?.startDate,
-                endDate: incident?.sarTask?.endDate,
+                ...currentSarTask,
                 hazards: hazards,
-                victims: incident?.sarTask?.victims || [0, 0, 0, 0, 0],
               }
             }),
           }

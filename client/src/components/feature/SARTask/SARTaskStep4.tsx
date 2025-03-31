@@ -8,6 +8,7 @@ import FEMAMarker from './FEMAMarker'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import formatDateTime from './useCurrentDateTime.tsx'
+import {useSearchParams} from 'react-router-dom'
 
 interface SARTaskStep4Props {
   incident?: IIncident | null;
@@ -15,7 +16,9 @@ interface SARTaskStep4Props {
 }
 
 const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => {
-    const startDate = incident?.sarTask?.startDate
+    const [searchParams] = useSearchParams()
+    const taskId = parseInt(searchParams.get('taskId') || '0')
+    const startDate = incident?.sarTasks?.at(taskId)?.startDate
     const incidentId = incident?.incidentId
     const now = new Date();
     const endTime = formatDateTime(now)
@@ -24,17 +27,18 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
     }`;
 
     const formatHazards = () => {
-      if (!incident?.sarTask?.hazards || incident.sarTask.hazards.length === 0) {
+      const hazards = incident?.sarTasks?.at(taskId)?.hazards
+      if (!hazards || hazards.length === 0) {
         return 'No Hazards'
       }
 
-      return incident.sarTask.hazards.map(hazard =>
+      return hazards.map(hazard =>
         hazard
       ).join(' ')
     }
 
     const formatVictimCounts = () => {
-      const victims = incident?.sarTask?.victims || [];
+      const victims = incident?.sarTasks?.at(taskId)?.victims || []
 
       // Types of victims with their index
       const victimTypes = [
@@ -43,7 +47,7 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
         // { type: 'Could Wait', index: 2 },
         // { type: 'Dismiss', index: 3 },
         { type: 'Deceased', index: 4 }
-      ];
+      ]
 
       const parts = [];
       for (const typeObj of victimTypes) {
@@ -62,8 +66,7 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
 
     const handleDoneClick = async () => {
 
-            const currentSarTask = incident?.sarTask || {};
-
+            const currentSarTask = incident?.sarTasks?.at(taskId) || {};
 
             try {
               const response: IIncident = await request(
@@ -71,6 +74,7 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
                 {
                   method: 'PUT',
                   body: JSON.stringify({
+                    taskId: taskId,
                     sarTask: {
                       ...currentSarTask,
                       state: 'Done',
@@ -110,7 +114,7 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
 
       <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
         <ReturnToTasksBtn />
-        {incident?.sarTask?.state !== 'Done' && (<Button className={styles.primaryBtn} onClick={handleDoneClick} variant="contained"
+        {incident?.sarTasks?.at(taskId)?.state !== 'Done' && (<Button className={styles.primaryBtn} onClick={handleDoneClick} variant="contained"
         sx={{ mt: 2, mx: 1 }}>
           Done
         </Button>)}

@@ -99,5 +99,5 @@ export default interface IIncident {
             status: string
         }[]
     }
-    sarTask?: ISarTask
+    sarTasks?: ISarTask[]
 }

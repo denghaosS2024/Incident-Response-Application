@@ -350,23 +350,23 @@ export default Router()
     .get('/sar', async (request, response) => {
         try {
             const { owner } = request.query
-            
+
             if (!owner) {
-                return response.status(400).json({ 
-                    message: 'Owner parameter is required' 
+                return response.status(400).json({
+                    message: 'Owner parameter is required'
                 })
             }
-            
+
             const result = await IncidentController.getSARIncidentsByOwner(
                 owner as string
             )
-            
+
             if (!result || result.length === 0) {
                 return response
                     .status(204)
                     .json({ message: 'No SAR incidents found' })
             }
-            
+
             return response.json(result)
         } catch (e) {
             const error = e as Error
@@ -419,34 +419,37 @@ export default Router()
         .put('/sar/:incidentId', async (request, response) => {
             try {
                 const { incidentId } = request.params;
-                const { sarTask } = request.body;
-                
+                const { taskId, sarTask } = request.body;
+
 
                 if (!sarTask) {
-                    return response.status(400).json({ 
+                    return response.status(400).json({
                         message: 'sarTask is required for updating a SAR incident'
                     });
                 }
-                
+
 
                 const incidents = await IncidentController.getIncidentByIncidentId(incidentId);
-                
+
                 if (!incidents || incidents.length === 0) {
                     return response.status(404).json({ message: 'Incident not found' });
                 }
-                
+
                 if (incidents[0].type !== 'S') {
-                    return response.status(400).json({ 
+                    return response.status(400).json({
                         message: 'This is not a SAR type incident'
                     });
                 }
-                
+
+                const currentIncident = incidents[0]
+                const updatedSarTasks = [...(currentIncident.sarTasks || [])]
+                updatedSarTasks[taskId] = sarTask
 
                 const updatedIncident = await IncidentController.updateIncident({
                     incidentId: incidentId,
-                    sarTasks: sarTask
+                    sarTasks: updatedSarTasks,
                 });
-                
+
                 return response.status(200).json(updatedIncident);
             } catch (e) {
                 const error = e as Error;
@@ -779,27 +782,27 @@ export default Router()
     .get('/:incidentId/sar-task', async (request, response) => {
         try {
             const { incidentId } = request.params
-            
+
             // Find the incident
             const incident = await Incident.findOne({ incidentId }).exec()
-            
+
             if (!incident) {
                 return response.status(404).json({ error: `Incident with ID '${incidentId}' not found` })
             }
-            
+
             // Return the SAR tasks array
             return response.json(incident.sarTasks || [])
         } catch (error: any) {
             console.error('Error getting SAR tasks:', error)
-            
+
             if (error.message && error.message.includes('not found')) {
                 return response.status(404).json({ error: error.message })
             }
-            
+
             return response.status(500).json({ error: error.message || 'Internal server error' })
         }
     })
-    
+
     /**
      * @swagger
      * /api/incidents/{incidentId}/sar-task:
@@ -856,19 +859,19 @@ export default Router()
         try {
             const { incidentId } = request.params
             const { state, location, coordinates, startDate, name, description, hazards, victims } = request.body
-            
+
             // Validate required fields
             if (!state) {
                 return response.status(400).json({ error: 'State is required for SAR task' })
             }
-            
+
             // Validate state enum values
             if (!['Todo', 'InProgress', 'Done'].includes(state)) {
-                return response.status(400).json({ 
-                    error: 'Invalid state value. Must be one of: Todo, InProgress, Done' 
+                return response.status(400).json({
+                    error: 'Invalid state value. Must be one of: Todo, InProgress, Done'
                 })
             }
-            
+
             const sarTaskData = {
                 state,
                 location,
@@ -879,21 +882,21 @@ export default Router()
                 hazards,
                 victims
             }
-            
+
             const updatedIncident = await IncidentController.createOrUpdateSarTask(
                 incidentId,
                 sarTaskData
             )
-            
+
             // Return the updated list of SAR tasks
             return response.json(updatedIncident?.sarTasks || [])
         } catch (error: any) {
             console.error('Error creating/updating SAR task:', error)
-            
+
             if (error.message && error.message.includes('not found')) {
                 return response.status(404).json({ error: error.message })
             }
-            
+
             return response.status(500).json({ error: error.message || 'Internal server error' })
         }
     })
