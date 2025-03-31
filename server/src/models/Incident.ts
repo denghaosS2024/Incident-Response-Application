@@ -26,7 +26,8 @@ export enum IncidentPriority {
 //   Note: SAR Task/SAR Incident is special type of Incident
 export interface ISarTask {
     state: 'Todo' | 'InProgress' | 'Done'
-    startDate?: Date
+    startDate?: Date,
+    endDate?: Date
 }
 
 export interface IIncident extends Document {
@@ -160,6 +161,10 @@ const IncidentSchema = new Schema({
                 default: 'Todo',
             },
             startDate: {
+                type: Date,
+                default: null
+            },
+            endDate: {
                 type: Date,
                 default: null
             }

@@ -89,7 +89,7 @@ class IncidentController {
                     ? incident.incidentCallGroup
                     : null,
                 sarTask: incident.type === 'S' 
-                ? incident.sarTask || { state: 'Todo', startDate: null }
+                ? incident.sarTask || { state: 'Todo', startDate: null, endDate: null }
                 : undefined
             }).save()
 

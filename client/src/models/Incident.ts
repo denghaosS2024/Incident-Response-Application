@@ -29,7 +29,8 @@ export enum IncidentType {
 
 export interface ISarTask {
     state: 'Todo' | 'InProgress' | 'Done'
-    startDate?: Date
+    startDate?: Date,
+    endDate?: Date
 }
 
 export default interface IIncident {

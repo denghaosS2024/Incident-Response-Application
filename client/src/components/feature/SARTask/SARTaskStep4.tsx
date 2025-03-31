@@ -6,21 +6,61 @@ import AddressBar from './AddressBar.tsx'
 import FEMAMarker from './FEMAMarker'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
-import { useCurrentDateTime } from './useCurrentDateTime.tsx'
+import formatDateTime from './useCurrentDateTime.tsx'
 
 interface SARTaskStep4Props {
   incident?: IIncident | null;
 }
 
 const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident }) => {
-    const incidentId = Array.isArray(incident) 
-    ? incident[0]?.incidentId || 'SDena101' 
-    : incident?.incidentId || 'SDena101'
-    const { formattedDateTime } = useCurrentDateTime()
-    const handleDoneClick = () => {
-    // TODO
-    alert('Task marked as done!')
-  }
+    const currentIncident = Array.isArray(incident) ? incident[0] : incident;
+    console.log('Current Incident:', currentIncident)
+    const incidentId = currentIncident?.incidentId
+    const now = new Date();
+    const formattedDateTime = formatDateTime(now)
+    const handleDoneClick = async () => {
+          try {
+            const token = localStorage.getItem('token')
+            const uid = localStorage.getItem('uid')
+            
+            if (!token || !uid) {
+              console.error('No authentication token or uid found')
+              return
+            }            
+            const currentSarTask = currentIncident?.sarTask || {};
+            
+            const response = await fetch(
+              `${import.meta.env.VITE_BACKEND_URL}/api/incidents/sar/${incidentId}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-application-token': token,
+                  'x-application-uid': uid,
+                },
+                body: JSON.stringify({
+                  sarTask: {
+                    ...currentSarTask,
+                    state: 'Done',
+                    endDate: now.toISOString()
+                  }
+                }),
+              }
+            )
+            
+            if (!response.ok) {
+              throw new Error(`Failed to update SAR task: ${response.status}`)
+            }
+            
+            const updatedIncident = await response.json()
+            alert('Task marked as done!')
+            
+
+          } catch (error) {
+            console.error('Error updating SAR task:', error)
+            alert('Failed to mark task as done. Please try again.')
+          }
+        }
 
   return (
     <div className={styles.wrapperStep}>
