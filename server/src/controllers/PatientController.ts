@@ -53,7 +53,7 @@ class PatientController {
       const priorityOrder = { E: 0, '1': 1, '2': 2, '3': 3, '4': 4 } // Custom priority order
 
       const unassignedPatients = await Patient.find({
-        hospitalId: { $in: [null, ''] }, // Patients with no assigned hospital
+        // hospitalId: { $in: [null, ''] }, // Patients with no assigned hospital
         location: 'Road', // Only fetch patients where location is "Road"
         priority: { $in: ['E', '1'] },
       })
