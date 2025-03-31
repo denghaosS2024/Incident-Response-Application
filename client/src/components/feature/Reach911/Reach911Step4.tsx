@@ -93,7 +93,6 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
             method: 'GET',
           },
         )
-
         console.log('Active Incident:', activeIncident)
 
         if (activeIncident.incidentCallGroup) {
