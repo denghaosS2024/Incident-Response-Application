@@ -271,3 +271,62 @@ export default Router()
       return response.status(500).send({ message: 'Internal Server Error' })
     }
   })
+
+  /**
+   * @swagger
+   * /api/hospital:
+   *   delete:
+   *     summary: Delete a hospital
+   *     description: Delete a hospital by providing the hospitalId as a query parameter.
+   *     tags: [Hospital]
+   *     parameters:
+   *       - in: query
+   *         name: hospitalId
+   *         description: ID of the hospital to delete
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Hospital deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 hospital:
+   *                   $ref: '#/components/schemas/Hospital'
+   *       400:
+   *         description: Bad Request - hospitalId query parameter is required.
+   *       404:
+   *         description: No Hospital found with the provided hospitalId.
+   *       500:
+   *         description: Server error
+   */
+  .delete('/', async (request, response) => {
+    try {
+      const { hospitalId } = request.query
+      if (!hospitalId) {
+        return response
+          .status(400)
+          .json({ message: 'hospitalId query parameter is required.' })
+      }
+      const deletedHospital = await HospitalController.deleteHospital(
+        hospitalId as string,
+      )
+      if (!deletedHospital) {
+        return response.status(404).json({ message: 'No Hospital found.' })
+      }
+      return response
+        .status(200)
+        .json({
+          message: 'Hospital deleted successfully',
+          hospital: deletedHospital,
+        })
+    } catch (e) {
+      const error = e as Error
+      return response.status(500).json({ message: error.message })
+    }
+  })

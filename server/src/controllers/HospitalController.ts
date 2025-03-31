@@ -77,6 +77,23 @@ class HospitalController {
     }
   }
 
+  /**
+   * Delete a hospital by hospitalId
+   * @param hospitalId - The ID of the hospital to delete
+   * @returns The deleted hospital object if found, otherwise null
+   */
+  async deleteHospital(hospitalId: string) {
+    try {
+      const deletedHospital = await Hospital.findOneAndDelete({
+        hospitalId,
+      }).exec()
+      return deletedHospital
+    } catch (error) {
+      console.error('Error deleting hospital:', error)
+      throw new Error('Failed to delete hospital')
+    }
+  }
+
   async updateMultipleHospitals(
     updates: { hospitalId: string; patients: string[] }[],
   ) {
