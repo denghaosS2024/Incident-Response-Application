@@ -488,6 +488,12 @@ export default Router()
      *         schema:
      *          type: string
      *         description: Retrieve incident details by commander.
+     *       - in: query
+     *         name: incidentState
+     *         required: false
+     *         schema:
+     *          type: string
+     *         description: Retrieve incident details by incidentState.
      *     responses:
      *       200:
      *         description: Incidents retrieved successfully.
@@ -534,6 +540,7 @@ export default Router()
             const { incidentId } = request.query
             const { channelId } = request.query
             const { commander } = request.query
+            const { incidentState } = request.query
 
             if (commander) {
                 const result = await IncidentController.getIncidentByCommander(
@@ -560,6 +567,14 @@ export default Router()
             } else if (channelId) {
                 result = await IncidentController.getIncidentByChannelId(
                     channelId as string,
+                )
+                if (!result || result.length === 0) {
+                    response.status(404).json({ message: 'No incidents found' })
+                    return
+                }
+            } else if (incidentState) {
+                result = await IncidentController.getIncidentByIncidentState(
+                    incidentState as string,
                 )
                 if (!result || result.length === 0) {
                     response.status(404).json({ message: 'No incidents found' })

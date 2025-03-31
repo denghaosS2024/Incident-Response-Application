@@ -6,8 +6,8 @@ export interface IVisitLog {
     priority: 'E' | '1' | '2' | '3' | '4'
     location: 'Road' | 'ER'
     age?: number | null
-    conscious?: boolean | null
-    breathing?: boolean | null
+    conscious?: 'Yes' | 'No' | null
+    breathing?: 'Yes' | 'No' | null
     chiefComplaint?: string | null
     condition?:
       | 'Allergy'
@@ -76,11 +76,11 @@ const VisitLogSchema = new Schema(
       required: false,
     },
     conscious: {
-      type: Boolean,
+      type: String,
       required: false,
     },
     breathing: {
-      type: Boolean,
+      type: String,
       required: false,
     },
     chiefComplaint: {

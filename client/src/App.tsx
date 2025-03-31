@@ -25,6 +25,7 @@ import RegisterHospital from './pages/RegisterHospital'
 import RegisterPage from './pages/RegisterPage'
 import ResourcesPage from './pages/ResourcesPage'
 import SARIncidentPage from './pages/SARIncidentPage'
+import SARTaskCreationPage from './pages/SARTaskCreationPage'
 import SARTaskPage from './pages/SARTaskPage.tsx'
 import ViewOrganization from './pages/ViewOrganization'
 import RoutedHome from './routing/RoutedHome'
@@ -111,6 +112,7 @@ export default function App() {
                         />
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/create-chart" element={<CreatechartPage />} />
+                        <Route path="/sar-task/create" element={<SARTaskCreationPage />} />
                     </Route>
 
                     <Route element={<RoutedHome showBackButton isSubPage />}>

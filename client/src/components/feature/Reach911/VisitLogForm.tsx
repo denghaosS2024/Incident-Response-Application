@@ -1,18 +1,25 @@
+import request from '@/utils/request';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { Box, FormControl, FormControlLabel, IconButton, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
+import { Box, Button, FormControl, FormControlLabel, IconButton, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 import Loading from '../../common/Loading';
+import { useNavigate } from 'react-router-dom';
 
 // Default: E
 const priorities = [
-    { value: 'Immediate', label: 'E' },
-    { value: 'Urgent', label: '1' },
-    { value: 'Could Wait', label: '2' },
-    { value: 'Dismiss', label: '3' },
-    { value: 'Dead', label: '4' },
+    // { value: 'Immediate', label: 'E' },
+    // { value: 'Urgent', label: '1' },
+    // { value: 'Could Wait', label: '2' },
+    // { value: 'Dismiss', label: '3' },
+    // { value: 'Dead', label: '4' },
+    { value: 'E', label: 'E' },
+    { value: '1', label: '1' },
+    { value: '2', label: '2' },
+    { value: '3', label: '3' },
+    { value: '4', label: '4' },
 ]
 
 const locations = [
@@ -52,7 +59,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     username: propUsername,
 }) => {
     const [formData, setFormData] = useState({
-        priority: 'Immediate', // Default value, { value: 'Immediate', label: 'E' },
+        priority: 'E', // Default value, { value: 'E', label: 'E' },
         location: 'Road',
         age: '',
         conscious: 'Yes',
@@ -62,6 +69,8 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
         drugs: '',
         allergies: ''
     });
+
+    const navigate = useNavigate()
 
     // Set the visit time to the current date and time
     const [visitTime, setVisitTime] = useState(getCurrentDateTime());
@@ -125,7 +134,24 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
         }    
     }
 
-    // Update the form data when 
+    // Save the form data
+    const saveFormData = async () => {
+        // Post the form data to the server
+        const message = await request('/api/patients', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: propUsername,
+                nameLower: propUsername?.toLowerCase(),
+                visitLog:[{
+                ...formData,
+                age: formData.age === '' ? null : parseInt(formData.age),
+                incidentId: incidentId,
+                dateTime: visitTime,
+            }]}),
+        });
+        // check if the message is successful
+        alert('Form data saved successfully');
+    }
     
     // Check the role when the component mounts
     React.useEffect(() => {
@@ -140,229 +166,283 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
         (state: RootState) => state.contactState,
     )
 
+    const handleClick = () => {
+        navigate('/find-hospital')
+    }
+
     if (loading) return <Loading />
 
     return (
-        <Box
-            width="100%"
-            maxWidth="800px"
-            my={4}
-            display="flex"
-            flexDirection="column"
-            paddingX="32px"
-            gap={3}  // Added vertical spacing between form elements
-        >
-            <Typography variant="h6">Visit: {visitTime}</Typography>
-            <Typography variant="h6">Incident ID: {incidentId}</Typography>
+      <Box
+        width="100%"
+        maxWidth="800px"
+        my={4}
+        display="flex"
+        flexDirection="column"
+        paddingX="32px"
+        gap={3} // Added vertical spacing between form elements
+      >
+        <Typography variant="h6">Visit: {visitTime}</Typography>
+        <Typography variant="h6">Incident ID: {incidentId}</Typography>
 
-            {/* Priority */}
-            <FormControl>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography sx={{ width: 120, flexShrink: 0 }}>Priority:</Typography>
-                    <Select
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleChange}
-                        sx={{ 
-                            width: 200,
-                            height: 40,
-                            '& .MuiSelect-select': { 
-                                padding: '8px 14px',
-                            }
-                        }}
-                    >
-                        {priorities.map((priority) => (
-                            <MenuItem key={priority.value} value={priority.value}>
-                                {priority.label}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </Box>
-            </FormControl>
+        {/* Priority */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Priority:
+            </Typography>
+            <Select
+              name="priority"
+              value={formData.priority}
+              onChange={handleChange}
+              sx={{
+                width: 200,
+                height: 40,
+                '& .MuiSelect-select': {
+                  padding: '8px 14px',
+                },
+              }}
+            >
+              {priorities.map((priority) => (
+                <MenuItem key={priority.value} value={priority.value}>
+                  {priority.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+        </FormControl>
 
-            {/* Location */}
-            <FormControl>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography sx={{ width: 120, flexShrink: 0 }}>Location:</Typography>
-                    <RadioGroup
-                        name="location"
-                        value={formData.location}
-                        onChange={handleChange}
-                        row
-                        sx={{ gap: 2 }}
-                    >
-                        {locations.map((location) => (
-                            <FormControlLabel
-                                key={location.value}
-                                value={location.value}
-                                control={<Radio />}
-                                label={location.label}
-                                sx={{ marginRight: 3 }}
-                            />
-                        ))}
-                    </RadioGroup>
-                </Box>
-            </FormControl>
+        {/* Location */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Location:
+            </Typography>
+            <RadioGroup
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              row
+              sx={{ gap: 2 }}
+            >
+              {locations.map((location) => (
+                <FormControlLabel
+                  key={location.value}
+                  value={location.value}
+                  control={<Radio />}
+                  label={location.label}
+                  sx={{ marginRight: 3 }}
+                />
+              ))}
+            </RadioGroup>
+          </Box>
+        </FormControl>
 
-            {/* Age */}
-            <FormControl>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography sx={{ width: 120, flexShrink: 0 }}>Age:</Typography>
-                    <Box display="flex" alignItems="center">
-                        <IconButton 
-                            onClick={() => {
-                                const newValue = formData.age === '' ? 0 : Math.max(0, parseInt(formData.age) - 1);
-                                setFormData(prev => ({ ...prev, age: newValue.toString() }));
-                            }} 
-                            size="small"
-                        >
-                            <RemoveIcon fontSize="small" />
-                        </IconButton>
-                        <TextField
-                            variant="outlined"
-                            name="age"
-                            value={formData.age}
-                            onChange={handleChange}
-                            type="number"
-                            inputProps={{ min: 0 }}
-                            sx={{ width: 100, mx: 1 }}
-                            size="small"
-                        />
-                        <IconButton 
-                            onClick={() => {
-                                const newValue = formData.age === '' ? 1 : parseInt(formData.age) + 1;
-                                setFormData(prev => ({ ...prev, age: newValue.toString() }));
-                            }} 
-                            size="small"
-                        >
-                            <AddIcon fontSize="small" />
-                        </IconButton>
-                    </Box>
-                </Box>
-            </FormControl>
+        {/* Age */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>Age:</Typography>
+            <Box display="flex" alignItems="center">
+              <IconButton
+                onClick={() => {
+                  const newValue =
+                    formData.age === ''
+                      ? 0
+                      : Math.max(0, parseInt(formData.age) - 1)
+                  setFormData((prev) => ({ ...prev, age: newValue.toString() }))
+                }}
+                size="small"
+              >
+                <RemoveIcon fontSize="small" />
+              </IconButton>
+              <TextField
+                variant="outlined"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                type="number"
+                inputProps={{ min: 0 }}
+                sx={{ width: 100, mx: 1 }}
+                size="small"
+              />
+              <IconButton
+                onClick={() => {
+                  const newValue =
+                    formData.age === '' ? 1 : parseInt(formData.age) + 1
+                  setFormData((prev) => ({ ...prev, age: newValue.toString() }))
+                }}
+                size="small"
+              >
+                <AddIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+        </FormControl>
 
-            {/* Conscious */}
-            <FormControl>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography sx={{ width: 120, flexShrink: 0 }}>Conscious:</Typography>
-                    <RadioGroup
-                        name="conscious"
-                        value={formData.conscious}
-                        onChange={handleChange}
-                        row
-                        sx={{ gap: 2 }}
-                    >
-                        <FormControlLabel
-                            value="Yes"
-                            control={<Radio />}
-                            label="Yes"
-                            sx={{ marginRight: 3 }}
-                        />
-                        <FormControlLabel
-                            value="No"
-                            control={<Radio />}
-                            label="No"
-                        />
-                    </RadioGroup>
-                </Box>
-            </FormControl>
+        {/* Conscious */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Conscious:
+            </Typography>
+            <RadioGroup
+              name="conscious"
+              value={formData.conscious}
+              onChange={handleChange}
+              row
+              sx={{ gap: 2 }}
+            >
+              <FormControlLabel
+                value={true}
+                control={<Radio />}
+                label="Yes"
+                sx={{ marginRight: 3 }}
+              />
+              <FormControlLabel value="No" control={<Radio />} label="No" />
+            </RadioGroup>
+          </Box>
+        </FormControl>
 
-            {/* Breathing */}
-            <FormControl>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography sx={{ width: 120, flexShrink: 0 }}>Breathing:</Typography>
-                    <RadioGroup
-                        name="breathing"
-                        value={formData.breathing}
-                        onChange={handleChange}
-                        row
-                        sx={{ gap: 2 }}
-                    >
-                        <FormControlLabel
-                            value="Yes"
-                            control={<Radio />}
-                            label="Yes"
-                            sx={{ marginRight: 3 }}
-                        />
-                        <FormControlLabel
-                            value="No"
-                            control={<Radio />}
-                            label="No"
-                        />
-                    </RadioGroup>
-                </Box>
-            </FormControl>
+        {/* Breathing */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Breathing:
+            </Typography>
+            <RadioGroup
+              name="breathing"
+              value={formData.breathing}
+              onChange={handleChange}
+              row
+              sx={{ gap: 2 }}
+            >
+              <FormControlLabel
+                value="Yes"
+                control={<Radio />}
+                label="Yes"
+                sx={{ marginRight: 3 }}
+              />
+              <FormControlLabel value="No" control={<Radio />} label="No" />
+            </RadioGroup>
+          </Box>
+        </FormControl>
 
-            {/* Chief Complaint */}
-            <FormControl>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography sx={{ width: 120, flexShrink: 0 }}>Chief Complaint:</Typography>
-                    <TextField
-                        variant="outlined"
-                        name="chiefComplaint"
-                        value={formData.chiefComplaint}
-                        onChange={handleChange}
-                        fullWidth
-                        size="small"
-                    />
-                </Box>
-            </FormControl>
+        {/* Chief Complaint */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Chief Complaint:
+            </Typography>
+            <TextField
+              variant="outlined"
+              name="chiefComplaint"
+              value={formData.chiefComplaint}
+              onChange={handleChange}
+              fullWidth
+              size="small"
+            />
+          </Box>
+        </FormControl>
 
-            {/* Condition */}
-            <FormControl>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography sx={{ width: 120, flexShrink: 0 }}>Condition:</Typography>
-                    <Select
-                        name="condition"
-                        value={formData.condition}
-                        onChange={handleChange}
-                        sx={{ 
-                            width: 200,
-                            height: 40,
-                            '& .MuiSelect-select': { 
-                                padding: '8px 14px',
-                            }
-                        }}
-                    >
-                        {conditions.map((condition) => (
-                            <MenuItem key={condition.value} value={condition.value}>
-                                {condition.label}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </Box>
-            </FormControl>
+        {/* Condition */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Condition:
+            </Typography>
+            <Select
+              name="condition"
+              value={formData.condition}
+              onChange={handleChange}
+              sx={{
+                width: 200,
+                height: 40,
+                '& .MuiSelect-select': {
+                  padding: '8px 14px',
+                },
+              }}
+            >
+              {conditions.map((condition) => (
+                <MenuItem key={condition.value} value={condition.value}>
+                  {condition.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+        </FormControl>
 
-            {/* Drugs */}
-            <FormControl>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography sx={{ width: 120, flexShrink: 0 }}>Drugs:</Typography>
-                    <TextField
-                        variant="outlined"
-                        name="drugs"
-                        value={formData.drugs}
-                        onChange={handleChange}
-                        fullWidth
-                        size="small"
-                    />
-                </Box>
-            </FormControl>
+        {/* Drugs */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>Drugs:</Typography>
+            <TextField
+              variant="outlined"
+              name="drugs"
+              value={formData.drugs}
+              onChange={handleChange}
+              fullWidth
+              size="small"
+            />
+          </Box>
+        </FormControl>
 
-            {/* Allergies */}
-            <FormControl>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography sx={{ width: 120, flexShrink: 0 }}>Allergies:</Typography>
-                    <TextField
-                        variant="outlined"
-                        name="allergies"
-                        value={formData.allergies}
-                        onChange={handleChange}
-                        fullWidth
-                        size="small"
-                    />
+        {/* Allergies */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Allergies:
+            </Typography>
+
+            <TextField
+              variant="outlined"
+              name="allergies"
+              value={formData.allergies}
+              onChange={handleChange}
+              fullWidth
+              size="small"
+            />
+          </Box>
+        </FormControl>
+
+        {/* Hospital */}
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Box className="flex flex-row">
+              <Typography sx={{ width: 120, flexShrink: 0 }} className="flex flex-row">
+                Hospital: None
+              </Typography>
+            </Box>
+
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              onClick={handleClick}
+            >
+              Find Hospital
+            </Button>
+          </Box>
+        </FormControl>
+
+            <Box display="flex" justifyContent="center" mt={4}>
+                <button
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#1976d2',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                    }}
+                    onClick={() => {
+                        saveFormData();
+                    }}
+                >
+                    Save
+                </button>
                 </Box>
-            </FormControl>
-        </Box>
+      </Box>
     )
 }
 

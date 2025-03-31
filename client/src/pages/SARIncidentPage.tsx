@@ -2,6 +2,7 @@ import Button from '@mui/material/Button'
 import React, { useEffect, useState } from 'react'
 import ClickableStepper from '../components/ClickableStepper'
 import styles from '../styles/Reach911Page.module.css'
+import { Box, Typography } from '@mui/material'
 
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
@@ -19,11 +20,8 @@ import SARStep5 from '../components/feature/SAR/SARStep5'
 
 const SARIncidentPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>()
-    // Load saved step from localStorage or default to 0
-    const [activeStep, setActiveStep] = useState<number>(() => {
-        const savedStep = localStorage.getItem('SARStep')
-        return savedStep ? parseInt(savedStep, 10) : 0
-    })
+    // Always start at Step 1 (index 0)
+    const [activeStep, setActiveStep] = useState<number>(0)
     const incident: IIncident = useSelector(
         (state: RootState) => state.incidentState.incident,
     )
@@ -209,7 +207,7 @@ const SARIncidentPage: React.FC = () => {
         <SARStep2 />,
         <SARStep3 />,
         <SARStep4 />,
-        <SARStep5 />
+        <SARStep5 incidentId={incidentId} />,
     ]
 
     const updateIncidentCall = async () => {
@@ -294,68 +292,37 @@ const SARIncidentPage: React.FC = () => {
     )
 
     return (
-        <div
-            className={styles.wrapper}
-            style={
-                readOnly
-                    ? {
-                          pointerEvents: 'none',
-                          position: 'relative',
-                          paddingTop: '50px',
-                      }
-                    : {}
-            }
-        >
-            {readOnly && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        padding: '10px',
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        color: 'white',
-                        textAlign: 'center',
-                        zIndex: 1000,
-                    }}
+        <div className={styles.wrapper}>
+            {error && (
+                <Typography color="error" align="center" gutterBottom>
+                    {error}
+                </Typography>
+            )}
+            <ClickableStepper
+                numberOfSteps={contents.length}
+                activeStep={activeStep}
+                setActiveStep={handleStepChange}
+                contents={lockedContents}
+            />
+
+            <Box className={styles.buttonWrapper} sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    disabled={activeStep === 0}
+                    onClick={() => setActiveStep(activeStep - 1)}
                 >
-                    This SAR incident is in read-only mode.
-                </div>
-            )}
-            <div style={readOnly ? { pointerEvents: 'auto' } : {}}>
-                <ClickableStepper
-                    numberOfSteps={contents.length}
-                    activeStep={activeStep}
-                    setActiveStep={handleStepChange}
-                    contents={lockedContents}
-                />
-            </div>
-            <div className={styles.placeholder}>
-                {error && (
-                    <div
-                        style={{
-                            color: 'red',
-                            textAlign: 'center',
-                            margin: '10px 0',
-                        }}
-                    >
-                        Error: {error}
-                    </div>
-                )}
-            </div>
-            {activeStep != lockedContents.length - 1 && (
-                <div className={styles.buttonWrapper}>
-                    <Button
-                        fullWidth
-                        variant="contained"
-                        color="primary"
-                        onClick={handleNextStep}
-                    >
-                        Next
-                    </Button>
-                </div>
-            )}
+                    Previous
+                </Button>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    disabled={activeStep === contents.length - 1}
+                    onClick={handleNextStep}
+                >
+                    Next
+                </Button>
+            </Box>
         </div>
     )
 }

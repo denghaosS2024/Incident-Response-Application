@@ -22,8 +22,8 @@ interface SARStep1Props {
 
 const SARStep1: React.FC<SARStep1Props> = ({
   autoPopulateData,
-  isCreatedByFirstResponder,
-  incidentId,
+  // isCreatedByFirstResponder and incidentId are kept for API compatibility
+  // but we're now using the incident from Redux store
 }) => {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
@@ -35,8 +35,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
   const [inputAddress, setInputAddress] = useState(incident.address || '')
 
   // Sample SAR task locations - in a real app, these would come from an API
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [sarLocations, setSarLocations] = useState([
+  const [sarLocations] = useState([
     {
       id: 'task1',
       name: 'Search Area A',
@@ -126,40 +125,33 @@ const SARStep1: React.FC<SARStep1Props> = ({
     setInputAddress(incident.address);
   }, [incident.address]);
 
-  // Handle creating a new SAR incident
-  const handleCreateNewSAR = () => {
-    try {
-      const username = localStorage.getItem('username');
-      if (!username) throw new Error('Username not found in local storage.');
-
-      // Navigate to incidents page with state to trigger SAR incident creation
-      navigate('/incidents', {
-        state: { createSARIncident: true },
-      });
-    } catch (error) {
-      console.error('Error navigating to create SAR:', error);
-    }
-  };
+  // No longer creating incidents here - this is now handled by the Incidents page
 
   return (
     <div className={styles.wrapperStep1}>
       <div className={styles.flexCenterColumn}>
-        <Typography variant="h6" align="center" gutterBottom>
-          {isCreatedByFirstResponder
-            ? `SAR Incident ID: ${incidentId}`
-            : 'Search and Rescue (SAR) Incident'}
+        <Typography variant="h5" align="center" gutterBottom>
+          Search and Rescue (SAR) Incident
         </Typography>
-
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleCreateNewSAR}
+        
+        {incident.incidentId && (
+          <Typography 
+            variant="h6" 
+            align="center" 
+            sx={{ 
+              mb: 2, 
+              fontWeight: 'bold',
+              bgcolor: 'primary.light',
+              color: 'primary.contrastText',
+              py: 1,
+              px: 2,
+              borderRadius: 1,
+              display: 'inline-block'
+            }}
           >
-            Create New SAR Incident
-          </Button>
-        </Box>
+            Incident ID: {incident.incidentId}
+          </Typography>
+        )}
 
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2 }}>
           <Chip label="Todo" color="default" variant="outlined" />
@@ -175,6 +167,21 @@ const SARStep1: React.FC<SARStep1Props> = ({
         >
           SAR Operations Map - Current Tasks and Last Known Location:
         </Typography>
+        
+        {/* Create Task Button - Only visible to the creator of the incident */}
+        {incident.caller === localStorage.getItem('username') && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<AddIcon />}
+              onClick={() => navigate(`/sar/${incident._id}/tasks/new`)}
+            >
+              Create New Task
+            </Button>
+          </Box>
+        )}
+        
         <div className={styles.flexCenter}>
           <Box
             sx={{
@@ -203,75 +210,77 @@ const SARStep1: React.FC<SARStep1Props> = ({
           </Box>
         </div>
       </div>
-      <Box
-        sx={{
-          width: { xs: '90%', sm: '90%', md: '90%', lg: '90%' },
-          maxWidth: '900px',
-          height: { xs: '400px', sm: '500px', md: '500px' },
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          overflow: 'hidden',
-          mt: 2,
-          mx: 'auto',
-          mb: 2,
-          position: 'relative',
-          border: '1px solid #e0e0e0',
-          borderRadius: '8px',
-        }}
-      >
+      <div className={styles.flexCenter}>
         <Box
           sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10,
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            p: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1,
-          }}
-        >
-          <LocationOnIcon color="error" />
-          <Typography variant="body2" align="center">
-            Map shows SAR tasks and last known locations
-          </Typography>
-        </Box>
-        <div
-          className={styles.flexCenter}
-          style={{
-            height: '100%',
             width: '100%',
+            maxWidth: '800px',
+            height: { xs: '400px', sm: '500px', md: '500px' },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            overflow: 'hidden',
+            mt: 2,
+            mx: 'auto',
+            mb: 2,
             position: 'relative',
-            minHeight: '400px', // Ensure minimum height for the map
+            border: '1px solid #e0e0e0',
+            borderRadius: '8px',
           }}
         >
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              p: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+            }}
+          >
+            <LocationOnIcon color="error" />
+            <Typography variant="body2" align="center">
+              Map shows SAR tasks and last known locations
+            </Typography>
+          </Box>
           <div
+            className={styles.flexCenter}
             style={{
               height: '100%',
               width: '100%',
-              maxWidth: '100%',
-              overflow: 'hidden',
               position: 'relative',
-              margin: 0,
-              padding: 0,
+              minHeight: '400px', // Ensure minimum height for the map
             }}
           >
-            <Map
-              autoPopulateData={autoPopulateData}
-              showMarker={true}
-              disableGeolocation={false}
-              // In a real implementation, we would pass the SAR locations to the Map component
-              // and extend the Map component to display different markers for different task statuses
-              // sarLocations={sarLocations}
-            />
+            <div
+              style={{
+                height: '100%',
+                width: '100%',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                position: 'relative',
+                margin: 0,
+                padding: 0,
+              }}
+            >
+              <Map
+                autoPopulateData={autoPopulateData}
+                showMarker={true}
+                disableGeolocation={false}
+                // In a real implementation, we would pass the SAR locations to the Map component
+                // and extend the Map component to display different markers for different task statuses
+                // sarLocations={sarLocations}
+              />
+            </div>
           </div>
-        </div>
-      </Box>
+        </Box>
+      </div>
 
       {/* Display SAR locations/tasks list */}
       <Box sx={{ width: '90%', maxWidth: '900px', mx: 'auto', mt: 2, mb: 4 }}>
