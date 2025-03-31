@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { IncidentType } from '../models/Incident'
-import { resetIncident } from '../redux/incidentSlice'
+import { resetIncident, updateIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
 
 interface IncidentData {
@@ -246,11 +246,14 @@ function IncidentsPage() {
       }
 
       // Save the new SAR incident to the server
-      await request('/api/incidents/new', {
+      const response = await request('/api/incidents/new', {
         method: 'POST',
         body: JSON.stringify(newSARIncident),
         headers: { 'Content-Type': 'application/json' },
       })
+
+      // Update Redux store with the new incident data
+      dispatch(updateIncident(response || newSARIncident))
 
       // Navigate to the SAR incident page
       navigate('/sar-incident', {

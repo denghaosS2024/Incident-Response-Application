@@ -35,22 +35,8 @@ interface SARTaskForm {
   address?: string
 }
 
-interface SARTaskMarker {
-  id: string
-  name: string
-  status: string
-  location?: {
-    latitude: number
-    longitude: number
-  }
-  address?: string
-  description?: string
-}
-
 const SARStep1: React.FC<SARStep1Props> = ({
   autoPopulateData,
-  // isCreatedByFirstResponder and incidentId are kept for API compatibility
-  // but we're now using the incident from Redux store
 }) => {
   const dispatch = useDispatch<AppDispatch>()
   const incident: IIncident = useSelector(
@@ -493,7 +479,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
           Search and Rescue (SAR) Incident
         </Typography>
         
-        {incident.incidentId && (
+        {incident && (
           <Typography 
             variant="h6" 
             align="center" 

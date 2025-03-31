@@ -32,6 +32,7 @@ export interface ISarTask {
     victims: number[],  // Array of size 5, {Immediate, Urgent, Could Wait, Dismiss, Deceased}
     name?: string
     description?: string
+    address?: string
     location?: string
     coordinates?: {
         latitude: number
