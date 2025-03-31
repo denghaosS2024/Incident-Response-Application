@@ -75,5 +75,12 @@ describe('Router - Patient', () => {
       .expect(400)
   })
 
+  it('should return 404 when the patient is not found', async () => {
+    await request(app)
+      .put(`/api/patients/Invalid/location`)
+      .send({ location: 'Road' })
+      .expect(404)
+  })
+
   afterAll(TestDatabase.close)
 })
