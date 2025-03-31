@@ -15,8 +15,9 @@ import IncidentsPage from './pages/IncidentsPage'
 import LoginPage from './pages/LoginPage'
 import MapPage from './pages/MapPage'
 import Messages from './pages/Messages'
+import NursePatientsPage from './pages/NursePatientsPage.tsx'
 import Organization from './pages/Organization'
-import PatientPage from './pages/PatientPage.tsx'
+import PatientAdmitPage from './pages/PatientAdmitPage.tsx'
 import PatientProfile from './pages/PatientProfile'
 import PatientVisitPage from './pages/PatientVisitPage.tsx'
 import ProfilePage from './pages/ProfilePage'
@@ -79,7 +80,8 @@ export default function App() {
                             path="/patient-profile/:patientId"
                             element={<PatientProfile />}
                         />
-                        <Route path="/patients" element={<PatientPage />} />
+                        <Route path="/patients" element={<NursePatientsPage />} />
+                        <Route path="/patients/admit" element={<PatientAdmitPage />} />
                         <Route path='/patient-visit' element={<PatientVisitPage />} />
                         <Route
                             path="/incidents/report"
