@@ -1,5 +1,8 @@
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar'
+import FireTruckIcon from '@mui/icons-material/FireTruck'
+import FlagIcon from '@mui/icons-material/Flag'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import { Snackbar } from '@mui/material'
 import { Geometry } from 'geojson'
@@ -46,6 +49,9 @@ const Mapbox: React.FC<MapboxProps> = ({
   const fireHydrantRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const airQualityRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const hospitalRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const incidentRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const truckRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const carRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
 
   // Visibility states for the map layers
   const [pinsVisible, setPinsVisible] = useState(true)
@@ -54,6 +60,9 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [airQualityVisible, setAirQualityVisible] = useState(true)
   const [hospitalsVisible, setHospitalsVisible] = useState(true)
   const [userLocationVisible, setUserLocationVisible] = useState(true)
+  const [incidentsVisible, setIncidentsVisible] = useState(false);
+  const [trucksVisible, setTrucksVisible] = useState(false);
+  const [carsVisible, setCarsVisible] = useState(false);
   const [isCreatingArea, setIsCreatingArea] = useState(false)
   const [isUnauthorized, setIsUnauthorized] = useState(false)
   const geoLocateRef = useRef<mapboxgl.GeolocateControl | null>(null)
@@ -512,11 +521,17 @@ const Mapbox: React.FC<MapboxProps> = ({
           roadblockRef.current.forEach((marker) => marker.remove())
           fireHydrantRef.current.forEach((marker) => marker.remove())
           airQualityRef.current.forEach((marker) => marker.remove())
+          incidentRef.current.forEach(marker => marker.remove())
+          truckRef.current.forEach(marker => marker.remove())
+          carRef.current.forEach(marker => marker.remove())
 
           pinRef.current.clear()
           roadblockRef.current.clear()
           fireHydrantRef.current.clear()
           airQualityRef.current.clear()
+          incidentRef.current.clear()
+          truckRef.current.clear()
+          carRef.current.clear()
 
           // Remove the map itself
           mapRef.current.remove()
@@ -922,6 +937,166 @@ const Mapbox: React.FC<MapboxProps> = ({
   // -------------------------------- map drop items features end --------------------------------
 
   // -------------------------------- map layer toggle start --------------------------------
+  const fetchAndDisplayIncidents = async () => {
+    try {
+        // Fetch Assigned incidents
+        const response = await request('/api/incidents?incidentState=Assigned');
+        const incidents = await response;
+        
+        if (!mapRef.current) return;
+        
+        for (const incident of incidents) {
+            if (!incident.address) continue;
+            
+            try {
+                // Geocoding address to obtain coordinates
+                const geocodeResponse = await fetch(
+                    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(incident.address)}.json?access_token=${mapboxgl.accessToken}`
+                );
+                const geocodeData = await geocodeResponse.json();
+                
+                if (geocodeData.features && geocodeData.features.length > 0) {
+                    const [lng, lat] = geocodeData.features[0].center;
+                    
+                    // Create flag mark
+                    const markerElement = document.createElement('div');
+                    markerElement.innerHTML = ReactDOMServer.renderToString(
+                        <FlagIcon style={{ color: 'gray', fontSize: '32px' }} />
+                    );
+                    
+                    // Create popup content
+                    const popupContent = document.createElement('div');
+                    popupContent.innerHTML = `
+                        <h3 style="margin: 0 0 5px 0; font-size: 14px;">Incident: ${incident.incidentId}</h3>
+                        <p style="margin: 0 0 5px 0; font-size: 12px;">${incident.address}</p>
+                        <p style="margin: 0; font-size: 12px;">Status: ${incident.incidentState}</p>
+                    `;
+                    
+                    const popup = new mapboxgl.Popup({ offset: 25 })
+                        .setDOMContent(popupContent);
+                    
+                    // Create and add tags
+                    const marker = new mapboxgl.Marker({ element: markerElement })
+                        .setLngLat([lng, lat])
+                        .setPopup(popup)
+                        .addTo(mapRef.current);
+                    
+                    incidentRef.current.set(incident.incidentId, marker);
+                }
+            } catch (error) {
+                console.error(`Error geocoding incident address: ${incident.address}`, error);
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching incidents:', error);
+    }
+  };
+
+  const fetchAndDisplayTrucks = async () => {
+    try {
+        // Fetch all users
+        const response = await request('/api/users');
+        const allUsers = await response;
+        
+        if (!mapRef.current) return;
+
+        const userWithTruck = allUsers.find((user: any) => 
+          user.assignedTruck !== null 
+        );
+        
+        let longitude = userWithTruck.previousLongitude;
+        let latitude = userWithTruck.previousLatitude;
+
+        if (longitude === 0 && latitude === 0) {
+          // Use default location
+          console.log('in')
+          longitude = -122.05964;
+          latitude = 37.410271;
+        }
+        
+        // Create firetruck mark
+        const markerElement = document.createElement('div');
+        markerElement.innerHTML = ReactDOMServer.renderToString(
+            <FireTruckIcon style={{ color: 'gray', fontSize: '32px' }} />
+        );
+        
+        // Create popup content
+        const popupContent = document.createElement('div');
+        popupContent.innerHTML = `
+            <h3 style="margin: 0 0 5px 0; font-size: 14px;">Truck: ${userWithTruck.assignedTruck}</h3>
+            <p style="margin: 0 0 5px 0; font-size: 12px;">Driver: ${userWithTruck.username}</p>
+            <p style="margin: 0; font-size: 12px;">Role: ${userWithTruck.role}</p>
+        `;
+        
+        const popup = new mapboxgl.Popup({ offset: 25 })
+            .setDOMContent(popupContent);
+        
+        // Create and add tags
+        const marker = new mapboxgl.Marker({ element: markerElement })
+            .setLngLat([longitude, latitude])
+            .setPopup(popup)
+            .addTo(mapRef.current);
+        
+        truckRef.current.set(userWithTruck._id, marker);
+        console.log(truckRef.current)
+        
+    } catch (error) {
+        console.error('Error fetching trucks:', error);
+    }
+  };
+
+  // 獲取並顯示 cars
+  const fetchAndDisplayCars = async () => {
+    try {
+        // Fetch all users
+        const response = await request('/api/users');
+        const allUsers = await response;
+        
+        if (!mapRef.current) return;
+
+        const userWithCar = allUsers.find((user: any) => 
+          user.assignedCar !== null 
+        );
+        
+        let longitude = userWithCar.previousLongitude;
+        let latitude = userWithCar.previousLatitude;
+
+        if (longitude === 0 && latitude === 0) {
+          // Use default location
+          longitude = -122.05964;
+          latitude = 37.410271;
+        }
+        
+        // Create car mark
+        const markerElement = document.createElement('div');
+        markerElement.innerHTML = ReactDOMServer.renderToString(
+            <DirectionsCarIcon style={{ color: 'gray', fontSize: '32px' }} />
+        );
+        
+        // Create popup content
+        const popupContent = document.createElement('div');
+        popupContent.innerHTML = `
+            <h3 style="margin: 0 0 5px 0; font-size: 14px;">Car: ${userWithCar.assignedCar}</h3>
+            <p style="margin: 0 0 5px 0; font-size: 12px;">Driver: ${userWithCar.username}</p>
+            <p style="margin: 0; font-size: 12px;">Role: ${userWithCar.role}</p>
+        `;
+        
+        const popup = new mapboxgl.Popup({ offset: 25 })
+            .setDOMContent(popupContent);
+        
+        // Create and add tags
+        const marker = new mapboxgl.Marker({ element: markerElement })
+            .setLngLat([longitude, latitude])
+            .setPopup(popup)
+            .addTo(mapRef.current);
+        
+        carRef.current.set(userWithCar._id, marker);
+        
+    } catch (error) {
+        console.error('Error fetching cars:', error);
+    }
+  };
+
   useEffect(() => {
     // Toggle pins visibility at the component level
     const togglePins = () => {
@@ -1084,12 +1259,72 @@ const Mapbox: React.FC<MapboxProps> = ({
       })
     }
 
+    const toggleIncidents = async () => {
+      if (!mapRef.current) return;
+      
+      setIncidentsVisible(prev => {
+          const newState = !prev;
+          
+          if (newState) {
+              // display incidents
+              fetchAndDisplayIncidents();
+          } else {
+              // hide incidents
+              incidentRef.current.forEach(marker => marker.remove());
+              incidentRef.current.clear();
+          }
+          
+          return newState;
+      });
+  };
+
+  const toggleTrucks = async () => {
+      if (!mapRef.current) return;
+      
+      setTrucksVisible(prev => {
+          const newState = !prev;
+          
+          if (newState) {
+              // display trucks
+              fetchAndDisplayTrucks();
+          } else {
+              // hide trucks
+              truckRef.current.forEach(marker => marker.remove());
+              truckRef.current.clear();
+          }
+          
+          return newState;
+      });
+  };
+
+  const toggleCars = async () => {
+      if (!mapRef.current) return;
+      
+      setCarsVisible(prev => {
+          const newState = !prev;
+          
+          if (newState) {
+              // display cars
+              fetchAndDisplayCars();
+          } else {
+              // hide cars
+              carRef.current.forEach(marker => marker.remove());
+              carRef.current.clear();
+          }
+          
+          return newState;
+      });
+  };
+
     eventEmitter.on('you_button_clicked', toggleUserLocation)
     eventEmitter.on('toggle_pin', togglePins)
     eventEmitter.on('toggle_roadblock', toggleRoadblocks)
     eventEmitter.on('toggle_fireHydrant', toggleFireHydrants)
     eventEmitter.on('toggle_airQuality', toggleAirQuality)
     eventEmitter.on('toggle_hospital', toggleHospitals)
+    eventEmitter.on('toggle_incidents', toggleIncidents);
+    eventEmitter.on('toggle_trucks', toggleTrucks);
+    eventEmitter.on('toggle_cars', toggleCars);
     // Remove the area_util listener that's causing errors
     // eventEmitter.on('area_util', toggleAreaUtil)
 
@@ -1100,6 +1335,9 @@ const Mapbox: React.FC<MapboxProps> = ({
       eventEmitter.removeListener('toggle_fireHydrant', toggleFireHydrants)
       eventEmitter.removeListener('toggle_airQuality', toggleAirQuality)
       eventEmitter.off('toggle_hospital', toggleHospitals)
+      eventEmitter.removeListener('toggle_incidents', toggleIncidents);
+      eventEmitter.removeListener('toggle_trucks', toggleTrucks);
+      eventEmitter.removeListener('toggle_cars', toggleCars);
       // Remove the area_util listener that's causing errors
       // eventEmitter.off('area_util', toggleAreaUtil)
     }

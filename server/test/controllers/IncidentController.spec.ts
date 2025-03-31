@@ -477,6 +477,25 @@ describe('Incident Controller', () => {
         expect(updatedIncident?.incidentState).toBe('Closed')
     })
 
+    it('should return incidents with matching state', async () => {
+        // Create test incidents with different states
+        const waitingIncident = await createTestIncident('user-waiting');
+        await Incident.create({
+            incidentId: 'Iassigned',
+            caller: 'user-assigned',
+            openingDate: new Date(),
+            incidentState: 'Assigned',
+            owner: 'System',
+            commander: 'System'
+        });
+
+        // Test for Waiting state
+        const waitingResults = await IncidentController.getIncidentByIncidentState('Waiting');
+        expect(waitingResults).toBeDefined();
+        expect(waitingResults.length).toBe(1);
+        expect(waitingResults[0].incidentId).toBe(waitingIncident.incidentId);
+    });
+
     describe('Incident Responders Group functionality', () => {
         it('should create a new responders group from responders on assigned vehicles', async () => {
             await UserController.register(

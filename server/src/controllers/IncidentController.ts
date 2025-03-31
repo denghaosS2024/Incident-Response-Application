@@ -228,6 +228,15 @@ class IncidentController {
     }
 
     /**
+     * Get incident details based on incidentState
+     * @param incidentState
+     * @returns incident details based on incidentState
+     */
+    async getIncidentByIncidentState(incidentState: string): Promise<IIncident[]> {
+        return await Incident.find({ incidentState: incidentState }).exec()
+    }
+
+    /**
      *
      * @param personnel which is the user object
      * @param commandingIncident which is the incident commanding by the user
