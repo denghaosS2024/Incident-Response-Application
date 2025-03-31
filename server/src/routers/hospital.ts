@@ -1,8 +1,10 @@
 import { Router } from 'express'
+import { ObjectId } from 'mongoose'
 import HospitalController from '../controllers/HospitalController'
 import PatientController from '../controllers/PatientController'
 import type { IHospital } from '../models/Hospital'
 import HttpError from '../utils/HttpError'
+import UserConnections from '../utils/UserConnections'
 
 export default Router()
   /**
@@ -179,7 +181,18 @@ export default Router()
       if (!Array.isArray(updates)) {
         return response.status(400).send({ message: 'Invalid request data' })
       }
-
+      // Fetch current hospital-patient mappings to compare changes
+      const currentHospitalData = await Promise.all(
+        updates.map(async (update) => {
+          const hospital = await HospitalController.getHospitalById(
+            update.hospitalId,
+          )
+          return {
+            hospitalId: update.hospitalId,
+            currentPatients: hospital ? hospital.patients : [],
+          }
+        }),
+      )
       const results = await HospitalController.updateMultipleHospitals(updates)
 
       const patientUpdatePromises = updates.flatMap((update) =>
@@ -199,6 +212,47 @@ export default Router()
       )
 
       await Promise.all(patientUpdatePromises)
+
+      // TO-DO: Implement in a more efficient algorithm to avoid array comparison, can be refactor for sprint 3
+      // Compare current and updated patient lists, and broadcast only if changes occurred
+
+      /**
+       * Compare two arrays for equality (ignoring order)
+       * @param arr1 - The first array
+       * @param arr2 - The second array
+       * @returns True if the arrays are equal, false otherwise
+       */
+      const arraysEqual = (
+        arr1: (string | ObjectId)[],
+        arr2: (string | ObjectId)[],
+      ): boolean => {
+        if (arr1.length !== arr2.length) return false
+        const set1 = new Set(arr1.map((item) => item.toString()))
+        const set2 = new Set(arr2.map((item) => item.toString()))
+        return [...set1].every((value) => set2.has(value))
+      }
+
+      updates.forEach((update) => {
+        const currentData = currentHospitalData.find(
+          (data) => data.hospitalId === update.hospitalId,
+        )
+
+        if (
+          currentData &&
+          !arraysEqual(currentData.currentPatients, update.patients)
+        ) {
+          // Broadcast to the hospital room if there are changes
+          UserConnections.broadcastToHospitalRoom(
+            update.hospitalId,
+            'hospital-patients-modified',
+            {
+              message: `Hospital ${update.hospitalId} has been updated.`,
+              hospitalId: update.hospitalId,
+              patients: update.patients,
+            },
+          )
+        }
+      })
 
       return response.status(200).send(results)
     } catch (e) {

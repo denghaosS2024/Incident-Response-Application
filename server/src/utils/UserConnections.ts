@@ -122,6 +122,21 @@ class UserConnections {
       console.log(`Nurse ${uid} joined hospital room: hospital:${hospitalId}`);
     }
   };
+
+  /**
+   * Broadcast an event to a specific hospital room
+   * @param hospitalId - The hospital ID
+   * @param eventName - The name of the event
+   * @param data - The data to send with the event
+   */
+  broadcastToHospitalRoom = (hospitalId: string, eventName: string, data: object | string = {}) => {
+    if (!this.io) {
+      console.error('Socket.io server not initialized');
+      return;
+    }
+    console.log(`Broadcasting to hospital room: hospital:${hospitalId}, event: ${eventName}, data:`, data);
+    this.io.to(`hospital:${hospitalId}`).emit(eventName, data);
+  };
 }
 
 // Export a singleton instance of UserConnections

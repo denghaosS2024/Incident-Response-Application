@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux'
 import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import IMessage from '../models/Message'
 // IR App
+import NurseActionDialog from '@/components/feature/FindHospital/NurseActionDialog'
 import {
   setHasGroupNotification,
   setHasNewIncident,
@@ -200,7 +201,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       console.log('Current role:', role)
     })
 
-    socket.on('join-new-incident',(incidentId: string)=>{
+    socket.on('join-new-incident', (incidentId: string) => {
       setAssignedIncident(incidentId)
     })
 
@@ -239,18 +240,21 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       console.log('[DEBUG] Received nurse-alert in RoutedHome:', message)
       // Add to regular messages
       dispatch(addMessage(message))
-      
+
       // CRITICAL: Add to the alert queue for GlobalAlertListener to pick up
       // IMPORTANT: Keep the original channelId so it only shows to nurses in that channel
       // Make sure channelId is set if missing
-      const nurseAlertMessage = { ...message };
+      const nurseAlertMessage = { ...message }
       if (!nurseAlertMessage.channelId) {
-        console.warn('[DEBUG] Alert missing channelId, using default channel');
-        nurseAlertMessage.channelId = 'nurse-alerts';
+        console.warn('[DEBUG] Alert missing channelId, using default channel')
+        nurseAlertMessage.channelId = 'nurse-alerts'
       }
-      
-      console.log('[DEBUG] Adding nurse alert to Redux alert queue with original channelId:', nurseAlertMessage.channelId);
-      dispatch(addAlert(nurseAlertMessage));
+
+      console.log(
+        '[DEBUG] Adding nurse alert to Redux alert queue with original channelId:',
+        nurseAlertMessage.channelId,
+      )
+      dispatch(addAlert(nurseAlertMessage))
     })
       socket.on('nurse-alert-delayed', (message: string) => {
         console.log('[DEBUG] Received nurse-alert-delayed in RoutedHome:', message)
@@ -312,6 +316,9 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
         <>
           <NavigationBar showMenu={true} showBackButton={showBackButton} />
           <ManagedTabBar />
+
+          <NurseActionDialog />
+
           {!alertOpen && <Outlet />}
 
           <Modal open={alertOpen}>
@@ -376,8 +383,8 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
                 navigate('/reach911', {
                   state: {
                     incidentId: assignedIncident,
-                    readOnly:true,
-                    autoPopulateData:true,
+                    readOnly: true,
+                    autoPopulateData: true,
                   },
                 })
                 setAssignedIncident(null)
