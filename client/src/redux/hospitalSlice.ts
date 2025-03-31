@@ -87,7 +87,6 @@ const sortHospitalsByDistance = createAsyncThunk(
   },
 )
 
-
 /* ---------------------- Redux Slice ---------------------- */
 const hospitalSlice = createSlice({
   name: 'hospital',
@@ -119,25 +118,6 @@ const hospitalSlice = createSlice({
     setHospitalError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload
     },
-
-    // sortHospitalsByDistance(state) {
-    //   const currentLocation = getCurrentLocation()
-    //   state.hospitals.forEach(async (hospital) => {
-    //     const hospitalCoordinate = await fetcHospitalCoordinates(hospital)
-    //     hospital.distance = await calculateDistance(
-    //       hospitalCoordinate,
-    //       currentLocation,
-    //     )
-    //     console.log(hospital)
-    //   })
-
-    //   state.hospitals = [...state.hospitals].sort(
-    //     (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity),
-    //   )
-
-    //   console.log('State Sorted Hospital: ')
-    //   console.log(state.hospitals)
-    // },
   },
 
   extraReducers: (builder) => {
