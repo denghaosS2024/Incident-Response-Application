@@ -1,10 +1,14 @@
 import request from 'supertest'
 
 import app from '../../src/app'
+import Patient from '../../src/models/Patient'
 import * as TestDatabase from '../utils/TestDatabase'
 
 describe('Router - Patient', () => {
   beforeAll(TestDatabase.connect)
+  beforeEach(async () => {
+    await Patient.deleteMany({})
+  })
 
   const createPatient = () => {
     return request(app).post('/api/patients').send({
@@ -61,6 +65,14 @@ describe('Router - Patient', () => {
       .expect(200)  
 
     expect(updatedPatient.body.location).toBe('Road')
+  })
+
+  it('should return 400 when the location is not valid', async () => {
+    const patient = await createPatient3()
+    await request(app)
+      .put(`/api/patients/${patient.body.patientId}/location`)
+      .send({ location: 'Invalid' })
+      .expect(400)
   })
 
   afterAll(TestDatabase.close)
