@@ -1,4 +1,4 @@
-import { Button } from '@mui/material'
+import {Button, Link} from '@mui/material'
 import React from 'react'
 import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
@@ -11,12 +11,6 @@ interface SARTaskStep3Props {
 }
 
 const SARTaskStep3: React.FC<SARTaskStep3Props> = ({incident }) => {
-    const incidentId = Array.isArray(incident)
-    ? incident[0]?.incidentId || 'SDena101'
-    : incident?.incidentId || 'SDena101'
-  const handleVictimClick = () => {
-    console.log('Victims button clicked')
-  }
 
   return (
     <div className={styles.wrapperStep}>
@@ -29,8 +23,12 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({incident }) => {
 
       <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
         <ReturnToTasksBtn />
-        <Button className={styles.primaryBtn} onClick={handleVictimClick} variant="contained"
-        sx={{ mt: 2, mx: 1 }}>
+        <Button
+          component={Link}
+          href='/patients'  // TODO: redirect to patient page
+          className={styles.primaryBtn}
+          variant="contained"
+          sx={{ mt: 2, mx: 1 }}>
           Treat Victims
         </Button>
       </div>
