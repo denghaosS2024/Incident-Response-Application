@@ -9,6 +9,11 @@ export interface Alert {
     createdAt: Date;
     groupId: string;
     status: 'waiting' | 'ongoing' | 'sent';
+    content?: string;
+    senderId?: string;
+    channelId?: string;
+    isAlert?: boolean;
+    responders?: string[];
   }
   
 export interface GroupAlertState {

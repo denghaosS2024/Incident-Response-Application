@@ -202,7 +202,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
       const patientName = getPatientNameById(selectedPatientId)
 
       // Create a more readable alert content format
-      const alertContent = `${alertType} HELP - Patient: ${patientName} - Nurses: ${actualNurseCount}`
+      const alertContent = `${alertType} HELP - Patient: ${patientName} - Nurses: ${actualNurseCount} - PatientID: ${selectedPatientId}`
       const messageData = {
         content: alertContent,
         isAlert: true,

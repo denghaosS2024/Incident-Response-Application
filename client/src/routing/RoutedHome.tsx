@@ -252,6 +252,14 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       console.log('[DEBUG] Adding nurse alert to Redux alert queue with original channelId:', nurseAlertMessage.channelId);
       dispatch(addAlert(nurseAlertMessage));
     })
+      socket.on('nurse-alert-delayed', (message: string) => {
+        console.log('[DEBUG] Received nurse-alert-delayed in RoutedHome:', message)
+        window.alert("Your message has been delayed because of other alerts")
+      })
+      socket.on('nurse-alert-success', (message: string) => {
+        console.log('[DEBUG] Received nurse-alert-success in RoutedHome:', message)
+        window.alert("Your message has been sent")
+      })
     socket.on('send-mayday', handleMaydayReceived)
     socket.on('user-status-changed', () => {
       dispatch(loadContacts())

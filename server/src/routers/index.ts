@@ -18,6 +18,7 @@ import user from './user'
 
 // This router does not exist in this codebase
 import airQuality from './airQuality'
+import alertQueueRouter from './alertQueue'
 import carRouter from './car'
 import cityRouter from './city'
 import dashboard from './dashboard'
@@ -29,7 +30,6 @@ import profileRouter from './profile'
 import taskRouter from './sartask'
 import truckRouter from './truck'
 import wildfireAreaRouter from './WildfireArea'
-
 
 export default Router()
     .use('/users', user)
@@ -67,3 +67,4 @@ export default Router()
     .use('/sartasks', taskRouter)
     .use('/sartasksdone', taskRouter)
     .use(',sartasksstatistics', taskRouter)
+    .use('/alertQueue', alertQueueRouter)
