@@ -101,8 +101,8 @@ class IncidentController {
                     ROLES.DISPATCH,
                     'new-incident-created',
                     {
-                        username,
                         incidentId,
+                        username,
                         message: `New incident ${incidentId} created by ${username}`,
                     },
                 )

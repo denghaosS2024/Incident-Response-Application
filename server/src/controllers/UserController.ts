@@ -358,6 +358,11 @@ class UserController {
             if (!user) {
                 throw new Error('User not found');
             }
+
+            if (isCommander) {
+                await this.CommanderLogout(username);
+                return
+            }
     
             if (user.role === ROLES.FIRE && user.assignedTruck) {
                 // Remove user from assigned truck
@@ -391,11 +396,6 @@ class UserController {
     
                 // Clear user's assignedCar field
                 await User.updateOne({ username }, { assignedCar: null });
-            }
-
-            if (isCommander) {
-                await this.CommanderLogout(username);
-                return
             }
 
             // Perform standard logout
