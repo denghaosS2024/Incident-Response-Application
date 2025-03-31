@@ -5,6 +5,7 @@ import { fetchHospitals, sortHospitalsByDistance } from '@/redux/hospitalSlice'
 import { fetchPatients } from '@/redux/patientSlice'
 import { AppDispatch, RootState } from '@/redux/store'
 import eventEmitter from '@/utils/eventEmitter'
+import request from '@/utils/request'
 import { Map as MapIcon } from '@mui/icons-material'
 import { Box, Button, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
@@ -113,7 +114,7 @@ const FindHospital: React.FC = () => {
     }
   }
 
-  const handleBatchUpdate = () => {
+  const handleBatchUpdate = async () => {
     const requestBody = Object.entries(draggedPatients).map(
       ([hospitalId, patients]) => ({
         hospitalId,
@@ -122,6 +123,19 @@ const FindHospital: React.FC = () => {
     )
 
     console.log('Batch Update Request Body:', requestBody)
+    try {
+      const response = await request('/api/hospital/patients/batch', {
+        method: 'PATCH',
+        body: JSON.stringify(requestBody),
+      })
+
+      console.log('Batch Update Response:', response)
+      console.log('Batch update successful!')
+    } catch (err) {
+      let error = err as Error
+      console.error('Batch Update Error:', error)
+      console.error(`Batch update failed: ${error.message}`)
+    }
   }
 
   return (

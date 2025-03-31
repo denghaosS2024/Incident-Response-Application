@@ -108,7 +108,12 @@ class HospitalController {
         // Directly use the patients array as it is
         return Hospital.findOneAndUpdate(
           { hospitalId: update.hospitalId },
-          { $set: { patients: update.patients } }, // Overwrite patients array
+          {
+            $set: {
+              patients: update.patients,
+              totalNumberOfPatients: update.patients.length,
+            },
+          }, // Overwrite patients array
           { new: true },
         ).exec()
       })
