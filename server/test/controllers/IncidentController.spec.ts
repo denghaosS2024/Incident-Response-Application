@@ -521,6 +521,61 @@ describe('Incident Controller', () => {
         expect(waitingResults[0].incidentId).toBe(waitingIncident.incidentId);
     });
 
+    it('should remove assigned incident from deallocated vehicles', async () => {
+        const testCars = [
+            {
+                name: 'Police Car 1',
+                usernames: ['Officer Smith'],
+                assignedIncident: null,
+                assignedCity: 'New York',
+            },
+            {
+                name: 'Police Car 2',
+                usernames: ['Officer Williams'],
+                assignedIncident: null,
+                assignedCity: 'New York',
+            },
+        ]
+        await Car.insertMany(testCars)
+
+        const testIncident = await Incident.create({
+            incidentId: 'Ipolice1011',
+            caller: username,
+            incidentState: 'Assigned',
+            owner: username,
+            commander: username,
+            address: '',
+            type: 'U',
+            priority: 'E',
+            incidentCallGroup: null,
+            assignedVehicles: [],
+            assignHistory: [],
+        })
+
+        const updatedIncident = {
+            ...testIncident.toObject(),
+            assignedVehicles: [
+                {
+                    name: 'Police Car 1',
+                    type: 'Car',
+                    usernames: ['Officer Smith'],
+                },
+            ],
+        }
+
+        const res = await request(app)
+            .put('/api/incidents/updatedVehicles')
+            .send({ incidents: [[updatedIncident]] })
+            .expect(200)
+
+        expect(res.body).toMatchObject({ message: 'success' })
+
+        const car2 = await Car.findOne({
+            name: 'Police Car 2',
+        }).lean()
+        expect(car2?.assignedIncident).toBe(null)
+    })
+
     describe('Incident Responders Group functionality', () => {
         it('should create a new responders group from responders on assigned vehicles', async () => {
             await UserController.register(

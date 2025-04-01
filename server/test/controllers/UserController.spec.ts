@@ -699,7 +699,7 @@ describe('User controller', () => {
         });
 
         it('should remove fire responder from assigned truck and incidents', async () => {
-            await UserController.FirstResponderLogout(fireUser.username, false);
+            await UserController.FirstResponderLogout(fireUser.username);
 
             // Verify user is removed from truck
             const updatedTruck = await Truck.findOne({ name: truck.name });
@@ -718,7 +718,7 @@ describe('User controller', () => {
         });
 
         it('should remove police responder from assigned car and incidents', async () => {
-            await UserController.FirstResponderLogout(policeUser.username, false);
+            await UserController.FirstResponderLogout(policeUser.username);
 
             // Verify user is removed from car
             const updatedCar = await Car.findOne({ name: car.name });
@@ -743,7 +743,7 @@ describe('User controller', () => {
                 { assignedTruck: null }
             );
 
-            await UserController.FirstResponderLogout(fireUser.username, false);
+            await UserController.FirstResponderLogout(fireUser.username);
 
             // Verify truck remains unchanged
             const updatedTruck = await Truck.findOne({ name: truck.name });
