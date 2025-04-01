@@ -97,7 +97,7 @@ export default function App() {
                             element={<PatientAdmitPage />}
                         />
                         <Route
-                            path="/patient-visit"
+                            path="/patient-visit/:username"
                             element={<PatientVisitPage />}
                         />
                         <Route
