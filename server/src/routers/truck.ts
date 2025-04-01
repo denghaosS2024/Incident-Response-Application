@@ -245,8 +245,6 @@ truckRouter.put('/cities', async (req: Request, res: Response) => {
  *         description: Truck updated successfully.
  *         content:
  *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Truck"
  *       400:
  *         description: Error adding username to truck
  */
@@ -290,8 +288,6 @@ truckRouter.put('/usernames', async (req: Request, res: Response) => {
  *         description: Username successfully released from truck
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Truck'
  *       400:
  *         description: Bad request
  *         content:

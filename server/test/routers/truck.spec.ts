@@ -129,4 +129,47 @@ describe('Truck Routes', () => {
           });
 
     });
+
+     describe('PUT /api/trucks/usernames', () => {
+      it('router: should add a username to a truck', async () => {
+        // Create a test truck
+        const truck = await Truck.create({
+          name: 'Test Truck',
+          type: 'Truck',
+          usernames: ['Existing User']
+        });
+    
+        // Make the request
+        const response = await request(app)
+          .put('/api/trucks/usernames')
+          .send({
+            truckName: truck.name,
+            username: 'New User',
+            commandingIncident: null
+          });
+    
+        // Assertions
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('name', 'Test Truck');
+        expect(response.body.usernames).toContain('Existing User');
+        expect(response.body.usernames).toContain('New User');
+        expect(response.body.assignedIncident).toBeNull();
+      });
+
+      it('should return 400 when the truck does not exist', async () => {
+        // Make the request with a non-existent truck
+        const response = await request(app)
+          .put('/api/trucks/usernames')
+          .send({
+            truckName: 'Non-Existent Truck',
+            username: 'Test User',
+            commandingIncident: null
+          });
+    
+        // Assertions
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty('message');
+        expect(response.body.message).toContain("Truck with name 'Non-Existent Truck' does not exist");
+      });
+    });
 });

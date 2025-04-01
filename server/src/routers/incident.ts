@@ -599,43 +599,131 @@ export default Router()
             return response.status(500).json({ message: error.message })
         }
     })
-
     /**
      * @swagger
-     * /api/incidents/{id}/vehicles:
+     * /incidents/vehicles:
      *   put:
      *     summary: Add a vehicle to an incident
-     *     tags: [Incidents]
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         description: ID of the incident to update
-     *         schema:
-     *           type: string
+     *     description: Assigns a vehicle to an incident and associates personnel with the vehicle
+     *     tags:
+     *       - Incidents
      *     requestBody:
      *       required: true
      *       content:
      *         application/json:
      *           schema:
      *             type: object
+     *             required:
+     *               - personnel
+     *               - commandingIncident
+     *               - vehicle
      *             properties:
      *               personnel:
-     *                 type: string
-     *                 description: The personnel to assign the vehicle to
-     *                 example: john_doe
+     *                 type: object
+     *                 required:
+     *                   - _id
+     *                   - name
+     *                   - assignedCity
+     *                   - role
+     *                 properties:
+     *                   _id:
+     *                     type: string
+     *                     description: Personnel ID
+     *                   name:
+     *                     type: string
+     *                     description: Personnel name
+     *                   assignedCity:
+     *                     type: string
+     *                     description: City assigned to the personnel
+     *                   role:
+     *                     type: string
+     *                     enum: [Fire, Police]
+     *                     description: Role of the personnel
+     *                   assignedVehicleTimestamp:
+     *                     type: string
+     *                     nullable: true
+     *                     format: date-time
+     *                     description: Timestamp when personnel was assigned to a vehicle
+     *                   assignedCar:
+     *                     type: string
+     *                     description: Car assigned to personnel
+     *                   assignedTruck:
+     *                     type: string
+     *                     description: Truck assigned to personnel
+     *                   assignedIncident:
+     *                     type: string
+     *                     description: Incident assigned to personnel
      *               commandingIncident:
      *                 type: object
-     *                 description: The incident object commanding by the current user
+     *                 description: The incident to which the vehicle will be assigned
+     *                 required:
+     *                   - _id
+     *                   - incidentId
+     *                 properties:
+     *                   _id:
+     *                     type: string
+     *                     description: MongoDB ID of the incident
+     *                   incidentId:
+     *                     type: string
+     *                     description: Unique identifier for the incident
      *               vehicle:
-     *                 type: string
+     *                 type: object
      *                 description: The vehicle to assign to the incident
-     *                 example: Car123
+     *                 required:
+     *                   - name
+     *                   - type
+     *                 properties:
+     *                   name:
+     *                     type: string
+     *                     description: Name of the vehicle
+     *                   type:
+     *                     type: string
+     *                     enum: [Car, Truck]
+     *                     description: Type of vehicle
+     *                   usernames:
+     *                     type: array
+     *                     items:
+     *                       type: string
+     *                     description: List of personnel assigned to this vehicle
+     *                   assignedIncident:
+     *                     type: string
+     *                     description: ID of incident currently assigned to this vehicle
      *     responses:
      *       200:
-     *         description: Vehicle added to incident successfully
+     *         description: Vehicle successfully added to incident
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 _id:
+     *                   type: string
+     *                 incidentId:
+     *                   type: string
+     *                 assignedVehicles:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       type:
+     *                         type: string
+     *                         enum: [Car, Truck]
+     *                       name:
+     *                         type: string
+     *                       usernames:
+     *                         type: array
+     *                         items:
+     *                           type: string
      *       400:
-     *         description: Error adding vehicle to incident: {error message}
+     *         description: Bad request
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Error message
      */
     .put('/vehicles', async (request, response) => {
         const { personnel, commandingIncident, vehicle } = request.body
