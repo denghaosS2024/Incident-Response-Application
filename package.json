@@ -4,7 +4,7 @@
     "description": "SEM IR App",
     "scripts": {
         "lint": "npm run lint --prefix client && npm run lint --prefix server",
-        "lint:fix": "echo \"lint:fix not implemented\"",
+        "lint:fix": "npm run lint --fix --prefix client && npm run lint --fix --prefix server",
         "install:client": "cd client && npm install && cd ..",
         "install:server": "cd server && npm install && cd ..",
         "install": "npm run install:client && npm run install:server",

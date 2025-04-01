@@ -178,82 +178,23 @@ export default Router()
         patients: string[]
       }[]
 
-      if (!Array.isArray(updates)) {
-        return response.status(400).send({ message: 'Invalid request data' })
-      }
-      // Fetch current hospital-patient mappings to compare changes
-      const currentHospitalData = await Promise.all(
-        updates.map(async (update) => {
-          const hospital = await HospitalController.getHospitalById(
-            update.hospitalId,
-          )
-          return {
-            hospitalId: update.hospitalId,
-            currentPatients: hospital ? hospital.patients : [],
-          }
-        }),
-      )
-      const results = await HospitalController.updateMultipleHospitals(updates)
+      // Step 1: Validate input data
+      validateBatchUpdates(updates)
 
-      const patientUpdatePromises = updates.flatMap((update) =>
-        update.patients.map(async (patientId) => {
-          const updatedPatient = await PatientController.setHospital(
-            patientId,
-            update.hospitalId,
-          )
-          if (!updatedPatient) {
-            throw new HttpError(
-              `Failed to update patient with ID ${patientId}`,
-              404,
-            )
-          }
-          return updatedPatient
-        }),
-      )
+      // Step 2: Fetch current hospital data
+      const currentHospitalData = await fetchCurrentHospitalData(updates)
+      console.log('Current hospital data:', currentHospitalData)
 
-      await Promise.all(patientUpdatePromises)
+      // Step 3: Validate ER capacity
+      validateERCapacity(updates, currentHospitalData)
 
-      // TO-DO: Implement in a more efficient algorithm to avoid array comparison, can be refactor for sprint 3
-      // Compare current and updated patient lists, and broadcast only if changes occurred
+      // Step 4: Update hospitals and patients
+      const results = await updateHospitalsAndPatients(updates)
 
-      /**
-       * Compare two arrays for equality (ignoring order)
-       * @param arr1 - The first array
-       * @param arr2 - The second array
-       * @returns True if the arrays are equal, false otherwise
-       */
-      const arraysEqual = (
-        arr1: (string | ObjectId)[],
-        arr2: (string | ObjectId)[],
-      ): boolean => {
-        if (arr1.length !== arr2.length) return false
-        const set1 = new Set(arr1.map((item) => item.toString()))
-        const set2 = new Set(arr2.map((item) => item.toString()))
-        return [...set1].every((value) => set2.has(value))
-      }
+      // Step 5: Broadcast updates
+      broadcastHospitalUpdates(updates, currentHospitalData)
 
-      updates.forEach((update) => {
-        const currentData = currentHospitalData.find(
-          (data) => data.hospitalId === update.hospitalId,
-        )
-
-        if (
-          currentData &&
-          !arraysEqual(currentData.currentPatients, update.patients)
-        ) {
-          // Broadcast to the hospital room if there are changes
-          UserConnections.broadcastToHospitalRoom(
-            update.hospitalId,
-            'hospital-patients-modified',
-            {
-              message: `Hospital ${update.hospitalId} has been updated.`,
-              hospitalId: update.hospitalId,
-              patients: update.patients,
-            },
-          )
-        }
-      })
-
+      // Step 6: Return success response
       return response.status(200).send(results)
     } catch (e) {
       const error = e as HttpError
@@ -330,3 +271,145 @@ export default Router()
       return response.status(500).json({ message: error.message })
     }
   })
+
+// supporting function
+interface UpdatePayload {
+  hospitalId: string
+  patients: string[]
+}
+
+const validateBatchUpdates = (updates: UpdatePayload[]): void => {
+  if (!Array.isArray(updates)) {
+    console.error('Invalid request data:', updates)
+    throw new HttpError('Invalid request data', 400)
+  }
+
+  for (const update of updates) {
+    if (!update.hospitalId) {
+      console.error('Invalid hospitalId in update:', update)
+      throw new HttpError('Invalid hospitalId in update data', 400)
+    }
+  }
+}
+
+const fetchCurrentHospitalData = async (updates: { hospitalId: string }[]) => {
+  return Promise.all(
+    updates.map(async (update) => {
+      const hospital = await HospitalController.getHospitalById(
+        update.hospitalId,
+      )
+      if (!hospital) {
+        console.error(`Hospital with ID ${update.hospitalId} does not exist`)
+        throw new HttpError(
+          `Hospital with ID ${update.hospitalId} does not exist`,
+          404,
+        )
+      }
+      return {
+        hospitalId: update.hospitalId,
+        currentPatients: hospital.patients.map((patient) => patient.toString()),
+        totalNumberERBeds: hospital.totalNumberERBeds,
+      }
+    }),
+  )
+}
+
+const validateERCapacity = (
+  updates: { hospitalId: string; patients: string[] }[],
+  currentHospitalData: {
+    hospitalId: string
+    currentPatients: string[]
+    totalNumberERBeds: number
+  }[],
+): void => {
+  updates.forEach((update) => {
+    const hospitalData = currentHospitalData.find(
+      (data) => data.hospitalId === update.hospitalId,
+    )
+
+    if (!hospitalData) {
+      throw new HttpError(
+        `Hospital with ID ${update.hospitalId} not found`,
+        404,
+      )
+    }
+
+    const totalPatients = update.patients.length
+    if (totalPatients > hospitalData.totalNumberERBeds) {
+      throw new HttpError(
+        `Hospital ${update.hospitalId} exceeds ER capacity. Total ER beds: ${hospitalData.totalNumberERBeds}, Patients: ${totalPatients}`,
+        400,
+      )
+    }
+  })
+}
+
+const updateHospitalsAndPatients = async (
+  updates: { hospitalId: string; patients: string[] }[],
+) => {
+  const results = await HospitalController.updateMultipleHospitals(updates)
+
+  const patientUpdatePromises = updates.flatMap((update) =>
+    update.patients.map(async (patientId) => {
+      const updatedPatient = await PatientController.setHospital(
+        patientId,
+        update.hospitalId,
+      )
+      if (!updatedPatient) {
+        throw new HttpError(
+          `Failed to update patient with ID ${patientId}`,
+          404,
+        )
+      }
+      return updatedPatient
+    }),
+  )
+
+  await Promise.all(patientUpdatePromises)
+
+  return results
+}
+
+const broadcastHospitalUpdates = (
+  updates: { hospitalId: string; patients: string[] }[],
+  currentHospitalData: { hospitalId: string; currentPatients: string[] }[],
+) => {
+  const arraysEqual = (
+    arr1: (string | ObjectId)[],
+    arr2: (string | ObjectId)[],
+  ): boolean => {
+    const set1 = new Set(arr1.map((item) => item.toString()))
+    const set2 = new Set(arr2.map((item) => item.toString()))
+    return (
+      set1.size === set2.size && [...set1].every((value) => set2.has(value))
+    )
+  }
+
+  updates.forEach((update) => {
+    const currentData = currentHospitalData.find(
+      (data) => data.hospitalId === update.hospitalId,
+    )
+
+    if (
+      currentData &&
+      !arraysEqual(currentData.currentPatients, update.patients)
+    ) {
+      try {
+        UserConnections.broadcastToHospitalRoom(
+          update.hospitalId,
+          'hospital-patients-modified',
+          {
+            message: `Hospital ${update.hospitalId} has been updated.`,
+            hospitalId: update.hospitalId,
+            patients: update.patients,
+          },
+        )
+      } catch (error) {
+        console.error(
+          `Failed to broadcast update for hospital ID: ${update.hospitalId}`,
+          error,
+        )
+      }
+    }
+  })
+}

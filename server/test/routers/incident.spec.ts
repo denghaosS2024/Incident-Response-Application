@@ -108,6 +108,46 @@ describe('Router - Incident', () => {
         expect(incidents.length).toBeGreaterThan(0)
     })
 
+    it('should return the incidents if given channelId is respondersgroup', async () => {
+        // Create an incident
+        const user = "useless"
+        await Incident.create({
+            incidentId: 'Iuseless',
+            caller: user,
+            incidentState: 'Assigned',
+            owner: user,
+            commander: user,
+            address: '',
+            type: 'U',
+            priority: 'E',
+            incidentCallGroup: null,
+            assignedVehicles: [],
+            assignHistory: [],
+        })
+        const testIncident = await Incident.create({
+            incidentId: 'IChannel',
+            caller: username,
+            incidentState: 'Assigned',
+            owner: username,
+            commander: username,
+            address: '',
+            type: 'U',
+            priority: 'E',
+            incidentCallGroup: null,
+            assignedVehicles: [],
+            assignHistory: [],
+            respondersGroup: new Types.ObjectId,
+        })
+
+        const { body: incidents } = await request(app)
+            .get('/api/incidents')
+            .query({ channelId: testIncident.respondersGroup?.toString(),})
+            .expect(200)
+
+        expect(incidents.length).toBe(1)
+        expect(incidents[0].incidentId).toBe('IChannel')
+    })
+
     it('should return 500 for error in getting all incidents', async () => {
         // Mock the find method to throw an error
         const fakeQuery: Partial<Query<IIncident[], IIncident>> = {
@@ -358,6 +398,58 @@ describe('Router - Incident', () => {
             .expect(400)
     })
     
+    it('should add a police car to an incident', async () => {
+        // Create test data - raw personnel object
+        await Incident.deleteMany({});
+        await Car.deleteMany({});
+        const personnel = {
+            _id: new Types.ObjectId().toString(),
+            name: 'Officer Smith',
+            assignedCity: 'Test City',
+            role: 'Police' as const,
+            assignedVehicleTimestamp: null,
+        };
+
+        const rawIncident = new Incident({
+            incidentId: `ITest001`,
+            caller: username,
+            openingDate: new Date(),
+            incidentState: 'Waiting',
+            owner: 'System',
+            commander: 'System',
+            incidentCallGroup: null,
+            SarTasks: []
+        })
+        rawIncident.save()
+        const rawCar = await Car.create({
+            name: 'Police Car 1',
+            usernames: [personnel.name],
+            assignedIncident: null,
+            assignedCity: 'TestCity',
+        })
+    
+        // Send request
+        const response = await request(app)
+          .put('/api/incidents/vehicles')
+          .send({
+            personnel,
+            commandingIncident: rawIncident.toObject(),
+            vehicle: rawCar.toObject(),
+          });
+    
+        // Assertions
+        expect(response.status).toBe(200);
+        
+        // Check database state
+        const updatedIncident = await Incident.findById(rawIncident._id);
+        expect(updatedIncident).toBeDefined();
+        expect(updatedIncident!.assignedVehicles).toHaveLength(1);
+        expect(updatedIncident!.assignedVehicles[0].name).toBe('Police Car 1');
+        expect(updatedIncident!.assignedVehicles[0].type).toBe('Car');
+        expect(updatedIncident!.assignedVehicles[0].usernames).toContain('Officer Smith');
+      });
+    
+
 
     afterAll(TestDatabase.close)
 })

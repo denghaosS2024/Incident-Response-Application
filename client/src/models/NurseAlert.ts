@@ -1,6 +1,6 @@
 type Priority = 'E' | 'U' | 'H'
 
-export interface Alert {
+export interface NurseAlert {
     id: string;
     patientId: string;
     patientName: string;
@@ -11,9 +11,3 @@ export interface Alert {
     senderId: string;
     numNurseAccepted: number;
   }
-  
-export interface GroupAlertState {
-alertQueue: Alert[];
-ongoingAlert?: Alert;
-timeoutHandle?: NodeJS.Timeout;
-}

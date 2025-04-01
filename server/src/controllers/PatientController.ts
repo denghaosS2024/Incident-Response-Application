@@ -10,6 +10,8 @@ import ROLES from '../utils/Roles'
 import HospitalController from './HospitalController'
 import UserController from './UserController'
 
+import HttpError from '../utils/HttpError'
+
 export interface IExpandedPatientInfo extends IPatientBase {
   nurse?: IUser
   hospital?: IHospital
@@ -53,7 +55,7 @@ class PatientController {
       const priorityOrder = { E: 0, '1': 1, '2': 2, '3': 3, '4': 4 } // Custom priority order
 
       const unassignedPatients = await Patient.find({
-        hospitalId: { $in: [null, ''] }, // Patients with no assigned hospital
+        // hospitalId: { $in: [null, ''] }, // Patients with no assigned hospital
         location: 'Road', // Only fetch patients where location is "Road"
         priority: { $in: ['E', '1'] },
       })
@@ -121,21 +123,36 @@ class PatientController {
   /**
    * Create a new patient
    * @param patientData - The data of the patient
+   * @param callerUid - The UID of the caller (first responder)
    * @returns The created patient
    */
-  async create(patientData) {
-    const payload = {
-      // In case the patientId is not provided, generate a new one
-      patientId: uuidv4(),
-      ...patientData,
-    }
+  async create(patientData, callerId?: string) {
+    try {
+      if (!callerId) {
+        throw new HttpError('Caller UID is required', 400)
+      }
 
-    if (Object.keys(payload).includes('name')) {
-      payload['nameLower'] = (payload['name'] ?? '').trim().toLowerCase()
-    }
+      const payload = {
+        // Generate a new patientId if not provided
+        patientId: patientData.patientId || uuidv4(),
+        ...patientData,
+        master: callerId, // Set the master field to the caller's UID
+      }
 
-    const newPatient = await new Patient(payload).save()
-    return newPatient
+      // Ensure the nameLower field is set for searching
+      if (payload.name) {
+        payload.nameLower = payload.name.trim().toLowerCase()
+      }
+
+      const newPatient = await new Patient(payload).save()
+      return newPatient
+    } catch (error) {
+      console.error('Error creating patient:', error)
+      if (error instanceof HttpError) {
+        throw error
+      }
+      throw new HttpError('Failed to create patient', 500)
+    }
   }
 
   /**
@@ -409,7 +426,11 @@ class PatientController {
     if (!patient) {
       throw new Error(`Patient with ID ${patientId} does not exist`)
     }
-    const updatedPatient = await Patient.findOneAndUpdate({ patientId }, { location }, { new: true })
+    const updatedPatient = await Patient.findOneAndUpdate(
+      { patientId },
+      { location },
+      { new: true },
+    )
     return updatedPatient
   }
 }

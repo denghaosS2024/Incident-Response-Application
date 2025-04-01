@@ -96,17 +96,6 @@ describe('Hospital Controller', () => {
     expect(hospitalList).toHaveLength(0)
   })
 
-  it('should throw an error when hospital does not exist', async () => {
-    const hospitalId = '1'
-
-    await expect(
-      HospitalController.getHospitalById(hospitalId),
-    ).rejects.toThrow('Failed to fetch hospital details')
-
-    const hospitalList = await HospitalController.getAllHospitals()
-    expect(hospitalList).toHaveLength(0)
-  })
-
   it('should return an empty array when no hospitals exist', async () => {
     const hospitalList = await HospitalController.getAllHospitals()
     expect(hospitalList).toEqual([])

@@ -224,42 +224,50 @@ carRouter.put('/cities', async (req: Request, res: Response) => {
 })
 
 /**
- * @swagger
- * /api/incidents/{id}/vehicles:
- *   put:
- *     summary: Add a vehicle to an incident
- *     tags: [Incidents]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID of the incident to update
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               personnel:
- *                 type: string
- *                 description: The personnel to assign the vehicle to
- *                 example: john_doe
- *               commandingIncident:
- *                 type: object
- *                 description: The incident object commanding by the current user
- *               vehicle:
- *                 type: string
- *                 description: The vehicle to assign to the incident
- *                 example: Car123
- *     responses:
- *       200:
- *         description: Vehicle added to incident successfully
- *       400:
- *         description: Error adding vehicle to incident: {error message}
- */
+* @swagger
+* /api/cars/usernames:
+*   put:
+*     summary: Add a username to a car
+*     description: Assigns a user to a specific car and updates incident assignment if applicable
+*     tags:
+*       - Cars
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             required:
+*               - carName
+*               - username
+*             properties:
+*               carName:
+*                 type: string
+*                 description: The name of the car to assign the user to
+*               username:
+*                 type: string
+*                 description: The username of the user to assign to the car
+*               commandingIncident:
+*                 type: object
+*                 description: Optional incident information if the user is commanding an incident
+*     responses:
+*       '200':
+*         description: User successfully assigned to car
+*         content:
+*           application/json:
+*             schema:
+*               $ref: '#/components/schemas/Car'
+*       '400':
+*         description: Bad request, invalid input or operation
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Error message explaining why the operation failed
+*/
 carRouter.put('/usernames', async (req: Request, res: Response) => {
   try {
     const { carName, username, commandingIncident } = req.body
@@ -271,6 +279,48 @@ carRouter.put('/usernames', async (req: Request, res: Response) => {
   }
 })
 
+/**
+ * @swagger
+ * /cars/usernames/release:
+ *   put:
+ *     summary: Release a username from a car
+ *     description: Removes the association between a username and a car
+ *     tags:
+ *       - Cars
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - carName
+ *               - username
+ *             properties:
+ *               carName:
+ *                 type: string
+ *                 description: The name of the car
+ *               username:
+ *                 type: string
+ *                 description: The username to release from the car
+ *     responses:
+ *       200:
+ *         description: Username successfully released from car
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Car'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ */
 carRouter.put('/usernames/release', async (req: Request, res: Response) => {
   try {
     const { carName, username } = req.body

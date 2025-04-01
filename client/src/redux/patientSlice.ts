@@ -14,7 +14,7 @@ const initialState: PatientState = {
 /* ---------------------- Async Thunk to Fetch Patients ---------------------- */
 const fetchPatients = createAsyncThunk('patient/fetchPatients', async () => {
   try {
-    const response = await request('/api/patients/location?location=Road', {
+    const response = await request('/api/patients/unassigned', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })

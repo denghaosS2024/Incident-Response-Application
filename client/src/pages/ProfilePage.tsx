@@ -32,7 +32,8 @@ export default function ProfilePage() {
     const uid = localStorage.getItem('uid') || ''
     const isViewingOwnProfile = (paramUserId || uid) === uid
     const isReadOnly = !isViewingOwnProfile
-
+    const effectiveUserId = isReadOnly ? paramUserId : uid
+    console.log('Effective UserId being used:', effectiveUserId)
     const [emergencyContacts, setEmergencyContacts] = useState<
         IEmergencyContact[]
     >([])
@@ -168,7 +169,7 @@ export default function ProfilePage() {
                         drugs?: string
                         allergies?: string
                     }
-                }>(`/api/profile/${paramUserId}`)
+                }>(`/api/profiles/${paramUserId}`)
 
                 console.log('Fetched profile data:', profileData)
             } catch (error) {
@@ -189,9 +190,9 @@ export default function ProfilePage() {
                 return
             }
 
-            if (!paramUserId) {
+            if (!uid) {
                 console.error(
-                    '❌ Cannot save profile because paramUserId is undefined.',
+                    '❌ Cannot save profile because uid is undefined.',
                 )
                 return
             }
@@ -219,22 +220,20 @@ export default function ProfilePage() {
 
             try {
                 console.log(
-                    'Retrieved uid from localStorage:',
-                    localStorage.getItem('uid'),
+                    '🔵 Attempting to save profile data for userId:',
+                    uid,
                 )
-                const userId = localStorage.getItem('uid')
-                if (!userId || userId === 'undefined') {
-                    console.error('❌ userId is missing or invalid.')
-                    return
-                }
+                console.log('Profile Data:', profileData)
 
-                await request(`/api/profile/${userId}`, {
+                await request(`/api/profiles/${uid}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(profileData),
                 })
+
+                console.log('✅ Profile saved successfully.')
             } catch (error) {
                 console.error('❌ Failed to save profile:', error)
             }
@@ -249,9 +248,47 @@ export default function ProfilePage() {
             emergencyContacts,
             medicalInfo,
             isReadOnly,
-            paramUserId,
         ],
     )
+
+    useEffect(() => {
+        const initializeProfile = async () => {
+            if (!uid) return
+
+            try {
+                const response = await request(`/api/profiles/${uid}`)
+
+                if (response) {
+                    console.log(
+                        '🟢 Profile already exists. Data loaded successfully.',
+                    )
+
+                    setName(response.name || '')
+                    setDob(
+                        response.dob
+                            ? new Date(response.dob).toISOString().split('T')[0]
+                            : '',
+                    )
+                    setSex(response.sex || '')
+                    setAddress(response.address || '')
+                    setPhone(response.phone || '')
+                    setEmail(response.email || '')
+                    setEmergencyContacts(response.emergencyContacts || [])
+                    setMedicalInfo({
+                        condition: response.medicalInfo?.condition || '',
+                        drugs: response.medicalInfo?.drugs || '',
+                        allergies: response.medicalInfo?.allergies || '',
+                    })
+                } else {
+                    console.log('🟡 Profile not found. No profile data loaded.')
+                }
+            } catch (error) {
+                console.error('❌ Failed to load profile:', error)
+            }
+        }
+
+        initializeProfile()
+    }, [uid])
 
     useEffect(() => {
         debouncedHandleSave()

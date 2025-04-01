@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import PatientController from '../controllers/PatientController'
+import HttpError from '../utils/HttpError'
 
 export default Router()
   /**
@@ -8,8 +9,15 @@ export default Router()
    * /api/patients:
    *   post:
    *     summary: Create a new patient
-   *     description: Create a new patient
+   *     description: Create a new patient. The `master` field will be automatically set to the caller's UID.
    *     tags: [Patient]
+   *     parameters:
+   *       - in: header
+   *         name: x-application-uid
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The UID of the caller, which will be set as the `master` field of the patient.
    *     requestBody:
    *       required: true
    *       content:
@@ -33,15 +41,22 @@ export default Router()
    *               $ref: '#/components/schemas/Patient'
    *       400:
    *         description: Bad request
+   *       500:
+   *         description: Internal server error
    */
   .post('/', async (request, response) => {
     try {
-      console.log('Here!')
-      const result = await PatientController.create(request.body)
+      // Extract the caller's UID from the request headers
+      const callerUid = request.headers['x-application-uid'] as string
+      if (!callerUid) {
+        throw new HttpError('Caller UID is required', 400)
+      }
+      const result = await PatientController.create(request.body, callerUid)
       response.status(201).send(result)
     } catch (e) {
-      const error = e as Error
-      response.status(400).send({ message: error.message })
+      const error = e as HttpError
+      console.error('Error creating patient:', error.message)
+      response.status(error.statusCode || 500).send({ message: error.message })
     }
   })
 
@@ -765,13 +780,18 @@ export default Router()
   .put('/:patientId/location', async (request, response) => {
     const { patientId } = request.params
     try {
-      const result = await PatientController.updateLocation(patientId, request.body.location)
+      const result = await PatientController.updateLocation(
+        patientId,
+        request.body.location,
+      )
       response.json(result)
     } catch (e) {
       const error = e as Error
       if (error.message === 'Invalid location') {
         response.status(400).json({ message: error.message })
-      } else if (error.message === `Patient with ID ${patientId} does not exist`) {
+      } else if (
+        error.message === `Patient with ID ${patientId} does not exist`
+      ) {
         response.status(404).json({ message: error.message })
       } else {
         response.status(500).json({ message: error.message })
