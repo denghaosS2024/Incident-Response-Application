@@ -76,10 +76,19 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     const navigate = useNavigate()
     const username = patient.username ?? null
     const name = patient.name ?? ''
-    const sex = patient.sex ?? ''
     const dob = patient.dob ?? ''
     const userId = localStorage.getItem('uid') || ''
     const [usernameError, setUserNameError] = useState<string>('')
+    const incident = useSelector(
+        (state: RootState) => state.incidentState.incident,
+    )
+    const questionsArray = Array.isArray(incident?.questions)
+        ? incident.questions
+        : []
+    const patientQuestion = questionsArray.find(
+        (question: any) => question.username === currentUsername,
+    )
+    const sex = (patientQuestion?.sex ?? patient.sex) || ''
 
     // Loads contacts upon page loading
 
