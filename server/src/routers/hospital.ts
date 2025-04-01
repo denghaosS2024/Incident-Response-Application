@@ -179,20 +179,43 @@ export default Router()
       }[]
 
       if (!Array.isArray(updates)) {
+        console.error('Invalid request data:', updates)
         return response.status(400).send({ message: 'Invalid request data' })
       }
+
+      for (const update of updates) {
+        if (!update.hospitalId) {
+          console.error('Invalid hospitalId in update:', update)
+          return response
+            .status(400)
+            .send({ message: 'Invalid hospitalId in update data' })
+        }
+      }
+
       // Fetch current hospital-patient mappings to compare changes
       const currentHospitalData = await Promise.all(
         updates.map(async (update) => {
           const hospital = await HospitalController.getHospitalById(
             update.hospitalId,
           )
+          if (!hospital) {
+            console.error(
+              `Hospital with ID ${update.hospitalId} does not exist`,
+            )
+            throw new HttpError(
+              `Hospital with ID ${update.hospitalId} does not exist`,
+              404,
+            )
+          }
           return {
             hospitalId: update.hospitalId,
-            currentPatients: hospital ? hospital.patients : [],
+            currentPatients: hospital.patients,
           }
         }),
       )
+
+      console.log('Current hospital data:', currentHospitalData)
+
       const results = await HospitalController.updateMultipleHospitals(updates)
 
       const patientUpdatePromises = updates.flatMap((update) =>
@@ -216,12 +239,6 @@ export default Router()
       // TO-DO: Implement in a more efficient algorithm to avoid array comparison, can be refactor for sprint 3
       // Compare current and updated patient lists, and broadcast only if changes occurred
 
-      /**
-       * Compare two arrays for equality (ignoring order)
-       * @param arr1 - The first array
-       * @param arr2 - The second array
-       * @returns True if the arrays are equal, false otherwise
-       */
       const arraysEqual = (
         arr1: (string | ObjectId)[],
         arr2: (string | ObjectId)[],

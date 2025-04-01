@@ -108,10 +108,14 @@ describe('Router - Hospital', () => {
     ]
 
     // Act & Assert
-    await request(app)
+    const response = await request(app)
       .patch('/api/hospital/patients/batch')
       .send(updates)
-      .expect(500)
+      .expect(404)
+
+    // Debugging logs
+    console.log('Response status:', response.status)
+    console.log('Response body:', response.body)
 
     // expect(response.body.message).toBe('One or more hospitals do not exist')
   })
@@ -147,7 +151,7 @@ describe('Router - Hospital', () => {
     await request(app)
       .patch('/api/hospital/patients/batch')
       .send(updates)
-      .expect(500) // should change later
+      .expect(400) // should change later
 
     // expect(response.body.message).toBe('Invalid hospitalId in update data')
   })

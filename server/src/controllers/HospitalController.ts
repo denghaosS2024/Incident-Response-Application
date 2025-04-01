@@ -40,7 +40,7 @@ class HospitalController {
       return hospital
     } catch (error) {
       console.error('Error fetching hospital details:', error)
-      throw new Error('Failed to fetch hospital details')
+      throw new HttpError(`Hospital with ID ${hospitalId} does not exist`, 404)
     }
   }
 
