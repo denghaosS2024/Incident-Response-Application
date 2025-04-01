@@ -29,6 +29,15 @@ const Messages: React.FC = () => {
     navigate({ search: '' })
   }
 
+  // Effect to update selected channel when URL params change
+  useEffect(() => {
+    const channelId = query.get('channelId')
+    console.log('URL params changed, channelId:', channelId)
+    if (channelId) {
+      setSelectedChannel(channelId)
+    }
+  }, [search]) // Re-run when URL search params change
+
   useEffect(() => {
     const uid = localStorage.getItem('uid')
     // Function to fetch channels

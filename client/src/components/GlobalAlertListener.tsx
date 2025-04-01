@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { updateMessage } from '../redux/messageSlice'
 import request from '../utils/request'
 import SocketClient from '../utils/Socket'
@@ -11,6 +12,7 @@ import DirectNurseAlert from './DirectNurseAlert'
  */
 const GlobalAlertListener: React.FC = () => {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const currentUserId = localStorage.getItem('uid')
   const currentUserRole = localStorage.getItem('role')
   
@@ -86,6 +88,14 @@ const GlobalAlertListener: React.FC = () => {
       );
 
       dispatch(updateMessage(response));
+      
+      // Navigate to the hospital group chat when alert is accepted
+      // Use the group ID from the alert to navigate to the corresponding channel
+      if (currentAlert.groupId) {
+        console.log('GlobalAlertListener: Navigating to group chat:', currentAlert.groupId);
+        navigate(`/messages?channelId=${currentAlert.groupId}`);
+      }
+      
       setCurrentAlert(null);
     } catch (error) {
       console.error('Error acknowledging alert:', error);
