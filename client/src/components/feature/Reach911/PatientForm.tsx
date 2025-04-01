@@ -34,7 +34,6 @@ const PatientForm: React.FC<{ username?: string }> = ({
     const sex = medicalQuestions.sex ?? ''
     const age = medicalQuestions.age ?? 0
     const name = ''
-    const patientId = incident.patientId || ''
     const [usernameError, setUserNameError] = useState<string>('')
     const [newUsername, setNewUsername] = useState<string>('')
     const [isCreatingNewAccount, setIsCreatingNewAccount] =

@@ -30,9 +30,9 @@ export default function ProfilePage() {
     const mapboxToken = Globals.getMapboxToken()
     const patientUserId = localStorage.getItem('patientUserId') || ''
     const uid = localStorage.getItem('uid') || ''
-    const isViewingOwnProfile = (paramUserId || uid) === uid
-    const isReadOnly = !isViewingOwnProfile
-    const effectiveUserId = isReadOnly ? paramUserId : uid
+    const isViewingOwnProfile = !paramUserId || paramUserId === uid
+    const isReadOnly = paramUserId !== undefined && paramUserId !== uid
+    const effectiveUserId = paramUserId || uid
     console.log('Effective UserId being used:', effectiveUserId)
     const [emergencyContacts, setEmergencyContacts] = useState<
         IEmergencyContact[]
@@ -190,9 +190,11 @@ export default function ProfilePage() {
                 return
             }
 
-            if (!uid) {
+            const userIdToUse = effectiveUserId
+
+            if (!userIdToUse) {
                 console.error(
-                    '❌ Cannot save profile because uid is undefined.',
+                    '❌ Cannot save profile because userId is undefined.',
                 )
                 return
             }
@@ -221,11 +223,11 @@ export default function ProfilePage() {
             try {
                 console.log(
                     '🔵 Attempting to save profile data for userId:',
-                    uid,
+                    userIdToUse,
                 )
                 console.log('Profile Data:', profileData)
 
-                await request(`/api/profiles/${uid}`, {
+                await request(`/api/profiles/${userIdToUse}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -253,16 +255,17 @@ export default function ProfilePage() {
 
     useEffect(() => {
         const initializeProfile = async () => {
-            if (!uid) return
+            if (!effectiveUserId) return
 
             try {
-                const response = await request(`/api/profiles/${uid}`)
+                const response = await request(
+                    `/api/profiles/${effectiveUserId}`,
+                )
 
                 if (response) {
                     console.log(
                         '🟢 Profile already exists. Data loaded successfully.',
                     )
-
                     setName(response.name || '')
                     setDob(
                         response.dob
@@ -288,7 +291,7 @@ export default function ProfilePage() {
         }
 
         initializeProfile()
-    }, [uid])
+    }, [effectiveUserId])
 
     useEffect(() => {
         debouncedHandleSave()

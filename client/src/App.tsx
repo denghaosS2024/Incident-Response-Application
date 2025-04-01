@@ -113,7 +113,7 @@ export default function App() {
                             element={<ViewOrganization />}
                         />
                         <Route
-                            path="/profile/:username?"
+                            path="/profile/:userId"
                             element={<ProfilePage />}
                         />
 

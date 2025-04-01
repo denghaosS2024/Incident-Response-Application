@@ -27,6 +27,7 @@ import { v4 as uuidv4 } from 'uuid'
 import IUser from '../../../models/User'
 import { loadContacts } from '../../../redux/contactSlice'
 import { AppDispatch, RootState } from '../../../redux/store'
+import request from '../../../utils/request'
 import Loading from '../../common/Loading'
 
 const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
@@ -75,7 +76,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     const name = patient.name ?? ''
     const sex = patient.sex ?? ''
     const dob = patient.dob ?? ''
-
+    const userId = localStorage.getItem('uid') || ''
     const [usernameError, setUserNameError] = useState<string>('')
 
     // Loads contacts upon page loading
@@ -127,6 +128,35 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
             setUserNameError(
                 !value || value === 'Select One' ? 'Select a username' : '',
             )
+        }
+    }
+
+    const handleProfileClick = async () => {
+        if (!username) {
+            alert('Username is missing.')
+            return
+        }
+
+        try {
+            const response = await request(
+                `/api/users/findByUsername?username=${username}`,
+                {
+                    method: 'GET',
+                },
+            )
+
+            if (response && response.userId) {
+                const fetchedUserId = response.userId
+                console.log('Fetched userId:', fetchedUserId)
+                navigate(`/profile/${fetchedUserId}`)
+            } else {
+                alert(
+                    'User not found. Please make sure the username is correct.',
+                )
+            }
+        } catch (error) {
+            console.error('Failed to fetch userId by username:', error)
+            alert('Error fetching user information. Please try again later.')
         }
     }
 
@@ -286,16 +316,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                         cursor: 'pointer',
                         fontSize: '16px',
                     }}
-                    onClick={() => {
-                        // Check if patientId exists before navigating
-                        if (!patient.patientId) {
-                            alert(
-                                'Patient ID is missing. Please complete patient information.',
-                            )
-                            return
-                        }
-                        navigate(`/patient-profile/${patient.patientId}`)
-                    }}
+                    onClick={handleProfileClick}
                 >
                     Profile
                 </button>
