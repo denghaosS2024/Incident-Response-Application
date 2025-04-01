@@ -139,7 +139,7 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
           </Button>
           <Button
             component={Link}
-            href='/patients'  // TODO: redirect to patient page
+            href='/patients/admit'
             className={styles.primaryBtn}
             variant="contained"
             disabled={readOnly || !allowTreatVictim}
