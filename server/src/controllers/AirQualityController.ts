@@ -1,8 +1,8 @@
 import fetch from 'node-fetch'
 import { Server as SocketIOServer } from 'socket.io'
 import AirQuality from '../models/AirQuality'
+import { aqiFromPM, calculateDistance, getBoundingBox } from '../utils/AirQualityUtils'
 import Env from '../utils/Env'
-import { aqiFromPM, calculateDistance, getBoundingBox } from '../utils/airQualityUtils'
 
 const PURPLEAIR_API_URL = Env.getPurpleAirUrl()
 const PURPLEAIR_API_KEY = Env.getPurpleAirKey()
