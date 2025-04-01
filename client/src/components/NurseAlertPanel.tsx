@@ -17,10 +17,7 @@ import IPatient from '../models/Patient'
 import IUser from '../models/User'
 import { addMessage } from '../redux/messageSlice'
 import { AppDispatch } from '../redux/store'
-import {
-  selectCurrentHospitalId,
-  setCurrentHospitalId,
-} from '../redux/userHospitalSlice'
+import { selectCurrentHospitalId } from '../redux/userHospitalSlice'
 import { loadHospitalContext } from '../utils/hospitalGroupUtils'
 import request from '../utils/request'
 
@@ -64,44 +61,13 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 
   // Get the hospital ID from the channel if available
   useEffect(() => {
+    // Only try to load hospital context if we're in a specific channel
     if (channelId && channelId !== 'general') {
-      // Use the utility function to load hospital context
+      console.log('Loading hospital context for channel:', channelId)
       // This will automatically set currentHospitalId in Redux if successful
-      loadHospitalContext(channelId, dispatch).then(() => {
-        if (currentHospitalId) {
-          console.log(
-            'Hospital context loaded for channel:',
-            channelId,
-            'Hospital ID:',
-            currentHospitalId,
-          )
-        }
-      })
-    } else if (!currentHospitalId) {
-      // If we're not in a hospital channel and no hospital ID is set in Redux,
-      // try to get the current user's hospital ID from their profile
-
-      const currentUserId = localStorage.getItem('uid')
-      if (currentUserId) {
-        request(`/api/users/${currentUserId}`)
-          .then((userData) => {
-            console.log('Full user data received:', userData)
-            if (userData && userData.hospitalId) {
-              console.log(
-                'Setting hospital ID from user profile:',
-                userData.hospitalId,
-              )
-              dispatch(setCurrentHospitalId(userData.hospitalId))
-            } else {
-              console.log('User has no hospital ID in their profile')
-            }
-          })
-          .catch((err) => {
-            console.error('Error fetching user data:', err)
-          })
-      }
+      loadHospitalContext(channelId, dispatch)
     }
-  }, [channelId, dispatch, currentHospitalId])
+  }, [channelId, dispatch])
 
   useEffect(() => {
     const fetchData = async () => {

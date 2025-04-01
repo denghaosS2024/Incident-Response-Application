@@ -1,6 +1,8 @@
 import { Box } from '@mui/material'
 import React, { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { setCurrentHospitalId } from '../redux/userHospitalSlice'
 import ChannelList from '../components/ChannelList'
 import ChatRoom from '../components/ChatRoom'
 
@@ -15,6 +17,7 @@ const Messages: React.FC = () => {
 
   const { search } = useLocation()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const query = new URLSearchParams(search)
 
   // query.get("channelId") allows us to enter the Messages by going into the specific channel.
@@ -38,6 +41,44 @@ const Messages: React.FC = () => {
     }
   }, [search]) // Re-run when URL search params change
 
+  // Effect for initializing hospital ID when Messages page loads
+  useEffect(() => {
+    const initializeHospitalId = async () => {
+      const currentUserId = localStorage.getItem('uid')
+      const currentRole = localStorage.getItem('role')
+      
+      // Check if user is a nurse - if not, we don't need to set hospital ID
+      if (!currentUserId || currentRole !== 'Nurse') return
+      
+      try {
+        // First check if we already have a hospital ID in sessionStorage
+        const cachedHospitalId = sessionStorage.getItem('currentHospitalId')
+        if (cachedHospitalId) {
+          console.log('Messages: Using cached hospital ID:', cachedHospitalId)
+          dispatch(setCurrentHospitalId(cachedHospitalId))
+          return
+        }
+        
+        // If no cached ID, fetch from profile
+        console.log('Messages: Fetching user data to set hospital ID')
+        const userData = await request(`/api/users/${currentUserId}`)
+        
+        if (userData && userData.hospitalId) {
+          console.log('Messages: Setting hospital ID:', userData.hospitalId)
+          dispatch(setCurrentHospitalId(userData.hospitalId))
+          sessionStorage.setItem('currentHospitalId', userData.hospitalId)
+        } else {
+          console.log('Messages: User has no hospital ID in their profile')
+        }
+      } catch (error) {
+        console.error('Messages: Error fetching hospital ID:', error)
+      }
+    }
+    
+    // Run the initialization
+    initializeHospitalId()
+  }, [dispatch]) // Re-run if dispatch changes (should never happen)
+  
   useEffect(() => {
     const uid = localStorage.getItem('uid')
     // Function to fetch channels
