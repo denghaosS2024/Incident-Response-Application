@@ -1,42 +1,129 @@
-import { Box, Typography, Paper } from '@mui/material'
-import React from 'react'
+import { NavigateNext as Arrow } from '@mui/icons-material'
+import HomeIcon from '@mui/icons-material/Home'
+import { Box, IconButton, List, ListItem, ListItemAvatar, ListItemText, Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
+import IIncident, { ISarTask } from '../../../models/Incident'
 
-const SARStep2: React.FC = () => {
+import { RootState } from '../../../redux/store'
+import request from '../../../utils/request'
+
+const getTaskIcon = (status: string) => {
+  if (status === 'InProgress') {
+    return <HomeIcon style={{ color: '#2196f3', marginLeft: '10'}} />;  // Blue icon for InProgress
+  }
+  return <HomeIcon style={{ color: '#f44336', marginLeft: '10' }} />;  // Red icon for Todo
+}
+
+interface TaskStatsProps {
+  incidentId: string;
+}
+
+const SARStep2: React.FC<TaskStatsProps> = () => {
+  const [tasks, setTasks] = useState<ISarTask[]>([])
+  const [taskIndices, setTaskIndices] = useState<{ [key: string]: number | null }>({}) // Store task index by _id
+  const incident: IIncident = useSelector(
+    (state: RootState) => state.incidentState.incident,
+  )
+
+  const fetchNotDoneTasks = async () => {
+    try {
+      const incidentDoc = await request(`/api/incidents?incidentId=${incident.incidentId}`, { method: 'GET' })
+
+      if (incidentDoc && incidentDoc[0].sarTasks) {
+        const filteredTasks = incidentDoc[0].sarTasks.filter(
+          (task: ISarTask) => task.state === 'InProgress' || task.state === 'Todo'
+        )
+        setTasks(filteredTasks)
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchNotDoneTasks()
+  }, [incident.incidentId])
+
+  const getTaskIndex = async (taskId: string) => {
+    try {
+      const incidentDoc = await request(`/api/incidents?incidentId=${incident.incidentId}`, { method: 'GET' })
+      if (incidentDoc && incidentDoc[0].sarTasks) {
+        const taskIndex = incidentDoc[0].sarTasks.findIndex((task: ISarTask) => task._id === taskId)
+        return taskIndex !== -1 ? taskIndex : null
+      }
+    } catch (error) {
+      console.error('Error fetching task index:', error)
+    }
+  }
+
+  useEffect(() => {
+    const fetchIndices = async () => {
+      const indices: { [key: string]: number | null } = {}
+      for (const task of tasks) {
+        const index = await getTaskIndex(task._id)
+        if (index !== null) {
+          indices[task._id] = index
+        }
+      }
+      setTaskIndices(indices)
+    }
+
+    if (tasks.length > 0) {
+      fetchIndices()
+    }
+  }, [tasks, incident.incidentId])
+
   return (
-    <Box sx={{ p: 3, maxWidth: '900px', mx: 'auto' }}>
-      <Typography variant="h5" align="center" gutterBottom>
-        Missing Person Details
+    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 4, p: 2 }}>
+      <Typography variant="h5" sx={{ mb: 2, textAlign: 'center' }}>
+        Tasks TO-DO and IN-PROGRESS
       </Typography>
-      <Typography variant="subtitle1" align="center" sx={{ mb: 3 }}>
-        Please provide information about the missing person
-      </Typography>
+      {tasks.length > 0 ? (
+        <List>
+          {tasks.map((task) => {
+            const taskIndex = taskIndices[task._id]
+            return (
+              <ListItem
+                key={task._id} // Use _id as the unique key
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center', // Ensures vertical alignment
+                  borderBottom: '1px solid #ddd',
+                  padding: '10px',
+                  border: '1.5px solid #ddd',
+                  borderRadius: '8px',
+                  '&:hover': { backgroundColor: '#f5f5f5' },
+                }}
+              >
+                {/* Left side: Image and task name */}
+                <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                <ListItemAvatar>
+                    {getTaskIcon(task.state)}  {/* Display the appropriate icon */}
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={task.address ? task.address : "No address"} // Display task address or fallback message
+                  />
+                </Box>
 
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Personal Information
+                {/* Right side: Arrow as a Link */}
+                {taskIndex !== undefined && taskIndex !== null ? (
+                  <a href={`/sar-task/${incident.incidentId}?taskId=${taskIndex}`} style={{ textDecoration: 'none' }}>
+                    <IconButton edge="end" size="large">
+                      <Arrow />
+                    </IconButton>
+                  </a>
+                ) : null}
+              </ListItem>
+            )
+          })}
+        </List>
+      ) : (
+        <Typography sx={{ textAlign: 'center', color: 'gray' }}>
+          No tasks available.
         </Typography>
-        <Typography variant="body1">
-          This section will allow entry of personal details like name, age, gender, physical description, etc.
-        </Typography>
-      </Paper>
-
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Last Known Information
-        </Typography>
-        <Typography variant="body1">
-          This section will capture details about when and where the person was last seen, what they were wearing, etc.
-        </Typography>
-      </Paper>
-
-      <Paper elevation={2} sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Medical & Contact Information
-        </Typography>
-        <Typography variant="body1">
-          This section will record medical conditions, whether they have a phone, and other relevant details.
-        </Typography>
-      </Paper>
+      )}
     </Box>
   )
 }

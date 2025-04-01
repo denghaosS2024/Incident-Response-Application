@@ -1,8 +1,8 @@
+import { Box, Typography } from '@mui/material'
 import Button from '@mui/material/Button'
 import React, { useEffect, useState } from 'react'
 import ClickableStepper from '../components/ClickableStepper'
 import styles from '../styles/Reach911Page.module.css'
-import { Box, Typography } from '@mui/material'
 
 import { useDispatch, useSelector } from 'react-redux'
 import {useLocation, useSearchParams, useNavigate} from 'react-router-dom'
@@ -221,9 +221,9 @@ const SARIncidentPage: React.FC = () => {
             isCreatedByFirstResponder={isCreatedByFirstResponder}
             incidentId={incidentId}
         />,
-        <SARStep2 />,
-        <SARStep3 />,
-        <SARStep4 />,
+        <SARStep2 incidentId={incidentId}/>,
+        <SARStep3 incidentId={incidentId}/>,
+        <SARStep4 incidentId={incidentId}/>,
         <SARStep5 incidentId={incidentId} />,
     ]
 
@@ -300,13 +300,20 @@ const SARIncidentPage: React.FC = () => {
 
     const lockedContents = contents.map((content, index) =>
         readOnly ? (
-            <div key={index} style={{ pointerEvents: 'none' }}>
+            <div
+                key={index}
+                style={{
+                    pointerEvents: index === 1 || index === 2 || index === 3 ? 'auto' : 'none',
+                }}
+            >
                 {content}
             </div>
         ) : (
             content
         ),
     )
+    
+    
 
     return (
         <div className={styles.wrapper}>
