@@ -10,9 +10,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
     totalSteps,
 }) => {
     const positionPercentage =
-        totalSteps === 1
-            ? 50 // 如果只有一步，放在中间
-            : (currentStep - 1) * (100 / (totalSteps - 1))
+        totalSteps === 1 ? 50 : (currentStep - 1) * (100 / (totalSteps - 1))
 
     return (
         <div className="relative w-full h-6 flex items-center mb-2">
