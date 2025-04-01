@@ -33,15 +33,16 @@ export const Channel: FunctionComponent<IChannelProps> = ({
   channel: { _id, name, users, owner },
   onClick,
   isSettingButton = false,
-  selectedChannelId, 
+  selectedChannelId,
   sx = {},
   settingButtonSx = {},
   settingButtonLinkSx = {},
-  
+
 }) => {
   // Get current username to check if it's their 911 channel
   const currentUsername = localStorage.getItem('username')
   const currentUserId = localStorage.getItem('uid')
+  
   const displayName = name === `I${currentUsername}_911` ? '911 Call' : name
   let contactIcon: JSX.Element | null = null
   if (!owner && name !== 'Public') {
