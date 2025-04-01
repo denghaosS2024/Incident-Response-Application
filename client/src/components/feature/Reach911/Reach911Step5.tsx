@@ -18,7 +18,6 @@ import { updateIncident } from '../../../redux/incidentSlice'
 import type { AppDispatch } from '../../../redux/store'
 import request from '../../../utils/request'
 import ConfirmationDialog from '../../common/ConfirmationDialog'
-import { set } from 'lodash'
 
 interface Reach911Step5Props {
     incidentId?: string
@@ -214,6 +213,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
 
     const handleCancelCloseIncident = () => {
         setShowCommanderSelect(false)
+        setShowCloseConfirm(false)
     }
 
     const handleConfirmCloseIncident = async () => {
@@ -308,8 +308,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             if (newCommander === currentUsername) {
                 setAmICommander(true)
                 setCurrentCommander('You')
-            } else
-                setCurrentCommander(newCommander)
+            } else setCurrentCommander(newCommander)
         } catch (err) {
             console.error('Error updating incident:', err)
             setError('Failed to update incident')
@@ -558,7 +557,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 open={showCloseConfirm}
                 title="Confirm Close"
                 description="Are you sure you want to close this incident? This action cannot be undone."
-                onConfirm={handleConfirmCommanderSelect}
+                onConfirm={handleConfirmCloseIncident}
                 onCancel={handleCancelCloseIncident}
                 confirmText="Yes"
                 cancelText="No"
