@@ -4,12 +4,14 @@ import haversine from 'haversine-distance';
 export const calculateDistance = (...[lat1, lon1, lat2, lon2]: number[]) => {
     const point1 = { latitude: lat1, longitude: lon1 };
     const point2 = { latitude: lat2, longitude: lon2 };
-    return haversine(point1, point2) / 1609.34; // Convert meters to miles
+    // Convert meters to miles
+    return haversine(point1, point2) / 1609.34;
 };
 
 // Get bounding box for a radius, default is 10 miles
 export const getBoundingBox = (lat: number, lon: number, radiusMiles = 10) => {
-    const earthRadiusMiles = 3958.8 // Earth's radius in miles
+    // Earth's radius in miles
+    const earthRadiusMiles = 3958.8
     const latChange = (radiusMiles / earthRadiusMiles) * (180 / Math.PI)
     const lonChange = ((radiusMiles / earthRadiusMiles) * (180 / Math.PI)) / Math.cos((lat * Math.PI) / 180)
 

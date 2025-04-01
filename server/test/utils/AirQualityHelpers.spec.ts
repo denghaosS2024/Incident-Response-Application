@@ -1,4 +1,4 @@
-import { aqiFromPM, calcAQI, calculateDistance, getBoundingBox } from '../../src/utils/AirQualityUtils';
+import { aqiFromPM, calcAQI, calculateDistance, getBoundingBox } from '../../src/utils/AirQualityHelpers';
 
 describe('calculateDistance', () => {
   it('should return 0 for identical points', () => {
