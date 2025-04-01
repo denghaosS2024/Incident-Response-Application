@@ -8,4 +8,5 @@ export default interface IPatient {
     priority?: string
     status?: string
     location?: string
+    master?: string
 }

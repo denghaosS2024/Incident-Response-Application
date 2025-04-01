@@ -108,6 +108,46 @@ describe('Router - Incident', () => {
         expect(incidents.length).toBeGreaterThan(0)
     })
 
+    it('should return the incidents if given channelId is respondersgroup', async () => {
+        // Create an incident
+        const user = "useless"
+        await Incident.create({
+            incidentId: 'Iuseless',
+            caller: user,
+            incidentState: 'Assigned',
+            owner: user,
+            commander: user,
+            address: '',
+            type: 'U',
+            priority: 'E',
+            incidentCallGroup: null,
+            assignedVehicles: [],
+            assignHistory: [],
+        })
+        const testIncident = await Incident.create({
+            incidentId: 'IChannel',
+            caller: username,
+            incidentState: 'Assigned',
+            owner: username,
+            commander: username,
+            address: '',
+            type: 'U',
+            priority: 'E',
+            incidentCallGroup: null,
+            assignedVehicles: [],
+            assignHistory: [],
+            respondersGroup: new Types.ObjectId,
+        })
+
+        const { body: incidents } = await request(app)
+            .get('/api/incidents')
+            .query({ channelId: testIncident.respondersGroup?.toString(),})
+            .expect(200)
+
+        expect(incidents.length).toBe(1)
+        expect(incidents[0].incidentId).toBe('IChannel')
+    })
+
     it('should return 500 for error in getting all incidents', async () => {
         // Mock the find method to throw an error
         const fakeQuery: Partial<Query<IIncident[], IIncident>> = {
