@@ -1,37 +1,37 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IVisitLog {
-    dateTime: Date
-    incidentId: string
-    priority: 'E' | '1' | '2' | '3' | '4'
-    location: 'Road' | 'ER'
-    age?: number | null
-    conscious?: 'Yes' | 'No' | null
-    breathing?: 'Yes' | 'No' | null
-    chiefComplaint?: string | null
-    condition?:
-      | 'Allergy'
-      | 'Asthma'
-      | 'Bleeding'
-      | 'Broken bone'
-      | 'Burn'
-      | 'Choking'
-      | 'Concussion'
-      | 'Covid-19'
-      | 'Heart Attack'
-      | 'Heat Stroke'
-      | 'Hypothermia'
-      | 'Poisoning'
-      | 'Seizure'
-      | 'Shock'
-      | 'Strain'
-      | 'Sprain'
-      | 'Stroke'
-      | 'Others'
-      | null
-    drugs?: string[] | null
-    allergies?: string[] | null
-    active: boolean
+  dateTime: Date
+  incidentId: string
+  priority: 'E' | '1' | '2' | '3' | '4'
+  location: 'Road' | 'ER'
+  age?: number | null
+  conscious?: 'Yes' | 'No' | null
+  breathing?: 'Yes' | 'No' | null
+  chiefComplaint?: string | null
+  condition?:
+    | 'Allergy'
+    | 'Asthma'
+    | 'Bleeding'
+    | 'Broken bone'
+    | 'Burn'
+    | 'Choking'
+    | 'Concussion'
+    | 'Covid-19'
+    | 'Heart Attack'
+    | 'Heat Stroke'
+    | 'Hypothermia'
+    | 'Poisoning'
+    | 'Seizure'
+    | 'Shock'
+    | 'Strain'
+    | 'Sprain'
+    | 'Stroke'
+    | 'Others'
+    | null
+  drugs?: string[] | null
+  allergies?: string[] | null
+  active: boolean
 }
 
 // Base interface without Document extension
@@ -45,6 +45,7 @@ export interface IPatientBase {
   status?: string
   location?: string
   visitLog?: IVisitLog[]
+  master?: Schema.Types.ObjectId // The first responder of this patient
 }
 
 // Document interface for Mongoose
@@ -64,7 +65,7 @@ const VisitLogSchema = new Schema(
       type: String,
       enum: ['E', '1', '2', '3', '4'],
       default: 'E',
-      required: true
+      required: true,
     },
     location: {
       type: String,
@@ -122,11 +123,11 @@ const VisitLogSchema = new Schema(
       default: undefined,
     },
     active: {
-        type: Boolean,
-        default: true,
+      type: Boolean,
+      default: true,
     },
   },
-  { _id: false }
+  { _id: false },
 )
 
 export const PatientSchema = new Schema({
@@ -170,7 +171,7 @@ export const PatientSchema = new Schema({
    */
   location: {
     type: String,
-    enum: ['ER','Road'],
+    enum: ['ER', 'Road'],
   },
 
   /**
@@ -195,7 +196,16 @@ export const PatientSchema = new Schema({
   visitLog: {
     type: [VisitLogSchema],
     default: [],
-    required: true
+    required: true,
+  },
+
+  /**
+   * Master (first responder) of the patient
+   */
+  master: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: false,
   },
 })
 
