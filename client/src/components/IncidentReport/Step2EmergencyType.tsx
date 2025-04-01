@@ -1,10 +1,9 @@
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
+import LocalPoliceIcon from '@mui/icons-material/LocalPolice'
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices'
 import { Box, Paper, Typography } from '@mui/material'
 import React from 'react'
 import type IIncident from '../../models/Incident'
-// 导入SVG图标
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment' // 火灾图标
-import LocalPoliceIcon from '@mui/icons-material/LocalPolice' // 警察图标
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices' // 医疗图标
 import StepIndicator from '../common/StepIndicator'
 
 interface Step2EmergencyTypeProps {

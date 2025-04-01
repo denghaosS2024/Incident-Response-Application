@@ -18,6 +18,8 @@ interface Message {
     timestamp: string
     senderName?: string
     senderRole?: string
+    isAlert?: boolean
+    messageGroup?: 'caller' | 'responder'
 }
 
 const Step4Communication: React.FC<Step4CommunicationProps> = ({
@@ -73,6 +75,8 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
                                         message.sender.username ||
                                         'Unknown User',
                                     senderRole: message.sender.role || '',
+                                    messageGroup: 'caller', // Add message group identifier
+                                    isAlert: message.isAlert || false,
                                 })
                             } catch (error) {
                                 console.warn(
@@ -89,6 +93,7 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
                                     timestamp: message.timestamp,
                                     senderName: 'Unknown User',
                                     senderRole: '',
+                                    messageGroup: 'caller', // Add message group identifier
                                 })
                             }
                         }
@@ -132,6 +137,8 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
                                         message.sender.username ||
                                         'Unknown User',
                                     senderRole: message.sender.role || '',
+                                    messageGroup: 'responder', // Add message group identifier
+                                    isAlert: message.isAlert || false,
                                 })
                             } catch (error) {
                                 console.warn(
@@ -148,6 +155,7 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
                                     timestamp: message.timestamp,
                                     senderName: 'Unknown User',
                                     senderRole: '',
+                                    messageGroup: 'responder', // Add message group identifier
                                 })
                             }
                         }
@@ -213,6 +221,14 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
     }
 
     const getMessageColor = (message: Message) => {
+        // First check the message group
+        if (message.messageGroup === 'caller') {
+            return '#ffebee' // Light pink for caller group
+        } else if (message.messageGroup === 'responder') {
+            return '#00000' // Light blue for responder group
+        }
+
+        // Fallback to using sender name/role if messageGroup is not available
         const name = message.senderName || ''
 
         if (
@@ -220,10 +236,34 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
             name.toLowerCase().includes('911') ||
             name === incidentData.caller
         ) {
-            return '#ffebee'
+            return '#ffebee' // Light pink
         }
 
         return 'white'
+    }
+
+    // Function to parse alert content and extract colors
+    const parseAlertContent = (message: Message) => {
+        if (!message.isAlert)
+            return { text: '', bgColor: null, textColor: null }
+
+        // Split the content by the first dash
+        const parts = message.content.split('-')
+
+        // Get the alert text (before the first dash)
+        const text = parts[0]
+
+        // Get the background color (after the first dash)
+        const bgColor = parts.length > 1 ? parts[1] : '#00e6e6'
+
+        // Get the text color (after the second dash, default to black)
+        const textColor = parts.length > 2 ? parts[2] : 'black'
+
+        console.log(
+            `Parsed alert content: text=${text}, bgColor=${bgColor}, textColor=${textColor}`,
+        )
+
+        return { text, bgColor, textColor }
     }
 
     const formatTimestamp = (timestamp: string) => {
@@ -272,46 +312,84 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
             </Typography>
 
             {messages.length > 0 ? (
-                messages.map((message, index) => (
-                    <Paper
-                        key={message._id || index}
-                        elevation={1}
-                        sx={{
-                            p: 2,
-                            mb: 2,
-                            bgcolor: getMessageColor(message),
-                            borderRadius: 1,
-                        }}
-                    >
-                        <Box
+                messages.map((message, index) => {
+                    // Parse alert content if this is an alert message
+                    const { text, bgColor, textColor } = message.isAlert
+                        ? parseAlertContent(message)
+                        : { text: '', bgColor: null, textColor: null }
+
+                    return (
+                        <Paper
+                            key={message._id || index}
+                            elevation={1}
                             sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                mb: 0.5,
+                                p: 2,
+                                mb: 2,
+                                bgcolor: getMessageColor(message),
+                                borderRadius: 1,
                             }}
                         >
-                            {getMessageIcon(message)}
-                            <Typography
-                                variant="subtitle1"
-                                fontWeight="bold"
-                                sx={{ ml: getMessageIcon(message) ? 1 : 0 }}
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    mb: 0.5,
+                                }}
                             >
-                                {message.senderName || 'Unknown User'}
+                                {getMessageIcon(message)}
+                                <Typography
+                                    variant="subtitle1"
+                                    fontWeight="bold"
+                                    sx={{ ml: getMessageIcon(message) ? 1 : 0 }}
+                                >
+                                    {message.senderName || 'Unknown User'}
+                                </Typography>
+                            </Box>
+
+                            {/* For alert messages, show the text part of the content */}
+                            <Typography variant="body1">
+                                {message.isAlert ? text : message.content}
                             </Typography>
-                        </Box>
-                        <Typography variant="body1">
-                            {message.content}
-                        </Typography>
-                        <Typography
-                            variant="caption"
-                            align="right"
-                            component="div"
-                            sx={{ mt: 1 }}
-                        >
-                            {formatTimestamp(message.timestamp)}
-                        </Typography>
-                    </Paper>
-                ))
+
+                            {/* Display alert box if it's an alert message */}
+                            {message.isAlert && (
+                                <Box
+                                    sx={{
+                                        mt: 2,
+                                        display: 'flex',
+                                        justifyContent: 'flex-start',
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            bgcolor: bgColor,
+                                            color: textColor,
+                                            py: 2,
+                                            px: 4,
+                                            borderRadius: 1,
+                                            fontWeight: 'bold',
+                                            fontSize: '1.1rem',
+                                            display: 'inline-block',
+                                            minWidth: '150px',
+                                            textAlign: 'center',
+                                        }}
+                                    >
+                                        {text}
+                                    </Box>
+                                </Box>
+                            )}
+
+                            <Typography
+                                variant="caption"
+                                align="right"
+                                component="div"
+                                sx={{ mt: 1 }}
+                            >
+                                {formatTimestamp(message.timestamp)}
+                            </Typography>
+                        </Paper>
+                    )
+                })
             ) : (
                 <Typography variant="body1" color="text.secondary">
                     No communication messages available for this incident.
