@@ -40,6 +40,7 @@ export interface IChannleModel extends Model<IChannel> {
     getGroupOwnedByUser: (userId: Types.ObjectId) => Promise<IChannel[]>
     ensureSystemDefinedGroup: () => Promise<void>
     closeChannel: (channelId: Types.ObjectId) => Promise<IChannel>
+    getByName: (name: string) => Promise<IChannel>
 }
 
 /**
@@ -89,6 +90,13 @@ ChannelSchema.statics.getPublicChannel = async () => {
     } else {
         return new Channel({ name: PUBLIC_CHANNEL_NAME }).save()
     }
+}
+
+/**
+ * Static method to get a channel by its name
+ */
+ChannelSchema.statics.getByName = async (name: string) => {
+  return Channel.findOne({ name: name }).exec()
 }
 
 /**

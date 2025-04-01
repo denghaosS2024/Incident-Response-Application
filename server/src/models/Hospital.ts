@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema, Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
+// TODO: The totalnumberofpatients field is redundant and should be removed in the future, can just use patients.length
 export interface IHospital extends Document {
   hospitalId: string
   hospitalName: string

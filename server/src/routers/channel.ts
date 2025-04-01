@@ -435,6 +435,48 @@ export default Router()
     }
     return response.send(channel.messages)
   })
+
+
+  // GET channle by name
+  /**
+   * @swagger
+   * /api/channels/name/{name}:
+   *   get:
+   *     summary: Get a channel by name
+   *     description: Get a channel by its name
+   *     tags: [Channels]
+   *     parameters:
+   *       - in: path
+   *         name: name
+   *         required: true
+   *         schema:
+   *           type: string
+   *           description: Channel name
+   *     responses:
+   *       200:
+   *         description: Channel retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Channel'
+   */
+  .get('/name/:name', async (request, response) => {
+    const { name } = request.params
+    try {
+      const channel = await ChannelController.getByName(name)
+      if (channel === null || channel === undefined) {
+        return response
+          .status(404)
+          .send({ message: `Channel(${name}) not found.` })
+      }
+      return response.send(channel)
+    } catch (e) {
+      const error = e as Error
+      return response.status(404).send({ message: error.message })
+    }
+  })
+
+
   /**
    * Start a video conference in a channel
    * @swagger
