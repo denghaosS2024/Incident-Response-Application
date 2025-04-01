@@ -174,11 +174,11 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
                 }
 
                 // Add dispatcher or responder to channel if not already present
-                let users: IUser[] = channel?.users || null
+                const users: IUser[] = channel?.users || null
 
                 // todo: remove user system and and its previous messages
                 if (!users?.some((user) => user.id === uid)) {
-                    let userIds = users?.map((user) => user._id) || []
+                    const userIds = users?.map((user) => user._id) || []
                     userIds.push(uid)
                     await request(`/api/channels`, {
                         method: 'PUT',
