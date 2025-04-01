@@ -10,6 +10,7 @@ import Incident, {
 } from '../../src/models/Incident'
 import ROLES from '../../src/utils/Roles'
 import * as TestDatabase from '../utils/TestDatabase'
+import ChannelController from '../../src/controllers/ChannelController'
 
 describe('Incident Controller', () => {
     beforeAll(TestDatabase.connect)
@@ -366,7 +367,7 @@ describe('Incident Controller', () => {
             incidentState: 'Assigned',
             owner: username,
             commander: username,
-            type: 'S',
+            type: IncidentType.Sar,
         })
 
         const newSARIncident =
@@ -375,7 +376,7 @@ describe('Incident Controller', () => {
         expect(newSARIncident).toBeDefined()
         expect(newSARIncident.incidentId).toBe(`S${username}1`)
         expect(newSARIncident.caller).toBe(username)
-        expect(newSARIncident.type).toBe('S')
+        expect(newSARIncident.type).toBe(IncidentType.Sar)
         expect(newSARIncident.incidentState).toBe('Assigned')
         expect(newSARIncident.owner).toBe(username)
         expect(newSARIncident.commander).toBe(username)
@@ -753,5 +754,291 @@ describe('Incident Controller', () => {
             expect(updatedIncident!.assignedVehicles[0].usernames).toContain('Test Officer');
         });
     
+    })
+
+    describe('SAR Incident functionality', () => {
+        it('should get SAR incidents by owner', async () => {
+            const username = 'test-sar-owner'
+            
+            // Create two SAR incidents with the same owner
+            await Incident.create({
+                incidentId: `S${username}1`,
+                caller: username,
+                openingDate: new Date(),
+                incidentState: 'Assigned',
+                owner: username,
+                commander: username,
+                type: IncidentType.Sar,
+            })
+            
+            await Incident.create({
+                incidentId: `S${username}2`,
+                caller: username,
+                openingDate: new Date(),
+                incidentState: 'Assigned',
+                owner: username,
+                commander: username,
+                type: IncidentType.Sar,
+            })
+            
+            // Create a non-SAR incident with the same owner
+            await Incident.create({
+                incidentId: `I${username}`,
+                caller: username,
+                openingDate: new Date(),
+                incidentState: 'Assigned',
+                owner: username,
+                commander: username,
+                type: IncidentType.Unset,
+            })
+            
+            // Get SAR incidents by owner
+            const sarIncidents = await IncidentController.getSARIncidentsByOwner(username)
+            
+            // Verify results
+            expect(sarIncidents).toBeDefined()
+            expect(sarIncidents.length).toBe(2)
+            sarIncidents.forEach(incident => {
+                expect(incident.type).toBe(IncidentType.Sar)
+                expect(incident.owner).toBe(username)
+            })
+        })
+        
+        it('should create a new SAR task for an incident', async () => {
+            const username = 'test-sar-task-creator'
+            const incident = await createTestIncident(username)
+            incident.type = IncidentType.Sar
+            await incident.save()
+            
+            const sarTask = {
+                state: 'Todo' as const,
+                location: 'Test Location',
+                coordinates: { latitude: 37.7749, longitude: -122.4194 },
+                name: 'Search Area 1',
+                description: 'Search the north ridge',
+                hazards: ['steep terrain', 'wildlife'],
+                victims: [0, 0, 0, 0, 0]
+            }
+            
+            const updatedIncident = await IncidentController.createOrUpdateSarTask(
+                incident.incidentId,
+                sarTask
+            )
+            
+            expect(updatedIncident).toBeDefined()
+            expect(updatedIncident?.sarTasks).toBeDefined()
+            expect(updatedIncident?.sarTasks?.length).toBe(1)
+        })
+    })
+
+    describe('Incident commander functionality', () => {
+        it('should return incidents commanded by a specific user', async () => {
+            const commander = 'test-commander-user'
+            
+            // Create incidents with the specified commander
+            await Incident.create({
+                incidentId: 'Icommander1',
+                caller: 'user1',
+                openingDate: new Date(),
+                incidentState: 'Assigned',
+                owner: 'System',
+                commander: commander
+            })
+            
+            await Incident.create({
+                incidentId: 'Icommander2',
+                caller: 'user2',
+                openingDate: new Date(),
+                incidentState: 'Triage',
+                owner: 'System',
+                commander: commander
+            })
+            
+            // Create an incident with a different commander
+            await Incident.create({
+                incidentId: 'Iother',
+                caller: 'user3',
+                openingDate: new Date(),
+                incidentState: 'Waiting',
+                owner: 'System',
+                commander: 'other-commander'
+            })
+            
+            // Get incidents by commander
+            const incidents = await IncidentController.getIncidentByCommander(commander)
+            
+            // Verify results
+            expect(incidents).toBeDefined()
+            expect(incidents.length).toBe(2)
+            incidents.forEach(incident => {
+                expect(incident.commander).toBe(commander)
+            })
+        })
+        
+        it('should return an empty array if no incidents exist for the commander', async () => {
+            const incidents = await IncidentController.getIncidentByCommander('non-existent-commander')
+            expect(incidents).toBeDefined()
+            expect(incidents.length).toBe(0)
+        })
+    })
+
+    describe('Incident closing functionality', () => {
+        it('should close an incident and deallocate resources', async () => {
+            // Create test data
+            const username = 'test-close-incident'
+            const carName = 'test-close-car'
+            
+            // Create a car and assign it to an incident
+            const car = await createTestCar(carName, [username])
+            const incident = await createTestIncident(username)
+            
+            // Add vehicle to incident
+            incident.assignedVehicles.push({
+                name: carName,
+                type: 'Car',
+                usernames: [username],
+            })
+            await incident.save()
+            
+            // Assign car to incident
+            car.assignedIncident = incident.incidentId
+            await car.save()
+            
+            // Mock the channel controller methods
+            jest.spyOn(ChannelController, 'closeChannel').mockResolvedValue(undefined as any)
+            
+            // Mock the car and truck controller methods
+            const carControllerSpy = jest.spyOn(require('../../src/controllers/CarController').default, 'updateIncident')
+                .mockResolvedValue({})
+            const truckControllerSpy = jest.spyOn(require('../../src/controllers/TruckController').default, 'updateIncident')
+                .mockResolvedValue({})
+            
+            // Close the incident
+            const closedIncident = await IncidentController.closeIncident(incident.incidentId)
+            
+            // Verify incident is closed
+            expect(closedIncident).toBeDefined()
+            expect(closedIncident?.incidentState).toBe('Closed')
+            expect(closedIncident?.closingDate).toBeDefined()
+            
+            // Verify resources are deallocated
+            expect(closedIncident?.assignedVehicles.length).toBe(0)
+            expect(carControllerSpy).toHaveBeenCalledWith(carName, null)
+            
+            // Restore mocks
+            carControllerSpy.mockRestore()
+            truckControllerSpy.mockRestore()
+        })
+        
+        it('should throw an error when closing a non-existent incident', async () => {
+            const nonExistentIncidentId = 'non-existent-id'
+            
+            await expect(
+                IncidentController.closeIncident(nonExistentIncidentId)
+            ).rejects.toThrow(/not found/)
+        })
+    })
+    
+    describe('Get incidents by commander', () => {
+        it('should return incidents commanded by a specific user', async () => {
+            const commander = 'test-commander-user'
+            
+            // Create incidents with the specified commander
+            await Incident.create({
+                incidentId: 'Icommander1',
+                caller: 'user1',
+                openingDate: new Date(),
+                incidentState: 'Assigned',
+                owner: 'System',
+                commander: commander
+            })
+            
+            await Incident.create({
+                incidentId: 'Icommander2',
+                caller: 'user2',
+                openingDate: new Date(),
+                incidentState: 'Triage',
+                owner: 'System',
+                commander: commander
+            })
+            
+            // Create an incident with a different commander
+            await Incident.create({
+                incidentId: 'Iother',
+                caller: 'user3',
+                openingDate: new Date(),
+                incidentState: 'Waiting',
+                owner: 'System',
+                commander: 'other-commander'
+            })
+            
+            // Get incidents by commander
+            const incidents = await IncidentController.getIncidentByCommander(commander)
+            
+            // Verify results
+            expect(incidents).toBeDefined()
+            expect(incidents.length).toBe(2)
+            incidents.forEach(incident => {
+                expect(incident.commander).toBe(commander)
+            })
+            
+            // Verify incident IDs
+            const incidentIds = incidents.map(incident => incident.incidentId).sort()
+            expect(incidentIds).toEqual(['Icommander1', 'Icommander2'].sort())
+        })
+        
+        it('should return an empty array if no incidents exist for the commander', async () => {
+            const incidents = await IncidentController.getIncidentByCommander('non-existent-commander')
+            expect(incidents).toBeDefined()
+            expect(incidents.length).toBe(0)
+        })
+    })
+
+    describe('Additional controller methods', () => {
+        it('should get SAR incidents by owner', async () => {
+            const username = 'test-sar-owner-new'
+            
+            // Create a SAR incident with the specified owner
+            await Incident.create({
+                incidentId: `S${username}1`,
+                caller: username,
+                openingDate: new Date(),
+                incidentState: 'Assigned',
+                owner: username,
+                commander: username,
+                type: IncidentType.Sar,
+            })
+            
+            // Get SAR incidents by owner
+            const sarIncidents = await IncidentController.getSARIncidentsByOwner(username)
+            
+            // Verify results
+            expect(sarIncidents).toBeDefined()
+            expect(sarIncidents.length).toBe(1)
+            expect(sarIncidents[0].type).toBe(IncidentType.Sar)
+            expect(sarIncidents[0].owner).toBe(username)
+        })
+        
+        it('should return incidents commanded by a specific user', async () => {
+            const commander = 'test-commander-user-new'
+            
+            // Create an incident with the specified commander
+            await Incident.create({
+                incidentId: `I${commander}`,
+                caller: 'user1',
+                openingDate: new Date(),
+                incidentState: 'Assigned',
+                owner: 'System',
+                commander: commander
+            })
+            
+            // Get incidents by commander
+            const incidents = await IncidentController.getIncidentByCommander(commander)
+            
+            // Verify results
+            expect(incidents).toBeDefined()
+            expect(incidents.length).toBe(1)
+            expect(incidents[0].commander).toBe(commander)
+        })
     })
 })

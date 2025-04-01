@@ -1,20 +1,20 @@
 import GenericItemizeContainer from '@/components/GenericItemizeContainer'
 import ROLES from '@/utils/Roles'
 import {
-    Add,
-    NavigateNext as Arrow,
-    Close,
-    Settings,
+  Add,
+  NavigateNext as Arrow,
+  Close,
+  Settings,
 } from '@mui/icons-material'
 import {
-    Box,
-    FormControl,
-    IconButton,
-    Menu,
-    MenuItem,
-    Select,
-    Tooltip,
-    Typography,
+  Box,
+  FormControl,
+  IconButton,
+  Menu,
+  MenuItem,
+  Select,
+  Tooltip,
+  Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
@@ -382,43 +382,43 @@ function IncidentsPage() {
         }
     }
 
-    const handleCloseCurrentIncident = async () => {
-        try {
-            // Find the user's active incident (where they are commander or owner)
-            const activeIncident = data.find(
-                (incident) =>
-                    (incident.commander === userId ||
-                        incident.owner === userId) &&
-                    incident.incidentState !== 'Closed',
-            )
+    // const handleCloseCurrentIncident = async () => {
+    //     try {
+    //         // Find the user's active incident (where they are commander or owner)
+    //         const activeIncident = data.find(
+    //             (incident) =>
+    //                 (incident.commander === userId ||
+    //                     incident.owner === userId) &&
+    //                 incident.incidentState !== 'Closed',
+    //         )
 
-            if (!activeIncident) {
-                console.error('No active incident found to close')
-                return
-            }
+    //         if (!activeIncident) {
+    //             console.error('No active incident found to close')
+    //             return
+    //         }
 
-            // Update the incident state to 'Closed'
-            const updatedIncident = {
-                ...activeIncident,
-                incidentState: 'Closed',
-            }
+    //         // Update the incident state to 'Closed'
+    //         const updatedIncident = {
+    //             ...activeIncident,
+    //             incidentState: 'Closed',
+    //         }
 
-            // Send the update to the server
-            await request('/api/incidents/update', {
-                method: 'PUT',
-                body: JSON.stringify(updatedIncident),
-                headers: { 'Content-Type': 'application/json' },
-            })
+    //         // Send the update to the server
+    //         await request('/api/incidents/update', {
+    //             method: 'PUT',
+    //             body: JSON.stringify(updatedIncident),
+    //             headers: { 'Content-Type': 'application/json' },
+    //         })
 
-            // Refresh the incident list
-            const refreshedData = await request('/api/incidents')
-            setData(refreshedData)
+    //         // Refresh the incident list
+    //         const refreshedData = await request('/api/incidents')
+    //         setData(refreshedData)
 
-            console.log(`Incident ${activeIncident.incidentId} has been closed`)
-        } catch (error) {
-            console.error('Error closing incident:', error)
-        }
-    }
+    //         console.log(`Incident ${activeIncident.incidentId} has been closed`)
+    //     } catch (error) {
+    //         console.error('Error closing incident:', error)
+    //     }
+    // }
 
     // Render the page
     return (
