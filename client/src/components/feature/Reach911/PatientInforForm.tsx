@@ -35,6 +35,9 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     sex: propSex,
 }) => {
     const dispatch = useDispatch<AppDispatch>()
+    const [currentUsername, setcurrentUsername] = useState<string>(
+        propUsername || '',
+    )
     const patients: IPatient[] = useSelector(
         (state: RootState) => state.patientState.patients,
     )
@@ -50,7 +53,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     const [isPatientAdded, setIsPatientAdded] = useState(false)
 
     let patient: IPatient =
-        patients.find((p) => p.username === propUsername) || ({} as IPatient)
+        patients.find((p) => p.username === currentUsername) || ({} as IPatient)
 
     if (
         !isFetchingPatients &&
@@ -71,7 +74,6 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     }
 
     const navigate = useNavigate()
-
     const username = patient.username ?? null
     const name = patient.name ?? ''
     const sex = patient.sex ?? ''
@@ -95,14 +97,21 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
         const { type, value, checked } = e.target as HTMLInputElement
         const newValue: string | boolean = type === 'checkbox' ? checked : value
         if (field === 'username') {
-            patient = {
-                username: value,
-                name: '',
-                sex: propSex || '',
-                dob: '',
-                patientId: uuidv4(),
+            patient =
+                patients.find((p) => p.username === value) || ({} as IPatient)
+            console.log(patient)
+            if (Object.keys(patient).length === 0) {
+                patient = {
+                    username: value,
+                    name: '',
+                    sex: propSex || '',
+                    dob: '',
+                    patientId: uuidv4(),
+                }
+                dispatch(addPatient(patient))
             }
-            dispatch(addPatient(patient))
+            setcurrentUsername(value)
+            // dispatch(setPatient(patient))
         } else {
             dispatch(
                 setPatient({
@@ -191,7 +200,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                             <Select
                                 labelId="username-label"
                                 label="Username"
-                                value=""
+                                value={username}
                                 onChange={(e) => onChange('username', e)}
                                 fullWidth
                             >
