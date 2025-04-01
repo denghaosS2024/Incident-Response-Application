@@ -6,7 +6,7 @@ import Incident, {
     IIncident,
     IncidentPriority,
     IncidentState,
-    IncidentType
+    IncidentType,
 } from '../../src/models/Incident'
 import ROLES from '../../src/utils/Roles'
 import * as TestDatabase from '../utils/TestDatabase'
@@ -30,7 +30,7 @@ describe('Incident Controller', () => {
             owner: 'System',
             commander: 'System',
             incidentCallGroup: null,
-            SarTasks: []
+            SarTasks: [],
         })
 
         return rawIncident.save()
@@ -51,7 +51,11 @@ describe('Incident Controller', () => {
         return rawIncident.save()
     }
 
-    const createTestCar = async (carName: string, usernames: string[] = [], assignedIncident?: string) => {
+    const createTestCar = async (
+        carName: string,
+        usernames: string[] = [],
+        assignedIncident?: string,
+    ) => {
         return await Car.create({
             name: carName,
             usernames,
@@ -505,22 +509,23 @@ describe('Incident Controller', () => {
 
     it('should return incidents with matching state', async () => {
         // Create test incidents with different states
-        const waitingIncident = await createTestIncident('user-waiting');
+        const waitingIncident = await createTestIncident('user-waiting')
         await Incident.create({
             incidentId: 'Iassigned',
             caller: 'user-assigned',
             openingDate: new Date(),
             incidentState: 'Assigned',
             owner: 'System',
-            commander: 'System'
-        });
+            commander: 'System',
+        })
 
         // Test for Waiting state
-        const waitingResults = await IncidentController.getIncidentByIncidentState('Waiting');
-        expect(waitingResults).toBeDefined();
-        expect(waitingResults.length).toBe(1);
-        expect(waitingResults[0].incidentId).toBe(waitingIncident.incidentId);
-    });
+        const waitingResults =
+            await IncidentController.getIncidentByIncidentState('Waiting')
+        expect(waitingResults).toBeDefined()
+        expect(waitingResults.length).toBe(1)
+        expect(waitingResults[0].incidentId).toBe(waitingIncident.incidentId)
+    })
 
     describe('Incident Responders Group functionality', () => {
         it('should create a new responders group from responders on assigned vehicles', async () => {
@@ -589,19 +594,22 @@ describe('Incident Controller', () => {
 
             incident.assignedVehicles = []
 
-            const updatedIncident = await IncidentController.updateVehicleHistory(
-                incident
-            )
+            const updatedIncident =
+                await IncidentController.updateVehicleHistory(incident)
 
             const updatedCar = await Car.findOne({ name: carName })
 
             expect(updatedIncident).toBeDefined()
-            expect(updatedIncident?.assignedVehicles.find(v => v.name === carName)).toBeUndefined()
+            expect(
+                updatedIncident?.assignedVehicles.find(
+                    (v) => v.name === carName,
+                ),
+            ).toBeUndefined()
             expect(updatedCar).toBeDefined()
             expect(updatedCar!.assignedIncident).toBe(null)
         })
 
-        it('should prevet deallocating commander\'s vehicle', async () => {
+        it("should prevet deallocating commander's vehicle", async () => {
             const username = 'test-deallocate-user'
             const carName = 'test-deallocate-car'
 
@@ -622,13 +630,13 @@ describe('Incident Controller', () => {
 
             await expect(
                 IncidentController.updateVehicleHistory(incident),
-            ).rejects.toThrow('Cannot deallocate commander\'s vehicle')
+            ).rejects.toThrow("Cannot deallocate commander's vehicle")
         })
-        
+
         it('should update a specific SAR task by index', async () => {
             const username = 'test-sar-specific-task'
             const incident = await createTestIncident(username)
-            
+
             incident.type = IncidentType.Sar
             incident.sarTasks = [
                 {
@@ -636,57 +644,51 @@ describe('Incident Controller', () => {
                     location: 'Task 0 Location',
                     startDate: new Date(),
                     hazards: [],
-                    victims: [0, 0, 0, 0, 0]
+                    victims: [0, 0, 0, 0, 0],
                 },
                 {
                     state: 'InProgress',
                     location: 'Task 1 Location',
                     startDate: new Date(),
                     hazards: [],
-                    victims: [0, 0, 0, 0, 0], 
+                    victims: [0, 0, 0, 0, 0],
                 },
                 {
                     state: 'Todo',
                     location: 'Task 2 Location',
                     startDate: new Date(),
                     hazards: [],
-                    victims: [0, 0, 0, 0, 0]
-                }
+                    victims: [0, 0, 0, 0, 0],
+                },
             ]
             await incident.save()
-            
+
             const taskId = 1
             const endDate = new Date()
 
-            
             let updatedSarTasks = incident.sarTasks
             updatedSarTasks[taskId].state = 'Done'
             updatedSarTasks[taskId].endDate = endDate
 
-
             const updatedIncident = await IncidentController.updateIncident({
                 incidentId: incident.incidentId,
-                sarTasks: updatedSarTasks
+                sarTasks: updatedSarTasks,
             })
-            
 
             expect(updatedIncident?.sarTasks?.length).toBe(3)
-            
-            
-            
+
             expect(updatedIncident?.sarTasks?.[1].state).toBe('Done')
             expect(updatedIncident?.sarTasks?.[1].endDate).toEqual(endDate)
 
             expect(updatedIncident?.sarTasks?.[0].state).toBe('Todo')
 
             expect(updatedIncident?.sarTasks?.[2].state).toBe('Todo')
-            
         })
 
         it('should update SAR task from InProgress to Done with end date', async () => {
             const username = 'test-sar-update-done'
             const incident = await createTestIncident(username)
-            
+
             // Add a SAR task to the incident
             incident.type = IncidentType.Sar
             incident.sarTasks = [
@@ -695,36 +697,35 @@ describe('Incident Controller', () => {
                     location: 'Task 1 Location',
                     startDate: new Date(),
                     hazards: [],
-                    victims: [0, 0, 0, 0, 0], 
-                }
+                    victims: [0, 0, 0, 0, 0],
+                },
             ]
-            
+
             await incident.save()
-            
+
             const taskId = 0
             const now = new Date()
-            
+
             let updatedSarTasks = incident.sarTasks
             updatedSarTasks[taskId].state = 'Done'
             updatedSarTasks[taskId].endDate = now
 
             const updatedIncident = await IncidentController.updateIncident({
                 incidentId: incident.incidentId,
-                sarTasks: updatedSarTasks
+                sarTasks: updatedSarTasks,
             })
-            
+
             expect(updatedIncident).toBeDefined()
             expect(updatedIncident?.sarTasks?.[0].state).toBe('Done')
             expect(updatedIncident?.sarTasks?.[0].endDate).toEqual(now)
         })
-
     })
 
     describe('Assigning and releasing vehicles from incidents', () => {
         it('should add a vehicle to an incident when vehicle is not assigned', async () => {
             // Create a test incident
-            const incident = await createTestIncident('test-incident-1');
-        
+            const incident = await createTestIncident('test-incident-1')
+
             // Mock personnel and vehicle data
             const personnel = {
                 _id: new Types.ObjectId().toString(),
@@ -732,28 +733,64 @@ describe('Incident Controller', () => {
                 assignedCity: 'Test City',
                 role: 'Police' as const,
                 assignedVehicleTimestamp: null,
-            };
-        
-            const vehicle: ICar = await createTestCar('Test Car');
-        
+            }
+
+            const vehicle: ICar = await createTestCar('Test Car')
+
             // Call the controller method
             await IncidentController.addVehicleToIncident(
                 personnel,
                 incident.toObject() as IIncident,
-                vehicle
-            );
-        
+                vehicle,
+            )
+
             // Get the updated incident from the database
-            const updatedIncident = await Incident.findById(incident._id);
-        
+            const updatedIncident = await Incident.findById(incident._id)
+
             // Assertions
-            expect(updatedIncident).toBeDefined();
-            expect(updatedIncident!.assignedVehicles).toHaveLength(1);
-            expect(updatedIncident!.assignedVehicles[0].name).toBe('Test Car');
-            expect(updatedIncident!.assignedVehicles[0].type).toBe('Car');
-            expect(updatedIncident!.assignedVehicles[0].usernames).toContain('Test Officer');
-        });
-    
+            expect(updatedIncident).toBeDefined()
+            expect(updatedIncident!.assignedVehicles).toHaveLength(1)
+            expect(updatedIncident!.assignedVehicles[0].name).toBe('Test Car')
+            expect(updatedIncident!.assignedVehicles[0].type).toBe('Car')
+            expect(updatedIncident!.assignedVehicles[0].usernames).toContain(
+                'Test Officer',
+            )
+        })
+    })
+    it('should update incident state and append to state history', async () => {
+        const username = 'commanderUser'
+        const incidentId = `I${username}`
+        const newState = IncidentState.Triage
+        await createTestIncident(username)
+
+        const updatedIncident = await IncidentController.updateIncidentState(
+            incidentId,
+            newState,
+            username,
+        )
+
+        expect(updatedIncident).toBeDefined()
+        expect(updatedIncident?.incidentState).toBe(newState)
+        expect(updatedIncident?.incidentStateHistory).toHaveLength(1)
+
+        const historyEntry = updatedIncident?.incidentStateHistory?.[0]
+        expect(historyEntry?.commander).toBe(username)
+        expect(historyEntry?.incidentState).toBe(newState)
+        expect(historyEntry?.role).toBeDefined()
+        expect(historyEntry?.timestamp).toBeDefined()
+    })
+    it('should throw an error when updating a non-existent incident', async () => {
+        const incidentId = 'nonexistentId'
+        const newState = IncidentState.Closed
+        const commander = 'CommanderUser'
+
+        await expect(
+            IncidentController.updateIncidentState(
+                incidentId,
+                newState,
+                commander,
+            ),
+        ).rejects.toThrow(`Incident with ID '${incidentId}' not found`)
     })
 
     describe('SAR Incident functionality', () => {

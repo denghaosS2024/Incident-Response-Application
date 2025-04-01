@@ -9,9 +9,8 @@ import {
 } from '@mui/material'
 import React, { useEffect, useRef, useState } from 'react'
 import request from '../../utils/request'
-import StarRating from '../common/StarRating'
-
 import getRoleIcon from '../common/RoleIcon'
+import StarRating from '../common/StarRating'
 
 type AssignHistoryItem = {
   name: string
@@ -42,9 +41,10 @@ type Incident = {
 
 type Props = {
   incident: Incident
+  readonly?: boolean
 }
 
-const StatisticsAndAdditionalInformation: React.FC<Props> = ({ incident }) => {
+const StatisticsAndAdditionalInformation: React.FC<Props> = ({ incident, readonly }) => {
   const [effectiveness, setEffectiveness] = useState(0)
   const [resourceAllocation, setResourceAllocation] = useState(0)
   const [teamRatings, setTeamRatings] = useState<Record<string, number>>({})
@@ -179,12 +179,12 @@ const StatisticsAndAdditionalInformation: React.FC<Props> = ({ incident }) => {
         <StarRating
           label="Rate the response effectiveness:"
           rating={effectiveness}
-          onChange={setEffectiveness}
+          onChange={readonly ? undefined : setEffectiveness}
         />
         <StarRating
           label="Rate the resource allocation:"
           rating={resourceAllocation}
-          onChange={setResourceAllocation}
+          onChange={readonly ? undefined : setResourceAllocation}
         />
 
         <Typography variant="body1" fontWeight={600} mt={2}>
@@ -200,7 +200,7 @@ const StatisticsAndAdditionalInformation: React.FC<Props> = ({ incident }) => {
             <StarRating
               label={name}
               rating={teamRatings[name]}
-              onChange={(rating) => handleTeamRatingChange(name, rating)}
+              onChange={readonly ? undefined : (rating) => handleTeamRatingChange(name, rating)}
             />
           </Box>
         ))}
@@ -218,17 +218,28 @@ const StatisticsAndAdditionalInformation: React.FC<Props> = ({ incident }) => {
           value={additionalInfo}
           onChange={(e) => setAdditionalInfo(e.target.value)}
           variant="outlined"
+          InputProps={{
+            readOnly: readonly,
+          }}
         />
       </Box>
 
-      <Stack direction="row" spacing={2} justifyContent="center" mt={3}>
-        <Button variant="contained" color="primary" onClick={saveReport}>
-          Save
-        </Button>
-        <Button variant="outlined" onClick={unsaveReport}>
-          Cancel
-        </Button>
-      </Stack>
+      {!readonly ? (
+        <Stack direction="row" spacing={2} justifyContent="center" mt={3}>
+          <Button variant="contained" color="primary" onClick={saveReport}>
+            Save
+          </Button>
+          <Button variant="outlined" onClick={unsaveReport}>
+            Cancel
+          </Button>
+        </Stack>
+      ) : (
+        <Box textAlign="center" mt={3}>
+          <Button variant="outlined" onClick={() => window.close()}>
+            Close
+          </Button>
+        </Box>
+      )}
     </Box>
   )
 }

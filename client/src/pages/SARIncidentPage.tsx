@@ -5,7 +5,7 @@ import styles from '../styles/Reach911Page.module.css'
 import { Box, Typography } from '@mui/material'
 
 import { useDispatch, useSelector } from 'react-redux'
-import { useLocation } from 'react-router-dom'
+import {useLocation, useSearchParams, useNavigate} from 'react-router-dom'
 import IIncident from '../models/Incident'
 import { updateIncident } from '../redux/incidentSlice'
 import { AppDispatch, RootState } from '../redux/store'
@@ -19,6 +19,8 @@ import SARStep4 from '../components/feature/SAR/SARStep4'
 import SARStep5 from '../components/feature/SAR/SARStep5'
 
 const SARIncidentPage: React.FC = () => {
+    const [searchParams] = useSearchParams()
+    const navigate = useNavigate()
     const dispatch = useDispatch<AppDispatch>()
     // Always start at Step 1 (index 0)
     const [activeStep, setActiveStep] = useState<number>(0)
@@ -35,6 +37,21 @@ const SARIncidentPage: React.FC = () => {
         readOnly,
     } = location.state || {}
     // const role = localStorage.getItem('role') // Commented out as it's not used currently
+
+    // Support navigate to step with `localhost:3000/sar-incident?step=2`
+    useEffect(() => {
+        const stepParam = searchParams.get('step')
+
+        if (stepParam) {
+            const stepNumber = parseInt(stepParam, 10)
+            setActiveStep(stepNumber - 1)
+
+            // Remove the step parameter from URL
+            const newUrl = window.location.pathname
+            // Use navigate to update URL without reloading the page
+            navigate(newUrl, { replace: true })
+        }
+    }, [searchParams, navigate])
 
     useEffect(() => {
         const initializeIncident = async () => {
@@ -74,9 +91,9 @@ const SARIncidentPage: React.FC = () => {
                             },
                         }
                     )
-                    
+
                     console.log('SAR count response:', sarResponse);
-                    
+
                     if (sarResponse.status === 204) {
                         console.log('No SAR incidents found, using count 1');
                         sarCount = 1;
@@ -265,7 +282,7 @@ const SARIncidentPage: React.FC = () => {
         if (activeStep < contents.length - 1) {
             setActiveStep(activeStep + 1)
             setError(null)
-            
+
             // Update incident when moving to final step
             if (activeStep === contents.length - 2) {
                 updateIncidentCall()
