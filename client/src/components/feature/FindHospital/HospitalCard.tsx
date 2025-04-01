@@ -12,13 +12,8 @@ interface HospitalProps {
   patients: IPatient[]
 }
 
-const HospitalCard: React.FC<HospitalProps> = ({
-  hospital,
-  id,
-  patients,
-}) => {
-  const availableBeds =
-    hospital.totalNumberERBeds - hospital.patients.length || 0
+const HospitalCard: React.FC<HospitalProps> = ({ hospital, id, patients }) => {
+  const availableBeds = hospital.totalNumberERBeds - patients.length
 
   return (
     <Droppable droppableId={id}>
