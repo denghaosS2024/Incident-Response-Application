@@ -88,7 +88,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     )
 
     // When any input changes, add the changes to the incident slice
-    const onChange = (
+    const onChange = async (
         field: string,
         e:
             | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -96,10 +96,53 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     ) => {
         const { type, value, checked } = e.target as HTMLInputElement
         const newValue: string | boolean = type === 'checkbox' ? checked : value
+
         if (field === 'username') {
+            if (value === 'create-one') {
+                try {
+                    const response = await request('/api/users/createTemp', {
+                        method: 'POST',
+                    })
+
+                    if (response && response.userId && response.username) {
+                        patient = {
+                            username: response.username,
+                            name: '',
+                            sex: propSex || '',
+                            dob: '',
+                            patientId: uuidv4(),
+                        }
+                        dispatch(addPatient(patient))
+
+                        setcurrentUsername(response.username)
+
+                        const newContact: IUser = {
+                            _id: response.userId,
+                            username: response.username,
+                            role: 'Citizen',
+                        }
+
+                        dispatch(loadContacts())
+
+                        alert(
+                            `A new user account has been created for the Patient.\nTemporary Username: ${response.username}, Password: 1234`,
+                        )
+                    } else {
+                        alert(
+                            'Failed to create a new patient account. Please try again.',
+                        )
+                    }
+                } catch (error) {
+                    console.error('Error creating new patient account:', error)
+                    alert(
+                        'Failed to create a new patient account. Please try again later.',
+                    )
+                }
+                return
+            }
+
             patient =
                 patients.find((p) => p.username === value) || ({} as IPatient)
-            console.log(patient)
             if (Object.keys(patient).length === 0) {
                 patient = {
                     username: value,
@@ -111,7 +154,6 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                 dispatch(addPatient(patient))
             }
             setcurrentUsername(value)
-            // dispatch(setPatient(patient))
         } else {
             dispatch(
                 setPatient({
@@ -127,7 +169,6 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
             )
         }
 
-        // Validate only the changed field
         validateField(field, newValue)
     }
 
@@ -200,10 +241,14 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                             <Select
                                 labelId="username-label"
                                 label="Username"
-                                value={username}
+                                value={currentUsername}
                                 onChange={(e) => onChange('username', e)}
                                 fullWidth
                             >
+                                <MenuItem value="create-one">
+                                    Create One
+                                </MenuItem>
+
                                 {contacts.map((user: IUser) => (
                                     <MenuItem
                                         key={user._id}
@@ -213,6 +258,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                                     </MenuItem>
                                 ))}
                             </Select>
+
                             <FormHelperText>{usernameError}</FormHelperText>
                         </FormControl>
                     </Box>

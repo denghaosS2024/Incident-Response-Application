@@ -237,25 +237,11 @@ const PatientForm: React.FC<{ username?: string }> = ({
                                 Username: Unknown
                             </Typography>
                         </Box>
-                        <Box display="flex" justifyContent="center" mt={2}>
-                            <button
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: '#28a745',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '16px',
-                                }}
-                                onClick={createNewPatientAccount}
-                                disabled={isCreatingNewAccount}
-                            >
-                                {isCreatingNewAccount
-                                    ? 'Creating Account...'
-                                    : 'Create New Account'}
-                            </button>
-                        </Box>
+                        <Box
+                            display="flex"
+                            justifyContent="center"
+                            mt={2}
+                        ></Box>
                     </>
                 )}
 
