@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react'
-import IIncident, {IncidentType} from '../../../models/Incident.ts'
+import { useSearchParams } from 'react-router-dom'
+import IIncident, { IncidentType } from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
+import request, { IRequestError } from '../../../utils/request.ts'
 import AddressBar from './AddressBar.tsx'
 import FEMAMarker from './FEMAMarker'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import formatDateTime from './useCurrentDateTime.tsx'
-import request, {IRequestError} from '../../../utils/request.ts'
-import {useSearchParams} from 'react-router-dom'
 
 interface SARTaskStep1Props {
   incident: IIncident | null
@@ -57,7 +57,7 @@ const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) =>
 
   return (
     <div className={styles.wrapperStep}>
-      <AddressBar address={incident?.sarTasks?.at(taskId)?.location || 'No Address'} />
+      <AddressBar task={incident?.sarTasks?.at(taskId)} />
       <div className="mt-2"></div> {/* add space between components */}
       <SARTaskTitle
         title={'Initial Marker'}

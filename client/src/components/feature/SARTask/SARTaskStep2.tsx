@@ -1,12 +1,12 @@
-import React, {ChangeEvent, FormEvent, useEffect, useState} from 'react'
+import request, { IRequestError } from "@/utils/request.ts"
+import { Box, Button, Checkbox, FormControl, FormControlLabel, FormGroup, TextField } from '@mui/material'
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
 import AddressBar from './AddressBar.tsx'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
-import {Box, FormControl, FormGroup, FormControlLabel, Checkbox, TextField, Button} from '@mui/material'
-import request, {IRequestError} from "@/utils/request.ts";
-import {useSearchParams} from 'react-router-dom'
 
 const hazardTypes = [
   'Active Electric Wire',
@@ -120,7 +120,7 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
 
   return (
     <div className={styles.wrapperStep}>
-      <AddressBar address={incident?.sarTasks?.at(taskId)?.location || 'No Address'} />
+      <AddressBar task={incident?.sarTasks?.at(taskId)} />
       <div className="mt-2"></div> {/* add space between components */}
 
       <SARTaskTitle
