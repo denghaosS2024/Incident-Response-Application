@@ -34,6 +34,8 @@ describe('Router - Hospital', () => {
     })
   }
 
+  /* -------------------------------- PUT: /api/hospital ------------------------------------ */
+
   it('should update the hospital', async () => {
     const hospitalId = await createHospital('123')
 
@@ -49,6 +51,8 @@ describe('Router - Hospital', () => {
 
     expect(updatedHospital.hospitalName).toBe(updatedData.hospitalName)
   })
+
+  /* -------------------------------- PATCH: /api/hospital/patients/batch ------------------------------------ */
 
   it('should update multiple hospitals successfully', async () => {
     // Arrange
@@ -156,6 +160,104 @@ describe('Router - Hospital', () => {
 
     // expect(response.body.message).toBe('Invalid hospitalId in update data')
   })
+
+  /* -------------------------------- POST: /api/hospital/register ------------------------------------ */
+
+  it('Register a new hospital', async () => {
+    const hospitalData = {
+      hospitalName: 'Hospital A',
+      hospitalAddress: 'Mountain View',
+    }
+
+    const { body: newlyRegisteredHospital } = await request(app)
+      .post('/api/hospital/register')
+      .send(hospitalData)
+      .expect(201)
+
+    expect(newlyRegisteredHospital.hospitalName).toBe(hospitalData.hospitalName)
+  })
+
+  it('Verify mandatory fields while registering a hospital', async () => {
+    const hospitalData = {
+      hospitalName: 'Hospital A',
+    }
+
+    await request(app)
+      .post('/api/hospital/register')
+      .send(hospitalData)
+      .expect(400)
+  })
+
+  /* -------------------------------- DELETE: /api/hospital/ ------------------------------------ */
+
+  it('Verify an existing hospital gets deleted successfully', async () => {
+    const hospitalId = await createHospital('Hospital A')
+    const { body: response } = await request(app)
+      .delete('/api/hospital')
+      .query({ hospitalId: hospitalId })
+      .send()
+      .expect(200)
+
+    expect(response.message).toBe('Hospital deleted successfully')
+  })
+
+  it('Query Param missing Error', async () => {
+    const { body: response } = await request(app)
+      .delete('/api/hospital')
+      .query({})
+      .send()
+      .expect(400)
+
+    expect(response.message).toBe('hospitalId query parameter is required.')
+  })
+
+  it('verifies right error is thrown when a hospital is not found', async () => {
+    const { body: response } = await request(app)
+      .delete('/api/hospital')
+      .query({ hospitalId: '123' })
+      .send()
+      .expect(404)
+
+    expect(response.message).toBe('No Hospital found.')
+  })
+
+  /* -------------------------------- GET: /api/hospital/ ------------------------------------ */
+
+  it('Fetch a hospital based on hospitalId', async () => {
+    const hospitalId = await createHospital('Hospital A')
+    const { body: response } = await request(app)
+      .get('/api/hospital')
+      .query({ hospitalId: hospitalId })
+      .send()
+      .expect(200)
+
+    expect(response.hospitalName).toBe('Hospital A')
+  })
+
+  it('Fetch all hospital if query param is not present', async (): Promise<void> => {
+    await createHospital('Hospital A')
+    await createHospital('Hospital B')
+
+    const { body: response } = await request(app)
+      .get('/api/hospital')
+      .send()
+      .expect(200)
+
+    expect(Array.isArray(response)).toBe(true)
+    expect(response.length).toBeGreaterThan(0)
+  })
+
+  it('Displays the right error if no hospital is found', async () => {
+    const { body: response } = await request(app)
+      .get('/api/hospital')
+      .query({ hospitalId: 'Hospital A' })
+      .send()
+      .expect(404)
+
+    expect(response.message).toBe('No Hospital found.')
+  })
+
+  /* -------------------------------- close the test database ------------------------------------ */
 
   afterAll(TestDatabase.close)
 })

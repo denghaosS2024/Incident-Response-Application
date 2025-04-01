@@ -34,9 +34,6 @@ class HospitalController {
   async getHospitalById(hospitalId: string) {
     try {
       const hospital = await Hospital.findOne({ hospitalId }).populate('nurses')
-      if (!hospital) {
-        throw new Error('Hospital not found')
-      }
       return hospital
     } catch (error) {
       console.error('Error fetching hospital details:', error)
