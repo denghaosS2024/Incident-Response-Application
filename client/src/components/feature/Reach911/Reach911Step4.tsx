@@ -115,7 +115,7 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
                     let channel: IChannel | null = null
                     try {
                         // Create a new Channel using request utility
-                        channel: IChannel = await request('/api/channels/911', {
+                        channel = IChannel = await request('/api/channels/911', {
                             method: 'POST',
                             body: JSON.stringify({
                                 username,
