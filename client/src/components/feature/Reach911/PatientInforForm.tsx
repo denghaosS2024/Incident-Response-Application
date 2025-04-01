@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0cc3f62 (fix (other): [--] fix problem on patient screen due to merge conflict)
 import IPatient from '@/models/Patient'
 import {
     addPatient,
@@ -9,11 +5,6 @@ import {
     setPatient,
     updatePatient,
 } from '@/redux/patientSlice'
-<<<<<<< HEAD
-=======
->>>>>>> 6708280 (refactor (client): [--] refactor navigation logic)
-=======
->>>>>>> 0cc3f62 (fix (other): [--] fix problem on patient screen due to merge conflict)
 import {
     Box,
     FormControl,
@@ -149,10 +140,6 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
         }
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 0cc3f62 (fix (other): [--] fix problem on patient screen due to merge conflict)
     const handleProfileClick = async () => {
         if (!username) {
             alert('Username is missing.')
@@ -182,11 +169,6 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
         }
     }
 
-<<<<<<< HEAD
-=======
->>>>>>> 6708280 (refactor (client): [--] refactor navigation logic)
-=======
->>>>>>> 0cc3f62 (fix (other): [--] fix problem on patient screen due to merge conflict)
     if (loading) return <Loading />
 
     return (
