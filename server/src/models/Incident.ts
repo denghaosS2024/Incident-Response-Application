@@ -18,6 +18,7 @@ export interface IIncidentStateHistory {
     timestamp: Date
     commander: string
     incidentState: string
+    role: string
 }
 export enum IncidentState {
     Waiting = 'Waiting',
@@ -177,6 +178,7 @@ const IncidentSchema = new Schema({
             {
                 timestamp: { type: Date, required: true },
                 commander: { type: String, required: true },
+                role: { type: String, required: true },
                 incidentState: {
                     type: String,
                     enum: ['Waiting', 'Triage', 'Assigned', 'Closed'],
