@@ -1,8 +1,10 @@
 import { Box, Paper, Typography } from '@mui/material'
 import moment from 'moment'
 import React from 'react'
+import { useSelector } from 'react-redux'
 import IMessage from '../models/Message'
 import IUser from '../models/User'
+import { selectCurrentHospitalId } from '../redux/userHospitalSlice'
 import styles from '../styles/Message.module.css'
 import getRoleIcon from './common/RoleIcon'
 
@@ -59,6 +61,9 @@ const parseAlertContent = (content: string) => {
 const NurseAlertMessage: React.FC<NurseAlertMessageProps> = ({ message }) => {
   // Message display component using the red card design from the prototype
   const { content, acknowledgedBy = [] } = message
+  
+  // Get current hospital ID from Redux
+  const currentHospitalId = useSelector(selectCurrentHospitalId)
 
   // Extract responders
   const responders = message.responders || []
@@ -86,10 +91,37 @@ const NurseAlertMessage: React.FC<NurseAlertMessageProps> = ({ message }) => {
     const accepted: { user: IUser; timestamp?: string }[] = []
     const busy: { user: IUser; timestamp?: string }[] = []
     
-    // First filter to only include nurse responders - this ensures ONLY nurses appear in any list
-    const nurseResponders = responders.filter(responder => 
+    // First filter to only include nurse responders
+    let nurseResponders = responders.filter(responder => 
       responder && responder.role === 'Nurse'
     )
+    
+    console.log('All nurse responders before hospital filtering:', nurseResponders.length)
+    
+    // Then filter by hospital if a hospital ID is available
+    if (currentHospitalId) {
+      // Keep track of the original count for debugging
+      const originalCount = nurseResponders.length
+      
+      // Apply hospital filter
+      nurseResponders = nurseResponders.filter(responder => 
+        responder.hospitalId === currentHospitalId
+      )
+      
+      console.log(`Filtered nurses by hospital (${currentHospitalId}): ${nurseResponders.length} of ${originalCount}`)
+      
+      // If all nurses were filtered out, revert to showing all nurses
+      if (nurseResponders.length === 0 && originalCount > 0) {
+        console.log('All nurses filtered out, showing all nurses instead')
+        nurseResponders = responders.filter(responder => 
+          responder && responder.role === 'Nurse'
+        )
+      }
+    } else {
+      console.log('No hospital ID available, showing all nurses')
+    }
+    
+    console.log(`Filtered nurses by hospital (${currentHospitalId}):`, nurseResponders.length)
     
     // Process each nurse responder
     nurseResponders.forEach((responder) => {      

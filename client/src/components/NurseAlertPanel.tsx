@@ -11,12 +11,14 @@ import {
   Typography,
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { NurseAlert } from '../models/NurseAlert'
 import IPatient from '../models/Patient'
 import IUser from '../models/User'
 import { addMessage } from '../redux/messageSlice'
 import { AppDispatch } from '../redux/store'
+import { selectCurrentHospitalId } from '../redux/userHospitalSlice'
+import { loadHospitalContext } from '../utils/hospitalGroupUtils'
 import request from '../utils/request'
 
 interface NurseAlertPanelProps {
@@ -55,6 +57,20 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
   })
 
   // Fetch patients and nurses working at the same hospital
+  const currentHospitalId = useSelector(selectCurrentHospitalId)
+  
+  // Get the hospital ID from the channel if available
+  useEffect(() => {
+    if (channelId && channelId !== 'general') {
+      // Use the utility function to load hospital context
+      loadHospitalContext(channelId, dispatch).then(hospitalId => {
+        if (hospitalId) {
+          console.log('Hospital context loaded for channel:', channelId, 'Hospital ID:', hospitalId)
+        }
+      })
+    }
+  }, [channelId, dispatch])
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -72,7 +88,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
           ) {
             patientsList = patientsData.map((patient: IPatient) => ({
               id: patient.patientId,
-              name: patient.name
+              name: patient.name || 'Unknown Patient'
             }))
           } else {
             // Fallback to mock data if API returns empty array
@@ -92,26 +108,40 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         }
 
         // Fetch nurses working at the same hospital
-        const hospitalId =
-          localStorage.getItem('hospitalId') ?? 'default-hospital'
+        // Fetch nurses working at the same hospital
+        // Use the hospital ID from Redux instead of localStorage
         try {
-          // Explicitly request only Nurse role users
-          const users = await request(
-            `/api/users?role=Nurse&hospitalId=${hospitalId}`,
-          )
+          // Log the current hospital ID for debugging
+          console.log('Current hospital ID from Redux:', currentHospitalId)
+          
+          // Fetch all nurse users first
+          const users = await request(`/api/users?role=Nurse`)
+          
           if (users && Array.isArray(users)) {
             const currentUserId = localStorage.getItem('uid')
-            // Extra filter to ensure we ONLY have nurses (role check is critical) and exclude current user
-            const nurseUsersFiltered = users.filter(
+            
+            // Filter nurses based on role and exclude current user
+            let nurseUsersFiltered = users.filter(
               (user: IUser) =>
                 user._id !== currentUserId && // Exclude current user
-                user.role === 'Nurse', // STRICT role check
+                user.role === 'Nurse' // STRICT role check
             )
-            console.log('Filtered nurse users:', nurseUsersFiltered.length)
+            
+            console.log('All nurses before hospital filtering:', nurseUsersFiltered.length)
+            
+            // If we have a hospital ID, apply additional filter for hospital
+            if (currentHospitalId) {
+              nurseUsersFiltered = nurseUsersFiltered.filter(
+                (user: IUser) => user.hospitalId === currentHospitalId
+              )
+              console.log(`Nurses after filtering by hospital (${currentHospitalId}):`, nurseUsersFiltered.length)
+            } else {
+              console.log('No hospital ID available - not filtering by hospital')
+            }
+            
             setNurseUsers(nurseUsersFiltered)
-            // Set totalNurses to the filtered list length (or 0 if empty)
-            // We'll handle the dropdown options separately
-            setTotalNurses(nurseUsersFiltered.length)
+            // Set totalNurses to the filtered list length (ensure we have at least 1 for dropdown)
+            setTotalNurses(Math.max(nurseUsersFiltered.length, 1))
           } else {
             // Fallback to empty array if no nurses found
             setNurseUsers([])
@@ -128,7 +158,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
     }
 
     fetchData()
-  }, [preSelectedPatient])
+  }, [preSelectedPatient, currentHospitalId])
 
   const closeNotification = () => {
     setNotification({ ...notification, open: false })
