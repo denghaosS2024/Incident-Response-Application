@@ -17,7 +17,10 @@ import IPatient from '../models/Patient'
 import IUser from '../models/User'
 import { addMessage } from '../redux/messageSlice'
 import { AppDispatch } from '../redux/store'
-import { selectCurrentHospitalId } from '../redux/userHospitalSlice'
+import {
+  selectCurrentHospitalId,
+  setCurrentHospitalId,
+} from '../redux/userHospitalSlice'
 import { loadHospitalContext } from '../utils/hospitalGroupUtils'
 import request from '../utils/request'
 
@@ -58,18 +61,47 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 
   // Fetch patients and nurses working at the same hospital
   const currentHospitalId = useSelector(selectCurrentHospitalId)
-  
+
   // Get the hospital ID from the channel if available
   useEffect(() => {
     if (channelId && channelId !== 'general') {
       // Use the utility function to load hospital context
-      loadHospitalContext(channelId, dispatch).then(hospitalId => {
-        if (hospitalId) {
-          console.log('Hospital context loaded for channel:', channelId, 'Hospital ID:', hospitalId)
+      // This will automatically set currentHospitalId in Redux if successful
+      loadHospitalContext(channelId, dispatch).then(() => {
+        if (currentHospitalId) {
+          console.log(
+            'Hospital context loaded for channel:',
+            channelId,
+            'Hospital ID:',
+            currentHospitalId,
+          )
         }
       })
+    } else if (!currentHospitalId) {
+      // If we're not in a hospital channel and no hospital ID is set in Redux,
+      // try to get the current user's hospital ID from their profile
+
+      const currentUserId = localStorage.getItem('uid')
+      if (currentUserId) {
+        request(`/api/users/${currentUserId}`)
+          .then((userData) => {
+            console.log('Full user data received:', userData)
+            if (userData && userData.hospitalId) {
+              console.log(
+                'Setting hospital ID from user profile:',
+                userData.hospitalId,
+              )
+              dispatch(setCurrentHospitalId(userData.hospitalId))
+            } else {
+              console.log('User has no hospital ID in their profile')
+            }
+          })
+          .catch((err) => {
+            console.error('Error fetching user data:', err)
+          })
+      }
     }
-  }, [channelId, dispatch])
+  }, [channelId, dispatch, currentHospitalId])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,13 +120,12 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
           ) {
             patientsList = patientsData.map((patient: IPatient) => ({
               id: patient.patientId,
-              name: patient.name || 'Unknown Patient'
+              name: patient.name || 'Unknown Patient',
             }))
           } else {
             // Fallback to mock data if API returns empty array
             console.log('No patients returned from API')
           }
-
         } catch (patientError) {
           console.error('Error fetching patients:', patientError)
         }
@@ -113,32 +144,40 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         try {
           // Log the current hospital ID for debugging
           console.log('Current hospital ID from Redux:', currentHospitalId)
-          
+
           // Fetch all nurse users first
           const users = await request(`/api/users?role=Nurse`)
-          
+
           if (users && Array.isArray(users)) {
             const currentUserId = localStorage.getItem('uid')
-            
+
             // Filter nurses based on role and exclude current user
             let nurseUsersFiltered = users.filter(
               (user: IUser) =>
                 user._id !== currentUserId && // Exclude current user
-                user.role === 'Nurse' // STRICT role check
+                user.role === 'Nurse', // STRICT role check
             )
-            
-            console.log('All nurses before hospital filtering:', nurseUsersFiltered.length)
-            
+
+            console.log(
+              'All nurses before hospital filtering:',
+              nurseUsersFiltered.length,
+            )
+
             // If we have a hospital ID, apply additional filter for hospital
             if (currentHospitalId) {
               nurseUsersFiltered = nurseUsersFiltered.filter(
-                (user: IUser) => user.hospitalId === currentHospitalId
+                (user: IUser) => user.hospitalId === currentHospitalId,
               )
-              console.log(`Nurses after filtering by hospital (${currentHospitalId}):`, nurseUsersFiltered.length)
+              console.log(
+                `Nurses after filtering by hospital (${currentHospitalId}):`,
+                nurseUsersFiltered.length,
+              )
             } else {
-              console.log('No hospital ID available - not filtering by hospital')
+              console.log(
+                'No hospital ID available - not filtering by hospital',
+              )
             }
-            
+
             setNurseUsers(nurseUsersFiltered)
             // Set totalNurses to the filtered list length (ensure we have at least 1 for dropdown)
             setTotalNurses(Math.max(nurseUsersFiltered.length, 1))
@@ -232,7 +271,6 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
           body: JSON.stringify(messageData),
         },
       )
-      console.log('YAYAYYAYAMessage:', message)
 
       const alert: NurseAlert = {
         id: message._id,
@@ -249,8 +287,10 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         method: 'POST',
         body: JSON.stringify(alert),
       })
-      if (alertResult.message == "Alert queued") {
-        window.alert("The alert is being delayed by other alerts and will be sent as soon as possible.");
+      if (alertResult.message == 'Alert queued') {
+        window.alert(
+          'The alert is being delayed by other alerts and will be sent as soon as possible.',
+        )
       }
       console.log('Alert Result:', alertResult)
 
