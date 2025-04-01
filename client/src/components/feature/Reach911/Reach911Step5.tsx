@@ -59,6 +59,8 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
 
     // Fetch all personnel and exclude assigned personnel
     useEffect(() => {
+        if (!unassignedPersonnel) return
+
         const fetchPersonnel = async () => {
             if (incidentData?.commander === currentUsername) {
                 setAmICommander(true)
@@ -101,12 +103,15 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     ),
                 )
                 // Convert the Set back to an array
-                const unassignedPersonnelArray = Array.from(
+                const unassignedPersonnelNamesArray = Array.from(
                     unassignedPersonnelSet,
                 )
-                console.debug('Unassigned Personnel:', unassignedPersonnelArray)
 
-                setUnassignedPersonnel(unassignedPersonnelArray)
+                const unassignedPersonnel = personnelData.filter(
+                    (person: any) =>
+                        unassignedPersonnelNamesArray.includes(person.name),
+                )
+                setUnassignedPersonnel(unassignedPersonnel)
             } catch (err) {
                 console.error('Error fetching unassigned personnel:', err)
             }
@@ -294,6 +299,39 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 }
             }
 
+            if (incidentData.incidentCallGroup) {
+                const channel: IChannel = await request(
+                    `/api/channels/${incidentData.incidentCallGroup}`,
+                    {
+                        method: 'GET',
+                    },
+                )
+                if (channel) {
+                    const userIds = new Set(
+                        channel.users?.map((user) => user._id),
+                    )
+
+                    const newCommanderUser = unassignedPersonnel.find(
+                        (person) => person.name === newCommander,
+                    )
+                    userIds.add(newCommanderUser._id)
+                    await request(`/api/channels`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            _id: channel?._id,
+                            users: Array.from(userIds),
+                        }),
+                    })
+                    await request('/api/channels', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            _id: channel?._id,
+                            users: Array.from(userIds),
+                        }),
+                    })
+                }
+            }
+
             if (updateResponse.status !== 204) {
                 throw new Error('Failed to update incident')
             }
@@ -471,10 +509,10 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                                 {currenCommander}
                             </MenuItem>
                             {unassignedPersonnel.map((person) => (
-                                <MenuItem key={person} value={person}>
-                                    {person === currentUsername
-                                        ? `You (${person})`
-                                        : person}
+                                <MenuItem key={person.name} value={person.name}>
+                                    {person.name === currentUsername
+                                        ? `You`
+                                        : person.name}
                                 </MenuItem>
                             ))}
                         </Select>
