@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import IPatient from '@/models/Patient'
 import {
     addPatient,
@@ -5,6 +6,8 @@ import {
     setPatient,
     updatePatient,
 } from '@/redux/patientSlice'
+=======
+>>>>>>> 6708280 (refactor (client): [--] refactor navigation logic)
 import {
     Box,
     FormControl,
@@ -140,6 +143,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
         }
     }
 
+<<<<<<< HEAD
     const handleProfileClick = async () => {
         if (!username) {
             alert('Username is missing.')
@@ -169,6 +173,8 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
         }
     }
 
+=======
+>>>>>>> 6708280 (refactor (client): [--] refactor navigation logic)
     if (loading) return <Loading />
 
     return (
