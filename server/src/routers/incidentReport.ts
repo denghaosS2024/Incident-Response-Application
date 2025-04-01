@@ -52,6 +52,7 @@ incidentReportRouter.post('/', async (req, res) => {
 
         if (!incidentId) {
             res.status(400).json({ message: 'incidentId is required' })
+            return
         }
 
         const result = await IncidentReport.findOneAndUpdate(
@@ -60,10 +61,10 @@ incidentReportRouter.post('/', async (req, res) => {
             { upsert: true, new: true },
         )
 
-        res.status(201).json(result)
+        return res.status(201).json(result)
     } catch (err) {
         console.error(err)
-        res.status(500).json({ message: 'Failed to save report' })
+        return res.status(500).json({ message: 'Failed to save report' })
     }
 })
 
