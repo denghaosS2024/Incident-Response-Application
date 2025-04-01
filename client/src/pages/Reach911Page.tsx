@@ -270,18 +270,18 @@ const Reach911Page: React.FC = () => {
         ),
     )
 
-    if (!isIncidentReady) {
-        return (
-            <div className={styles.wrapper}>
-                <div
-                    className={styles.placeholder}
-                    style={{ paddingTop: '50px' }}
-                >
-                    <h3 style={{ textAlign: 'center' }}>Loading incident...</h3>
-                </div>
-            </div>
-        )
-    }
+    // if (!isIncidentReady) {
+    //     return (
+    //         <div className={styles.wrapper}>
+    //             <div
+    //                 className={styles.placeholder}
+    //                 style={{ paddingTop: '50px' }}
+    //             >
+    //                 <h3 style={{ textAlign: 'center' }}>Loading incident...</h3>
+    //             </div>
+    //         </div>
+    //     )
+    // }
 
     return (
         <div

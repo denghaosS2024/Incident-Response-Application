@@ -1,5 +1,6 @@
 import { Button } from '@mui/material'
 import React from 'react'
+import { useSearchParams } from 'react-router-dom'
 import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
 import request, { IRequestError } from '../../../utils/request.ts'
@@ -8,7 +9,6 @@ import FEMAMarker from './FEMAMarker'
 import ReturnToTasksBtn from './ReturnToTasksBtn.tsx'
 import SARTaskTitle from './SARTaskTitle.tsx'
 import formatDateTime from './useCurrentDateTime.tsx'
-import {useSearchParams} from 'react-router-dom'
 
 // Types of victims with their index
 const victimTypes = [
@@ -91,7 +91,7 @@ const SARTaskStep4: React.FC<SARTaskStep4Props> = ({incident, setIncident }) => 
 
   return (
     <div className={styles.wrapperStep}>
-      <AddressBar address={incident?.sarTasks?.at(taskId)?.location || 'No Address'} />
+      <AddressBar task={incident?.sarTasks?.at(taskId)}/>
       <div className="mt-2"></div> {/* add space between components */}
       <SARTaskTitle
         title={'Final Marker'}

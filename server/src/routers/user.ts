@@ -5,6 +5,7 @@ import { Router } from 'express';
 import UserController from '../controllers/UserController';
 import HttpError from '../utils/HttpError';
 import ROLES from '../utils/Roles';
+import UserConnections from '../utils/UserConnections';
 const router = Router()
 router
     /**
@@ -167,6 +168,7 @@ router
   
     try {
       const result = await UserController.registerToHospital(id, hospitalId);
+      UserConnections.joinHospitalRoom(id, hospitalId);
       response.status(200).send(result);
     } catch (e) {
       const error = e as HttpError;

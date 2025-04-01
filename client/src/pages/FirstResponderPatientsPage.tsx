@@ -167,7 +167,7 @@ const FirstResponderPatientsPage: React.FC = () => {
 
   // Navigate to empty patient screen (as per wireframe)
   const handleAddPatient = () => {
-    navigate('/patients/first-responder/admit');
+    navigate('/patients/admit');
   };
 
   if (loading) {

@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux'
 import { addMessage } from '../redux/messageSlice'
 import { AppDispatch } from '../redux/store'
 import request from '../utils/request'
-import SocketClient from '../utils/Socket'
+//import SocketClient from '../utils/Socket'
 import AlertPanel from './AlertPanel'
 import IIncident from '@/models/Incident'
 
@@ -20,7 +20,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
   currentUserId,
   currentUserRole,
 }) => {
-  const socket = SocketClient
+  //const socket = SocketClient
   const dispatch = useDispatch<AppDispatch>()
   // const [maydayOpen, setMaydayOpen] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -28,13 +28,13 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
   // const isIncidentCommander = false
 
   const [responders, setResponders] = useState<string[]>([])
-  const [acknowledgedBy, setAcknowledgedBy] = useState<string[]>([])
+  //const [acknowledgedBy, setAcknowledgedBy] = useState<string[]>([])
   const [openAlertPanel, setOpenAlertPanel] = useState<boolean>(false)
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
     setOpenAlertPanel(true)
   }
-  const [isIncidentCommander, setIsIncidentCommander] = useState<boolean>(false)
+  const [isIncidentCommander, setIsIncidentCommander] = useState<number>(2)
   const currentUsername = localStorage.getItem('username')
   const checkIncidentCommander = async () => {
     try {
@@ -48,11 +48,16 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
       const isCommander = incidents.some(
         (incident: IIncident) => incident.commander === currentUsername,
       )
-      setIsIncidentCommander(isCommander)
+      console.log(currentUsername)
+      if(isCommander){
+        setIsIncidentCommander(1)
+      }else{
+        setIsIncidentCommander(0)
+      }
     } catch (error) {
       console.error('Error fetching incidents:', error)
       console.log('not exist')
-      setIsIncidentCommander(false)
+      setIsIncidentCommander(2)
     }
   }
 
@@ -145,7 +150,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
   return (
     <>
-      {isIncidentCommander && (
+      {isIncidentCommander==1 && (
         <IconButton color="primary" onClick={handleMenuOpen}>
           <Warning />
         </IconButton>
@@ -175,7 +180,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
         )}
       </Popover>
 
-      {!isIncidentCommander &&
+      {isIncidentCommander==0 &&
         (currentUserRole === 'Fire' || currentUserRole === 'Police') && (
           <IconButton color="primary" onClick={sendAlert}>
             <Warning />

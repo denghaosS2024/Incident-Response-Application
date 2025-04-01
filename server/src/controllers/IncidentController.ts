@@ -1,6 +1,10 @@
 import { Types } from 'mongoose'
 import { ICar } from '../models/Car'
-import Incident, { IncidentPriority, type IIncident } from '../models/Incident'
+import Incident, {
+    IncidentPriority,
+    IncidentState,
+    type IIncident,
+} from '../models/Incident'
 import { ITruck } from '../models/Truck'
 import User, { IUser } from '../models/User'
 import { ROLES } from '../utils/Roles'
@@ -196,30 +200,34 @@ class IncidentController {
             const incidents = await Incident.find().lean().exec()
 
             const enriched = await Promise.all(
-            incidents.map(async (incident) => {
-                const commanderDetail = await UserController.getUserByUsername(incident.commander)
+                incidents.map(async (incident) => {
+                    const commanderDetail =
+                        await UserController.getUserByUsername(
+                            incident.commander,
+                        )
 
-                const enrichedAssignHistory = await Promise.all(
-                    (incident.assignHistory || []).map(async (entry) => {
-                        let user: IUser | null = null
-                      if (entry.usernames && entry.usernames.length > 0) {
-                        user = await UserController.getUserByUsername(entry.usernames[0])
-                      }
-                      return {
-                        ...entry,
-                        user: user ?? null,
-                      }
-                    })
-                  )
+                    const enrichedAssignHistory = await Promise.all(
+                        (incident.assignHistory || []).map(async (entry) => {
+                            let user: IUser | null = null
+                            if (entry.usernames && entry.usernames.length > 0) {
+                                user = await UserController.getUserByUsername(
+                                    entry.usernames[0],
+                                )
+                            }
+                            return {
+                                ...entry,
+                                user: user ?? null,
+                            }
+                        }),
+                    )
 
-                return {
-                ...incident,
-                commanderDetail,
-                assignHistory: enrichedAssignHistory,
-                } as IIncident
-            })
+                    return {
+                        ...incident,
+                        commanderDetail,
+                        assignHistory: enrichedAssignHistory,
+                    } as IIncident
+                }),
             )
-            
 
             return enriched
         } catch (error) {
@@ -245,32 +253,37 @@ class IncidentController {
         try {
             const incidents = await Incident.find({ incidentId }).lean().exec()
 
-        const enriched = await Promise.all(
-            incidents.map(async (incident) => {
-                const commanderDetail = await UserController.getUserByUsername(incident.commander)
+            const enriched = await Promise.all(
+                incidents.map(async (incident) => {
+                    const commanderDetail =
+                        await UserController.getUserByUsername(
+                            incident.commander,
+                        )
 
-                const enrichedAssignHistory = await Promise.all(
-                    (incident.assignHistory || []).map(async (entry) => {
-                        let user: IUser | null = null
-                        if (entry.usernames && entry.usernames.length > 0) {
-                            user = await UserController.getUserByUsername(entry.usernames[0])
-                        }
-                        return {
-                            ...entry,
-                            user: user ?? null,
-                        }
-                    })
-                )
+                    const enrichedAssignHistory = await Promise.all(
+                        (incident.assignHistory || []).map(async (entry) => {
+                            let user: IUser | null = null
+                            if (entry.usernames && entry.usernames.length > 0) {
+                                user = await UserController.getUserByUsername(
+                                    entry.usernames[0],
+                                )
+                            }
+                            return {
+                                ...entry,
+                                user: user ?? null,
+                            }
+                        }),
+                    )
 
-                return {
-                    ...incident,
-                    commanderDetail,
-                    assignHistory: enrichedAssignHistory,
-                } as IIncident
-            })
-        )
+                    return {
+                        ...incident,
+                        commanderDetail,
+                        assignHistory: enrichedAssignHistory,
+                    } as IIncident
+                }),
+            )
 
-        return enriched
+            return enriched
         } catch (error) {
             console.error('Error getting incident by incidentId:', error)
             return []
@@ -411,7 +424,7 @@ class IncidentController {
         }
 
         // Update incident state to 'Closed' and record the closing date/time
-        incident.incidentState = 'Closed'
+        incident.incidentState = IncidentState.Closed
         incident.closingDate = new Date()
 
         // Un-allocate all resources by updating each assigned vehicle's assignedIncident to null
@@ -689,6 +702,36 @@ class IncidentController {
             return updatedIncident
         } catch (error) {
             console.error('Error creating/updating SAR task:', error)
+            throw error
+        }
+    }
+
+    async updateIncidentState(
+        incidentId: string,
+        newState: IncidentState,
+        commander: string,
+    ): Promise<IIncident | null> {
+        try {
+            const incident = await Incident.findOne({ incidentId }).exec()
+            if (!incident) {
+                throw new Error(`Incident with ID '${incidentId}' not found`)
+            }
+
+            const now = new Date()
+            const stateHistoryEntry = {
+                timestamp: now,
+                commander: commander,
+                incidentState: newState,
+            }
+
+            incident.incidentState = newState
+            incident.incidentStateHistory = incident.incidentStateHistory || []
+            incident.incidentStateHistory.push(stateHistoryEntry)
+
+            await incident.save()
+            return incident
+        } catch (error) {
+            console.error('Error updating incident state:', error)
             throw error
         }
     }

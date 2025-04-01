@@ -7,6 +7,9 @@ import ROLES from '../utils/Roles'
 import SystemGroupConfigs from '../utils/SystemDefinedGroups'
 import * as Token from '../utils/Token'
 import UserConnections from '../utils/UserConnections'
+import IncidentController from './IncidentController'
+import CarController from './CarController'
+import TruckController from './TruckController'
 
 class UserController {
     /**
@@ -258,31 +261,93 @@ class UserController {
             // 1. Find all incident commanders
             const incidentCommanderUsernames = await Incident.find({
                 commander: { $nin: ['System'] },
-                incidentState: 'Assigned',
+                incidentState: 'Assigned'
             }).select('commander')
-
+    
             // 2. Find one first responder who is not an incident commander
             const firstResponderNotCommander = await User.findOne({
                 role: { $in: [ROLES.POLICE, ROLES.FIRE] },
-                username: {
-                    $nin: incidentCommanderUsernames.map((ic) => ic.commander),
-                },
+                username: { $nin: incidentCommanderUsernames.map(ic => ic.commander) }
             })
 
-            // 3. If there are other un-assigned first responder, transfer incidents
-            if (firstResponderNotCommander) {
-                // Transfer the command of incident to this first responder
-                await Incident.updateOne(
-                    { commander: username },
-                    {
-                        $set: {
-                            commander: firstResponderNotCommander.username,
-                        },
-                    },
-                )
+            const prevCommander = await User.findOne({
+                username: username,
+            })
+
+            if (!prevCommander) {
+                throw new Error(`Previous commander ${username} not found`)
             }
 
-            // 3. Perform standard logout
+            console.log('Previous Commander:', prevCommander)
+    
+            if (!firstResponderNotCommander) {
+                await this.logout(username)
+                return
+            }
+    
+            const incidents = await IncidentController.getIncidentByCommander(username)
+    
+            if (incidents.length === 0) {
+                await this.logout(username)
+                return
+            }
+    
+            const incident = incidents[0]
+    
+            // Make a shallow copy to avoid mutation issues during iteration
+            const originalVehicles = [...incident.assignedVehicles]
+            console.log('Original Vehicles:', originalVehicles)
+    
+            // Deallocate vehicles where the commander is present
+            for (const vehicle of originalVehicles) {
+                if (vehicle.name === prevCommander.assignedCar || vehicle.name === prevCommander.assignedTruck) {
+                    // Remove vehicle from assignment
+                    incident.assignedVehicles = incident.assignedVehicles.filter(
+                        (v) => v.name !== vehicle.name
+                    )
+
+                    console.log(`Vehicle '${vehicle.name}' deallocated from incident '${incident.incidentId}'`)
+                    await incident.save()
+    
+                    // Deallocate vehicle in DB
+                    if (vehicle.type === 'Car') {
+                        await CarController.updateIncident(vehicle.name, null)
+    
+                        if (firstResponderNotCommander.assignedCar) {
+                            await CarController.updateIncident(firstResponderNotCommander.assignedCar, incident.incidentId)
+    
+                            const newAssignCar = await CarController.getCarByName(firstResponderNotCommander.assignedCar)
+                            incident.assignedVehicles.push({
+                                type: 'Car',
+                                name: firstResponderNotCommander.assignedCar,
+                                usernames: newAssignCar?.usernames || [firstResponderNotCommander.username],
+                            })
+                        }
+                    } else {
+                        await TruckController.updateIncident(vehicle.name, null)
+    
+                        if (firstResponderNotCommander.assignedTruck) {
+                            await TruckController.updateIncident(firstResponderNotCommander.assignedTruck, incident.incidentId)
+    
+                            const newAssignTruck = await TruckController.getTruckByName(firstResponderNotCommander.assignedTruck)
+                            incident.assignedVehicles.push({
+                                type: 'Truck',
+                                name: firstResponderNotCommander.assignedTruck,
+                                usernames: newAssignTruck?.usernames || [firstResponderNotCommander.username],
+                            })
+                        }
+                    }
+    
+                    console.log(`Vehicle '${vehicle.name}' deallocated from incident '${incident.incidentId}'`)
+                }
+            }
+            
+    
+            // Transfer command to the new responder and save updated vehicles
+            incident.commander = firstResponderNotCommander.username
+            await incident.save()
+    
+            console.log(`Incident '${incident.incidentId}' command transferred to '${incident.commander}'`)
             await this.logout(username)
         } catch (error) {
             console.error('Error during commander logout:', error)
@@ -296,7 +361,7 @@ class UserController {
      * @param isCommander - Whether the user is the incident commander or not
      * @throws Error if an error occurs during logout or un-assigns vehicle
      */
-    async FirstResponderLogout(username: string, isCommander: boolean) {
+    async FirstResponderLogout(username: string) {
         try {
             const user = await User.findOne({ username })
             if (!user) {
@@ -341,11 +406,6 @@ class UserController {
 
                 // Clear user's assignedCar field
                 await User.updateOne({ username }, { assignedCar: null })
-            }
-
-            if (isCommander) {
-                await this.CommanderLogout(username)
-                return
             }
 
             // Perform standard logout

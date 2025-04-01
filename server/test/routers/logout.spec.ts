@@ -175,3 +175,134 @@ describe('Dispatcher - Logout', () => {
     })
     });
 })
+
+describe('First Responder - Logout', () => {
+  // Test users
+  let police1: IUser
+  let police2: IUser
+  let fire1: IUser
+  let fire2: IUser
+
+  beforeAll(async () => {
+    await TestDatabase.connect()
+    
+    // Create test users
+    police1 = await UserController.register('police1', 'password1', ROLES.POLICE)
+    police2 = await UserController.register('police2', 'password2', ROLES.POLICE)
+    fire1 = await UserController.register('fire1', 'password1', ROLES.FIRE)
+    fire2 = await UserController.register('fire2', 'password2', ROLES.FIRE)
+
+    // Assign vehicles to users
+    police1.assignedCar = 'police-car-1'
+    police2.assignedCar = 'police-car-2'
+    fire1.assignedTruck = 'fire-truck-1'
+    fire2.assignedTruck = 'fire-truck-2'
+    await Promise.all([police1.save(), police2.save(), fire1.save(), fire2.save()])
+
+    // Create test incidents
+    await new Incident({
+      incidentId: 'I-active-2',
+      caller: 'citizen2',
+      incidentState: 'Assigned',
+      owner: 'dispatcher1',
+      commander: fire1.username,
+      address: '456 Fire Lane',
+      type: IncidentType.Fire,
+      priority: IncidentPriority.Urgent,
+      assignedVehicles: [
+        {
+          type: 'Truck',
+          name: 'fire-truck-1',
+          usernames: [fire1.username]
+        }
+      ]
+    }).save()
+  })
+
+  beforeEach(async () => {
+    // Login users
+    const socket = mock<SocketIO.Socket>()
+    UserConnections.addUserConnection(police1.id, socket, ROLES.POLICE)
+    UserConnections.addUserConnection(police2.id, socket, ROLES.POLICE)
+    UserConnections.addUserConnection(fire1.id, socket, ROLES.FIRE)
+    UserConnections.addUserConnection(fire2.id, socket, ROLES.FIRE)
+  })
+
+  afterEach(async () => {
+    await UserConnections.removeUserConnection(police1.id)
+    await UserConnections.removeUserConnection(police2.id)
+    await UserConnections.removeUserConnection(fire1.id)
+    await UserConnections.removeUserConnection(fire2.id)
+  })
+
+  afterAll(async () => {
+    await Incident.deleteMany({})
+    await User.deleteMany({})
+    await TestDatabase.close()
+  })
+
+  describe('First Responder Logout', () => {
+    it('should remove police officer from assigned vehicle but not transfer command', async () => {
+      // Create an incident where police2 is not commander but assigned
+      const incidentWithRegularOfficer = await new Incident({
+        incidentId: 'I-regular-police',
+        caller: 'citizen3',
+        incidentState: 'Assigned',
+        owner: 'dispatcher1',
+        commander: police1.username,
+        address: '789 Police Ave',
+        type: IncidentType.Police,
+        priority: IncidentPriority.Immediate,
+        assignedVehicles: [
+          {
+            type: 'Car',
+            name: 'police-car-2',
+            usernames: [police2.username]
+          }
+        ]
+      }).save()
+
+      // Police2 (regular responder) logs out
+      await request(app)
+        .post('/api/logout')
+        .send({ username: 'police2', role: ROLES.POLICE })
+        .expect(200)
+
+      // Verify police2 was removed from vehicle but command wasn't transferred
+      const updatedIncident = await IncidentController.findById(incidentWithRegularOfficer._id)
+      expect(updatedIncident.commander).toBe(police1.username) // Commander unchanged
+      expect(updatedIncident.assignedVehicles[0].usernames).not.toContain(police2.username)
+    })
+
+    it('should remove firefighter from assigned truck but not transfer command', async () => {
+      // Create an incident where fire2 is not commander but assigned
+      const incidentWithRegularFirefighter = await new Incident({
+        incidentId: 'I-regular-fire',
+        caller: 'citizen4',
+        incidentState: 'Assigned',
+        owner: 'dispatcher1',
+        commander: fire1.username,
+        address: '321 Fire St',
+        type: IncidentType.Fire,
+        priority: IncidentPriority.Urgent,
+        assignedVehicles: [
+          {
+            type: 'Truck',
+            name: 'fire-truck-2',
+            usernames: [fire2.username]
+          }
+        ]
+      }).save()
+
+      // Fire2 (regular responder) logs out
+      await request(app)
+        .post('/api/logout')
+        .send({ username: 'fire2', role: ROLES.FIRE })
+        .expect(200)
+
+      // Verify fire2 was removed from truck but command wasn't transferred
+      const updatedIncident = await IncidentController.findById(incidentWithRegularFirefighter._id)
+      expect(updatedIncident.commander).toBe(fire1.username) // Commander unchanged
+    })
+  })
+})

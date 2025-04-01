@@ -237,13 +237,28 @@ class ChannelController {
                 content.includes('HELP-')
             ) {
                 // Add specific case for nurse alerts
-                connection.emit('nurse-alert', message)
+                // connection.emit('nurse-alert', message)
             } else {
                 connection.emit('new-message', message)
             }
         })
         return message
     }
+
+    // Get a channel by name
+    /**
+     * @param name - The name of the channel to retrieve
+     * @returns The channel object if found (first occurnace in DB), null otherwise
+     * @throws Error if the channel is not found
+     */
+    getByName = async (name: string) => {
+      const channel = await Channel.getByName(name)
+      if (!channel) {
+          throw new Error(`Channel(${name}) not found.`)
+      }
+      return channel
+    }
+
 
     /**
      * Get messages for a channel
@@ -663,6 +678,7 @@ class ChannelController {
             throw error
         }
     }
+
 }
 
 export default new ChannelController()

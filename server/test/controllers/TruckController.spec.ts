@@ -202,5 +202,20 @@ describe('TruckController', () => {
         // Assertions
         await expect(TruckController.getAvailableTrucksWithResponder()).rejects.toThrow('Database error');
       });
+
+      it('should be able to update incident in a truck', async () => {
+        const testCar = 
+          {
+            name: 'Police1',
+            usernames: [],
+            assignedIncident: '1234',
+            assignedCity: 'New York',
+          };
+        await Truck.create(testCar);
+        const truck = await TruckController.updateIncident('Police1','5678');
+        expect(truck).toBeDefined();
+        expect(truck?.name).toBe('Police1');
+        expect(truck?.assignedIncident).toBe('5678');
+      });
     });
 })

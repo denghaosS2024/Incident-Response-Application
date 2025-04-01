@@ -206,5 +206,20 @@ describe('CarController', () => {
       expect(car?.name).toBe('Police Car 1');
       expect(car?.assignedCity).toBe('New York');
     });
+
+    it('should be able to update incident in a car', async () => {
+      const testCar = 
+        {
+          name: 'Police1',
+          usernames: [],
+          assignedIncident: '1234',
+          assignedCity: 'New York',
+        };
+      await Car.create(testCar);
+      const car = await CarController.updateIncident('Police1','5678');
+      expect(car).toBeDefined();
+      expect(car?.name).toBe('Police1');
+      expect(car?.assignedIncident).toBe('5678');
+    });
   });
 })
