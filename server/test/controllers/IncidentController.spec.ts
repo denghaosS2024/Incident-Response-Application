@@ -1,7 +1,7 @@
 import { Query, Types } from 'mongoose'
 import IncidentController from '../../src/controllers/IncidentController'
 import UserController from '../../src/controllers/UserController'
-import Car from '../../src/models/Car'
+import Car, { ICar } from '../../src/models/Car'
 import Incident, {
     IIncident,
     IncidentPriority,
@@ -716,6 +716,40 @@ describe('Incident Controller', () => {
         expect(updatedIncident?.sarTasks?.[0].state).toBe('Done')
         expect(updatedIncident?.sarTasks?.[0].endDate).toEqual(now)
     })
+
+    it('should add a vehicle to an incident when vehicle is not assigned', async () => {
+        // Create a test incident
+        const incident = await createTestIncident('test-incident-1');
+    
+        // Mock personnel and vehicle data
+        const personnel = {
+          _id: new Types.ObjectId().toString(),
+          name: 'Test Officer',
+          assignedCity: 'Test City',
+          role: 'Police' as const,
+          assignedVehicleTimestamp: null,
+        };
+    
+        const vehicle: ICar = await createTestCar('Test Car');
+    
+        // Call the controller method
+        await IncidentController.addVehicleToIncident(
+          personnel,
+          incident.toObject() as IIncident,
+          vehicle
+        );
+    
+        // Get the updated incident from the database
+        const updatedIncident = await Incident.findById(incident._id);
+    
+        // Assertions
+        expect(updatedIncident).toBeDefined();
+        expect(updatedIncident!.assignedVehicles).toHaveLength(1);
+        expect(updatedIncident!.assignedVehicles[0].name).toBe('Test Car');
+        expect(updatedIncident!.assignedVehicles[0].type).toBe('Car');
+        expect(updatedIncident!.assignedVehicles[0].usernames).toContain('Test Officer');
+      });
+    
     
     })
 })

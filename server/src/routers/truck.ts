@@ -261,6 +261,48 @@ truckRouter.put('/usernames', async (req: Request, res: Response) => {
   }
 })
 
+/**
+ * @swagger
+ * /trucks/usernames/release:
+ *   put:
+ *     summary: Release a username from a truck
+ *     description: Removes the association between a username and a truck
+ *     tags:
+ *       - Trucks
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - truckName
+ *               - username
+ *             properties:
+ *               truckName:
+ *                 type: string
+ *                 description: The name of the truck
+ *               username:
+ *                 type: string
+ *                 description: The username to release from the truck
+ *     responses:
+ *       200:
+ *         description: Username successfully released from truck
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Truck'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
 truckRouter.put('/usernames/release', async (req: Request, res: Response) => {
   try {
     const { truckName, username } = req.body
