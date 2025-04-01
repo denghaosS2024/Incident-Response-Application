@@ -8,8 +8,10 @@ const VisitLogList: React.FC<{ username?: string }> = ({
   const navigate = useNavigate()
 
   const handleAddPatient = () => {
-    navigate(`/patient-visit/${propUsername}`);
+    navigate(`/patient-visit/?username=${propUsername}`);
   };
+
+  console.log(propUsername)
 
   return (
     // TODO: Add list of visit logs here

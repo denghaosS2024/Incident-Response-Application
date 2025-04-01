@@ -7,6 +7,7 @@ import { useSearchParams } from 'react-router-dom'
 const PatientAdmitPage: React.FC = () => {
     const [searchParams] = useSearchParams()
     const username = searchParams.get('username') || undefined
+    console.log(username)
 
     return (
         <Box sx={{ height: '100%' }}>
