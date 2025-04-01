@@ -185,13 +185,16 @@ export default Router()
       const currentHospitalData = await fetchCurrentHospitalData(updates)
       console.log('Current hospital data:', currentHospitalData)
 
-      // Step 3: Update hospitals and patients
+      // Step 3: Validate ER capacity
+      validateERCapacity(updates, currentHospitalData)
+
+      // Step 4: Update hospitals and patients
       const results = await updateHospitalsAndPatients(updates)
 
-      // Step 4: Broadcast updates
+      // Step 5: Broadcast updates
       broadcastHospitalUpdates(updates, currentHospitalData)
 
-      // Step 5: Return success response
+      // Step 6: Return success response
       return response.status(200).send(results)
     } catch (e) {
       const error = e as HttpError
@@ -305,9 +308,40 @@ const fetchCurrentHospitalData = async (updates: { hospitalId: string }[]) => {
       return {
         hospitalId: update.hospitalId,
         currentPatients: hospital.patients.map((patient) => patient.toString()),
+        totalNumberERBeds: hospital.totalNumberERBeds,
       }
     }),
   )
+}
+
+const validateERCapacity = (
+  updates: { hospitalId: string; patients: string[] }[],
+  currentHospitalData: {
+    hospitalId: string
+    currentPatients: string[]
+    totalNumberERBeds: number
+  }[],
+): void => {
+  updates.forEach((update) => {
+    const hospitalData = currentHospitalData.find(
+      (data) => data.hospitalId === update.hospitalId,
+    )
+
+    if (!hospitalData) {
+      throw new HttpError(
+        `Hospital with ID ${update.hospitalId} not found`,
+        404,
+      )
+    }
+
+    const totalPatients = update.patients.length
+    if (totalPatients > hospitalData.totalNumberERBeds) {
+      throw new HttpError(
+        `Hospital ${update.hospitalId} exceeds ER capacity. Total ER beds: ${hospitalData.totalNumberERBeds}, Patients: ${totalPatients}`,
+        400,
+      )
+    }
+  })
 }
 
 const updateHospitalsAndPatients = async (

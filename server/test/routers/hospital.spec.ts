@@ -19,6 +19,7 @@ describe('Router - Hospital', () => {
       .send({
         hospitalName: hospitalName || 'Test Hospital',
         hospitalAddress: '123 Main St',
+        totalNumberERBeds: 100,
       })
     return response.body.hospitalId // Return the generated hospitalId
   }
