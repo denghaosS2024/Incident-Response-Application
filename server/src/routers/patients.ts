@@ -567,7 +567,7 @@ export default Router()
         return
       }
 
-      const result = await PatientController.createPatientVisit(
+      const result = await PatientController.createUpdatePatientVisit(
         patientId as string,
         visitLog,
       )

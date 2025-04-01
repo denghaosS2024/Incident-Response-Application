@@ -28,6 +28,7 @@ export interface IVisitLog {
         | 'Sprain'
         | 'Stroke'
         | 'Others'
+        | ''
         | null
     drugs?: string[] | null
     allergies?: string[] | null
@@ -62,7 +63,6 @@ const VisitLogSchema = new Schema(
         },
         incidentId: {
             type: String,
-            required: true,
         },
         priority: {
             type: String,
@@ -112,6 +112,7 @@ const VisitLogSchema = new Schema(
                 'Sprain',
                 'Stroke',
                 'Others',
+                ''
             ],
             required: false,
         },

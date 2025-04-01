@@ -44,6 +44,7 @@ const conditions = [
   { value: 'Strain', label: 'Strain' },
   { value: 'Sprain', label: 'Sprain' },
   { value: 'Stroke', label: 'Stroke' },
+  { value: '', label: '' },
 ]
 
 // Returns the current date and time formatted as "MM.DD.YY-HH:mm"
@@ -113,9 +114,11 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
   // Pulls Age, Conscious, Breathing, and Chief Complaint from the Incident if available
   const setPatientData = () => {
-    if (incident && incident.questions && incident.questions.length > 0) {
+    if (incident && incident.questions && incident?.questions.length > 0) {
+      console.log("is setting patient data")
       for (const question of incident.questions) {
         if (question.isPatient && question.username === propUsername) {
+          console.log("Found patient data:", question);
           setFormData((prev) => ({
             ...prev,
             // Only update age if it exists and can be converted to a string
@@ -136,19 +139,23 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
   // Save the form data
   const saveFormData = async () => {
     // Post the form data to the server
-    const message = await request('/api/patients', {
+    console.log([{
+      ...formData,
+      incidentId: incidentId,
+      dateTime: visitTime,
+    }])
+    const message = await request('/api/patients/visitLogs', {
       method: 'POST',
       body: JSON.stringify({
-        name: propUsername,
-        nameLower: propUsername?.toLowerCase(),
-        visitLog: [{
+        patientId: getCurrentPatientId(),
+        visitLog: {
           ...formData,
-          age: formData.age === '' ? null : parseInt(formData.age),
           incidentId: incidentId,
           dateTime: visitTime,
-        }]
+        }
       }),
     });
+
     // check if the message is successful
     alert('Form data saved successfully');
   }
@@ -170,7 +177,20 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     (state: RootState) => state.incidentState
   )
 
-  console.log('Current Incident:', incident);
+  const { patients } = useSelector(
+    (state: RootState) => state.patientState
+  )
+  console.log(patients)
+
+  const getCurrentPatientId = () => {
+    if (!patients || patients.length === 0 || !propUsername) {
+      return null;
+    }
+    const patient = patients.find(p => p.username === propUsername);
+    return patient ? patient.patientId : null;
+  }
+
+  console.log("Current patient ID:", getCurrentPatientId());
 
   const handleClick = () => {
     navigate('/find-hospital')
