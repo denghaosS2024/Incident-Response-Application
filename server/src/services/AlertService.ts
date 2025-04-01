@@ -23,29 +23,6 @@ class AlertService {
         this.groupAlertMap.set(groupId, groupAlertState);
     }
 
-    public queueAlert(alert: Alert): void {
-        const groupId = alert.groupId;
-        const groupAlertState = this.getGroupAlertState(groupId);
-        if (groupAlertState) {
-            groupAlertState.alertQueue.push(alert);
-        } else {
-            this.setGroupAlertState(groupId, {
-                alertQueue: [alert],
-                timeoutHandle: undefined,
-            });
-        }
-        console.log('alertState', groupId, this.groupAlertMap)
-    }
-
-    // public sendAlert(groupId: string): void {
-    //     const groupAlertState = this.getGroupAlertState(groupId);
-    //     if (groupAlertState) {
-    //         groupAlertState.ongoingAlert = groupAlertState.alertQueue.shift();
-    //     }
-    //     console.log('alertState', groupId, this.groupAlertMap)
-
-    // }
-
     private static comparePriority(a: string, b: string): number {
         const priorityRank: Record<string, number> = {
           'E': 3, 'U': 2, 'H': 1
@@ -129,25 +106,31 @@ class AlertService {
         const now = new Date();
         const ongoing = state.ongoingAlert;
         
-        // Case 1: No ongoing or expired → send immediately
+        // Case 1: No ongoing or expired -> send immediately
         if (!ongoing || this.hasExpired(ongoing, now)) {
             await this.sendAlertNow(alert, state, groupId);
             return "Immediate alert sent";
         }
         
-        // ✅ Case 2: Higher priority → preempt ongoing alert immediately
+        // Case 2: Higher priority -> preempt ongoing alert immediately
         if (AlertService.comparePriority(alert.priority, ongoing.priority) > 0) {
             await this.sendAlertNow(alert, state, groupId);
             return "Immediate alert sent";
         }
         
-        // Case 3: Lower or equal priority → queue it
+        // Case 3: Lower or equal priority -> queue it
         state.alertQueue.push(alert);
         state.alertQueue.sort(AlertService.alertComparator);
         return "Alert queued";
 
     }
+
+    public resetState() {
+        this.groupAlertMap.clear();
+      }
+      
       
 }
 
 export default AlertService.getInstance();
+export { AlertService };
