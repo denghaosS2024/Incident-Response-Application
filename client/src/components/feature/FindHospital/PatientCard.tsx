@@ -13,8 +13,9 @@ const PatientCard: React.FC<PatientProps> = ({ patient, index }) => {
   const draggableId = patient.patientId
 
   const userID = localStorage.getItem('uid')
-  const isAssignedToUser = patient.nurseId === userID
+  const isAssignedToUser = patient.master === userID
 
+  console.log("ths component is assigned to user: ", isAssignedToUser, " for patient: ", patient.name, " with master: ", patient.master, " and userID: ", userID)
   const style = [
     'p-2 m-2',
     'border border-gray-300 rounded-lg',
@@ -22,7 +23,7 @@ const PatientCard: React.FC<PatientProps> = ({ patient, index }) => {
   ].join(' ')
 
   return (
-    <Draggable draggableId={draggableId} index={index}>
+    <Draggable draggableId={draggableId} index={index} isDragDisabled={!isAssignedToUser}>
       {(providedDrag, snapshotDrag) => {
         const isDragging = snapshotDrag.isDragging
         const dynamicStyle = [
