@@ -60,7 +60,7 @@ class AirQualityController {
           // Get fresh air quality data
           const airQualityData = await this.getAirQuality(latitude, longitude)
           const currentTime =
-            (airQualityData?.time_stamp as number | undefined) || Date.now()
+            (airQualityData?.time_stamp as Date) || Date.now()
 
           // Update the database with new reading
           const location = await AirQuality.findOne({ locationId })
@@ -102,7 +102,7 @@ class AirQualityController {
   private notifyAirQualityUpdate(
     locationId: string,
     air_quality: number,
-    timestamp: number,
+    timestamp: Date,
     latitude?: number,
     longitude?: number,
   ) {
@@ -235,7 +235,7 @@ class AirQualityController {
 
     if (location && location.air_qualities.length > 0) {
       // Sort by timestamp in descending order (newest first)
-      location.air_qualities.sort((a, b) => b.timeStamp - a.timeStamp)
+      location.air_qualities.sort((a, b) => Number(b.timeStamp) - Number(a.timeStamp))
 
       // Take only the latest readings up to maxNumReadings
       if (location.air_qualities.length > maxNumReadings) {
@@ -264,7 +264,7 @@ class AirQualityController {
     latitude: number,
     longitude: number,
     air_quality: number,
-    timeStamp: number,
+    timeStamp: Date,
   ) {
     // Check if locationId already exists
     const existingLocation = await AirQuality.findOne({
