@@ -135,16 +135,13 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
 
                         if (!channel) {
                             // Create a new Channel using request utility
-                            channel = IChannel = await request(
-                                '/api/channels/911',
-                                {
-                                    method: 'POST',
-                                    body: JSON.stringify({
-                                        username,
-                                        userId: uid,
-                                    }),
-                                },
-                            )
+                            channel = await request('/api/channels/911', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    username,
+                                    userId: uid,
+                                }),
+                            })
                             console.log('New Channel:', channel)
                         }
 
@@ -168,7 +165,6 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
                                 }),
                             },
                         )
-
                         setChannelId(channel._id)
                     }
                 }
@@ -177,14 +173,19 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
                 const users: IUser[] = channel?.users || null
 
                 // todo: remove user system and and its previous messages
-                if (!users?.some((user) => user.id === uid)) {
-                    const userIds = users?.map((user) => user._id) || []
-                    userIds.push(uid)
+                if (
+                    role === ROLES.DISPATCH &&
+                    !users?.some((user) => user._id === uid)
+                ) {
+                    const userIds = new Set(
+                        users?.map((user) => user._id) || [],
+                    )
+                    userIds.add(uid)
                     await request(`/api/channels`, {
                         method: 'PUT',
                         body: JSON.stringify({
                             _id: channel?._id,
-                            users: userIds,
+                            users: Array.from(userIds),
                         }),
                     })
                 }
