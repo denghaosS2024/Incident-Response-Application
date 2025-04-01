@@ -756,4 +756,39 @@ describe('Incident Controller', () => {
             )
         })
     })
+    it('should update incident state and append to state history', async () => {
+        const username = 'commanderUser'
+        const incidentId = `I${username}`
+        const newState = IncidentState.Triage
+        await createTestIncident(username)
+
+        const updatedIncident = await IncidentController.updateIncidentState(
+            incidentId,
+            newState,
+            username,
+        )
+
+        expect(updatedIncident).toBeDefined()
+        expect(updatedIncident?.incidentState).toBe(newState)
+        expect(updatedIncident?.incidentStateHistory).toHaveLength(1)
+
+        const historyEntry = updatedIncident?.incidentStateHistory?.[0]
+        expect(historyEntry?.commander).toBe(username)
+        expect(historyEntry?.incidentState).toBe(newState)
+        expect(historyEntry?.role).toBeDefined()
+        expect(historyEntry?.timestamp).toBeDefined()
+    })
+    it('should throw an error when updating a non-existent incident', async () => {
+        const incidentId = 'nonexistentId'
+        const newState = IncidentState.Closed
+        const commander = 'CommanderUser'
+
+        await expect(
+            IncidentController.updateIncidentState(
+                incidentId,
+                newState,
+                commander,
+            ),
+        ).rejects.toThrow(`Incident with ID '${incidentId}' not found`)
+    })
 })
