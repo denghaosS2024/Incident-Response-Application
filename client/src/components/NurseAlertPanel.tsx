@@ -12,12 +12,12 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
+import { NurseAlert } from '../models/NurseAlert'
+import IPatient from '../models/Patient'
 import IUser from '../models/User'
 import { addMessage } from '../redux/messageSlice'
 import { AppDispatch } from '../redux/store'
-import AlertPriorityQueue from '../utils/AlertPriorityQueue'
 import request from '../utils/request'
-import SocketClient from '../utils/Socket'
 
 interface NurseAlertPanelProps {
   channelId?: string
@@ -70,41 +70,17 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
             Array.isArray(patientsData) &&
             patientsData.length > 0
           ) {
-            patientsList = patientsData.map((patient: any) => ({
-              id:
-                patient.patientId ||
-                patient._id ||
-                String(Math.random()).substring(2, 8),
-              name: patient.username || patient.name || 'Unknown Patient',
+            patientsList = patientsData.map((patient: IPatient) => ({
+              id: patient.patientId,
+              name: patient.name
             }))
           } else {
             // Fallback to mock data if API returns empty array
-            console.log('No patients returned from API, using mock data')
-            patientsList = [
-              { id: '001', name: 'Patient1' },
-              { id: '002', name: 'Patient2' },
-              { id: '003', name: 'Patient3' },
-              { id: '004', name: 'Patient4' },
-              { id: '005', name: 'Patient5' },
-              { id: '455tt', name: 'Stanford Patient' },
-            ]
+            console.log('No patients returned from API')
           }
 
-          // Always ensure Stanford Patient is in the list
-          if (!patientsList.some((p) => p.id === '455tt')) {
-            patientsList.push({ id: '455tt', name: 'Stanford Patient' })
-          }
         } catch (patientError) {
           console.error('Error fetching patients:', patientError)
-          // Fallback to mock data if API fails
-          patientsList = [
-            { id: '001', name: 'Patient1' },
-            { id: '002', name: 'Patient2' },
-            { id: '003', name: 'Patient3' },
-            { id: '004', name: 'Patient4' },
-            { id: '005', name: 'Patient5' },
-            { id: '455tt', name: 'Stanford Patient' },
-          ]
         }
 
         setPatients(patientsList)
@@ -217,7 +193,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 
       // Send the message through the API
       // If called from Messages page without a specific channel, use the nurse alerts channel
-      const targetChannelId = channelId || 'nurse-alerts'
+      const targetChannelId = channelId
 
       const message = await request(
         `/api/channels/${targetChannelId}/messages`,
@@ -226,66 +202,87 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
           body: JSON.stringify(messageData),
         },
       )
+      console.log('YAYAYYAYAMessage:', message)
+
+      const alert: NurseAlert = {
+        id: message._id,
+        patientId: selectedPatientId,
+        patientName: patientName,
+        numNurse: actualNurseCount,
+        priority: alertType === 'E' ? 'E' : alertType === 'U' ? 'U' : 'H',
+        createdAt: new Date(),
+        groupId: targetChannelId,
+        senderId: localStorage.getItem('uid') ?? '',
+        numNurseAccepted: 0,
+      }
+      const alertResult = await request(`/api/alertQueue/${targetChannelId}`, {
+        method: 'POST',
+        body: JSON.stringify(alert),
+      })
+      if (alertResult.message == "Alert queued") {
+        window.alert("The alert is being delayed by other alerts and will be sent as soon as possible.");
+      }
+      console.log('Alert Result:', alertResult)
 
       console.log('Alert created:', message)
 
       // Process through the priority queue
-      const result = AlertPriorityQueue.addAlert(message)
+      // const result = AlertPriorityQueue.addAlert(message)
 
-      if (result.active) {
-        // Alert is active, emit socket event
-        const socket = SocketClient
-        socket.connect()
+      // if (result.active) {
+      //   // Alert is active, emit socket event
+      //   const socket = SocketClient
+      //   socket.connect()
 
-        // Make sure we ONLY include nurse responders in the message
-        const alertWithResponders = {
-          ...message,
-          channelId,
-          responders: availableNurses, // We already filtered for nurses above
-        }
+      //   // Make sure we ONLY include nurse responders in the message
+      //   const alertWithResponders = {
+      //     ...message,
+      //     channelId,
+      //     responders: availableNurses, // We already filtered for nurses above
+      //   }
 
-        console.log('Emitting nurse-alert socket event:', alertWithResponders)
+      //   console.log('Emitting nurse-alert socket event:', alertWithResponders)
 
-        // Emit directly to server for broadcasting to nurses
-        socket.emit('nurse-alert', alertWithResponders)
+      //   // Emit directly to server for broadcasting to nurses
+      //   socket.emit('nurse-alert', alertWithResponders)
 
-        // No need to emit as a regular message since server will handle this
-        // socket.emit('message', alertWithResponders)
+      //   // No need to emit as a regular message since server will handle this
+      //   // socket.emit('message', alertWithResponders)
 
-        setNotification({
-          open: true,
-          message: 'Alert has been sent.',
-          severity: 'success',
-        })
-      } else if (result.queued) {
-        // Alert is queued
-        window.alert("The alert is being delayed by other alerts and will be sent as soon as possible.");
-        setNotification({
-          open: true,
-          message: result.message,
-          severity: 'info',
-        })
+      //   setNotification({
+      //     open: true,
+      //     message: 'Alert has been sent.',
+      //     severity: 'success',
+      //   })
+      // } else if (result.queued) {
+      //   // Alert is queued
+      //   window.alert("The alert is being delayed by other alerts and will be sent as soon as possible.");
+      //   setNotification({
+      //     open: true,
+      //     message: result.message,
+      //     severity: 'info',
+      //   })
 
-        // Set a timeout to try processing the queue after the 2-minute wait
-        setTimeout(() => {
-          const nextAlert = AlertPriorityQueue.getNextAlert(channelId)
-          if (nextAlert && nextAlert._id === message._id) {
-            // Our alert is now active, emit socket event
-            const socket = SocketClient
-            socket.connect()
-            socket.emit('nurse-alert', {
-              ...nextAlert,
-              channelId,
-            })
+      //   // Set a timeout to try processing the queue after the 2-minute wait
+      //   setTimeout(() => {
+      //     const nextAlert = AlertPriorityQueue.getNextAlert(channelId)
+      //     if (nextAlert && nextAlert._id === message._id) {
+      //       // Our alert is now active, emit socket event
+      //       const socket = SocketClient
+      //       socket.connect()
+      //       socket.emit('nurse-alert', {
+      //         ...nextAlert,
+      //         channelId,
+      //       })
 
-            setNotification({
-              open: true,
-              message: 'The alert has been sent.',
-              severity: 'success',
-            })
-          }
-        }, 120000) // 2 minutes
-      }
+      //       setNotification({
+      //         open: true,
+      //         message: 'The alert has been sent.',
+      //         severity: 'success',
+      //       })
+      //     }
+      //   }, 120000) // 2 minutes
+      // }
 
       dispatch(addMessage(message))
       if (onClose) onClose()

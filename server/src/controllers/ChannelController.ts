@@ -237,7 +237,7 @@ class ChannelController {
                 content.includes('HELP-')
             ) {
                 // Add specific case for nurse alerts
-                connection.emit('nurse-alert', message)
+                // connection.emit('nurse-alert', message)
             } else {
                 connection.emit('new-message', message)
             }
