@@ -1,3 +1,10 @@
+import IPatient from '@/models/Patient'
+import {
+    addPatient,
+    fetchPatients,
+    setPatient,
+    updatePatient,
+} from '@/redux/patientSlice'
 import {
     Box,
     FormControl,
@@ -16,33 +23,62 @@ import {
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import IIncident from '../../../models/Incident'
+import { v4 as uuidv4 } from 'uuid'
 import IUser from '../../../models/User'
 import { loadContacts } from '../../../redux/contactSlice'
-import { updateIncident } from '../../../redux/incidentSlice'
 import { AppDispatch, RootState } from '../../../redux/store'
-import { MedicalQuestions } from '../../../utils/types'
 import Loading from '../../common/Loading'
 
-const PatientInforForm: React.FC<{ username?: string }> = ({
+const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     username: propUsername,
+    sex: propSex,
 }) => {
     const dispatch = useDispatch<AppDispatch>()
-    const incident: IIncident = useSelector(
-        (state: RootState) => state.incidentState.incident,
+    const patients: IPatient[] = useSelector(
+        (state: RootState) => state.patientState.patients,
     )
+    const [isFetchingPatients, setIsFetchingPatients] = useState(true)
+    useEffect(() => {
+        dispatch(loadContacts())
+        const fetchData = async () => {
+            await dispatch(fetchPatients()) // Wait for fetchPatients to complete
+            setIsFetchingPatients(false) // Mark fetching as complete
+        }
+        fetchData()
+    }, [dispatch])
+    const [isPatientAdded, setIsPatientAdded] = useState(false)
+
+    let patient: IPatient =
+        patients.find((p) => p.username === propUsername) || ({} as IPatient)
+
+    if (
+        !isFetchingPatients &&
+        !patient.username &&
+        propUsername &&
+        !isPatientAdded
+    ) {
+        console.log('patientUsername is empty')
+        patient = {
+            username: propUsername,
+            name: '',
+            sex: propSex || '',
+            dob: '',
+            patientId: uuidv4(), // Generate a unique ID for the new patient
+        }
+        dispatch(addPatient(patient))
+        setIsPatientAdded(true)
+    }
+
     const navigate = useNavigate()
-    const medicalQuestions = (incident.questions as MedicalQuestions) ?? {}
-    const sex = medicalQuestions.sex ?? ''
-    const age = medicalQuestions.age ?? 0
-    const name = ''
+
+    const username = patient.username ?? null
+    const name = patient.name ?? ''
+    const sex = patient.sex ?? ''
+    const dob = patient.dob ?? ''
 
     const [usernameError, setUserNameError] = useState<string>('')
 
     // Loads contacts upon page loading
-    useEffect(() => {
-        dispatch(loadContacts())
-    }, [dispatch])
 
     const { contacts, loading } = useSelector(
         (state: RootState) => state.contactState,
@@ -57,16 +93,29 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
     ) => {
         const { type, value, checked } = e.target as HTMLInputElement
         const newValue: string | boolean = type === 'checkbox' ? checked : value
-
-        dispatch(
-            updateIncident({
-                ...incident,
-                questions: {
-                    ...(incident.questions ?? {}),
+        if (field === 'username') {
+            patient = {
+                username: value,
+                name: '',
+                sex: propSex || '',
+                dob: '',
+                patientId: uuidv4(),
+            }
+            dispatch(addPatient(patient))
+        } else {
+            dispatch(
+                setPatient({
+                    ...patient,
                     [field]: newValue,
-                } as MedicalQuestions,
-            }),
-        )
+                }),
+            )
+            dispatch(
+                updatePatient({
+                    ...patient,
+                    [field]: newValue,
+                }),
+            )
+        }
 
         // Validate only the changed field
         validateField(field, newValue)
@@ -130,7 +179,7 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
                     </Box>
                 ) : (
                     <Box width="100%" maxWidth="500px" my={2}>
-                        <TextField
+                        {/* <TextField
                             variant="outlined"
                             label="Username"
                             value={propUsername}
@@ -138,7 +187,8 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
                             InputProps={{
                                 readOnly: true,
                             }}
-                        />
+                        /> */}
+                        <Typography>{propUsername}</Typography>
                     </Box>
                 )}
 
@@ -186,11 +236,11 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
                         // label="Date of Birth"
                         type="date"
                         fullWidth
-                        value={age} // Replace with a state variable for date of birth if needed
+                        value={dob} // Replace with a state variable for date of birth if needed
                         InputLabelProps={{
                             shrink: true, // Ensures the label stays above the input
                         }}
-                        onChange={(e) => onChange('dateOfBirth', e)} // Update the field name accordingly
+                        onChange={(e) => onChange('dob', e)} // Update the field name accordingly
                     />
                 </Box>
 
@@ -238,13 +288,13 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
                     }}
                     onClick={() => {
                         // Check if patientId exists before navigating
-                        if (!incident.patientId) {
+                        if (!patient.patientId) {
                             alert(
                                 'Patient ID is missing. Please complete patient information.',
                             )
                             return
                         }
-                        navigate(`/patient-profile/${incident.patientId}`)
+                        navigate(`/patient-profile/${patient.patientId}`)
                     }}
                 >
                     Profile
