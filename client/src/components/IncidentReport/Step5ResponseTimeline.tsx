@@ -43,7 +43,7 @@ type Incident = {
     incidentStateHistory: IncidentStateHistoryItem[]
 }
 
-type Step5ResponseTimelineProps = {
+export type Step5ResponseTimelineProps = {
     incident: Incident
 }
 
