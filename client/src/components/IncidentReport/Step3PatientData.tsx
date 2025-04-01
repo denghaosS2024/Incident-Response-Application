@@ -18,6 +18,18 @@ interface Step3PatientDataProps {
 const Step3PatientData: React.FC<Step3PatientDataProps> = ({
     incidentData,
 }) => {
+    const getStepTitle = () => {
+        switch (incidentData.type) {
+            case 'F': // Fire
+                return 'Fire incident details (latest):'
+            case 'M': // Medical
+                return "Patient's medical data (latest):"
+            case 'P': // Police
+                return 'Police incident details (latest):'
+            default:
+                return 'Incident details (latest):'
+        }
+    }
     const renderQuestionsByType = () => {
         switch (incidentData.type) {
             case 'F': // Fire
@@ -390,7 +402,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
         <Box sx={{ mt: 4, mb: 4 }}>
             <StepIndicator currentStep={3} totalSteps={5} />
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-                Patient's medical data (latest):
+                {getStepTitle()}
             </Typography>
             {renderQuestionsByType()}
         </Box>
