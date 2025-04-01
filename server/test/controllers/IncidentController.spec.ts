@@ -50,11 +50,11 @@ describe('Incident Controller', () => {
         return rawIncident.save()
     }
 
-    const createTestCar = async (carName: string, usernames: string[] = []) => {
+    const createTestCar = async (carName: string, usernames: string[] = [], assignedIncident?: string) => {
         return await Car.create({
             name: carName,
             usernames,
-            assignedIncident: null,
+            assignedIncident: assignedIncident ? assignedIncident : null,
             assignedCity: 'TestCity',
         })
     }
@@ -682,74 +682,76 @@ describe('Incident Controller', () => {
             
         })
 
-    it('should update SAR task from InProgress to Done with end date', async () => {
-        const username = 'test-sar-update-done'
-        const incident = await createTestIncident(username)
-        
-        // Add a SAR task to the incident
-        incident.type = IncidentType.Sar
-        incident.sarTasks = [
-            {
-                state: 'InProgress',
-                location: 'Task 1 Location',
-                startDate: new Date(),
-                hazards: [],
-                victims: [0, 0, 0, 0, 0], 
-            }
-        ]
-        
-        await incident.save()
-        
-        const taskId = 0
-        const now = new Date()
-        
-        let updatedSarTasks = incident.sarTasks
-        updatedSarTasks[taskId].state = 'Done'
-        updatedSarTasks[taskId].endDate = now
+        it('should update SAR task from InProgress to Done with end date', async () => {
+            const username = 'test-sar-update-done'
+            const incident = await createTestIncident(username)
+            
+            // Add a SAR task to the incident
+            incident.type = IncidentType.Sar
+            incident.sarTasks = [
+                {
+                    state: 'InProgress',
+                    location: 'Task 1 Location',
+                    startDate: new Date(),
+                    hazards: [],
+                    victims: [0, 0, 0, 0, 0], 
+                }
+            ]
+            
+            await incident.save()
+            
+            const taskId = 0
+            const now = new Date()
+            
+            let updatedSarTasks = incident.sarTasks
+            updatedSarTasks[taskId].state = 'Done'
+            updatedSarTasks[taskId].endDate = now
 
-        const updatedIncident = await IncidentController.updateIncident({
-            incidentId: incident.incidentId,
-            sarTasks: updatedSarTasks
+            const updatedIncident = await IncidentController.updateIncident({
+                incidentId: incident.incidentId,
+                sarTasks: updatedSarTasks
+            })
+            
+            expect(updatedIncident).toBeDefined()
+            expect(updatedIncident?.sarTasks?.[0].state).toBe('Done')
+            expect(updatedIncident?.sarTasks?.[0].endDate).toEqual(now)
         })
-        
-        expect(updatedIncident).toBeDefined()
-        expect(updatedIncident?.sarTasks?.[0].state).toBe('Done')
-        expect(updatedIncident?.sarTasks?.[0].endDate).toEqual(now)
+
     })
 
-    it('should add a vehicle to an incident when vehicle is not assigned', async () => {
-        // Create a test incident
-        const incident = await createTestIncident('test-incident-1');
-    
-        // Mock personnel and vehicle data
-        const personnel = {
-          _id: new Types.ObjectId().toString(),
-          name: 'Test Officer',
-          assignedCity: 'Test City',
-          role: 'Police' as const,
-          assignedVehicleTimestamp: null,
-        };
-    
-        const vehicle: ICar = await createTestCar('Test Car');
-    
-        // Call the controller method
-        await IncidentController.addVehicleToIncident(
-          personnel,
-          incident.toObject() as IIncident,
-          vehicle
-        );
-    
-        // Get the updated incident from the database
-        const updatedIncident = await Incident.findById(incident._id);
-    
-        // Assertions
-        expect(updatedIncident).toBeDefined();
-        expect(updatedIncident!.assignedVehicles).toHaveLength(1);
-        expect(updatedIncident!.assignedVehicles[0].name).toBe('Test Car');
-        expect(updatedIncident!.assignedVehicles[0].type).toBe('Car');
-        expect(updatedIncident!.assignedVehicles[0].usernames).toContain('Test Officer');
-      });
-    
+    describe('Assigning and releasing vehicles from incidents', () => {
+        it('should add a vehicle to an incident when vehicle is not assigned', async () => {
+            // Create a test incident
+            const incident = await createTestIncident('test-incident-1');
+        
+            // Mock personnel and vehicle data
+            const personnel = {
+                _id: new Types.ObjectId().toString(),
+                name: 'Test Officer',
+                assignedCity: 'Test City',
+                role: 'Police' as const,
+                assignedVehicleTimestamp: null,
+            };
+        
+            const vehicle: ICar = await createTestCar('Test Car');
+        
+            // Call the controller method
+            await IncidentController.addVehicleToIncident(
+                personnel,
+                incident.toObject() as IIncident,
+                vehicle
+            );
+        
+            // Get the updated incident from the database
+            const updatedIncident = await Incident.findById(incident._id);
+        
+            // Assertions
+            expect(updatedIncident).toBeDefined();
+            expect(updatedIncident!.assignedVehicles).toHaveLength(1);
+            expect(updatedIncident!.assignedVehicles[0].name).toBe('Test Car');
+            expect(updatedIncident!.assignedVehicles[0].type).toBe('Car');
+            expect(updatedIncident!.assignedVehicles[0].usernames).toContain('Test Officer');
+        });
     
     })
 })
