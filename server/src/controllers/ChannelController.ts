@@ -245,6 +245,21 @@ class ChannelController {
         return message
     }
 
+    // Get a channel by name
+    /**
+     * @param name - The name of the channel to retrieve
+     * @returns The channel object if found (first occurnace in DB), null otherwise
+     * @throws Error if the channel is not found
+     */
+    getByName = async (name: string) => {
+      const channel = await Channel.getByName(name)
+      if (!channel) {
+          throw new Error(`Channel(${name}) not found.`)
+      }
+      return channel
+    }
+
+
     /**
      * Get messages for a channel
      * @throws Error as this method is not implemented yet
@@ -663,6 +678,7 @@ class ChannelController {
             throw error
         }
     }
+
 }
 
 export default new ChannelController()

@@ -145,6 +145,25 @@ describe('Router - Channel', () => {
         expect(channels.length).toBe(2)
     })
 
+    it('Can get channel by name', async () => {
+        const { body: channel } = await request(app)
+            .get(`/api/channels/name/${PUBLIC_CHANNEL_NAME}`)
+            .expect(200)
+        expect(channel).toBeDefined()
+        expect(channel.name).toBe(PUBLIC_CHANNEL_NAME)
+    })
+
+    it('should return 404 if the channel name is invalid', async () => {
+        const invalidChannelName = 'invalid-channel-name'
+        const { body } = await request(app)
+            .get(`/api/channels/name/${invalidChannelName}`)
+            .expect(404)
+        expect(body).toHaveProperty('message')
+        expect(body.message).toMatch(
+            `Channel(${invalidChannelName}) not found.`,
+        )
+    })
+
     describe('Append a message to a channel', () => {
         it('appends a new message into the channel', async () => {
             const content = 'this is a simple message'
@@ -745,6 +764,8 @@ describe('Router - Channel', () => {
             expect(names).toEqual(sortedNames)
         })
     })
+
+
 
     afterAll(TestDatabase.close)
 })
