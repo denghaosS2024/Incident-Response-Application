@@ -55,7 +55,7 @@ class AlertService {
 
     private hasExpired(alert: Alert, now: Date): boolean {
         const createdAtDate = new Date(alert.createdAt);
-        return (now.getTime() - createdAtDate.getTime()) > 60 * 1000;
+        return (now.getTime() - createdAtDate.getTime()) > 2 * 60 * 1000;
     }
     
     private static alertComparator(a: Alert, b: Alert): number {
@@ -87,7 +87,7 @@ class AlertService {
         // Schedule next alert after 2 mins
         state.timeoutHandle = setTimeout(() => {
             this.promoteNextAlert(groupId);
-        }, 60 * 1000);
+        }, 2 * 60 * 1000);
 
         const senderId = new Types.ObjectId(alert.senderId!)
         const channelId = new Types.ObjectId(alert.groupId!)

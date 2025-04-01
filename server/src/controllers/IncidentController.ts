@@ -539,33 +539,34 @@ class IncidentController {
     }
 
     async createOrUpdateRespondersGroup(
-        incident: IIncident,
+        incidentObj: IIncident,
     ): Promise<IIncident> {
+        const incident = await Incident.findById(incidentObj._id).exec()
+        if (!incident) {
+            throw new Error(`Incident with ID '${incidentObj._id}' not found`)
+        }
+
         if (
             !incident.assignedVehicles ||
             incident.assignedVehicles.length === 0
         ) {
-            console.log(incident)
             if (!incident.respondersGroup) {
                 return incident
             }
-            if (incident.respondersGroup) {
-                await ChannelController.closeChannel(incident.respondersGroup)
-                incident.respondersGroup = null
-                await incident.save()
 
-                const updatedIncident = await Incident.findById(incident._id)
-                    .populate('respondersGroup')
-                    .exec()
+            await ChannelController.closeChannel(incident.respondersGroup)
+            incident.respondersGroup = null
+            await incident.save()
 
-                if (!updatedIncident) {
-                    throw new Error(
-                        `Incident with ID '${incident._id}' not found`,
-                    )
-                }
+            const updatedIncident = await Incident.findById(incident._id)
+                .populate('respondersGroup')
+                .exec()
 
-                return updatedIncident
+            if (!updatedIncident) {
+                throw new Error(`Incident with ID '${incident._id}' not found`)
             }
+
+            return updatedIncident
         }
 
         const isCommanderOnVehicle = incident.assignedVehicles.some((vehicle) =>
@@ -599,8 +600,8 @@ class IncidentController {
         if (!commanderUser) {
             throw new Error(`Commander user ${incident.commander} not found`)
         }
-        const ownerId = commanderUser._id
 
+        const ownerId = commanderUser._id
         const channelName = `${incident.incidentId}_Resp`
 
         let channel
@@ -623,6 +624,7 @@ class IncidentController {
         }
 
         await incident.save()
+
         const updatedIncident = await Incident.findById(incident._id)
             .populate('respondersGroup')
             .exec()
