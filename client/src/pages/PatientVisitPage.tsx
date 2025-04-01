@@ -9,7 +9,7 @@ const PatientVisitPage: React.FC = () => {
     console.log("PatientVisitPage username:", username);
 
     return (
-        <div>
+        <div style={{ overflowY: 'auto' }}>
             <PatientInforForm username={username} />
             <VisitLogForm username={username} />
         </div>

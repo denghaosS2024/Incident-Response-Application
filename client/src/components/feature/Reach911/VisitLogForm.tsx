@@ -44,7 +44,6 @@ const conditions = [
   { value: 'Strain', label: 'Strain' },
   { value: 'Sprain', label: 'Sprain' },
   { value: 'Stroke', label: 'Stroke' },
-  { value: '', label: '' },
 ]
 
 // Returns the current date and time formatted as "MM.DD.YY-HH:mm"

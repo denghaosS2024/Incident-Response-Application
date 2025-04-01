@@ -5,10 +5,18 @@ import { useNavigate } from 'react-router-dom';
 const VisitLogList: React.FC<{ username?: string }> = ({
   username: propUsername
 }) => {
+  console.log('VisitLogList propUsername:', propUsername);
   const navigate = useNavigate()
 
   const handleAddPatient = () => {
-    navigate(`/patient-visit/?username=${propUsername}`);
+    // navigate(`/patient-visit/?username=${propUsername}`);
+    if (propUsername) {
+      navigate(
+        `/patient-visit?username=${encodeURIComponent(propUsername)}`,
+      )
+    } else {
+      navigate('/patient-visit')
+    }
   };
 
   console.log(propUsername)
