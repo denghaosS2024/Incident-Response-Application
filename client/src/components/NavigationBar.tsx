@@ -259,7 +259,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
                         </MenuItem>
                     )}
                     {(role === 'Fire' || role === 'Police') && (
-                        <MenuItem onClick={navigateToDashboard}>
+                        <MenuItem onClick={navigateToResource}>
                             Resource Allocation
                         </MenuItem>
                     )}
