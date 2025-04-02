@@ -18,6 +18,7 @@ import { updateIncident } from '../../../redux/incidentSlice'
 import type { AppDispatch } from '../../../redux/store'
 import request from '../../../utils/request'
 import ConfirmationDialog from '../../common/ConfirmationDialog'
+import ROLES from '@/utils/Roles'
 
 interface Reach911Step5Props {
     incidentId?: string
@@ -70,9 +71,17 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             }
 
             try {
-                const personnelData = await request('/api/personnel', {
+                let personnelData = await request('/api/users', {
                     method: 'GET',
                 })
+
+                personnelData = personnelData.filter(
+                    (person: any) =>
+                        person.role === ROLES.FIRE ||
+                        person.role === ROLES.POLICE,
+                )
+
+                console.log('Personnel data:', personnelData)
 
                 const assignedPersonnel = await request(`/api/incidents`, {
                     method: 'GET',
@@ -88,7 +97,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 })
                 const allPersonnelSet = new Set<string>()
                 personnelData.forEach((person: any) => {
-                    allPersonnelSet.add(person.name)
+                    allPersonnelSet.add(person.username)
                 })
                 assignedPersonnel.forEach((incident: IIncident) => {
                     if (incident.commander) {
@@ -109,9 +118,10 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
 
                 const unassignedPersonnel = personnelData.filter(
                     (person: any) =>
-                        unassignedPersonnelNamesArray.includes(person.name),
+                        unassignedPersonnelNamesArray.includes(person.username),
                 )
                 setUnassignedPersonnel(unassignedPersonnel)
+                console.log(unassignedPersonnel)
             } catch (err) {
                 console.error('Error fetching unassigned personnel:', err)
             }
@@ -312,17 +322,10 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     )
 
                     const newCommanderUser = unassignedPersonnel.find(
-                        (person) => person.name === newCommander,
+                        (person) => person.username === newCommander,
                     )
                     userIds.add(newCommanderUser._id)
                     await request(`/api/channels`, {
-                        method: 'PUT',
-                        body: JSON.stringify({
-                            _id: channel?._id,
-                            users: Array.from(userIds),
-                        }),
-                    })
-                    await request('/api/channels', {
                         method: 'PUT',
                         body: JSON.stringify({
                             _id: channel?._id,
@@ -437,10 +440,15 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         )
     }
 
-    const responders = incidentData.assignedVehicles?.flatMap((vehicle) => vehicle.usernames || [])
+    const responders = incidentData.assignedVehicles?.flatMap(
+        (vehicle) => vehicle.usernames || [],
+    )
+
     const firstResponders = responders
-        ?.filter((username) => username !== incidentData.commander)
-        .map((username) => (username === currentUsername ? `${username}(You) ` : `${username} `));
+        ?.filter((username) => !username.includes(incidentData.commander))
+        .map((username) =>
+            username === currentUsername ? `${username}(You) ` : `${username} `,
+        )
 
     return (
         <Paper elevation={3} sx={{ p: 2, m: 2 }}>
@@ -492,12 +500,12 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                         ? `You (${currentUsername})`
                         : incidentData.owner}
                 </Typography>
-                
-                {firstResponders && firstResponders.length >= 1 ?(
-                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                            First Responders:{' '}
-                            {firstResponders}
-                        </Typography>):null}
+
+                {firstResponders && firstResponders.length >= 1 ? (
+                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                        First Responders: {firstResponders}
+                    </Typography>
+                ) : null}
 
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                     Incident Commander
@@ -521,10 +529,13 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                                 {currenCommander}
                             </MenuItem>
                             {unassignedPersonnel.map((person) => (
-                                <MenuItem key={person.name} value={person.name}>
-                                    {person.name === currentUsername
+                                <MenuItem
+                                    key={person.username}
+                                    value={person.username}
+                                >
+                                    {person.username === currentUsername
                                         ? `You`
-                                        : person.name}
+                                        : person.username}
                                 </MenuItem>
                             ))}
                         </Select>
@@ -555,7 +566,11 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                                 setError,
                             )
                         }
-                        style={{ pointerEvents: responders?.includes(currentUsername)?'auto' :'none'}}
+                        style={{
+                            pointerEvents: responders?.includes(currentUsername)
+                                ? 'auto'
+                                : 'none',
+                        }}
                     >
                         Chat with Responders
                     </Button>
