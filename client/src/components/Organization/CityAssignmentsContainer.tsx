@@ -85,7 +85,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
         },
       )
       const isCommander = incidents.some(
-        (incident: IIncident) => incident.commander === currentUsername,
+        (incident: IIncident) => incident.commander === currentUsername && incident.incidentState !== 'Closed'
       )
       setIsIncidentCommander(isCommander)
     } catch (error) {
