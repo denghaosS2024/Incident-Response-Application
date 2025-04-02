@@ -1,20 +1,20 @@
 import GenericItemizeContainer from '@/components/GenericItemizeContainer'
 import ROLES from '@/utils/Roles'
 import {
-  Add,
-  NavigateNext as Arrow,
-  Close,
-  Settings,
+    Add,
+    NavigateNext as Arrow,
+    Close,
+    Settings,
 } from '@mui/icons-material'
 import {
-  Box,
-  FormControl,
-  IconButton,
-  Menu,
-  MenuItem,
-  Select,
-  Tooltip,
-  Typography,
+    Box,
+    FormControl,
+    IconButton,
+    Menu,
+    MenuItem,
+    Select,
+    Tooltip,
+    Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
@@ -23,19 +23,9 @@ import IIncident, { IncidentPriority, IncidentType } from '../models/Incident'
 import { resetIncident, updateIncident } from '../redux/incidentSlice'
 import request from '../utils/request'
 
-interface IncidentData {
-    incidentId: string
-    openingDate: string
-    type: string
-    priority: string
-    incidentState: string
-    owner: string
-    commander: string
-}
-
 function IncidentsPage() {
     const [role, setRole] = useState(localStorage.getItem('role'))
-    const [data, setData] = useState<IncidentData[]>([])
+    const [data, setData] = useState<IIncident[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
@@ -43,7 +33,7 @@ function IncidentsPage() {
     )
     const [selectedType, setSelectedType] = useState('All')
     const [userId] = useState(localStorage.getItem('username') ?? '')
-    const [filteredData, setFilteredData] = useState<IncidentData[]>([])
+    const [filteredData, setFilteredData] = useState<IIncident[]>([])
     const navigate = useNavigate()
     const dispatch = useDispatch()
 
@@ -103,7 +93,7 @@ function IncidentsPage() {
     if (error) return <div>Error: {error}</div>
 
     // Sort incidents by opening date function
-    const sortByOpeningDate = (incidents: IncidentData[]) =>
+    const sortByOpeningDate = (incidents: IIncident[]) =>
         incidents.sort(
             (a, b) =>
                 new Date(a.openingDate).getTime() -
@@ -111,7 +101,7 @@ function IncidentsPage() {
         )
 
     // Group incidents for display based on role
-    let incidentGroups: { [key: string]: IncidentData[] } = {}
+    let incidentGroups: { [key: string]: IIncident[] } = {}
     if (role === 'Fire' || role === 'Police') {
         const filteredByAssigned = filteredData.filter(
             (incident) => incident.incidentState === 'Assigned',
@@ -123,22 +113,30 @@ function IncidentsPage() {
             Three: 4,
         }
 
-        const sortByPriorityOnly = (incidents: IncidentData[]) =>
+        const sortByPriorityOnly = (incidents: IIncident[]) =>
             incidents.sort((a, b) => {
                 const priorityA = priorityOrder[a.priority] || 99
                 const priorityB = priorityOrder[b.priority] || 99
                 return priorityA - priorityB
             })
 
+        const isUserInvolvedInIncident = (
+            incident: IIncident,
+            userId: string,
+        ) =>
+            incident.commander === userId ||
+            incident.assignedVehicles?.some((v) => v.usernames.includes(userId))
+
         incidentGroups = {
-            'My Incident': filteredByAssigned.filter(
-                (incident) => incident.commander === userId,
+            'My Incident': filteredByAssigned.filter((incident) =>
+                isUserInvolvedInIncident(incident, userId),
             ),
             'Other Open Incidents': sortByPriorityOnly(
                 filteredByAssigned.filter(
-                    (incident) => incident.commander !== userId,
+                    (incident) => !isUserInvolvedInIncident(incident, userId),
                 ),
             ),
+
             'Closed Incidents': sortByOpeningDate(
                 filteredData.filter(
                     (incident) => incident.incidentState === 'Closed',
@@ -316,7 +314,7 @@ function IncidentsPage() {
     )
 
     // Navigate to incident description with auto-populate on
-    const handleIncidentClick = (incident: IncidentData) => {
+    const handleIncidentClick = (incident: IIncident) => {
         let readOnly = false
 
         let updatedIncident = incident
@@ -340,18 +338,21 @@ function IncidentsPage() {
             }
         }
 
-    if (
-      updatedIncident.incidentState === 'Closed' ||
-      (updatedIncident.type !== 'S' && 
-       updatedIncident.commander !== userId && 
-       updatedIncident.owner !== userId)
-    ) {
-      readOnly = true
-    } else {
-      if (updatedIncident.type === 'S' && updatedIncident.incidentState !== 'Closed') {
-        readOnly = false
-      }
-    }
+        if (
+            updatedIncident.incidentState === 'Closed' ||
+            (updatedIncident.type !== 'S' &&
+                updatedIncident.commander !== userId &&
+                updatedIncident.owner !== userId)
+        ) {
+            readOnly = true
+        } else {
+            if (
+                updatedIncident.type === 'S' &&
+                updatedIncident.incidentState !== 'Closed'
+            ) {
+                readOnly = false
+            }
+        }
 
         // Update sate in redux with updated incident
         console.log('Updated incident:', updatedIncident)
@@ -427,7 +428,7 @@ function IncidentsPage() {
                 Incidents Dashboard
             </Typography>
             {Object.entries(incidentGroups).map(([header, incidents]) => (
-                <GenericItemizeContainer<IncidentData>
+                <GenericItemizeContainer<IIncident>
                     key={header}
                     items={incidents}
                     getKey={(incident) => incident.incidentId}
