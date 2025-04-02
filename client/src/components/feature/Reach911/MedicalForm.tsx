@@ -397,7 +397,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                                 if (
                                     userRole !== 'Fire' &&
                                     userRole !== 'Police' &&
-                                    userRole !== 'Nurse'
+                                    userRole !== 'Nurse' &&
+                                    userRole !== 'Dispatch'
                                 ) {
                                     alert(
                                         'You do not have permission to treat this patient. Only First Responders or Nurses can perform this action.',
