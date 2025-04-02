@@ -396,10 +396,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                             onClick={() => {
                                 if (
                                     ![
-                                        'Police',
                                         'Nurse',
-                                        'Firefighter',
-                                        'Citizen',
+                                        'dispatcher',
                                         //Don't really understand what the first responder means here
                                     ].includes(userRole || '')
                                 ) {
