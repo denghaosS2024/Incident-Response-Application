@@ -6,10 +6,12 @@ const PatientVisitPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const username = searchParams.get('username') || undefined;
 
+    console.log("PatientVisitPage username:", username);
+
     return (
-        <div>
-            <PatientInforForm username={username}/>
-            <VisitLogForm username={username}/>
+        <div style={{ overflowY: 'auto' }}>
+            <PatientInforForm username={username} />
+            <VisitLogForm username={username} />
         </div>
     );
 }

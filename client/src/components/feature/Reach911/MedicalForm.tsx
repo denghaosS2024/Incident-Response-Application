@@ -66,7 +66,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
 
     const token = localStorage.getItem('token')
     const uid = localStorage.getItem('uid')
-
+    const userRole = localStorage.getItem('role')
     // Loads contacts upon page loading
     useEffect(() => {
         dispatch(loadContacts())
@@ -394,12 +394,26 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                                 fontSize: '16px',
                             }}
                             onClick={() => {
+                                if (
+                                    userRole !== 'Citizen' &&
+                                    userRole !== 'Nurse' &&
+                                    userRole !== 'Fire' &&
+                                    userRole !== 'Police'
+                                ) {
+                                    alert(
+                                        'You do not have permission to treat this patient. Only First Responders or Nurses can perform this action.',
+                                    )
+                                    return
+                                }
+
                                 const selectedUsername = isPatient
                                     ? currentUser?.username || ''
                                     : username || ''
+
                                 const targetUrl = selectedUsername
                                     ? `/patients/admit?username=${encodeURIComponent(selectedUsername)}`
                                     : '/patients/admit'
+
                                 window.location.href = targetUrl
                             }}
                         >

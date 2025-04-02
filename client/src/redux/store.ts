@@ -9,6 +9,7 @@ import patientReducer from './patientSlice'
 import profileReducer from './profileSlice'
 import snackbarReducer from './snackbarSlice'
 import storageReducer from './storageSlice'
+import userHospitalReducer from './userHospitalSlice'
 /**
  * Redux Store Configuration
  *
@@ -53,6 +54,7 @@ export const store = configureStore({
     hospital: hospitalReducer, // Reducer for managing hospital state
     notifyState: notifyReducer, // Reducer for managing notification state
     alertQueue: alertQueueReducer, // Reducer for managing alert queue state
+    userHospital: userHospitalReducer, // Reducer for managing current user's hospital ID
   },
 })
 

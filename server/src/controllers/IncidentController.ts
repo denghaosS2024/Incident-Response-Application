@@ -13,7 +13,19 @@ import CarController from './CarController'
 import ChannelController from './ChannelController'
 import TruckController from './TruckController'
 import UserController from './UserController'
-
+async function getCommanderRole(commander: string): Promise<string> {
+    try {
+        const commanderUser = await User.findOne({ username: commander }).exec()
+        console.log(commander, commanderUser)
+        return commanderUser?.role || 'Unknown'
+    } catch (error) {
+        console.error(
+            `Error retrieving role for commander ${commander}:`,
+            error,
+        )
+        return 'Unknown'
+    }
+}
 class IncidentController {
     /**
      * Find an incident by its ID
@@ -172,18 +184,35 @@ class IncidentController {
                     'Incident ID is required for updating an incident.',
                 )
             }
-
-            const updatedIncident = await Incident.findOneAndUpdate(
-                { incidentId: incident.incidentId },
-                { $set: incident },
-                { new: true },
-            ).exec()
-
-            if (!updatedIncident) {
+            const existingIncident = await Incident.findOne({
+                incidentId: incident.incidentId,
+            }).exec()
+            if (!existingIncident) {
                 throw new Error(
                     `Incident with ID '${incident.incidentId}' not found`,
                 )
             }
+            if (
+                incident.incidentState &&
+                incident.incidentState !== existingIncident.incidentState
+            ) {
+                const now = new Date()
+                const role = await getCommanderRole(
+                    incident.commander || existingIncident.commander,
+                )
+                const stateHistoryEntry = {
+                    timestamp: now,
+                    commander: incident.commander || existingIncident.commander,
+                    incidentState: incident.incidentState,
+                    role: role,
+                }
+                console.log(now, stateHistoryEntry)
+                existingIncident.incidentStateHistory =
+                    existingIncident.incidentStateHistory || []
+                existingIncident.incidentStateHistory.push(stateHistoryEntry)
+            }
+            Object.assign(existingIncident, incident)
+            const updatedIncident = await existingIncident.save()
 
             return updatedIncident
         } catch (error) {
@@ -715,15 +744,16 @@ class IncidentController {
     ): Promise<IIncident | null> {
         try {
             const incident = await Incident.findOne({ incidentId }).exec()
+            const role = await getCommanderRole(commander)
             if (!incident) {
                 throw new Error(`Incident with ID '${incidentId}' not found`)
             }
-
             const now = new Date()
             const stateHistoryEntry = {
                 timestamp: now,
                 commander: commander,
                 incidentState: newState,
+                role: role,
             }
 
             incident.incidentState = newState

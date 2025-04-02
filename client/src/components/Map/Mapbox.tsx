@@ -173,6 +173,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
   }
 
+
   // Function to initialize the map using the given longitude and latitude.
   // This function is called once regardless of geolocation success or failure.
   const initializeMap = (lng: number, lat: number, initialZoom: number) => {
@@ -659,6 +660,16 @@ const Mapbox: React.FC<MapboxProps> = ({
 
     marker.togglePopup()
 
+    const timeoutId = setTimeout(() => {
+      if (pinRef.current.has(tempId)) {
+        marker.remove()
+        pinRef.current.delete(tempId)
+        setIsAddingPin(false) // Re-enable MapDrop buttons
+        console.log(`Temporary pin ${tempId} removed due to timeout.`)
+      }
+    }, 10000) // 10 seconds
+    
+
     // Store in the correct ref based on type
     switch (type) {
       case 'pin':
@@ -693,6 +704,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     document
       .getElementById(`confirm-pin-${tempId}`)
       ?.addEventListener('click', async () => {
+        clearTimeout(timeoutId) // Clear the timeout
         marker.setDraggable(false) // Disable dragging
 
         // Send request to backend to create a real pin entry
@@ -1002,7 +1014,7 @@ const Mapbox: React.FC<MapboxProps> = ({
                     // Create flag mark
                     const markerElement = document.createElement('div');
                     markerElement.innerHTML = ReactDOMServer.renderToString(
-                        <FlagIcon style={{ color: 'gray', fontSize: '32px' }} />
+                        <FlagIcon style={{ color: '#1976d2', fontSize: '32px' }} />
                     );
                     
                     // Create popup content
@@ -1057,7 +1069,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         // Create firetruck mark
         const markerElement = document.createElement('div');
         markerElement.innerHTML = ReactDOMServer.renderToString(
-            <FireTruckIcon style={{ color: 'gray', fontSize: '32px' }} />
+            <FireTruckIcon style={{ color: '#1976d2', fontSize: '32px' }} />
         );
         
         // Create popup content
@@ -1109,7 +1121,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         // Create car mark
         const markerElement = document.createElement('div');
         markerElement.innerHTML = ReactDOMServer.renderToString(
-            <DirectionsCarIcon style={{ color: 'gray', fontSize: '32px' }} />
+            <DirectionsCarIcon style={{ color: '#1976d2', fontSize: '32px' }} />
         );
         
         // Create popup content

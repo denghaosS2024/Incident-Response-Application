@@ -13,6 +13,8 @@ import type IChannel from '../../../models/Channel'
 import type IIncident from '../../../models/Incident'
 import type { AppDispatch, RootState } from '../../../redux/store'
 import ROLES from '@/utils/Roles'
+import IUser from '@/models/User'
+import { current } from '@reduxjs/toolkit'
 
 interface Reach911Step4Props {
     isCreatedByFirstResponder?: boolean
@@ -80,10 +82,6 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
                 const role = localStorage.getItem('role')
                 const uid = localStorage.getItem('uid')
 
-                console.log('Incidnet from slice:', incident) // Debug log
-                console.log('Incident Caller:', incidentCaller) // Debug log
-                console.log('Incident Group:', incident.incidentCallGroup) // Debug log
-
                 // New incident
                 if (!incidentCaller) {
                     incident.caller = username
@@ -95,7 +93,7 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
                     role == ROLES.POLICE ||
                     role === ROLES.DISPATCH
                 ) {
-                    setChatTitle(`${incidentCaller}_911`)
+                    setChatTitle(`I${incidentCaller}_911`)
                 }
 
                 // First check if user has active incident with chat
@@ -107,41 +105,52 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
                 )
                 console.log('Active Incident:', activeIncident)
 
+                let channel: IChannel | null = null
                 if (activeIncident.incidentCallGroup) {
                     // User already has an active incident with chat
                     setChannelId(activeIncident.incidentCallGroup)
+                    channel = await request(
+                        `/api/channels/${activeIncident.incidentCallGroup}`,
+                        {
+                            method: 'GET',
+                        },
+                    )
+                    console.log('Existing Channel:', channel) // Debug log
                 } else {
                     // The logic here is too complex, needs a proper refactor to simplify and separate citizen from responder
-                    let channel: IChannel | null = null
                     try {
-                        // Create a new Channel using request utility
-                        channel = IChannel = await request('/api/channels/911', {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                username,
-                                userId: uid,
-                            }),
-                        })
-                        console.log('New Channel:', channel) // Debug log
-                    } catch (error) {
-                        console.log('Channel creation error:', error) // Debug log
-                        if (!error.message.includes('already exists')) {
-                            throw error
-                        } else {
-                            // Get existing channel by name
-                            const channelName = `I${incidentCaller}_911`
+                        // Get existing channel by name
+                        const channelName = `I${incidentCaller}_911`
+
+                        try {
                             channel = await request(
                                 `/api/channels/name/${channelName}`,
                                 {
                                     method: 'GET',
                                 },
                             )
-                            console.log('Existing Channel:', channel) // Debug log
-                            if (!channel) {
-                                throw new Error('Channel not found')
-                            }
-                            setChatTitle(`${incidentCaller}_911`)
-                            console.log('Chat title set to:', chatTitle) // Debug log
+                        } catch (error) {
+                            // Expected for citizen
+                        }
+
+                        if (!channel) {
+                            // Create a new Channel using request utility
+                            channel = await request('/api/channels/911', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    username,
+                                    userId: uid,
+                                }),
+                            })
+                            console.log('New Channel:', channel)
+                        }
+
+                        // todo: is this required?
+                        setChatTitle(`${incidentCaller}_911`)
+                    } catch (error) {
+                        console.log('Channel creation error:', error)
+                        if (!error.message.includes('already exists')) {
+                            throw error
                         }
                     }
 
@@ -156,12 +165,32 @@ const Reach911Step4: React.FC<Reach911Step4Props> = ({
                                 }),
                             },
                         )
-
                         setChannelId(channel._id)
                     }
                 }
+
+                // Add dispatcher or responder to channel if not already present
+                const users: IUser[] = channel?.users || null
+
+                // todo: remove user system and and its previous messages
+                if (
+                    role === ROLES.DISPATCH &&
+                    !users?.some((user) => user._id === uid)
+                ) {
+                    const userIds = new Set(
+                        users?.map((user) => user._id) || [],
+                    )
+                    userIds.add(uid)
+                    await request(`/api/channels`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            _id: channel?._id,
+                            users: Array.from(userIds),
+                        }),
+                    })
+                }
             } catch (error) {
-                console.error('Error in setupIncidentChat:', error) // Debug log
+                console.error('Error in setupIncidentChat:', error)
                 setError('Failed to setup incident chat')
             } finally {
                 setLoading(false)

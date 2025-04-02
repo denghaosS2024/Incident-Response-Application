@@ -1,7 +1,7 @@
 import CarController from '../../src/controllers/CarController'
 import Car from '../../src/models/Car'
 import * as TestDatabase from '../utils/TestDatabase'
-import Incident from '../../src/models/Incident'
+import Incident, { IIncident } from '../../src/models/Incident'
 
 describe('CarController', () => {
   beforeAll(async () => {
@@ -16,6 +16,21 @@ describe('CarController', () => {
     // Clear the Car collection before each test
     await Car.deleteMany({});
   });
+
+  const createTestIncident = async (username: string) => {
+          const rawIncident = new Incident({
+              incidentId: `I${username}`,
+              caller: username,
+              openingDate: new Date(),
+              incidentState: 'Waiting',
+              owner: 'System',
+              commander: 'System',
+              incidentCallGroup: null,
+              SarTasks: []
+          })
+  
+          return rawIncident.save()
+      }
 
   it('should create a car with a valid name', async () => {
     const car = await CarController.createCar('MyCar')
@@ -220,6 +235,92 @@ describe('CarController', () => {
       expect(car).toBeDefined();
       expect(car?.name).toBe('Police1');
       expect(car?.assignedIncident).toBe('5678');
+    });
+  });
+
+  describe('CarController.addUsernameToCar', () => {
+    it('should add a username to a car without a commanding incident', async () => {
+      // Create a test car
+      const carName = 'Test Car';
+      await Car.create({
+        name: carName,
+        type: 'Car',
+        usernames: ['Existing User']
+      });
+  
+      // Call the controller method
+      const username = 'New User';
+      const updatedCar = await CarController.addUsernameToCar(
+        carName,
+        username,
+        null
+      );
+  
+      // Assertions
+      expect(updatedCar).toBeDefined();
+      expect(updatedCar!.name).toBe(carName);
+      expect(updatedCar!.usernames).toContain('Existing User');
+      expect(updatedCar!.usernames).toContain(username);
+    });
+  
+    it('should add a username to a car and assign it to an incident when commanding incident is provided', async () => {
+      // Create a test car
+      const carName = 'Police Car';
+      await Car.create({
+        name: carName,
+        type: 'Car',
+        usernames: []
+      });
+  
+      // Create a test incident
+      const incident = await createTestIncident('Officer Smith');
+  
+      // Call the controller method
+      const username = 'Officer Smith';
+      const updatedCar = await CarController.addUsernameToCar(
+        carName,
+        username,
+        incident.toObject() as IIncident
+      );
+  
+      // Assertions
+      expect(updatedCar).toBeDefined();
+      expect(updatedCar!.name).toBe(carName);
+      expect(updatedCar!.usernames).toContain(username);
+      expect(updatedCar!.assignedIncident).toBe(incident.incidentId); // Incident should be assigned
+    });
+  
+    it('should throw an error when the car does not exist', async () => {
+      // Try to add a username to a non-existent car
+      const nonExistentCarName = 'Non-Existent Car';
+      const username = 'Test User';
+  
+      // Call the controller method and expect it to throw
+      await expect(
+        CarController.addUsernameToCar(nonExistentCarName, username, null)
+      ).rejects.toThrow(`Car with name '${nonExistentCarName}' does not exist`);
+    });
+  
+    it('should not add duplicate usernames in cars', async () => {
+      // Create a test car
+      const carName = 'Unique Users Car';
+      const username = 'Duplicate User';
+      await Car.create({
+        name: carName,
+        type: 'Car',
+        usernames: [username] // Username already exists
+      });
+  
+      // Call the controller method with the same username
+      const updatedCar = await CarController.addUsernameToCar(
+        carName,
+        username,
+        null
+      );
+  
+      // Assertions
+      expect(updatedCar).toBeDefined();
+      expect(updatedCar!.usernames).toContain(username);
     });
   });
 })

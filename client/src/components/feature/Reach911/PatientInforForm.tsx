@@ -1,3 +1,10 @@
+import IPatient from '@/models/Patient'
+import {
+    addPatient,
+    fetchPatients,
+    setPatient,
+    updatePatient,
+} from '@/redux/patientSlice'
 import {
     Box,
     FormControl,
@@ -16,40 +23,81 @@ import {
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import IIncident from '../../../models/Incident'
+import { v4 as uuidv4 } from 'uuid'
 import IUser from '../../../models/User'
 import { loadContacts } from '../../../redux/contactSlice'
-import { updateIncident } from '../../../redux/incidentSlice'
 import { AppDispatch, RootState } from '../../../redux/store'
-import { MedicalQuestions } from '../../../utils/types'
+import request from '../../../utils/request'
 import Loading from '../../common/Loading'
 
-const PatientInforForm: React.FC<{ username?: string }> = ({
+const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     username: propUsername,
+    sex: propSex,
 }) => {
     const dispatch = useDispatch<AppDispatch>()
-    const incident: IIncident = useSelector(
-        (state: RootState) => state.incidentState.incident,
+    const [currentUsername, setcurrentUsername] = useState<string>(
+        propUsername || '',
     )
-    const navigate = useNavigate()
-    const medicalQuestions = (incident.questions as MedicalQuestions) ?? {}
-    const sex = medicalQuestions.sex ?? ''
-    const age = medicalQuestions.age ?? 0
-    const name = ''
-
-    const [usernameError, setUserNameError] = useState<string>('')
-
-    // Loads contacts upon page loading
+    const patients: IPatient[] = useSelector(
+        (state: RootState) => state.patientState.patients,
+    )
+    const [isFetchingPatients, setIsFetchingPatients] = useState(true)
     useEffect(() => {
         dispatch(loadContacts())
+        const fetchData = async () => {
+            await dispatch(fetchPatients()) // Wait for fetchPatients to complete
+            setIsFetchingPatients(false) // Mark fetching as complete
+        }
+        fetchData()
     }, [dispatch])
+    const [isPatientAdded, setIsPatientAdded] = useState(false)
+
+    let patient: IPatient =
+        patients.find((p) => p.username === currentUsername) || ({} as IPatient)
+
+    if (
+        !isFetchingPatients &&
+        !patient.username &&
+        propUsername &&
+        !isPatientAdded
+    ) {
+        console.log('patientUsername is empty')
+        patient = {
+            username: propUsername,
+            name: '',
+            sex: propSex || '',
+            dob: '',
+            patientId: uuidv4(), // Generate a unique ID for the new patient
+        }
+        dispatch(addPatient(patient))
+        setIsPatientAdded(true)
+    }
+
+    const navigate = useNavigate()
+    const username = patient.username ?? null
+    const name = patient.name ?? ''
+    const dob = patient.dob ?? ''
+    const userId = localStorage.getItem('uid') || ''
+    const [usernameError, setUserNameError] = useState<string>('')
+    const incident = useSelector(
+        (state: RootState) => state.incidentState.incident,
+    )
+    const questionsArray = Array.isArray(incident?.questions)
+        ? incident.questions
+        : []
+    const patientQuestion = questionsArray.find(
+        (question: any) => question.username === currentUsername,
+    )
+    const sex = (patientQuestion?.sex ?? patient.sex) || ''
+
+    // Loads contacts upon page loading
 
     const { contacts, loading } = useSelector(
         (state: RootState) => state.contactState,
     )
 
     // When any input changes, add the changes to the incident slice
-    const onChange = (
+    const onChange = async (
         field: string,
         e:
             | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -58,17 +106,78 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
         const { type, value, checked } = e.target as HTMLInputElement
         const newValue: string | boolean = type === 'checkbox' ? checked : value
 
-        dispatch(
-            updateIncident({
-                ...incident,
-                questions: {
-                    ...(incident.questions ?? {}),
-                    [field]: newValue,
-                } as MedicalQuestions,
-            }),
-        )
+        if (field === 'username') {
+            if (value === 'create-one') {
+                try {
+                    const response = await request('/api/users/createTemp', {
+                        method: 'POST',
+                    })
 
-        // Validate only the changed field
+                    if (response && response.userId && response.username) {
+                        patient = {
+                            username: response.username,
+                            name: '',
+                            sex: propSex || '',
+                            dob: '',
+                            patientId: uuidv4(),
+                        }
+                        dispatch(addPatient(patient))
+
+                        setcurrentUsername(response.username)
+
+                        const newContact: IUser = {
+                            _id: response.userId,
+                            username: response.username,
+                            role: 'Citizen',
+                        }
+
+                        dispatch(loadContacts())
+
+                        alert(
+                            `A new user account has been created for the Patient.\nTemporary Username: ${response.username}, Password: 1234`,
+                        )
+                    } else {
+                        alert(
+                            'Failed to create a new patient account. Please try again.',
+                        )
+                    }
+                } catch (error) {
+                    console.error('Error creating new patient account:', error)
+                    alert(
+                        'Failed to create a new patient account. Please try again later.',
+                    )
+                }
+                return
+            }
+
+            patient =
+                patients.find((p) => p.username === value) || ({} as IPatient)
+            if (Object.keys(patient).length === 0) {
+                patient = {
+                    username: value,
+                    name: '',
+                    sex: propSex || '',
+                    dob: '',
+                    patientId: uuidv4(),
+                }
+                dispatch(addPatient(patient))
+            }
+            setcurrentUsername(value)
+        } else {
+            dispatch(
+                setPatient({
+                    ...patient,
+                    [field]: newValue,
+                }),
+            )
+            dispatch(
+                updatePatient({
+                    ...patient,
+                    [field]: newValue,
+                }),
+            )
+        }
+
         validateField(field, newValue)
     }
 
@@ -78,6 +187,35 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
             setUserNameError(
                 !value || value === 'Select One' ? 'Select a username' : '',
             )
+        }
+    }
+
+    const handleProfileClick = async () => {
+        if (!username) {
+            alert('Username is missing.')
+            return
+        }
+
+        try {
+            const response = await request(
+                `/api/users/findByUsername?username=${username}`,
+                {
+                    method: 'GET',
+                },
+            )
+
+            if (response && response.userId) {
+                const fetchedUserId = response.userId
+                console.log('Fetched userId:', fetchedUserId)
+                navigate(`/profile/${fetchedUserId}`)
+            } else {
+                alert(
+                    'User not found. Please make sure the username is correct.',
+                )
+            }
+        } catch (error) {
+            console.error('Failed to fetch userId by username:', error)
+            alert('Error fetching user information. Please try again later.')
         }
     }
 
@@ -112,10 +250,14 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
                             <Select
                                 labelId="username-label"
                                 label="Username"
-                                value=""
+                                value={currentUsername}
                                 onChange={(e) => onChange('username', e)}
                                 fullWidth
                             >
+                                <MenuItem value="create-one">
+                                    Create One
+                                </MenuItem>
+
                                 {contacts.map((user: IUser) => (
                                     <MenuItem
                                         key={user._id}
@@ -125,12 +267,13 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
                                     </MenuItem>
                                 ))}
                             </Select>
+
                             <FormHelperText>{usernameError}</FormHelperText>
                         </FormControl>
                     </Box>
                 ) : (
                     <Box width="100%" maxWidth="500px" my={2}>
-                        <TextField
+                        {/* <TextField
                             variant="outlined"
                             label="Username"
                             value={propUsername}
@@ -138,7 +281,8 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
                             InputProps={{
                                 readOnly: true,
                             }}
-                        />
+                        /> */}
+                        <Typography>{propUsername}</Typography>
                     </Box>
                 )}
 
@@ -186,11 +330,11 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
                         // label="Date of Birth"
                         type="date"
                         fullWidth
-                        value={age} // Replace with a state variable for date of birth if needed
+                        value={dob} // Replace with a state variable for date of birth if needed
                         InputLabelProps={{
                             shrink: true, // Ensures the label stays above the input
                         }}
-                        onChange={(e) => onChange('dateOfBirth', e)} // Update the field name accordingly
+                        onChange={(e) => onChange('dob', e)} // Update the field name accordingly
                     />
                 </Box>
 
@@ -236,16 +380,7 @@ const PatientInforForm: React.FC<{ username?: string }> = ({
                         cursor: 'pointer',
                         fontSize: '16px',
                     }}
-                    onClick={() => {
-                        // Check if patientId exists before navigating
-                        if (!incident.patientId) {
-                            alert(
-                                'Patient ID is missing. Please complete patient information.',
-                            )
-                            return
-                        }
-                        navigate(`/patient-profile/${incident.patientId}`)
-                    }}
+                    onClick={handleProfileClick}
                 >
                     Profile
                 </button>

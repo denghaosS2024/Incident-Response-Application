@@ -11,11 +11,16 @@ const IncidentReportPage = () => {
     const location = useLocation()
     const { incidentData } = location.state || {}
 
-    console.log('Received incident data:', incidentData)
+    const currentUsername = localStorage.getItem('username')
 
     if (!incidentData) {
         return <div>No incident data available</div>
     }
+
+    const isResponderReadOnly =
+        incidentData.status === 'Closed' &&
+        incidentData.commander !== currentUsername &&
+        incidentData.currentUserRole === 'Responder'
 
     return (
         <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
@@ -33,7 +38,6 @@ const IncidentReportPage = () => {
 
             <Divider sx={{ my: 3 }} />
 
-            {/* Section 1-4 */}
             <Step1EmergencyDetails incidentData={incidentData} />
             <Step2EmergencyType incidentData={incidentData} />
             <Step3PatientData incidentData={incidentData} />
@@ -42,7 +46,7 @@ const IncidentReportPage = () => {
             <Divider sx={{ my: 3 }} />
 
             <Step5ResponseTimeline incident={incidentData} />
-            <StatisticsAndAdditionalInfo  incident={incidentData} />
+            <StatisticsAndAdditionalInfo incident={incidentData} readonly={isResponderReadOnly} />
 
             <Box textAlign="center" mt={4} mb={2}>
                 <Button variant="outlined" onClick={() => window.print()}>

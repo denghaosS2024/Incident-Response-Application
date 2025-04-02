@@ -129,4 +129,47 @@ describe('Car Routes', () => {
           });
 
     })
+
+    describe('PUT /api/cars/usernames', () => {
+      it('router: should add a username to a car', async () => {
+        // Create a test car
+        const car = await Car.create({
+          name: 'Test Car',
+          type: 'Car',
+          usernames: ['Existing User']
+        });
+    
+        // Make the request
+        const response = await request(app)
+          .put('/api/cars/usernames')
+          .send({
+            carName: car.name,
+            username: 'New User',
+            commandingIncident: null
+          });
+    
+        // Assertions
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('name', 'Test Car');
+        expect(response.body.usernames).toContain('Existing User');
+        expect(response.body.usernames).toContain('New User');
+        expect(response.body.assignedIncident).toBeNull();
+      });
+
+      it('should return 400 when the car does not exist', async () => {
+        // Make the request with a non-existent car
+        const response = await request(app)
+          .put('/api/cars/usernames')
+          .send({
+            carName: 'Non-Existent Car',
+            username: 'Test User',
+            commandingIncident: null
+          });
+    
+        // Assertions
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty('message');
+        expect(response.body.message).toContain("Car with name 'Non-Existent Car' does not exist");
+      });
+    });
 });

@@ -26,7 +26,6 @@ const Step1EmergencyDetails: React.FC<Step1EmergencyDetailsProps> = ({
             if (!incidentData.address) return
 
             try {
-                // 使用Mapbox Geocoding API获取坐标
                 const response = await fetch(
                     `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(incidentData.address)}.json?access_token=${mapboxToken}`,
                 )

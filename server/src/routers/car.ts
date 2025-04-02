@@ -255,8 +255,6 @@ carRouter.put('/cities', async (req: Request, res: Response) => {
 *         description: User successfully assigned to car
 *         content:
 *           application/json:
-*             schema:
-*               $ref: '#/components/schemas/Car'
 *       '400':
 *         description: Bad request, invalid input or operation
 *         content:
@@ -308,8 +306,6 @@ carRouter.put('/usernames', async (req: Request, res: Response) => {
  *         description: Username successfully released from car
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Car'
  *       400:
  *         description: Bad request
  *         content:

@@ -1,55 +1,124 @@
-import { Box, Typography, Paper } from '@mui/material'
-import React from 'react'
+import { NavigateNext as Arrow } from '@mui/icons-material';
+import CheckCircleIcon from '@mui/icons-material/Home';
+import { Box, IconButton, List, ListItem, ListItemAvatar, ListItemText, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import IIncident, { ISarTask } from '../../../models/Incident';
+import { RootState } from '../../../redux/store';
+import request from '../../../utils/request';
 
-const SARStep3: React.FC = () => {
-  // Commented out as it's not used in this stub implementation
-  // const incident: IIncident = useSelector(
-  //   (state: RootState) => state.incidentState.incident,
-  // )
-
-  return (
-    <Box sx={{ p: 3, maxWidth: '900px', mx: 'auto' }}>
-      <Typography variant="h5" align="center" gutterBottom>
-        Search Operation Details
-      </Typography>
-      <Typography variant="subtitle1" align="center" sx={{ mb: 3 }}>
-        Manage search teams and operation details
-      </Typography>
-
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Incident Commander Information
-        </Typography>
-        <Typography variant="body1">
-          This section will allow entry of incident commander details and search operation parameters.
-        </Typography>
-      </Paper>
-
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Search Teams
-        </Typography>
-        <Typography variant="body1">
-          This section will allow management of search teams, including adding team members and assigning search areas.
-        </Typography>
-      </Paper>
-
-      <Paper elevation={2} sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Search Operation Guidelines
-        </Typography>
-        <Typography variant="body2" paragraph>
-          • Ensure all teams have clear instructions and designated areas
-        </Typography>
-        <Typography variant="body2" paragraph>
-          • Maintain regular communication with all search teams
-        </Typography>
-        <Typography variant="body2" paragraph>
-          • Document all search areas covered and findings
-        </Typography>
-      </Paper>
-    </Box>
-  )
+interface TaskStatsProps {
+  incidentId: string;
 }
 
-export default SARStep3
+const SARStep3: React.FC<TaskStatsProps> = () => {
+  const [tasks, setTasks] = useState<ISarTask[]>([]);
+  const [taskIndices, setTaskIndices] = useState<{ [key: string]: number | null }>({}); // Store task index by _id
+  const incident: IIncident = useSelector(
+    (state: RootState) => state.incidentState.incident,
+  );
+
+  const fetchDoneTasks = async () => {
+    try {
+      const incidentDoc = await request(`/api/incidents?incidentId=${incident.incidentId}`, { method: 'GET' });
+
+      if (incidentDoc && incidentDoc[0].sarTasks) {
+        const filteredTasks = incidentDoc[0].sarTasks.filter(
+          (task: ISarTask) => task.state === 'Done'
+        );
+        setTasks(filteredTasks);
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDoneTasks();
+  }, [incident.incidentId]);
+
+  const getTaskIndex = async (taskId: string) => {
+    try {
+      const incidentDoc = await request(`/api/incidents?incidentId=${incident.incidentId}`, { method: 'GET' });
+      if (incidentDoc && incidentDoc[0].sarTasks) {
+        const taskIndex = incidentDoc[0].sarTasks.findIndex((task: ISarTask) => task._id === taskId);
+        return taskIndex !== -1 ? taskIndex : null;
+      }
+    } catch (error) {
+      console.error('Error fetching task index:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchIndices = async () => {
+      const indices: { [key: string]: number | null } = {};
+      for (const task of tasks) {
+        const index = await getTaskIndex(task._id);
+        if (index !== null) {
+          indices[task._id] = index;
+        }
+      }
+      setTaskIndices(indices);
+    };
+
+    if (tasks.length > 0) {
+      fetchIndices();
+    }
+  }, [tasks, incident.incidentId]);
+
+  return (
+    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 4, p: 2 }}>
+      <Typography variant="h5" sx={{ mb: 2, textAlign: 'center' }}>
+        Completed Tasks
+      </Typography>
+      {tasks.length > 0 ? (
+        <List>
+          {tasks.map((task) => {
+            const taskIndex = taskIndices[task._id];
+
+            return (
+              <ListItem
+                key={task._id}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center', // Ensures vertical alignment
+                  borderBottom: '1px solid #ddd',
+                  padding: '10px',
+                  border: '1.5px solid #ddd',
+                  borderRadius: '8px',
+                  '&:hover': { backgroundColor: '#f5f5f5' },
+                }}
+              >
+                {/* Left side: Image and task name */}
+                <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                  <ListItemAvatar>
+                  {<CheckCircleIcon style={{ color: '#4caf50', marginLeft: '10'}} />} 
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={task.address ? task.address : "No address"} // Display task address or fallback message
+                  />
+                </Box>
+
+                {/* Right side: Link with arrow icon */}
+                {taskIndex !== undefined && taskIndex !== null ? (
+                  <a href={`/sar-task/${incident.incidentId}?taskId=${taskIndex}`} style={{ textDecoration: 'none' }}>
+                    <IconButton edge="end" size="large">
+                      <Arrow />
+                    </IconButton>
+                  </a>
+                ) : null}
+              </ListItem>
+            );
+          })}
+        </List>
+      ) : (
+        <Typography sx={{ textAlign: 'center', color: 'gray' }}>
+          No tasks available.
+        </Typography>
+      )}
+    </Box>
+  );
+};
+
+export default SARStep3;

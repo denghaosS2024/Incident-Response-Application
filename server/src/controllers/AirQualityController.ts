@@ -1,7 +1,7 @@
-import haversine from 'haversine-distance'
 import fetch from 'node-fetch'
 import { Server as SocketIOServer } from 'socket.io'
 import AirQuality from '../models/AirQuality'
+import { aqiFromPM, calculateDistance, getBoundingBox } from '../utils/AirQualityHelpers'
 import Env from '../utils/Env'
 
 const PURPLEAIR_API_URL = Env.getPurpleAirUrl()
@@ -60,13 +60,13 @@ class AirQualityController {
           // Get fresh air quality data
           const airQualityData = await this.getAirQuality(latitude, longitude)
           const currentTime =
-            (airQualityData?.time_stamp as number | undefined) || Date.now()
+            (airQualityData?.time_stamp as Date) || Date.now()
 
           // Update the database with new reading
           const location = await AirQuality.findOne({ locationId })
           if (location) {
             location.air_qualities.push({
-              air_quality: airQualityData.air_quality,
+              air_quality: Number(airQualityData.air_quality),
               timeStamp: currentTime,
             })
             await location.save()
@@ -74,7 +74,7 @@ class AirQualityController {
             // Notify clients via Socket.io
             this.notifyAirQualityUpdate(
               locationId,
-              airQualityData.air_quality,
+              Number(airQualityData.air_quality),
               currentTime,
               latitude,
               longitude,
@@ -102,7 +102,7 @@ class AirQualityController {
   private notifyAirQualityUpdate(
     locationId: string,
     air_quality: number,
-    timestamp: number,
+    timestamp: Date,
     latitude?: number,
     longitude?: number,
   ) {
@@ -214,7 +214,7 @@ class AirQualityController {
 
     return {
       time_stamp: data.time_stamp,
-      air_quality: aqiFromPM(averagePm25.toFixed(2)),
+      air_quality: aqiFromPM(Number(averagePm25.toFixed(2))),
       sensor_count: nearestSensors.length,
       sensors_used: nearestSensors.map((s) => ({
         latitude: s.latitude,
@@ -235,7 +235,7 @@ class AirQualityController {
 
     if (location && location.air_qualities.length > 0) {
       // Sort by timestamp in descending order (newest first)
-      location.air_qualities.sort((a, b) => b.timeStamp - a.timeStamp)
+      location.air_qualities.sort((a, b) => Number(b.timeStamp) - Number(a.timeStamp))
 
       // Take only the latest readings up to maxNumReadings
       if (location.air_qualities.length > maxNumReadings) {
@@ -264,7 +264,7 @@ class AirQualityController {
     latitude: number,
     longitude: number,
     air_quality: number,
-    timeStamp: number,
+    timeStamp: Date,
   ) {
     // Check if locationId already exists
     const existingLocation = await AirQuality.findOne({
@@ -464,74 +464,6 @@ class AirQualityController {
       }
     }
   }
-}
-
-// Helper function to calculate distance in miles between two coordinates
-function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-) {
-  const point1 = { latitude: lat1, longitude: lon1 }
-  const point2 = { latitude: lat2, longitude: lon2 }
-  const distanceMeters = haversine(point1, point2)
-  return distanceMeters / 1609.34 // Convert meters to miles
-}
-
-// Helper function to get bounding box for 10-mile radius
-function getBoundingBox(lat: number, lon: number, radiusMiles = 10) {
-  const earthRadiusMiles = 3958.8 // Earth's radius in miles
-  const latChange = (radiusMiles / earthRadiusMiles) * (180 / Math.PI)
-  const lonChange =
-    ((radiusMiles / earthRadiusMiles) * (180 / Math.PI)) /
-    Math.cos((lat * Math.PI) / 180)
-
-  return {
-    nw: { lat: lat + latChange, lon: lon - lonChange },
-    se: { lat: lat - latChange, lon: lon + lonChange },
-  }
-}
-
-// Helper function to calculate US EPA AQI from PM2.5
-function aqiFromPM(pm) {
-  if (isNaN(pm)) return '-'
-  if (pm == undefined) return '-'
-  if (pm < 0) return pm
-  if (pm > 1000) return '-'
-  /*                                  AQI         RAW PM2.5
-    Good                               0 - 50   |   0.0 – 12.0
-    Moderate                          51 - 100  |  12.1 – 35.4
-    Unhealthy for Sensitive Groups   101 – 150  |  35.5 – 55.4
-    Unhealthy                        151 – 200  |  55.5 – 150.4
-    Very Unhealthy                   201 – 300  |  150.5 – 250.4
-    Hazardous                        301 – 400  |  250.5 – 350.4
-    Hazardous                        401 – 500  |  350.5 – 500.4
-    */
-  if (pm > 350.5) {
-    return calcAQI(pm, 500, 401, 500.4, 350.5) //Hazardous
-  } else if (pm > 250.5) {
-    return calcAQI(pm, 400, 301, 350.4, 250.5) //Hazardous
-  } else if (pm > 150.5) {
-    return calcAQI(pm, 300, 201, 250.4, 150.5) //Very Unhealthy
-  } else if (pm > 55.5) {
-    return calcAQI(pm, 200, 151, 150.4, 55.5) //Unhealthy
-  } else if (pm > 35.5) {
-    return calcAQI(pm, 150, 101, 55.4, 35.5) //Unhealthy for Sensitive Groups
-  } else if (pm > 12.1) {
-    return calcAQI(pm, 100, 51, 35.4, 12.1) //Moderate
-  } else if (pm >= 0) {
-    return calcAQI(pm, 50, 0, 12, 0) //Good
-  } else {
-    return undefined
-  }
-}
-
-function calcAQI(Cp, Ih, Il, BPh, BPl) {
-  const a = Ih - Il
-  const b = BPh - BPl
-  const c = Cp - BPl
-  return Math.round((a / b) * c + Il)
 }
 
 export default new AirQualityController()

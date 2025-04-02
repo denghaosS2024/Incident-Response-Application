@@ -1,5 +1,5 @@
 import TruckController from '../../src/controllers/TruckController'
-import Incident from '../../src/models/Incident'
+import Incident, { IIncident } from '../../src/models/Incident'
 import Truck from '../../src/models/Truck'
 import * as TestDatabase from '../utils/TestDatabase'
 
@@ -17,6 +17,21 @@ describe('TruckController', () => {
     await Truck.deleteMany({});
   });
 
+  const createTestIncident = async (username: string) => {
+    const rawIncident = new Incident({
+        incidentId: `I${username}`,
+        caller: username,
+        openingDate: new Date(),
+        incidentState: 'Waiting',
+        owner: 'System',
+        commander: 'System',
+        incidentCallGroup: null,
+        SarTasks: []
+    })
+
+    return rawIncident.save()
+  }
+  
   it('should create a truck with a valid name', async () => {
     const truck = await TruckController.createTruck('MyTruck')
     expect(truck.name).toBe('MyTruck')
@@ -218,4 +233,90 @@ describe('TruckController', () => {
         expect(truck?.assignedIncident).toBe('5678');
       });
     });
+
+    describe('TruckController.addUsernameToTruck', () => {
+        it('should add a username to a truck without a commanding incident', async () => {
+          // Create a test truck
+          const truckName = 'Test truck';
+          await Truck.create({
+            name: truckName,
+            type: 'truck',
+            usernames: ['Existing User']
+          });
+      
+          // Call the controller method
+          const username = 'New User';
+          const updatedtruck = await TruckController.addUsernameToTruck(
+            truckName,
+            username,
+            null
+          );
+      
+          // Assertions
+          expect(updatedtruck).toBeDefined();
+          expect(updatedtruck!.name).toBe(truckName);
+          expect(updatedtruck!.usernames).toContain('Existing User');
+          expect(updatedtruck!.usernames).toContain(username);
+        });
+      
+        it('should add a username to a truck and assign it to an incident when commanding incident is provided', async () => {
+          // Create a test truck
+          const truckName = 'Police truck';
+          await Truck.create({
+            name: truckName,
+            type: 'truck',
+            usernames: []
+          });
+      
+          // Create a test incident
+          const incident = await createTestIncident('Officer Smith');
+      
+          // Call the controller method
+          const username = 'Officer Smith';
+          const updatedtruck = await TruckController.addUsernameToTruck(
+            truckName,
+            username,
+            incident.toObject() as IIncident
+          );
+      
+          // Assertions
+          expect(updatedtruck).toBeDefined();
+          expect(updatedtruck!.name).toBe(truckName);
+          expect(updatedtruck!.usernames).toContain(username);
+          expect(updatedtruck!.assignedIncident).toBe(incident.incidentId); // Incident should be assigned
+        });
+      
+        it('should throw an error when the truck does not exist', async () => {
+          // Try to add a username to a non-existent truck
+          const nonExistenttruckName = 'Non-Existent truck';
+          const username = 'Test User';
+      
+          // Call the controller method and expect it to throw
+          await expect(
+            TruckController.addUsernameToTruck(nonExistenttruckName, username, null)
+          ).rejects.toThrow(`Truck with name '${nonExistenttruckName}' does not exist`);
+        });
+      
+        it('should not add duplicate usernames in trucks', async () => {
+          // Create a test truck
+          const truckName = 'Unique Users truck';
+          const username = 'Duplicate User';
+          await Truck.create({
+            name: truckName,
+            type: 'truck',
+            usernames: [username] // Username already exists
+          });
+      
+          // Call the controller method with the same username
+          const updatedtruck = await TruckController.addUsernameToTruck(
+            truckName,
+            username,
+            null
+          );
+      
+          // Assertions
+          expect(updatedtruck).toBeDefined();
+          expect(updatedtruck!.usernames).toContain(username);
+        });
+      });
 })

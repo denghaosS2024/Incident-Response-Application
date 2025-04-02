@@ -14,6 +14,8 @@ type IncidentStateHistoryItem = {
     state: string
     commander?: string
     timestamp: string
+    role: string
+    incidentState: string
 }
 type AssignHistoryItem = {
     name: string
@@ -41,7 +43,7 @@ type Incident = {
     incidentStateHistory: IncidentStateHistoryItem[]
 }
 
-type Step5ResponseTimelineProps = {
+export type Step5ResponseTimelineProps = {
     incident: Incident
 }
 
@@ -68,9 +70,20 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
         patientName,
         incidentStateHistory = [],
     } = incident
-
     const assignedItems = assignHistory.filter((item) => item.isAssign)
     const unassignedItems = assignHistory.filter((item) => !item.isAssign)
+    const stateTimelineItems = incidentStateHistory.map((historyItem) => ({
+        icon: typeIconMap.Flag,
+        label: `Open ${historyItem.incidentState}`,
+        subtext: [
+            <span key={historyItem.commander}>
+                Commander:
+                {getRoleIcon(historyItem.role)}
+                {historyItem.commander || 'Unknown'}
+            </span>,
+        ],
+        time: formatTime(historyItem.timestamp),
+    }))
 
     const timelineItems = [
         {
@@ -78,35 +91,7 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
             label: 'Open Waiting',
             time: formatTime(openingDate),
         },
-        {
-            icon: typeIconMap.Flag,
-            label: 'Open Triage',
-            subtext: [
-                <span key="commander">
-                    Commander:{' '}
-                    {commanderDetail?.role
-                        ? getRoleIcon(commanderDetail.role)
-                        : null}{' '}
-                    {commanderDetail ? commanderDetail.username : commander}
-                </span>,
-            ],
-            time: formatTime(openingDate),
-        },
-        {
-            icon: typeIconMap.Flag,
-            label: 'Open Assigned',
-            subtext: [
-                <span key="commander">
-                    Commander:{' '}
-                    {commanderDetail?.role
-                        ? getRoleIcon(commanderDetail.role)
-                        : null}{' '}
-                    {commanderDetail ? commanderDetail.username : commander}
-                </span>,
-            ],
-            time: formatTime(openingDate),
-        },
-
+        ...stateTimelineItems,
         ...assignedItems.map((item) => ({
             icon: typeIconMap[item.type] || typeIconMap.Flag,
             label: `${capitalize(item.name)} assigned`,
