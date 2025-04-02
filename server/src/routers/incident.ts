@@ -152,7 +152,6 @@ export default Router()
      */
     .put('/update', async (request, response) => {
         const incidentData: IIncident = request.body
-        console.log('Updating Incident Data:', incidentData)
         try {
             await IncidentController.updateIncident(incidentData)
             response.status(204).send()

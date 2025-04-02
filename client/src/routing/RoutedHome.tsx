@@ -37,21 +37,12 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
   const dispatch = useDispatch<AppDispatch>()
   const isLoggedIn = localStorage.getItem('token') ? true : false
   const role = localStorage.getItem('role') ?? 'Citizen'
-  // Check if there are any unread messages
-  // const alerts = useSelector((state: RootState) => state.messageState.alerts)
-  // const hasUnreadMessages = Object.values(alerts).some((alert) => alert)
   const [alertOpen, setAlertOpen] = useState<boolean>(false)
   const [alertMessage, setAlertMessage] = useState('')
   const [bgColor, setBgColor] = useState('black')
   const [textColor, setTextColor] = useState('white')
-  // check if there are any group notifications
-  // const [hasGroupNotification, setHasGroupNotification] = useState(false)
   const [currentAlertMessageId, setCurrentAlertMessageId] = useState('')
   const [currentChannelId, setCurrentChannelId] = useState('')
-  // check if there are any new incidents
-  // const [hasNewIncident, setHasNewIncident] = useState<boolean>(false)
-  // const [showIncidentAlert, setShowIncidentAlert] = useState<boolean>(false)
-  // const [incidentAlertMessage, setIncidentAlertMessage] = useState<string>('')
 
   // Nurse alert state
   const [nurseAlertVisible, setNurseAlertVisible] = useState(false)
@@ -270,7 +261,6 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
     })
 
     socket.on('group-member-added', (data) => {
-      //TODO: Do something here?
       if (data.userId === localStorage.getItem('uid')) {
         dispatch(setHasGroupNotification(true))
       }
