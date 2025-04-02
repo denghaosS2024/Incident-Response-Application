@@ -19,6 +19,7 @@ import type { AppDispatch } from '../../../redux/store'
 import request from '../../../utils/request'
 import ConfirmationDialog from '../../common/ConfirmationDialog'
 import ROLES from '@/utils/Roles'
+import { getRoleIcon } from '@/components/common/RoleIcon'
 
 interface Reach911Step5Props {
     incidentId?: string
@@ -121,7 +122,6 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                         unassignedPersonnelNamesArray.includes(person.username),
                 )
                 setUnassignedPersonnel(unassignedPersonnel)
-                console.log(unassignedPersonnel)
             } catch (err) {
                 console.error('Error fetching unassigned personnel:', err)
             }
@@ -533,9 +533,10 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                                     key={person.username}
                                     value={person.username}
                                 >
+                                    {getRoleIcon(person.role)}
                                     {person.username === currentUsername
                                         ? `You`
-                                        : person.username}
+                                        : `${person.username}`}
                                 </MenuItem>
                             ))}
                         </Select>
