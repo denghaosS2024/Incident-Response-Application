@@ -252,13 +252,12 @@ class ChannelController {
      * @throws Error if the channel is not found
      */
     getByName = async (name: string) => {
-      const channel = await Channel.getByName(name)
-      if (!channel) {
-          throw new Error(`Channel(${name}) not found.`)
-      }
-      return channel
+        const channel = await Channel.getByName(name)
+        if (!channel) {
+            throw new Error(`Channel(${name}) not found.`)
+        }
+        return channel
     }
-
 
     /**
      * Get messages for a channel
@@ -571,6 +570,10 @@ class ChannelController {
             }),
         )
 
+        const newUsers = users.filter(
+            (u1) => !existingChannel.users.some((u2) => u1._id.equals(u2._id)),
+        )
+
         // Only update the users field
         existingChannel.users = users
 
@@ -590,6 +593,14 @@ class ChannelController {
                 existingChannel.owner = newOwner
             }
         }
+
+        // Send group member update notification
+        newUsers.forEach((user) => {
+            const id = user._id.toHexString()
+            if (!UserConnections.isUserConnected(id)) return
+            const connection = UserConnections.getUserConnection(id)!
+            connection.emit('group-member-added', {userId: user._id})
+        })
 
         // Save the updated channel
         const updatedChannel = await existingChannel.save()
@@ -678,7 +689,6 @@ class ChannelController {
             throw error
         }
     }
-
 }
 
 export default new ChannelController()
