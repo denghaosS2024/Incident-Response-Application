@@ -438,10 +438,9 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     }
 
     const responders = incidentData.assignedVehicles?.flatMap((vehicle) => vehicle.usernames || [])
-
-    const firstResponders = responders?.filter((username) => !username.includes(incidentData.commander))
-                    .map((username) => (username === currentUsername ? `${username}(You) ` : `${username} `))
-
+    const firstResponders = responders
+        ?.filter((username) => username !== incidentData.commander)
+        .map((username) => (username === currentUsername ? `${username}(You) ` : `${username} `));
 
     return (
         <Paper elevation={3} sx={{ p: 2, m: 2 }}>
