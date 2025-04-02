@@ -103,7 +103,7 @@ const SARStep2: React.FC<TaskStatsProps> = () => {
                     {getTaskIcon(task.state)}  {/* Display the appropriate icon */}
                   </ListItemAvatar>
                   <ListItemText
-                    primary={task.address ? task.address : "No address"} // Display task address or fallback message
+                    primary={task.location ? task.location : "No address"} // Display task address or fallback message
                   />
                 </Box>
 

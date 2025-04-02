@@ -93,10 +93,10 @@ const SARStep3: React.FC<TaskStatsProps> = () => {
                 {/* Left side: Image and task name */}
                 <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                   <ListItemAvatar>
-                  {<CheckCircleIcon style={{ color: '#4caf50', marginLeft: '10'}} />} 
+                  {<CheckCircleIcon style={{ color: '#4caf50', marginLeft: '10'}} />}
                   </ListItemAvatar>
                   <ListItemText
-                    primary={task.address ? task.address : "No address"} // Display task address or fallback message
+                    primary={task.location ? task.location : "No address"} // Display task address or fallback message
                   />
                 </Box>
 
