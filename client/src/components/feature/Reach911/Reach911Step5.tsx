@@ -437,6 +437,12 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
         )
     }
 
+    const responders = incidentData.assignedVehicles?.flatMap((vehicle) => vehicle.usernames || [])
+
+    const firstResponders = responders?.filter((username) => !username.includes(incidentData.commander))
+                    .map((username) => (username === currentUsername ? `${username}(You) ` : `${username} `))
+
+
     return (
         <Paper elevation={3} sx={{ p: 2, m: 2 }}>
             <Box sx={{ mb: 2 }}>
@@ -487,6 +493,13 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                         ? `You (${currentUsername})`
                         : incidentData.owner}
                 </Typography>
+                
+                {firstResponders && firstResponders.length >= 1 ?(
+                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                            First Responders:{' '}
+                            {firstResponders}
+                        </Typography>):null}
+
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                     Incident Commander
                 </Typography>
@@ -543,6 +556,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                                 setError,
                             )
                         }
+                        style={{ pointerEvents: responders?.includes(currentUsername)?'auto' :'none'}}
                     >
                         Chat with Responders
                     </Button>
