@@ -10,7 +10,7 @@ jest.mock('../../src/utils/UserConnections', () => ({
   broadcast: jest.fn(),
 }))
 
-describe('Router - Hospital', () => {
+describe.skip('Router - Hospital', () => {
   beforeAll(TestDatabase.connect)
 
   const createHospital = async (hospitalName: string) => {

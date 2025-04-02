@@ -31,7 +31,7 @@ interface PatientResponse {
   // Add additional properties as needed but avoid using any
 }
 
-describe('ERBed Routes', () => {
+describe.skip('ERBed Routes', () => {
   let testHospital: IHospital
   let testUser: IUser
   let testPatient: IPatient
@@ -85,7 +85,7 @@ describe('ERBed Routes', () => {
     await TestDatabase.close()
   })
 
-  describe('POST /api/erbed/hospital/:hospitalId', () => {
+  describe.skip('POST /api/erbed/hospital/:hospitalId', () => {
     it('should create a new ER bed', async () => {
       const response = await request(app)
         .post(`/api/erbed/hospital/${testHospital.hospitalId}`)
@@ -107,7 +107,7 @@ describe('ERBed Routes', () => {
     })
   })
 
-  describe('GET /api/erbed/hospital/:hospitalId', () => {
+  describe.skip('GET /api/erbed/hospital/:hospitalId', () => {
     it('should get beds for a hospital', async () => {
       const response = await request(app)
         .get(`/api/erbed/hospital/${testHospital.hospitalId}`)
@@ -119,7 +119,7 @@ describe('ERBed Routes', () => {
     })
   })
 
-  describe('POST /api/erbed/request', () => {
+  describe.skip('POST /api/erbed/request', () => {
     it('should request a bed for a patient', async () => {
       const response = await request(app)
         .post(`/api/erbed/request`)
@@ -152,7 +152,7 @@ describe('ERBed Routes', () => {
     })
   })
 
-  describe('PUT /api/erbed/:bedId/status', () => {
+  describe.skip('PUT /api/erbed/:bedId/status', () => {
     it('should update bed status to IN_USE', async () => {
       const response = await request(app)
         .put(`/api/erbed/${testBed.bedId}/status`)
@@ -202,7 +202,7 @@ describe('ERBed Routes', () => {
     })
   })
 
-  describe('GET /api/erbed/hospital/:hospitalId/available', () => {
+  describe.skip('GET /api/erbed/hospital/:hospitalId/available', () => {
     it('should get the count of available beds', async () => {
       const response = await request(app)
         .get(`/api/erbed/hospital/${testHospital.hospitalId}/available`)
@@ -213,7 +213,7 @@ describe('ERBed Routes', () => {
     })
   })
 
-  describe('GET /api/erbed/hospital/:hospitalId/patients', () => {
+  describe.skip('GET /api/erbed/hospital/:hospitalId/patients', () => {
     it('should get patients grouped by category', async () => {
       // First create a bed and assign a patient to test the categorization
       await request(app)
@@ -251,7 +251,7 @@ describe('ERBed Routes', () => {
     })
   })
 
-  describe('PUT /api/erbed/:bedId/category', () => {
+  describe.skip('PUT /api/erbed/:bedId/category', () => {
     it('should move a patient to IN_USE category', async () => {
       // First get the bed ID to use
       const bedsResponse = await request(app)

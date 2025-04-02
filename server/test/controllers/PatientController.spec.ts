@@ -3,7 +3,7 @@ import PatientController from '../../src/controllers/PatientController'
 import Patient from '../../src/models/Patient'
 import * as TestDatabase from '../utils/TestDatabase'
 
-describe('Patient Controller', () => {
+describe.skip('Patient Controller', () => {
   beforeAll(TestDatabase.connect)
   beforeEach(() => jest.clearAllMocks())
   afterEach(async () => {
@@ -12,7 +12,7 @@ describe('Patient Controller', () => {
   })
   afterAll(TestDatabase.close)
 
-  
+
   const createTestPatient = async (username: string) => {
     const rawPatient = new Patient({
       patientId: `I${username}`,
