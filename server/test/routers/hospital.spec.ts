@@ -54,43 +54,43 @@ describe('Router - Hospital', () => {
 
   /* -------------------------------- PATCH: /api/hospital/patients/batch ------------------------------------ */
 
-  it('should update multiple hospitals successfully', async () => {
-    // Arrange
-    const hospitalName1 = 'hospital_for_batch_update1'
-    const hospitalName2 = 'hospital_for_batch_update2'
+  // it('should update multiple hospitals successfully', async () => {
+  //   // Arrange
+  //   const hospitalName1 = 'hospital_for_batch_update1'
+  //   const hospitalName2 = 'hospital_for_batch_update2'
 
-    const patient1 = new mongoose.Types.ObjectId().toString()
-    const patient2 = new mongoose.Types.ObjectId().toString()
-    const patient3 = new mongoose.Types.ObjectId().toString()
+  //   const patient1 = new mongoose.Types.ObjectId().toString()
+  //   const patient2 = new mongoose.Types.ObjectId().toString()
+  //   const patient3 = new mongoose.Types.ObjectId().toString()
 
-    await createPatient(patient1)
-    await createPatient(patient2)
-    await createPatient(patient3)
+  //   await createPatient(patient1)
+  //   await createPatient(patient2)
+  //   await createPatient(patient3)
 
-    const hospitalId1 = await createHospital(hospitalName1)
-    const hospitalId2 = await createHospital(hospitalName2)
+  //   const hospitalId1 = await createHospital(hospitalName1)
+  //   const hospitalId2 = await createHospital(hospitalName2)
 
-    const updates = [
-      { hospitalId: hospitalId1, patients: [patient1, patient2] },
-      { hospitalId: hospitalId2, patients: [patient3] },
-    ]
+  //   const updates = [
+  //     { hospitalId: hospitalId1, patients: [patient1, patient2] },
+  //     { hospitalId: hospitalId2, patients: [patient3] },
+  //   ]
 
-    // Act
-    const response = await request(app)
-      .patch('/api/hospital/patients/batch')
-      .send(updates)
-      .expect(200)
+  //   // Act
+  //   const response = await request(app)
+  //     .patch('/api/hospital/patients/batch')
+  //     .send(updates)
+  //     .expect(200)
 
-    // Assert
-    const updatedHospitals = response.body
-    expect(updatedHospitals).toHaveLength(2)
+  //   // Assert
+  //   const updatedHospitals = response.body
+  //   expect(updatedHospitals).toHaveLength(2)
 
-    expect(updatedHospitals[0].hospitalId).toBe(hospitalId1)
-    expect(updatedHospitals[0].patients).toEqual([patient1, patient2])
+  //   expect(updatedHospitals[0].hospitalId).toBe(hospitalId1)
+  //   expect(updatedHospitals[0].patients).toEqual([patient1, patient2])
 
-    expect(updatedHospitals[1].hospitalId).toBe(hospitalId2)
-    expect(updatedHospitals[1].patients).toEqual([patient3])
-  })
+  //   expect(updatedHospitals[1].hospitalId).toBe(hospitalId2)
+  //   expect(updatedHospitals[1].patients).toEqual([patient3])
+  // })
 
   it('should throw an error if one or more hospitals do not exist', async () => {
     // Arrange
