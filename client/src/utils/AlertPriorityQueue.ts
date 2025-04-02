@@ -33,7 +33,7 @@ class AlertPriorityQueue {
   private queues: Record<string, IMessage[]> = {} // Keyed by channelId
   private activeAlerts: Record<string, IMessage> = {} // Keyed by channelId
   private alertTimeouts: Record<string, NodeJS.Timeout> = {} // Timeouts for each active alert
-  private defaultTimeoutMs = 120000
+  private defaultTimeoutMs = 20000
   private initialized = false
 
   /**
