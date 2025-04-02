@@ -1,7 +1,7 @@
 import PatientForm from '@/components/feature/Reach911/PatientForm'
 import { Box, Typography } from '@mui/material'
 import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import ROLES from '../utils/Roles'
 
 const PatientFirstResponderAdmitPage: React.FC = () => {

@@ -18,7 +18,7 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import IIncident, { IncidentPriority, IncidentType } from '../models/Incident'
 import { resetIncident, updateIncident } from '../redux/incidentSlice'
 import request from '../utils/request'

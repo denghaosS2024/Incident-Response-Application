@@ -1,7 +1,7 @@
 import request, { IRequestError } from "@/utils/request.ts"
 import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
 import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
-import { useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router"
 import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
 import AddressBar from './AddressBar.tsx'

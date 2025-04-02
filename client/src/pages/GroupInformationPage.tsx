@@ -1,6 +1,6 @@
 import { Container } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import AddGroupForm, { IAddGroupFormProps } from '../components/AddGroupForm'
 import AlertSnackbar from '../components/common/AlertSnackbar'
 import IChannel from '../models/Channel'

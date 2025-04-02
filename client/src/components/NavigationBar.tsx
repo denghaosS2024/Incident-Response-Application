@@ -13,7 +13,7 @@ import {
     useNavigate,
     useParams,
     useSearchParams,
-} from 'react-router-dom'
+} from 'react-router'
 import request from '../utils/request'
 
 export interface IProps {

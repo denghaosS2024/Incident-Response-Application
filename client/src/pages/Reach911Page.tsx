@@ -10,7 +10,7 @@ import Reach911Step4 from '../components/feature/Reach911/Reach911Step4'
 import Reach911Step5 from '../components/feature/Reach911/Reach911Step5'
 
 import { useDispatch, useSelector } from 'react-redux'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 import IIncident from '../models/Incident'
 import { updateIncident } from '../redux/incidentSlice'
 import { AppDispatch, RootState } from '../redux/store'

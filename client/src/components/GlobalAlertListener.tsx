@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { updateMessage } from '../redux/messageSlice'
 import request from '../utils/request'
 import SocketClient from '../utils/Socket'

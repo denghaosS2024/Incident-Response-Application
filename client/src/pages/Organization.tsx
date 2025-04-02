@@ -26,7 +26,7 @@ import {
     Droppable,
     DropResult,
 } from 'react-beautiful-dnd'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import CityContainer from '../components/Organization/CityContainer'
 import getRoleIcon from '../components/common/RoleIcon'
 import ROLES from '../utils/Roles'

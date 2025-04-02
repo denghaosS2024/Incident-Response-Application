@@ -49,9 +49,9 @@ const addPatient = createAsyncThunk(
                 body: JSON.stringify(newPatient),
             })
             return response
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error adding new patient:', error)
-            return rejectWithValue(error.message || 'Failed to add patient')
+            return rejectWithValue(error instanceof Error ? error.message : 'Failed to add patient')
         }
     },
 )
@@ -65,9 +65,9 @@ const updatePatient = createAsyncThunk(
                 body: JSON.stringify(updatedPatient),
             })
             return response
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error updating patient:', error)
-            return rejectWithValue(error.message || 'Failed to update patient')
+            return rejectWithValue(error instanceof Error ? error.message : 'Failed to update patient')
         }
     },
 )

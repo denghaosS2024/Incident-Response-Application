@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router'
 import ChatBox from '../components/Chat/ChatBox'
 import IChannel from '../models/Channel'
 import { addMessage, loadMessages } from '../redux/messageSlice'

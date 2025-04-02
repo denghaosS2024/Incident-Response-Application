@@ -6,13 +6,18 @@ import { addMessage } from '../redux/messageSlice'
 import { AppDispatch } from '../redux/store'
 import request from '../utils/request'
 //import SocketClient from '../utils/Socket'
-import AlertPanel from './AlertPanel'
 import IIncident from '@/models/Incident'
+import AlertPanel from './AlertPanel'
 
 interface MessageAlertOptionsProps {
   channelId: string
   currentUserId: string
   currentUserRole: string
+}
+
+interface IUser {
+  _id: string
+  role: string
 }
 
 const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
@@ -54,7 +59,7 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
       }else{
         setIsIncidentCommander(0)
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching incidents:', error)
       console.log('not exist')
       setIsIncidentCommander(2)
@@ -71,12 +76,11 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
       method: 'GET',
     })
     console.log(respond.users)
-    // const responders = users.filter((user: any) => user._id !== currentUserId && (user.role === 'Fire' || user.role === 'Police'));
     const responders = respond.users.filter(
-      (user: any) =>
+      (user: IUser) =>
         user._id !== currentUserId && user.role === currentUserRole,
     )
-    setResponders(responders.map((responder: any) => responder._id))
+    setResponders(responders.map((responder: IUser) => responder._id))
 
     console.log('Responders:', responders)
   }

@@ -87,7 +87,7 @@ class SocketClient {
   }
 
   // TODO: Whoever wrote this "any", please fix it when you figure out what type it should be
-  emit(eventName: string, data: any) {
+  emit(eventName: string, data: unknown) {
     if (this.socket) {
       console.log('Emitting event:', eventName, data)
       this.socket.emit(eventName, data)

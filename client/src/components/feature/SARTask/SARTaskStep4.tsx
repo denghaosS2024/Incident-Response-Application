@@ -1,6 +1,6 @@
 import { Button } from '@mui/material'
 import React from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
 import request, { IRequestError } from '../../../utils/request.ts'

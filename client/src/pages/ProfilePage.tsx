@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import EmergencyContactField from '../components/Profile/EmergencyContactField'
 import MedicalInfoField from '../components/Profile/MedicalInfoField'
 import ProfileField from '../components/Profile/ProfileField'

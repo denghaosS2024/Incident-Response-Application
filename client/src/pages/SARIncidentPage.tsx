@@ -5,7 +5,7 @@ import ClickableStepper from '../components/ClickableStepper'
 import styles from '../styles/Reach911Page.module.css'
 
 import { useDispatch, useSelector } from 'react-redux'
-import {useLocation, useSearchParams, useNavigate} from 'react-router-dom'
+import {useLocation, useSearchParams, useNavigate} from 'react-router'
 import IIncident from '../models/Incident'
 import { updateIncident } from '../redux/incidentSlice'
 import { AppDispatch, RootState } from '../redux/store'

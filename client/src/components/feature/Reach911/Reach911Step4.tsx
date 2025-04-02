@@ -5,7 +5,7 @@ import ChatBox from '../../Chat/ChatBox'
 import request from '../../../utils/request'
 
 import { useDispatch, useSelector } from 'react-redux'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router'
 
 import { addMessage, loadMessages } from '../../../redux/messageSlice'
 
