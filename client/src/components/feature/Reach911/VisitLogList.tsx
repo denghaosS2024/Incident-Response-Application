@@ -1,6 +1,6 @@
 import AddIcon from '@mui/icons-material/Add';
 import { Fab } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 const VisitLogList: React.FC<{ username?: string }> = ({
   username: propUsername

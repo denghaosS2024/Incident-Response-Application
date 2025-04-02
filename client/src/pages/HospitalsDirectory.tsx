@@ -4,7 +4,7 @@ import request from '@/utils/request'
 import { Add, NavigateNext as Arrow } from '@mui/icons-material'
 import { Box, IconButton } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import SocketClient from '../utils/Socket'
 
 const HospitalsDirectory: React.FC = () => {

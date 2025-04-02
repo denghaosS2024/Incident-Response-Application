@@ -1,6 +1,6 @@
 import { Box, Button, FormHelperText, TextField } from '@mui/material'
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import ConfirmationDialog from './common/ConfirmationDialog'
 
 export interface IFormData {

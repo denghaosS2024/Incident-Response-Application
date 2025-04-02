@@ -22,7 +22,7 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { v4 as uuidv4 } from 'uuid'
 import IUser from '../../../models/User'
 import { loadContacts } from '../../../redux/contactSlice'

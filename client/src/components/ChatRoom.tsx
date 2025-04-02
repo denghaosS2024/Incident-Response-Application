@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import ChatBox from '../components/Chat/ChatBox'
 import IChannel from '../models/Channel'
 import IHospital from '../models/Hospital'

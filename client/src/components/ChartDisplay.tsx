@@ -18,7 +18,7 @@ import {
   Title,
 } from 'chart.js'
 import { Pie, Bar, Line } from 'react-chartjs-2'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import request from '../utils/request'
 
 ChartJS.register(

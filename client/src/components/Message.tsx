@@ -4,6 +4,7 @@ import moment from 'moment'
 import { FunctionComponent } from 'react'
 import Linkify from 'react-linkify'
 import IMessage from '../models/Message'
+import IUser from '../models/User'
 import styles from '../styles/Message.module.css'
 import getRoleIcon from './common/RoleIcon'
 import NurseAlertMessage from './NurseAlertMessage'
@@ -167,7 +168,7 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
                   sx={{ fontWeight: 'bold', mt: 1 }}
                 >
                   Not acknowledged by:{' '}
-                  {unacknowledged.map((u: any) => u.username).join(', ')}
+                  {unacknowledged.map((u: IUser) => u.username).join(', ')}
                 </Typography>
               ) : (
                 <Typography

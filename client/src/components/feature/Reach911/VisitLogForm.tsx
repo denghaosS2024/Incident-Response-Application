@@ -18,7 +18,7 @@ import {
 } from '@mui/material'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { RootState } from '../../../redux/store'
 import Loading from '../../common/Loading'
 import { IVisitLogForm } from './IVisitLogForm'

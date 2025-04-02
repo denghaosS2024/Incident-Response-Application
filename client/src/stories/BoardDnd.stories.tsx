@@ -1,5 +1,4 @@
-import { Meta, Story } from '@storybook/react'
-import { useState } from 'react'
+import { Meta, StoryObj } from '@storybook/react'
 import { Provider } from 'react-redux'
 import Board from '../components/Board'
 import { store } from '../redux/store'
@@ -23,23 +22,14 @@ export default {
       },
     },
   },
-} as Meta
+} as Meta<typeof Board>
 
-const Template: Story = (args) => {
-  const [users, setUsers] = useState<string[]>([])
-  const [groupName, setGroupName] = useState('')
-  const [description, setDescription] = useState('')
-  const [triggerResetBoard, setTriggerResetBoard] = useState(0)
+type Story = StoryObj<typeof Board>
 
-  // Define the mock resetBoardState function
-  const resetBoardState = () => {
-    setUsers([]) // Reset users
-    setGroupName('') // Reset group name
-    setDescription('') // Reset description
-  }
-
-  return <Board setUsers={setUsers} canDrag={true} {...args} />
+export const Default: Story = {
+  args: {
+    setUsers: (users: string[]) => {
+      console.log('Selected users:', users)
+    },
+  },
 }
-
-export const Default = Template.bind({})
-Default.args = {}

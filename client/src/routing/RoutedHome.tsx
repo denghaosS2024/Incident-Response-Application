@@ -2,7 +2,7 @@
 import { Box, Modal, Typography, keyframes } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Navigate, Outlet, useNavigate } from 'react-router-dom'
+import { Navigate, Outlet, useNavigate } from 'react-router'
 import IMessage from '../models/Message'
 // IR App
 import NurseActionDialog from '@/components/feature/FindHospital/NurseActionDialog'

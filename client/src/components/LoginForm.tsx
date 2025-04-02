@@ -1,6 +1,6 @@
 import { Box, Button, TextField } from '@mui/material'
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 export interface IFormData {
   username: string

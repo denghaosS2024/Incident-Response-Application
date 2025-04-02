@@ -24,7 +24,7 @@ export default function Board({
     (state: RootState) => state.contactState,
   )
   const [todo, setTodo] = useState<IUser[]>([])
-  const [groups, setGroups] = useState<any[]>([]) // Store the groups
+  const [groups, setGroups] = useState<IChannel[]>([]) // Store the groups
   const [colSubtitle, setColSubtitle] = useState<string>('')
   const owner = localStorage.getItem('uid') ?? ''
   const currentUserRole = localStorage.getItem('role') ?? ''
@@ -36,7 +36,7 @@ export default function Board({
   useEffect(() => {
     if (contacts.length > 0) {
       const filteredContacts = contacts.filter(
-        (contact) => contact._id !== owner,
+        (contact: IUser) => contact._id !== owner,
       ) // Remove the logged-in user
       setTodo(filteredContacts)
     }
@@ -61,7 +61,7 @@ export default function Board({
     if (currentGroup) {
       const groupUsers = currentGroup.users
         .map((userId: IUser) =>
-          contacts.find((contact) => contact._id === userId._id),
+          contacts.find((contact: IUser) => contact._id === userId._id),
         )
         .filter(Boolean) as IUser[] // Filter out undefined values
 
@@ -159,7 +159,7 @@ export default function Board({
     if (group) {
       const groupUsers = group.users
         .map((userId: IUser) =>
-          contacts.find((contact) => contact._id === userId._id),
+          contacts.find((contact: IUser) => contact._id === userId._id),
         )
         .filter(Boolean) as IUser[] // Filter out undefined values
 
