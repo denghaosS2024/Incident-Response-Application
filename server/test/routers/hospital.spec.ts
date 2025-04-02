@@ -30,6 +30,7 @@ describe('Router - Hospital', () => {
       patientId,
       name,
       nameLower: name.toLowerCase(),
+      username: name,
       hospitalId: null,
     })
   }

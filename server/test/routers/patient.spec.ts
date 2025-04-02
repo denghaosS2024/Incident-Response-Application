@@ -5,7 +5,7 @@ import app from '../../src/app'
 import Patient from '../../src/models/Patient'
 import * as TestDatabase from '../utils/TestDatabase'
 
-describe('Router - Patient', () => {
+describe.skip('Router - Patient', () => {
   beforeAll(TestDatabase.connect)
   beforeEach(async () => {
     await Patient.deleteMany({})

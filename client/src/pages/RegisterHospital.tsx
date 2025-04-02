@@ -525,13 +525,15 @@ const RegisterHospital: React.FC = () => {
                 >
                     Cancel
                 </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleDelete}
-                >
-                    Delete
-                </Button>
+                {hospitalId && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleDelete}
+                    >
+                        Delete
+                    </Button>
+                )}
             </Box>
 
             {/* For Alerts pertaining to hospital registration or updation*/}
