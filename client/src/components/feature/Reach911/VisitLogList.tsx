@@ -9,7 +9,6 @@ const VisitLogList: React.FC<{ username?: string }> = ({
   const navigate = useNavigate()
 
   const handleAddPatient = () => {
-    // navigate(`/patient-visit/?username=${propUsername}`);
     if (propUsername) {
       navigate(
         `/patient-visit?username=${encodeURIComponent(propUsername)}`,
