@@ -397,7 +397,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                                 if (
                                     ![
                                         'Nurse',
-                                        'dispatcher',
+                                        'DISPATCH',
                                         //Don't really understand what the first responder means here
                                     ].includes(userRole || '')
                                 ) {
