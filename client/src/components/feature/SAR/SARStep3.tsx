@@ -7,25 +7,30 @@ import IIncident, { ISarTask } from '../../../models/Incident';
 import { RootState } from '../../../redux/store';
 import request from '../../../utils/request';
 
+interface ISarTaskWithIndex extends ISarTask {
+  taskIndex: number;
+}
+
 interface TaskStatsProps {
   incidentId: string;
 }
 
 const SARStep3: React.FC<TaskStatsProps> = () => {
-  const [tasks, setTasks] = useState<ISarTask[]>([]);
-  const [taskIndices, setTaskIndices] = useState<{ [key: string]: number | null }>({}); // Store task index by _id
-  const incident: IIncident = useSelector(
-    (state: RootState) => state.incidentState.incident,
-  );
+  const [tasks, setTasks] = useState<ISarTaskWithIndex[]>([]);
+  const incident: IIncident = useSelector((state: RootState) => state.incidentState.incident);
 
   const fetchDoneTasks = async () => {
     try {
       const incidentDoc = await request(`/api/incidents?incidentId=${incident.incidentId}`, { method: 'GET' });
 
       if (incidentDoc && incidentDoc[0].sarTasks) {
-        const filteredTasks = incidentDoc[0].sarTasks.filter(
-          (task: ISarTask) => task.state === 'Done'
-        );
+        const filteredTasks = incidentDoc[0].sarTasks
+          .map((task: ISarTask, index: number) => ({
+            ...task,
+            taskIndex: index, // Store index within array
+          }))
+          .filter((task: ISarTask) => task.state === 'Done');
+
         setTasks(filteredTasks);
       }
     } catch (error) {
@@ -37,35 +42,6 @@ const SARStep3: React.FC<TaskStatsProps> = () => {
     fetchDoneTasks();
   }, [incident.incidentId]);
 
-  const getTaskIndex = async (taskId: string) => {
-    try {
-      const incidentDoc = await request(`/api/incidents?incidentId=${incident.incidentId}`, { method: 'GET' });
-      if (incidentDoc && incidentDoc[0].sarTasks) {
-        const taskIndex = incidentDoc[0].sarTasks.findIndex((task: ISarTask) => task._id === taskId);
-        return taskIndex !== -1 ? taskIndex : null;
-      }
-    } catch (error) {
-      console.error('Error fetching task index:', error);
-    }
-  };
-
-  useEffect(() => {
-    const fetchIndices = async () => {
-      const indices: { [key: string]: number | null } = {};
-      for (const task of tasks) {
-        const index = await getTaskIndex(task._id);
-        if (index !== null) {
-          indices[task._id] = index;
-        }
-      }
-      setTaskIndices(indices);
-    };
-
-    if (tasks.length > 0) {
-      fetchIndices();
-    }
-  }, [tasks, incident.incidentId]);
-
   return (
     <Box sx={{ maxWidth: 400, mx: 'auto', mt: 4, p: 2 }}>
       <Typography variant="h5" sx={{ mb: 2, textAlign: 'center' }}>
@@ -73,49 +49,39 @@ const SARStep3: React.FC<TaskStatsProps> = () => {
       </Typography>
       {tasks.length > 0 ? (
         <List>
-          {tasks.map((task) => {
-            const taskIndex = taskIndices[task._id];
+          {tasks.map((task) => (
+            <ListItem
+              key={task.taskIndex} // Use taskIndex instead of _id
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderBottom: '1px solid #ddd',
+                padding: '10px',
+                border: '1.5px solid #ddd',
+                borderRadius: '8px',
+                '&:hover': { backgroundColor: '#f5f5f5' },
+              }}
+            >
+              {/* Left side: Icon and task location */}
+              <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                <ListItemAvatar>
+                  <CheckCircleIcon style={{ color: '#4caf50', marginLeft: '10' }} />
+                </ListItemAvatar>
+                <ListItemText primary={task.location || 'No address'} />
+              </Box>
 
-            return (
-              <ListItem
-                key={task._id}
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center', // Ensures vertical alignment
-                  borderBottom: '1px solid #ddd',
-                  padding: '10px',
-                  border: '1.5px solid #ddd',
-                  borderRadius: '8px',
-                  '&:hover': { backgroundColor: '#f5f5f5' },
-                }}
-              >
-                {/* Left side: Image and task name */}
-                <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-                  <ListItemAvatar>
-                  {<CheckCircleIcon style={{ color: '#4caf50', marginLeft: '10'}} />}
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={task.location ? task.location : "No address"} // Display task address or fallback message
-                  />
-                </Box>
-
-                {/* Right side: Link with arrow icon */}
-                {taskIndex !== undefined && taskIndex !== null ? (
-                  <a href={`/sar-task/${incident.incidentId}?taskId=${taskIndex}`} style={{ textDecoration: 'none' }}>
-                    <IconButton edge="end" size="large">
-                      <Arrow />
-                    </IconButton>
-                  </a>
-                ) : null}
-              </ListItem>
-            );
-          })}
+              {/* Right side: Link with arrow icon */}
+              <a href={`/sar-task/${incident.incidentId}?taskId=${task.taskIndex}`} style={{ textDecoration: 'none' }}>
+                <IconButton edge="end" size="large">
+                  <Arrow />
+                </IconButton>
+              </a>
+            </ListItem>
+          ))}
         </List>
       ) : (
-        <Typography sx={{ textAlign: 'center', color: 'gray' }}>
-          No tasks available.
-        </Typography>
+        <Typography sx={{ textAlign: 'center', color: 'gray' }}>No tasks available.</Typography>
       )}
     </Box>
   );

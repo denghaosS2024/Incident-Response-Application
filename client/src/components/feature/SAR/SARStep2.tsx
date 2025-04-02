@@ -18,9 +18,12 @@ const getTaskIcon = (status: string) => {
 interface TaskStatsProps {
   incidentId: string;
 }
+interface ISarTaskWithIndex extends ISarTask {
+  taskIndex: number;
+}
 
 const SARStep2: React.FC<TaskStatsProps> = () => {
-  const [tasks, setTasks] = useState<ISarTask[]>([])
+  const [tasks, setTasks] = useState<ISarTaskWithIndex[]>([]);
   const [taskIndices, setTaskIndices] = useState<{ [key: string]: number | null }>({}) // Store task index by _id
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
@@ -28,51 +31,30 @@ const SARStep2: React.FC<TaskStatsProps> = () => {
 
   const fetchNotDoneTasks = async () => {
     try {
-      const incidentDoc = await request(`/api/incidents?incidentId=${incident.incidentId}`, { method: 'GET' })
-
+      const incidentDoc = await request(`/api/incidents?incidentId=${incident.incidentId}`, { method: 'GET' });
+  
       if (incidentDoc && incidentDoc[0].sarTasks) {
-        const filteredTasks = incidentDoc[0].sarTasks.filter(
-          (task: ISarTask) => task.state === 'InProgress' || task.state === 'Todo'
-        )
-        setTasks(filteredTasks)
+        // Define a new type inline that includes taskIndex
+        const filteredTasks = incidentDoc[0].sarTasks
+          .map((task: ISarTask, index: number) => ({
+            ...task,
+            taskIndex: index, // Add task index dynamically
+          }))
+          .filter((task: ISarTask) => task.state === 'InProgress' || task.state === 'Todo');
+  
+        setTasks(filteredTasks);
       }
     } catch (error) {
-      console.error('Error fetching tasks:', error)
+      console.error('Error fetching tasks:', error);
     }
-  }
+  };
+  
 
   useEffect(() => {
     fetchNotDoneTasks()
   }, [incident.incidentId])
 
-  const getTaskIndex = async (taskId: string) => {
-    try {
-      const incidentDoc = await request(`/api/incidents?incidentId=${incident.incidentId}`, { method: 'GET' })
-      if (incidentDoc && incidentDoc[0].sarTasks) {
-        const taskIndex = incidentDoc[0].sarTasks.findIndex((task: ISarTask) => task._id === taskId)
-        return taskIndex !== -1 ? taskIndex : null
-      }
-    } catch (error) {
-      console.error('Error fetching task index:', error)
-    }
-  }
 
-  useEffect(() => {
-    const fetchIndices = async () => {
-      const indices: { [key: string]: number | null } = {}
-      for (const task of tasks) {
-        const index = await getTaskIndex(task._id)
-        if (index !== null) {
-          indices[task._id] = index
-        }
-      }
-      setTaskIndices(indices)
-    }
-
-    if (tasks.length > 0) {
-      fetchIndices()
-    }
-  }, [tasks, incident.incidentId])
 
   return (
     <Box sx={{ maxWidth: 400, mx: 'auto', mt: 4, p: 2 }}>
@@ -82,10 +64,9 @@ const SARStep2: React.FC<TaskStatsProps> = () => {
       {tasks.length > 0 ? (
         <List>
           {tasks.map((task) => {
-            const taskIndex = taskIndices[task._id]
             return (
               <ListItem
-                key={task._id} // Use _id as the unique key
+              key={task.taskIndex} // Use _id as the unique key
                 sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -108,13 +89,12 @@ const SARStep2: React.FC<TaskStatsProps> = () => {
                 </Box>
 
                 {/* Right side: Arrow as a Link */}
-                {taskIndex !== undefined && taskIndex !== null ? (
-                  <a href={`/sar-task/${incident.incidentId}?taskId=${taskIndex}`} style={{ textDecoration: 'none' }}>
+                <a href={`/sar-task/${incident.incidentId}?taskId=${task.taskIndex}`} style={{ textDecoration: 'none' }}>
+
                     <IconButton edge="end" size="large">
                       <Arrow />
                     </IconButton>
                   </a>
-                ) : null}
               </ListItem>
             )
           })}
