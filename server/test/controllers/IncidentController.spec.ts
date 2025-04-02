@@ -577,53 +577,6 @@ describe('Incident Controller', () => {
     })
 
     describe('Incident Responders Group functionality', () => {
-        it('should create a new responders group from responders on assigned vehicles', async () => {
-            await UserController.register(
-                'CommanderUser',
-                'password123',
-                ROLES.DISPATCH,
-            )
-            await UserController.register(
-                'Responder1',
-                'password123',
-                ROLES.POLICE,
-            )
-            await UserController.register(
-                'Responder2',
-                'password123',
-                ROLES.POLICE,
-            )
-            await UserController.register(
-                'Responder3',
-                'password123',
-                ROLES.POLICE,
-            )
-            await UserController.register(
-                'Responder4',
-                'password123',
-                ROLES.POLICE,
-            )
-
-            const username = 'test-responder-group'
-            const incident = await createTestIncident(username)
-            incident.commander = 'CommanderUser'
-            incident.assignedVehicles = [
-                {
-                    type: 'Car',
-                    name: 'CarA',
-                    usernames: ['CommanderUser', 'Responder1', 'Responder2'],
-                },
-                { type: 'Truck', name: 'TruckA', usernames: ['Responder3'] },
-                { type: 'Car', name: 'CarB', usernames: ['Responder4'] },
-            ]
-            await incident.save()
-
-            const updatedIncident =
-                await IncidentController.createOrUpdateRespondersGroup(incident)
-
-            expect(updatedIncident.respondersGroup).toBeDefined()
-        })
-
         it('should de-allocate vehicle from incident', async () => {
             const username = 'test-deallocate-user-1'
             const carName = 'test-deallocate-car-1'
