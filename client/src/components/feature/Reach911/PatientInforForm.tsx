@@ -22,7 +22,7 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { v4 as uuidv4 } from 'uuid'
 import IUser from '../../../models/User'
 import { loadContacts } from '../../../redux/contactSlice'
@@ -35,6 +35,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     sex: propSex,
 }) => {
     const dispatch = useDispatch<AppDispatch>()
+    const [searchParams, setSearchParams] = useSearchParams();
     const [currentUsername, setcurrentUsername] = useState<string>(
         propUsername || '',
     )
@@ -163,6 +164,10 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                 dispatch(addPatient(patient))
             }
             setcurrentUsername(value)
+            console.log("Current username set to:", value)
+            searchParams.set('username', value);
+            navigate(`/patients/admit?${searchParams.toString()}`)
+            // setSearchParams(searchParams);// Update the URL search params
         } else {
             dispatch(
                 setPatient({
