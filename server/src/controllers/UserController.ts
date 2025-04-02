@@ -291,8 +291,16 @@ class UserController {
                 await this.logout(username)
                 return
             }
-    
-            const incident = incidents[0]
+            
+            console.log('Incidents:', incidents)
+            let incident = incidents.find(
+                (inc) => inc.closingDate === null && inc.commander === username
+            );
+
+            if (!incident) {
+                await this.logout(username)
+                return
+            }
     
             // Make a shallow copy to avoid mutation issues during iteration
             const originalVehicles = [...incident.assignedVehicles]
@@ -306,8 +314,8 @@ class UserController {
                         (v) => v.name !== vehicle.name
                     )
 
-                    console.log(`Vehicle '${vehicle.name}' deallocated from incident '${incident.incidentId}'`)
-                    await incident.save()
+                    // console.log(`Vehicle '${vehicle.name}' deallocated from incident '${incident.incidentId}'`)
+                    incident = await incident.save()
     
                     // Deallocate vehicle in DB
                     if (vehicle.type === 'Car') {
@@ -345,7 +353,9 @@ class UserController {
     
             // Transfer command to the new responder and save updated vehicles
             incident.commander = firstResponderNotCommander.username
-            await incident.save()
+            console.log('New Commander:', incident.commander)
+            incident = await incident.save()
+            console.log(incident)
     
             console.log(`Incident '${incident.incidentId}' command transferred to '${incident.commander}'`)
             await this.logout(username)
