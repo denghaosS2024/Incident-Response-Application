@@ -196,12 +196,12 @@ class PatientController {
     }
 
     /**
-     * Set the ER status of a patient
+     * Set the status of a patient
      * @param patientId - The ID of the patient
      * @param status - The status to set, which should be one of the values in the enum of the status field in the Patient model
      * @returns The updated patient
      */
-    async setERStatus(patientId: string, status: string) {
+    async setStatus(patientId: string, status: string) {
         // Fetch the enum from the schema
         const column = PatientSchema.obj.status ?? {}
         const candidates = new Set(column['enum'] ?? [])
@@ -213,6 +213,35 @@ class PatientController {
         const res = await Patient.findOneAndUpdate(
             { patientId },
             { status },
+            { new: true },
+        )
+
+        if (res === null) {
+            throw new Error(`Patient "${patientId}" does not exist`)
+        }
+
+        return res
+    }
+
+
+    /**
+     * Set the ER status of a patient
+     * @param patientId - The ID of the patient
+     * @param erStatus - The ER status to set, should be one of: 'requesting', 'ready', 'inUse', 'discharged'
+     * @returns The updated patient
+     */
+    async setERStatus(patientId: string, erStatus: string) {
+        // Fetch the enum from the schema
+        const column = PatientSchema.obj.erStatus ?? {}
+        const candidates = new Set(column['enum'] ?? [])
+
+        if (!candidates.has(erStatus)) {
+            throw new Error(`Invalid ER status: ${erStatus}`)
+        }
+
+        const res = await Patient.findOneAndUpdate(
+            { patientId },
+            { erStatus },
             { new: true },
         )
 
@@ -340,11 +369,11 @@ class PatientController {
     }
 
     /**
-     * Creates or updates a visit log for a patient.
+     * Creates or updates a visit log for a patient and sets the erStatus appropriately
      *
      * - If the patient has no visit logs, a new entry is created.
-     * - If the patient has visit logs, we update the latest *active* one.
-     *   If none are active, a new log entry is created.
+     * - If the patient has visit logs, all active ones are set to inactive and a new log entry is created.
+     * - Updates the erStatus based on the location and priority
      *
      * @param patientId - The unique ID of the patient
      * @param patientVisitData - The visit details to log for the patient
@@ -356,6 +385,7 @@ class PatientController {
         patientVisitData: IVisitLog,
     ) {
         const patient = await Patient.findOne({ patientId })
+
         if (!patient) {
             throw new Error(`Patient with ID ${patientId} does not exist`)
         }
@@ -392,47 +422,40 @@ class PatientController {
             }
         }
 
-        // If there's no visitLog or it's empty, simply create a new entry
-        if (!patient.visitLog || patient.visitLog.length === 0) {
-            patient.visitLog = [createVisitLog()]
-        } else {
-            // Find the index of the latest active visit log
-            // pop() will get the last element from the filtered array
-            const lastActiveIndex = patient.visitLog
-                .map((visit, idx) => (visit.active ? idx : -1))
-                .filter((index) => index !== -1)
-                .pop()
-
-            // If we found an active visit log, update it
-            if (lastActiveIndex !== undefined && lastActiveIndex !== -1) {
-                const existingVisitLog = patient.visitLog[lastActiveIndex]
-                existingVisitLog.dateTime = dateTime
-                    ? new Date(dateTime)
-                    : existingVisitLog.dateTime
-                existingVisitLog.incidentId = incidentId
-                existingVisitLog.location = location
-                existingVisitLog.priority =
-                    priority || existingVisitLog.priority
-                existingVisitLog.age = age ?? existingVisitLog.age
-                existingVisitLog.conscious =
-                    conscious ?? existingVisitLog.conscious
-                existingVisitLog.breathing =
-                    breathing ?? existingVisitLog.breathing
-                existingVisitLog.chiefComplaint =
-                    chiefComplaint ?? existingVisitLog.chiefComplaint
-                existingVisitLog.condition =
-                    condition ?? existingVisitLog.condition
-                existingVisitLog.drugs = drugs ?? existingVisitLog.drugs
-                existingVisitLog.allergies =
-                    allergies ?? existingVisitLog.allergies
-                existingVisitLog.active = true
+        // Update erStatus based on location and priority in patientVisitData
+        if (location === 'ER') {
+            // Only include patients with priority E or 1 in the nurse view
+            if (priority === 'E' || priority === '1') {
+                // Default to 'requesting' as the initial erStatus for ER patients
+                patient.set('erStatus', patient.get('erStatus') || 'requesting')
             } else {
-                // If no active visits found, create a new entry
-                patient.visitLog.push(createVisitLog())
+                // For priorities 2, 3, 4, remove from nurse view by clearing erStatus
+                patient.set('erStatus', undefined)
             }
+        } else {
+            // If location is not ER, remove from nurse view
+            patient.set('erStatus', undefined)
         }
 
+        // Set all previous active visit log to inactive
+        if (patient.visitLog && patient.visitLog.length > 0) {
+            patient.visitLog.forEach((visit) => {
+                visit.active = false
+            })
+        }
+
+        // Ensure patient.visitLog is initialized if it's undefined
+        if (!patient.visitLog) {
+            patient.visitLog = []
+        }
+
+        // Add the new visit log entry
+        const newVisitLog = createVisitLog()
+        patient.visitLog.push(newVisitLog)
+
+        // Save the updated patient record
         await patient.save()
+
         return patient
     }
 
@@ -509,6 +532,99 @@ class PatientController {
             { new: true },
         )
         return updatedPatient
+    }
+
+    /**
+     * Get patients by hospital ID and categorize them by ER status
+     * Only includes patients with latest visit log location 'ER' and priority 'E' or '1'
+     * 
+     * @param {string} hospitalId - The ID of the hospital to filter patients by.
+     * @returns an object with categorized patients: requesting, ready, inUse, discharged
+     */
+    async getPatientsForNurseView(hospitalId: string) {
+        try {
+            // Get all patients in this hospital
+            const allPatients = await Patient.find({
+                hospitalId: hospitalId
+            }).lean()
+
+            // Define patient item type
+            interface PatientItem {
+                patientId: string;
+                name: string;
+                priority: 'E' | '1';
+                bedId: string;
+            }
+
+            // Initialize the result object with typed arrays
+            const result: {
+                requesting: PatientItem[];
+                ready: PatientItem[];
+                inUse: PatientItem[];
+                discharged: PatientItem[];
+            } = {
+                requesting: [],
+                ready: [],
+                inUse: [],
+                discharged: []
+            }
+
+            // Group patients by their erStatus
+            for (const patient of allPatients) {
+                // Get the latest visit log entry
+                const latestVisit = patient.visitLog && patient.visitLog.length > 0 
+                    ? patient.visitLog[patient.visitLog.length - 1] 
+                    : null
+                
+                // Only include patients with location 'ER' and priority E or 1 in their latest visit log
+                if (latestVisit && 
+                    latestVisit.location === 'ER' && 
+                    (latestVisit.priority === 'E' || latestVisit.priority === '1')) {
+                    
+                    // Create a simplified patient object for the frontend
+                    const patientItem: PatientItem = {
+                        patientId: patient.patientId,
+                        name: patient.name || 'Unknown',
+                        priority: latestVisit.priority as 'E' | '1',
+                        bedId: '' // This could be populated if bed information is available
+                    }
+                    
+                    // Add to the appropriate category
+                    if (patient.erStatus === 'requesting') {
+                        result.requesting.push(patientItem)
+                    } else if (patient.erStatus === 'ready') {
+                        result.ready.push(patientItem)
+                    } else if (patient.erStatus === 'inUse') {
+                        result.inUse.push(patientItem)
+                    } else if (patient.erStatus === 'discharged') {
+                        result.discharged.push(patientItem)
+                    }
+                }
+            }
+
+            // Sort each category by priority and then by name
+            const priorityOrder = { E: 0, '1': 1 }
+            
+            for (const category of Object.keys(result) as (keyof typeof result)[]) {
+                result[category].sort((a, b) => {
+                    // First sort by priority
+                    const priorityA = priorityOrder[a.priority] || 0
+                    const priorityB = priorityOrder[b.priority] || 0
+                    
+                    if (priorityA !== priorityB) {
+                        return priorityA - priorityB
+                    }
+                    
+                    // Then sort by name
+                    return (a.name || '').localeCompare(b.name || '')
+                })
+            }
+            
+            return result
+        } catch (error) {
+            console.error('Error fetching patients for nurse view:', error)
+            throw new Error('Failed to fetch patients for nurse view')
+        }
     }
 }
 

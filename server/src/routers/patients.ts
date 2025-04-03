@@ -138,7 +138,7 @@ export default Router()
     const { patientId, status } = request.body
 
     try {
-      const result = await PatientController.setERStatus(patientId, status)
+      const result = await PatientController.setStatus(patientId, status)
       response.json(result)
     } catch (e) {
       const error = e as Error
@@ -796,5 +796,77 @@ export default Router()
       } else {
         response.status(500).json({ message: error.message })
       }
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/erStatus:
+   *   put:
+   *     summary: Update a patient's ER status
+   *     description: Update a patient's ER status to one of 'requesting', 'ready', 'inUse', 'discharged'
+   *     tags: [Patient]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - patientId
+   *               - erStatus
+   *             properties:
+   *               patientId:
+   *                 type: string
+   *               erStatus:
+   *                 type: string
+   *                 enum: [requesting, ready, inUse, discharged]
+   *     responses:
+   *       200:
+   *         description: Patient ER status updated
+   *       400:
+   *         description: Bad request
+   */
+  .put('/erStatus', async (request, response) => {
+    const { patientId, erStatus } = request.body
+
+    try {
+      const result = await PatientController.setERStatus(patientId, erStatus)
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/hospital/{hospitalId}/nurse-view:
+   *   get:
+   *     summary: Get patients categorized for nurse view
+   *     description: Get patients for a specific hospital categorized by ER status for the nurse patients directory
+   *     tags: [Patient]
+   *     parameters:
+   *       - in: path
+   *         name: hospitalId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the hospital
+   *     responses:
+   *       200:
+   *         description: Patients categorized by ER status
+   *       500:
+   *         description: Internal server error
+   */
+  .get('/hospital/:hospitalId/nurse-view', async (request, response) => {
+    const { hospitalId } = request.params
+
+    try {
+      const result = await PatientController.getPatientsForNurseView(hospitalId)
+      response.json(result)
+    } catch (e) {
+      const error = e as Error
+      response.status(500).json({ message: error.message })
     }
   })

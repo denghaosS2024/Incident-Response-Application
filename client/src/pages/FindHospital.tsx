@@ -3,7 +3,7 @@ import HospitalList from '@/components/feature/FindHospital/HospitalList'
 import PatientList from '@/components/feature/FindHospital/PatientList'
 import IPatient from '@/models/Patient'
 import { fetchHospitals, sortHospitalsByDistance } from '@/redux/hospitalSlice'
-import { fetchPatient } from '@/redux/patientSlice'
+import { fetchPatients } from '@/redux/patientSlice'
 import { AppDispatch, RootState } from '@/redux/store'
 import eventEmitter from '@/utils/eventEmitter'
 import request from '@/utils/request'
@@ -37,7 +37,7 @@ const FindHospital: React.FC = () => {
     const fetchData = async () => {
       await dispatch(fetchHospitals())
       await dispatch(sortHospitalsByDistance())
-      await dispatch(fetchPatient())
+      await dispatch(fetchPatients())
     }
     fetchData()
   }, [dispatch])
