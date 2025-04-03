@@ -254,7 +254,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
 
     return (
         <div className="flex flex-col items-center p-10 gap-2">
-            <div className="flex flex-col w-1/3 items-center gap-2">
+            <div className="flex flex-col w-full md:w-1/2 mx-10 items-center gap-2">
                 <div className="flex flex-row w-full gap-2 items-center justify-center">
                     <p className="text-md my-0 text-nowrap">
                         Patient Username:
