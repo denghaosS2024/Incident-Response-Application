@@ -515,11 +515,34 @@ const RegisterHospital: React.FC = () => {
                     <FormControlLabel
                         control={
                             <Checkbox
+                                checked={
+                                    userId
+                                        ? hospitalData.nurses.includes(userId)
+                                        : false
+                                }
                                 onChange={(e) => {
                                     if (e.target.checked && userId) {
+                                        // Add nurse only if not already present
+                                        if (
+                                            !hospitalData.nurses.includes(
+                                                userId,
+                                            )
+                                        ) {
+                                            setHospitalData((prev) => ({
+                                                ...prev,
+                                                nurses: [
+                                                    ...prev.nurses,
+                                                    userId,
+                                                ],
+                                            }))
+                                        }
+                                    } else if (!e.target.checked && userId) {
+                                        // Remove the nurse on uncheck
                                         setHospitalData((prev) => ({
                                             ...prev,
-                                            nurses: [...prev.nurses, userId],
+                                            nurses: prev.nurses.filter(
+                                                (nurseId) => nurseId !== userId,
+                                            ),
                                         }))
                                     }
                                 }}
