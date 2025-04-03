@@ -654,7 +654,15 @@ const Mapbox: React.FC<MapboxProps> = ({
       `
     }
 
-    const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent)
+    // const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent)
+
+    const popup = new mapboxgl.Popup({
+      offset: 25,
+      closeOnClick: false,
+      closeButton: false,
+    }).setDOMContent(popupContent)
+    
+    
 
     // Create marker (draggable initially)
     const marker = new mapboxgl.Marker({

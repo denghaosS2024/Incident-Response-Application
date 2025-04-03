@@ -393,21 +393,21 @@ export default class MapBoxHelper {
       case 'pin':
         iconComponent = (
           <PushPinIcon
-            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
+            style={{ color: 'rgb(25, 118, 210)', fontSize: '32px', opacity: '80%' }}
           />
         )
         break
       case 'roadblock':
         iconComponent = (
           <BlockIcon
-            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
+            style={{ color: 'rgb(25, 118, 210)', fontSize: '32px', opacity: '80%' }}
           />
         )
         break
       case 'fireHydrant':
         iconComponent = (
           <FireHydrantAltIcon
-            style={{ color: 'gray', fontSize: '32px', opacity: '80%' }}
+            style={{ color: 'rgb(25, 118, 210)', fontSize: '32px', opacity: '80%' }}
           />
         )
         break
