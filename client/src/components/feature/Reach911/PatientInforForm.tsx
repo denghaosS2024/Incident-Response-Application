@@ -117,8 +117,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                             username: response.username,
                             name: '',
                             sex: propSex || '',
-                            dob: '',
-                            patientId: uuidv4(),
+                            dob: ''
                         }
                         dispatch(addPatient(patient))
 
@@ -156,8 +155,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                     username: value,
                     name: '',
                     sex: propSex || '',
-                    dob: '',
-                    // patientId: uuidv4(),
+                    dob: ''
                 }
                 dispatch(addPatient(patient))
             }
