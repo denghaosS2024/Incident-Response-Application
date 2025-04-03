@@ -184,12 +184,12 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
         if (currentPatient.hospitalId) {
           const hospital = await request(
-            `/api/hospital?hospitaltId=${currentPatient.hospitalId}`,
+            `/api/hospital?hospitalId=${currentPatient.hospitalId}`,
           )
           if (hospital) {
-            console.log('hospital: ')
+            console.log('hospital: ', hospital)
             console.log(currentPatient)
-            setCurrentHospital(hospital[0] as IHospital)
+            setCurrentHospital(hospital as IHospital)
           }
         }
           
@@ -213,14 +213,14 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
   }
 
   const onClickRequestHelp = async () => {
-    const uid = localStorage.getItem('uid')
+    // const uid = localStorage.getItem('uid')
 
-    const hospital = await VisitLogHelper.getHospitalByUserId(uid ?? '')
+    // const hospital = await VisitLogHelper.getHospitalByUserId(uid ?? '')
 
-    const channelId = hospital.hospitalGroupId
+    const channelId = currentHospital.hospitalGroupId
     console.log(channelId)
     navigate(
-      `/messages?channelId=${channelId}&showAlert=true&patient=${currentPatient.patientId}`,
+      `/messages?channelId=${currentHospital.hospitalGroupId}&showAlert=true&patient=${currentPatient.patientId}`,
     )
   }
 
