@@ -92,7 +92,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 // Assigned personnel are commanders
                 const assignedPersonnelSet = new Set<string>()
                 assignedPersonnel.forEach((incident: IIncident) => {
-                    if (incident.commander) {
+                    if (incident.commander && incident.incidentState !== 'Closed') {
                         assignedPersonnelSet.add(incident.commander)
                     }
                 })
@@ -100,11 +100,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 personnelData.forEach((person: any) => {
                     allPersonnelSet.add(person.username)
                 })
-                assignedPersonnel.forEach((incident: IIncident) => {
-                    if (incident.commander && incident.incidentState !== 'Closed') {
-                        assignedPersonnelSet.add(incident.commander)
-                    }
-                })
+
                 // Filter out assigned personnel from the personnel data
                 const assignedPersonnelArray = Array.from(assignedPersonnelSet)
                 const unassignedPersonnelSet = new Set<string>(
