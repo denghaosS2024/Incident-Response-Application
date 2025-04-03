@@ -23,7 +23,6 @@ import {
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useSearchParams } from 'react-router'
-import { v4 as uuidv4 } from 'uuid'
 import IUser from '../../../models/User'
 import { loadContacts } from '../../../redux/contactSlice'
 import { AppDispatch, RootState } from '../../../redux/store'
@@ -67,8 +66,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
             username: propUsername,
             name: '',
             sex: propSex || '',
-            dob: '',
-            // patientId: uuidv4(), // Generate a unique ID for the new patient Don't use UUID in this project!!!
+            dob: ''
         }
         dispatch(addPatient(patient))
         setIsPatientAdded(true)
@@ -159,7 +157,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                     name: '',
                     sex: propSex || '',
                     dob: '',
-                    patientId: uuidv4(),
+                    // patientId: uuidv4(),
                 }
                 dispatch(addPatient(patient))
             }
