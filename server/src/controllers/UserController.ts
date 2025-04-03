@@ -321,7 +321,11 @@ class UserController {
                     if (vehicle.type === 'Car') {
                         await CarController.updateIncident(vehicle.name, null)
     
-                        if (firstResponderNotCommander.assignedCar) {
+                        if (firstResponderNotCommander.assignedCar && 
+                            !incident.assignedVehicles.some(
+                                (vehicle) => vehicle.name === firstResponderNotCommander.assignedCar
+                              )
+                        ) {
                             await CarController.updateIncident(firstResponderNotCommander.assignedCar, incident.incidentId)
     
                             const newAssignCar = await CarController.getCarByName(firstResponderNotCommander.assignedCar)
@@ -334,7 +338,11 @@ class UserController {
                     } else {
                         await TruckController.updateIncident(vehicle.name, null)
     
-                        if (firstResponderNotCommander.assignedTruck) {
+                        if (firstResponderNotCommander.assignedTruck && 
+                            !incident.assignedVehicles.some(
+                                (vehicle) => vehicle.name === firstResponderNotCommander.assignedTruck
+                              )
+                        ) {
                             await TruckController.updateIncident(firstResponderNotCommander.assignedTruck, incident.incidentId)
     
                             const newAssignTruck = await TruckController.getTruckByName(firstResponderNotCommander.assignedTruck)
