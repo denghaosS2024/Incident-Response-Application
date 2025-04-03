@@ -34,6 +34,10 @@ const PatientListItem = styled(ListItem)(({ theme }) => ({
   padding: theme.spacing(1.5),
   marginBottom: theme.spacing(0.5),
   border: '1px solid #e0e0e0',
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: '#f0f7ff',
+  }
 }));
 
 const FirstResponderPatientsPage: React.FC = () => {
@@ -44,6 +48,7 @@ const FirstResponderPatientsPage: React.FC = () => {
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasAssignedIncidents, setHasAssignedIncidents] = useState<boolean>(false);
   const navigate = useNavigate();
   
   // Get user information from localStorage
@@ -72,6 +77,9 @@ const FirstResponderPatientsPage: React.FC = () => {
         const incidents = await request(`/api/incidents?commander=${username}`, {
           method: 'GET',
         });
+        
+        // Set hasAssignedIncidents based on whether there are any incidents
+        setHasAssignedIncidents(incidents && incidents.length > 0);
         
         if (!incidents || incidents.length === 0) {
           setLoading(false);
@@ -108,25 +116,28 @@ const FirstResponderPatientsPage: React.FC = () => {
         };
         
         responderPatients.forEach((patient: any) => {
-          // Use the most recent visit log for categorization
-          const recentLog = patient.visitLog.sort((a: any, b: any) => 
+          // Get the most recent visit log for categorization by sorting by dateTime
+          const recentLog = [...patient.visitLog].sort((a: any, b: any) => 
             new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
           )[0];
           
+          if (!recentLog) return; // Skip if no visit log
+          
           const patientItem: Patient = {
             patientId: patient.patientId,
-            name: patient.name,
+            name: patient.name || 'Unknown',
             priority: recentLog.priority || '4',
             location: recentLog.location || 'Unknown',
             incidentId: recentLog.incidentId
           };
           
-          // Categorize based on priority and location
+          // Categorize based on priority and location from the latest visitLog
           if ((patientItem.priority === 'E' || patientItem.priority === '1') && patientItem.location === 'Road') {
             categorizedPatients.toTakeToER.push(patientItem);
           } else if ((patientItem.priority === 'E' || patientItem.priority === '1') && patientItem.location === 'ER') {
             categorizedPatients.atER.push(patientItem);
           } else {
+            // Patients with priority 2, 3, or 4 go to 'Others'
             categorizedPatients.others.push(patientItem);
           }
         });
@@ -141,7 +152,15 @@ const FirstResponderPatientsPage: React.FC = () => {
         };
         
         const sortByPriority = (a: Patient, b: Patient) => {
-          return (priorityOrder[a.priority] || 999) - (priorityOrder[b.priority] || 999);
+          const priorityA = priorityOrder[a.priority] || 999;
+          const priorityB = priorityOrder[b.priority] || 999;
+          
+          if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+          }
+          
+          // If priority is the same, sort alphabetically by name
+          return (a.name || '').localeCompare(b.name || '');
         };
         
         categorizedPatients.toTakeToER.sort(sortByPriority);
@@ -162,10 +181,10 @@ const FirstResponderPatientsPage: React.FC = () => {
 
   // Navigate to patient detail page
   const handlePatientClick = (patientId: string) => {
-    navigate(`/patient-profile/${patientId}`);
+    navigate(`/profile/${patientId}`);
   };
 
-  // Navigate to empty patient screen (as per wireframe)
+  // Navigate to patient admission page
   const handleAddPatient = () => {
     navigate('/patients/admit');
   };
@@ -288,14 +307,16 @@ const FirstResponderPatientsPage: React.FC = () => {
         )}
       </List>
       
-      {/* Add Patient FAB */}
-      <Fab 
-        color="primary" 
-        sx={{ position: 'absolute', bottom: 16, right: 16 }}
-        onClick={handleAddPatient}
-      >
-        <AddIcon />
-      </Fab>
+      {/* Add Patient FAB - only visible if first responder is assigned to incidents */}
+      {hasAssignedIncidents && (
+        <Fab 
+          color="primary" 
+          sx={{ position: 'absolute', bottom: 16, right: 16 }}
+          onClick={handleAddPatient}
+        >
+          <AddIcon />
+        </Fab>
+      )}
     </Box>
   );
 };

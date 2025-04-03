@@ -22,7 +22,6 @@ import alertQueueRouter from './alertQueue'
 import carRouter from './car'
 import cityRouter from './city'
 import dashboard from './dashboard'
-import erBedRouter from './erbed'
 import incidentReportRouter from './incidentReport'
 import patientRouter from './patients'
 import personnelRouter from './personnel'
@@ -61,7 +60,6 @@ export default Router()
     .use('/profiles', profileRouter)
     .use('/wildfire', wildfireAreaRouter)
     .use('/hospital', HospitalRouter)
-    .use('/erbed', erBedRouter)
     .use('/charts', dashboard)
 
     .use('/sartasks', taskRouter)

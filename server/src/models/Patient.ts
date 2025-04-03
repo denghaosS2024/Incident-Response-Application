@@ -6,6 +6,7 @@ export type LocationType = 'ER' | 'Road'
 export type PatientStatus = 'to_er' | 'at_er' | 'others'
 export type ConsciousnessState = 'Yes' | 'No' | null
 export type BreathingState = 'Yes' | 'No' | null
+export type ERStatusType = 'requesting' | 'ready' | 'inUse' | 'discharged'
 
 export type MedicalCondition =
     | 'Allergy'
@@ -56,7 +57,7 @@ export interface IPatientBase {
     hospitalId?: string
     priority?: string
     status?: string
-    location?: string
+    erStatus?: ERStatusType
     visitLog?: IVisitLog[] | undefined
     master?: Schema.Types.ObjectId // The first responder of this patient
 }
@@ -160,14 +161,6 @@ export const PatientSchema = new Schema({
     hospitalId: { type: String },
 
     /**
-     * Location of the patient, e.g., 'ER', 'Hospital', etc.
-     */
-    location: {
-        type: String,
-        enum: ['ER', 'Road'] satisfies ReadonlyArray<LocationType>,
-    },
-
-    /**
      * Priority of the patient, which is a string in enum ['e', 'could_wait', 'dismissed', 'dead']
      */
     priority: {
@@ -190,6 +183,20 @@ export const PatientSchema = new Schema({
             'at_er',
             'others',
         ] satisfies ReadonlyArray<PatientStatus>,
+    },
+
+    /**
+     * ER status of the patient, which determines the category for the nurse view
+     */
+    erStatus: {
+        type: String,
+        enum: [
+            'requesting',
+            'ready',
+            'inUse',
+            'discharged',
+        ] satisfies ReadonlyArray<ERStatusType>,
+        default: 'requesting',
     },
 
     /**
