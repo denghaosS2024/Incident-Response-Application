@@ -57,7 +57,7 @@ class AlertService {
       // No more alerts in queue — clean up state
       state.ongoingAlert = undefined
       state.timeoutHandle = undefined
-      console.log(`✅ Alert queue is now empty for group ${groupId}`)
+      console.log(`Alert queue is now empty for group ${groupId}`)
     }
   }
 
