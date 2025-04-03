@@ -1,11 +1,11 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose'
 
-export type VisitLogPriority = 'E' | '1' | '2' | '3' | '4';
-export type PatientPriority = 'e' | 'could_wait' | 'dismissed' | 'dead';
-export type LocationType = 'ER' | 'Road';
-export type PatientStatus = 'to_er' | 'at_er' | 'others';
-export type ConsciousnessState = 'Yes' | 'No' | null;
-export type BreathingState = 'Yes' | 'No' | null;
+export type VisitLogPriority = 'E' | '1' | '2' | '3' | '4'
+export type PatientPriority = 'e' | 'could_wait' | 'dismissed' | 'dead'
+export type LocationType = 'ER' | 'Road'
+export type PatientStatus = 'to_er' | 'at_er' | 'others'
+export type ConsciousnessState = 'Yes' | 'No' | null
+export type BreathingState = 'Yes' | 'No' | null
 
 export type MedicalCondition =
     | 'Allergy'
@@ -27,21 +27,21 @@ export type MedicalCondition =
     | 'Stroke'
     | 'Others'
     | ''
-    | null;
-    
+    | null
+
 export interface IVisitLog {
-    dateTime: Date;
-    incidentId: string;
-    priority: VisitLogPriority;
-    location: LocationType;
-    age?: number | null;
-    conscious?: ConsciousnessState;
-    breathing?: BreathingState;
-    chiefComplaint?: string | null;
-    condition?: MedicalCondition;
-    drugs?: string[] | null;
-    allergies?: string[] | null;
-    active: boolean;
+    dateTime: Date
+    incidentId: string
+    priority: VisitLogPriority
+    location: LocationType
+    age?: number | null
+    conscious?: ConsciousnessState
+    breathing?: BreathingState
+    chiefComplaint?: string | null
+    condition?: MedicalCondition
+    drugs?: string[] | null
+    allergies?: string[] | null
+    active: boolean
 }
 
 // Base interface without Document extension
@@ -57,7 +57,7 @@ export interface IPatientBase {
     priority?: string
     status?: string
     location?: string
-    visitLog?: IVisitLog[]
+    visitLog?: IVisitLog[] | undefined
     master?: Schema.Types.ObjectId // The first responder of this patient
 }
 
@@ -70,7 +70,13 @@ const VisitLogSchema = new Schema<IVisitLog>(
         incidentId: { type: String },
         priority: {
             type: String,
-            enum: ['E', '1', '2', '3', '4'] satisfies ReadonlyArray<VisitLogPriority>,
+            enum: [
+                'E',
+                '1',
+                '2',
+                '3',
+                '4',
+            ] satisfies ReadonlyArray<VisitLogPriority>,
             default: 'E',
             required: true,
         },
@@ -86,18 +92,34 @@ const VisitLogSchema = new Schema<IVisitLog>(
         condition: {
             type: String,
             enum: [
-                'Allergy', 'Asthma', 'Bleeding', 'Broken bone', 'Burn',
-                'Choking', 'Concussion', 'Covid-19', 'Heart Attack',
-                'Heat Stroke', 'Hypothermia', 'Poisoning', 'Seizure',
-                'Shock', 'Strain', 'Sprain', 'Stroke', 'Others', ''
-            ] satisfies ReadonlyArray<Exclude<MedicalCondition, null>>,
+                'Allergy',
+                'Asthma',
+                'Bleeding',
+                'Broken bone',
+                'Burn',
+                'Choking',
+                'Concussion',
+                'Covid-19',
+                'Heart Attack',
+                'Heat Stroke',
+                'Hypothermia',
+                'Poisoning',
+                'Seizure',
+                'Shock',
+                'Strain',
+                'Sprain',
+                'Stroke',
+                'Others',
+                '',
+            ],
+            required: false,
         },
         drugs: { type: [String], default: undefined },
         allergies: { type: [String], default: undefined },
-        active: { type: Boolean, default: true }
+        active: { type: Boolean, default: true },
     },
-    { _id: false }
-);
+    { _id: false },
+)
 
 export const PatientSchema = new Schema({
     patientId: { type: String, required: true, unique: true },
@@ -142,7 +164,7 @@ export const PatientSchema = new Schema({
      */
     location: {
         type: String,
-        enum: ['ER', 'Road'] satisfies ReadonlyArray<LocationType>
+        enum: ['ER', 'Road'] satisfies ReadonlyArray<LocationType>,
     },
 
     /**
@@ -150,7 +172,12 @@ export const PatientSchema = new Schema({
      */
     priority: {
         type: String,
-        enum: ['e', 'could_wait', 'dismissed', 'dead'] satisfies ReadonlyArray<PatientPriority>
+        enum: [
+            'e',
+            'could_wait',
+            'dismissed',
+            'dead',
+        ] satisfies ReadonlyArray<PatientPriority>,
     },
 
     /**
@@ -158,7 +185,11 @@ export const PatientSchema = new Schema({
      */
     status: {
         type: String,
-        enum: ['to_er', 'at_er', 'others'] satisfies ReadonlyArray<PatientStatus>
+        enum: [
+            'to_er',
+            'at_er',
+            'others',
+        ] satisfies ReadonlyArray<PatientStatus>,
     },
 
     /**
@@ -169,7 +200,7 @@ export const PatientSchema = new Schema({
     /**
      * Master (first responder) of the patient
      */
-    master: { type: Schema.Types.ObjectId, ref: 'User' }
+    master: { type: Schema.Types.ObjectId, ref: 'User' },
 })
 
 export default mongoose.model<IPatient>('Patient', PatientSchema)

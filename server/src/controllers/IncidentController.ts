@@ -105,6 +105,7 @@ class IncidentController {
                     ? incident.incidentCallGroup
                     : null,
                 sarTasks: [],
+                patients: [],
             }).save()
 
             const notifyDispatchers = async (

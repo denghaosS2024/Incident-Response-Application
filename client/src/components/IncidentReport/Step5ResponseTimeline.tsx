@@ -29,6 +29,11 @@ type AssignHistoryItem = {
     } | null
 }
 
+type PatientType = {
+    username: string
+    dateTime: string
+    status: string
+}
 type Incident = {
     assignHistory: AssignHistoryItem[]
     openingDate: string
@@ -41,6 +46,7 @@ type Incident = {
     priority: string
     patientName?: string
     incidentStateHistory: IncidentStateHistoryItem[]
+    patients: PatientType[]
 }
 
 export type Step5ResponseTimelineProps = {
@@ -67,8 +73,8 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
         commander,
         commanderDetail,
         priority,
-        patientName,
         incidentStateHistory = [],
+        patients = [],
     } = incident
     const assignedItems = assignHistory.filter((item) => item.isAssign)
     const unassignedItems = assignHistory.filter((item) => !item.isAssign)
@@ -113,22 +119,18 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
             label: `Priority: ${priority}`,
             time: formatTime(openingDate),
         },
-        ...(patientName
-            ? [
-                  {
-                      icon: typeIconMap.Person,
-                      label: 'Patient treated on road',
-                      subtext: [`Name: ${patientName}`],
-                      time: formatTime(openingDate),
-                  },
-                  {
-                      icon: typeIconMap.Person,
-                      label: 'Patient at the ER',
-                      subtext: [`Name: ${patientName}`],
-                      time: formatTime(openingDate),
-                  },
-              ]
-            : []),
+
+        ...patients.map((patient) => ({
+            icon: typeIconMap.Person,
+            label:
+                patient.status === 'to_er'
+                    ? 'Patient treated on the road'
+                    : patient.status === 'at_er'
+                      ? 'Patient at the ER'
+                      : '',
+            subtext: [` Name: ${patient.username}`],
+            time: formatTime(patient.dateTime),
+        })),
         ...unassignedItems.map((item) => ({
             icon: typeIconMap[item.type] || typeIconMap.Flag,
             label: `${capitalize(item.name)} unassigned`,

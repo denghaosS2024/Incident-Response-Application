@@ -91,8 +91,13 @@ export interface IIncident extends Document {
     incidentStateHistory?: IIncidentStateHistory[]
     respondersGroup?: Types.ObjectId | null // Reference to Channel model
     sarTasks?: ISarTask[] // Changed from sarTask to sarTasks as an array
+    patients?: IPatientVisitInfo[] | undefined
 }
-
+export interface IPatientVisitInfo {
+    username: string
+    status: string | undefined
+    dateTime: string
+}
 const IncidentSchema = new Schema({
     incidentId: {
         type: String,
@@ -244,6 +249,16 @@ const IncidentSchema = new Schema({
         ],
         required: false,
         default: null,
+    },
+    patients: {
+        type: [
+            {
+                username: { type: String, required: true },
+                status: { type: String, required: true },
+                dateTime: { type: String, required: true },
+            },
+        ],
+        default: [],
     },
 })
 
