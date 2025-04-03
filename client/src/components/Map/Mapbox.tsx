@@ -2181,7 +2181,7 @@ const Mapbox: React.FC<MapboxProps> = ({
         console.log('Processed SAR tasks:', processedTasks);
         
         // Use the existing updateSARTaskMarkers function to display the tasks
-        updateSARTaskMarkers({ tasks: processedTasks });
+        updateSARTaskMarkers({ tasks: processedTasks, incidentId: incident.incidentId });
         
         // Mark SAR layer as active
         eventEmitter.emit('utilVisibility', { layer: 'SAR', visible: true });
@@ -2266,33 +2266,9 @@ const Mapbox: React.FC<MapboxProps> = ({
   useEffect(() => {
     // Listen for SAR task updates from other components
     eventEmitter.on('update_sar_tasks', updateSARTaskMarkers);
-    
-    // // Listen for SAR layer toggle events
-    // const handleSarToggle = () => {
-    //   setSarVisible(prev => {
-    //     console.log('sarVisible', sarVisible)
-    //     const newState = !prev;
-        
-    //     if (newState) {
-    //       // If becoming visible, fetch and display the markers
-    //       fetchAndDisplaySARTasks();
-    //     } else {
-    //       // If becoming hidden, remove the markers
-    //       sarTaskRef.current.forEach(marker => marker.remove());
-    //       sarTaskRef.current.clear();
-    //     }
-        
-    //     // Emit event to update the overlay state
-    //     eventEmitter.emit('utilVisibility', { layer: 'SAR', visible: newState });
-        
-    //     return newState;
-    //   });
-    // };
-    // eventEmitter.on('toggle_sar', handleSarToggle);
 
     return () => {
       eventEmitter.removeListener('update_sar_tasks', updateSARTaskMarkers);
-      // eventEmitter.removeListener('toggle_sar', handleSarToggle);
     };
   }, []);
   // -------------------------------- SAR tasks end --------------------------------
