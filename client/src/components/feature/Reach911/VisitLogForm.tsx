@@ -287,7 +287,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             sx={{ gap: 2 }}
           >
             <FormControlLabel
-              value={true}
+              value="Yes"
               control={<Radio />}
               label="Yes"
               sx={{ marginRight: 3 }}
