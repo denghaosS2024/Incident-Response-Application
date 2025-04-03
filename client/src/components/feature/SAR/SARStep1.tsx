@@ -2,6 +2,7 @@ import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, T
 import styles from '../../../styles/Reach911Page.module.css'
 import Map from '../../Map/Mapbox'
 
+import Socket from '@/utils/Socket'
 import { AddressAutofillRetrieveResponse } from '@mapbox/search-js-core'
 import { AddressAutofill } from '@mapbox/search-js-react'
 import AddIcon from '@mui/icons-material/Add'
@@ -218,6 +219,12 @@ const SARStep1: React.FC<SARStep1Props> = ({
       });
     }
   }, [incident.address, incident.location]);
+
+  Socket.on('sar-task-update', (data: any) => {
+    if (data.incidentId === incident.incidentId) {
+      fetchSARTasks(incident.incidentId);
+    }
+  });
 
   // Handle opening the task creation dialog
   const handleOpenTaskDialog = () => {
@@ -654,63 +661,6 @@ const SARStep1: React.FC<SARStep1Props> = ({
           </div>
         </Box>
       </div>
-
-      {/* Display SAR locations/tasks list */}
-      <Box sx={{ width: '90%', maxWidth: '900px', mx: 'auto', mt: 2, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          SAR Tasks
-        </Typography>
-        {sarLocations.map((task) => (
-          <Box
-            key={task.id}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              p: 2,
-              mb: 1,
-              border: '1px solid #e0e0e0',
-              borderRadius: '4px',
-              backgroundColor:
-                task.status === 'done'
-                  ? 'rgba(76, 175, 80, 0.1)'
-                  : task.status === 'in-progress'
-                  ? 'rgba(33, 150, 243, 0.1)'
-                  : 'white',
-              cursor: 'pointer', // Add pointer cursor to indicate clickability
-            }}
-            onClick={() => handleTaskClick(task)}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {task.status === 'done' ? (
-                <CheckCircleIcon style={{ color: '#4caf50' }} />
-              ) : task.status === 'in-progress' ? (
-                <HomeIcon style={{ color: '#2196f3' }} />
-              ) : (
-                <HomeIcon style={{ color: '#f44336' }} />
-              )}
-              <Typography variant="body1">{task.name}</Typography>
-            </Box>
-            <Chip
-              label={
-                task.status === 'todo'
-                  ? 'To Do'
-                  : task.status === 'in-progress'
-                  ? 'In Progress'
-                  : 'Done'
-              }
-              color={
-                task.status === 'done'
-                  ? 'success'
-                  : task.status === 'in-progress'
-                  ? 'primary'
-                  : 'default'
-              }
-              size="small"
-            />
-          </Box>
-        ))}
-      </Box>
 
       {/* Task Creation Dialog */}
       <Dialog open={openTaskDialog} onClose={handleCloseTaskDialog} maxWidth="md" fullWidth>

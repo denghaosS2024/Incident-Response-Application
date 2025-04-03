@@ -729,6 +729,17 @@ class IncidentController {
                 { new: true },
             ).exec()
 
+
+            // SAR Roles Task Update
+            UserConnections.broadcaseToRole(ROLES.FIRE, 'sar-task-update', {
+                incidentId,
+                sarTask: newSarTask,
+            })
+            UserConnections.broadcaseToRole(ROLES.POLICE, 'sar-task-update', {
+                incidentId,
+                sarTask: newSarTask,
+            })
+
             return updatedIncident
         } catch (error) {
             console.error('Error creating/updating SAR task:', error)

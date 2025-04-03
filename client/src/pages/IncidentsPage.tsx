@@ -340,18 +340,11 @@ function IncidentsPage() {
 
         if (
             updatedIncident.incidentState === 'Closed' ||
-            (updatedIncident.type !== 'S' &&
+            (
                 updatedIncident.commander !== userId &&
                 updatedIncident.owner !== userId)
         ) {
             readOnly = true
-        } else {
-            if (
-                updatedIncident.type === 'S' &&
-                updatedIncident.incidentState !== 'Closed'
-            ) {
-                readOnly = false
-            }
         }
 
         // Update sate in redux with updated incident
