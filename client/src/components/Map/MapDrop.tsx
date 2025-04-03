@@ -2,6 +2,7 @@ import BlockIcon from '@mui/icons-material/Block'
 import CloudIcon from '@mui/icons-material/Cloud'
 import FireHydrantAltIcon from '@mui/icons-material/FireHydrantAlt'
 import PushPinIcon from '@mui/icons-material/PushPin'
+import SearchIcon from '@mui/icons-material/Search'
 import BottomNavigation from '@mui/material/BottomNavigation'
 import BottomNavigationAction from '@mui/material/BottomNavigationAction'
 import Paper from '@mui/material/Paper'
@@ -12,6 +13,7 @@ interface MapDropProps {
   onDropRoadblock: () => void
   onDropFireHydrant: () => void
   onDropAirQuality: () => void
+  onDropSARTask: () => void
 }
 
 const MapDrop: React.FC<MapDropProps> = ({
@@ -19,6 +21,7 @@ const MapDrop: React.FC<MapDropProps> = ({
   onDropRoadblock,
   onDropFireHydrant,
   onDropAirQuality,
+  onDropSARTask,
 }) => {
   const [value, setValue] = useState(0)
   const currentUserRole = localStorage.getItem('role') ?? 'Citizen' // Get role
@@ -77,6 +80,13 @@ const MapDrop: React.FC<MapDropProps> = ({
         <BottomNavigationAction
           icon={<CloudIcon />}
           onClick={onDropAirQuality}
+          sx={{ alignItems: 'center', justifyContent: 'center' }}
+        />
+
+        {/* Always show SAR Task */}
+        <BottomNavigationAction
+          icon={<SearchIcon />}
+          onClick={onDropSARTask}
           sx={{ alignItems: 'center', justifyContent: 'center' }}
         />
       </BottomNavigation>

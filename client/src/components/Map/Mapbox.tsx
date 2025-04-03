@@ -2138,21 +2138,17 @@ const Mapbox: React.FC<MapboxProps> = ({
       if (!mapRef.current) return;
 
       const currentUsername = localStorage.getItem('username');
-
+      
       const incidentResponse = await request(`/api/incidents?commander=${currentUsername}`);
-      const incident = incidentResponse[0] as IIncident;
-
-      console.log('incident', incident)
+      const incidents = await incidentResponse;
+      
+      // Find the first SAR incident
+      const incident = incidents[0] as IIncident;
 
       // Clear existing SAR task markers
       sarTaskRef.current.forEach(marker => marker.remove());
       sarTaskRef.current.clear();
       
-      // Check if we have an active incident
-      if (!incident || !incident.incidentId) {
-        console.log('No active incident, cannot fetch SAR tasks');
-        return;
-      }
 
       if (incident.type != 'S') {
         console.log('No active incident, cannot fetch SAR tasks');
@@ -2271,6 +2267,128 @@ const Mapbox: React.FC<MapboxProps> = ({
       eventEmitter.removeListener('update_sar_tasks', updateSARTaskMarkers);
     };
   }, []);
+
+  const handleAddSARTask = async (type: string) => {
+    if (!mapRef.current || isAddingPin) return;
+
+    setIsAddingPin(true); // Disable MapDrop buttons while adding a pin
+
+    // Get initial location and address
+    const initialLngLat = mapRef.current.getCenter();
+    const initialAddress = await getAddressFromCoordinates(
+      initialLngLat.lng,
+      initialLngLat.lat,
+    );
+
+    const tempId = `temp-${Date.now()}`;
+
+    // Create popup content with unique ID
+    const popupContent = document.createElement('div');
+    popupContent.innerHTML = `
+      <p id="popup-address-${tempId}">${initialAddress || 'Fetching address...'}</p>
+      <button id="confirm-pin-${tempId}" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
+    `;
+
+    const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
+
+    // Create marker (draggable initially)
+    const marker = new mapboxgl.Marker({
+      element: createCustomMarker('sarTask'),
+      draggable: true,
+    })
+      .setLngLat(initialLngLat)
+      .setPopup(popup)
+      .addTo(mapRef.current!);
+
+    marker.togglePopup();
+
+    const timeoutId = setTimeout(() => {
+      if (sarTaskRef.current.has(tempId)) {
+        marker.remove();
+        sarTaskRef.current.delete(tempId);
+        setIsAddingPin(false); // Re-enable MapDrop buttons
+        console.log(`Temporary SAR task ${tempId} removed due to timeout.`);
+      }
+    }, 10000); // 10 seconds
+
+    // Store in the SAR task ref
+    sarTaskRef.current.set(tempId, marker);
+
+    // When marker is dragged to a new location
+    marker.on('dragend', async () => {
+      const lngLat = marker.getLngLat();
+      const address = await getAddressFromCoordinates(lngLat.lng, lngLat.lat);
+
+      // Update the address in the popup
+      const addressElement = document.getElementById(`popup-address-${tempId}`);
+      if (addressElement) {
+        addressElement.textContent = address || 'Address not found';
+      }
+    });
+
+    // Handle confirmation
+    document
+      .getElementById(`confirm-pin-${tempId}`)
+      ?.addEventListener('click', async () => {
+        clearTimeout(timeoutId); // Clear the timeout
+        marker.setDraggable(false); // Disable dragging
+
+        // Get the current username and incident
+        const currentUsername = localStorage.getItem('username');
+        const incidentResponse = await request(`/api/incidents?commander=${currentUsername}`);
+        const incidents = await incidentResponse;
+        const incident = incidents[0] as IIncident;
+
+        if (!incident || !incident.incidentId) {
+          console.error('No active incident found');
+          marker.remove();
+          sarTaskRef.current.delete(tempId);
+          setIsAddingPin(false);
+          return;
+        }
+
+        // Get the final coordinates and address
+        const finalLngLat = marker.getLngLat();
+        const finalAddress = await getAddressFromCoordinates(finalLngLat.lng, finalLngLat.lat);
+
+        // Prepare the data for the API - match the expected schema
+        const sarTaskData = {
+          state: 'Todo',
+          location: finalAddress || 'Unknown location',
+          coordinates: {
+            latitude: finalLngLat.lat,
+            longitude: finalLngLat.lng
+          },
+          startDate: new Date().toISOString(),
+          name: `Task at ${finalAddress || 'Unknown location'}`,
+          description: "SAR task created from map",
+          hazards: [],
+          victims: [0, 0, 0, 0, 0],
+          endDate: null
+        };
+
+        try {
+          // Send request to backend to create the SAR task
+          await request(`/api/incidents/${incident.incidentId}/sar-task`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sarTaskData)
+          });
+
+          // Remove the temporary marker
+          marker.remove();
+          sarTaskRef.current.delete(tempId);
+
+          // Refresh the SAR tasks display
+          await fetchAndDisplaySARTasks();
+        } catch (error) {
+          console.error('Error creating SAR task:', error);
+          alert('Failed to create SAR task. Please try again.');
+        } finally {
+          setIsAddingPin(false); // Re-enable MapDrop buttons
+        }
+      });
+  };
   // -------------------------------- SAR tasks end --------------------------------
 
   return (
@@ -2346,6 +2464,7 @@ const Mapbox: React.FC<MapboxProps> = ({
           onDropRoadblock={() => handleAddPin('roadblock')}
           onDropFireHydrant={() => handleAddPin('fireHydrant')}
           onDropAirQuality={() => handleAddPin('airQuality')}
+          onDropSARTask={() => handleAddSARTask('sarTask')}
         />
       )}
       {(!isMapLoaded || isNaviLoaded) && <MapLoading />}
