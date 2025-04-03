@@ -330,12 +330,12 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                             onChange={(e) => onChange('conscious', e)}
                         >
                             <FormControlLabel
-                                value="yes"
+                                value="Yes"
                                 control={<Radio />}
                                 label="Yes"
                             />
                             <FormControlLabel
-                                value="no"
+                                value="No"
                                 control={<Radio />}
                                 label="No"
                             />
@@ -355,12 +355,12 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                             onChange={(e) => onChange('breathing', e)}
                         >
                             <FormControlLabel
-                                value="yes"
+                                value="Yes"
                                 control={<Radio />}
                                 label="Yes"
                             />
                             <FormControlLabel
-                                value="no"
+                                value="No"
                                 control={<Radio />}
                                 label="No"
                             />

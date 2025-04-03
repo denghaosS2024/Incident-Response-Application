@@ -42,11 +42,11 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 }) => {
   const [formData, setFormData] = useState<IVisitLogForm>({
     priority: 'E', // Default value, { value: 'E', label: 'E' },
-    location: 'Road',
+    location: '',
     age: '',
-    conscious: 'Yes',
-    breathing: 'Yes',
-    chiefComplaint: 'Difficulty Breathing',
+    conscious: '',
+    breathing: '',
+    chiefComplaint: '',
     condition: '',
     drugs: '',
     allergies: '',
@@ -112,17 +112,20 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       return
     }
 
+    console.log('Incident questions:', incident.questions)
+
     for (const question of incident.questions as MedicalQuestions[]) {
-      if (question.isPatient && question.username === propUsername) {
+      // if (question.isPatient && question.username === propUsername) {
+      if (question.username === propUsername) {
         console.log('Found patient data:', question)
         setFormData((prev) => ({
           ...prev,
           // Only update age if it exists and can be converted to a string
           age: question.age !== undefined ? question.age.toString() : prev.age,
           // Only update conscious if it exists and is not empty
-          conscious: question.conscious ? question.conscious : prev.conscious,
+          conscious: question.conscious !== "" ? question.conscious : prev.conscious,
           // Only update breathing if it exists and is not empty
-          breathing: question.breathing ? question.breathing : prev.breathing,
+          breathing: question.breathing  !== "" ? question.breathing : prev.breathing,
           // Only update chiefComplaint if it exists and is not empty
           chiefComplaint: question.chiefComplaint
             ? question.chiefComplaint
@@ -144,6 +147,8 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
   const { loading } = useSelector((state: RootState) => state.contactState)
   const { incident } = useSelector((state: RootState) => state.incidentState)
   const { patients } = useSelector((state: RootState) => state.patientState)
+  console.log('Incident:', incident)
+  console.log('Incident questions:', incident.questions)
   console.log(patients)
 
   const getCurrentPatientId = () => {
