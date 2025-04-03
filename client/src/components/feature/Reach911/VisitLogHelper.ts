@@ -1,4 +1,5 @@
 import IHospital from '@/models/Hospital'
+import request from '@/utils/request'
 import { IVisitLogForm } from './IVisitLogForm'
 
 export default class VisitLogHelper {
@@ -25,7 +26,7 @@ export default class VisitLogHelper {
         dateTime: visitTime,
       },
     ])
-    const message = await fetch('/api/patients/visitLogs', {
+    const message = await request('/api/patients/visitLogs', {
       method: 'POST',
       body: JSON.stringify({
         patientId: patientId,
@@ -37,7 +38,7 @@ export default class VisitLogHelper {
       }),
     })
 
-    if (message.ok) {
+    if (message) {
       alert('Form data saved successfully')
     } else {
       alert('Form data not saved')
