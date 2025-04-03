@@ -143,6 +143,13 @@ const patientsSlice = createSlice({
                 state.loading = false
                 state.error = action.payload as string
             })
+            .addCase(
+                fetchPatient.fulfilled,
+                (state, action: PayloadAction<IPatient[]>) => {
+                    state.patients = action.payload
+                    state.loading = false
+                },
+            )
     },
 })
 

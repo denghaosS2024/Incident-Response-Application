@@ -42,31 +42,45 @@ const FindHospital: React.FC = () => {
     fetchData()
   }, [dispatch])
 
-  // inital the state data
   useEffect(() => {
-    const initialDraggedPatients: Record<string, IPatient[]> = {}
+    console.log('Hospitals:', hospitals);
+    console.log('Patients:', patients);
+  
+    const initialDraggedPatients: Record<string, IPatient[]> = {};
+  
     hospitals.forEach((hospital) => {
+  
       initialDraggedPatients[hospital.hospitalId] = hospital.patients
         ? hospital.patients
-            .map((patientId) =>
-              patients.find((patient) => patient.patientId === patientId),
-            )
-            .filter((patient): patient is IPatient => !!patient)
-        : []
-    })
-
-    const assignedPatientIds = hospitals.flatMap(
-      (hospital) => hospital.patients || [],
-    ).filter((id): id is string => id !== undefined)
+            .map((patientId) => {
+              const matchedPatient = patients.find((patient) => {
+                return String(patient.patientId).trim() === String(patientId).trim();
+              });
+              if (!matchedPatient) {
+                console.warn(`No match found for patientId: ${patientId}`);
+              }
+              return matchedPatient;
+            })
+            .filter((patient): patient is IPatient => !!patient) // Filter out undefined patients
+        : [];
+    });
+  
+    const assignedPatientIds = hospitals
+      .flatMap((hospital) => hospital.patients || [])
+      .filter((id): id is string => !!id);
+  
     const initialUnassignedPatients = patients.filter(
       (patient) =>
         !!patient.patientId && // Ensure patientId is defined
         !assignedPatientIds.includes(patient.patientId),
-    )
-
-    setDraggedPatients(initialDraggedPatients)
-    setUnassignedPatients(initialUnassignedPatients)
-  }, [hospitals, patients])
+    );
+  
+    console.log('Initial Dragged Patients:', initialDraggedPatients);
+    console.log('Initial Unassigned Patients:', initialUnassignedPatients);
+  
+    setDraggedPatients(initialDraggedPatients);
+    setUnassignedPatients(initialUnassignedPatients);
+  }, [hospitals, patients]);
 
   // Navigate to map and activate hospital layer
   const redirectToMapWithHospitals = () => {
