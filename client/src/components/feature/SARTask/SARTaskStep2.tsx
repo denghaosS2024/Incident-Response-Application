@@ -118,7 +118,6 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
   // Auto-save on form changes with debounce
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      console.log('Debounce timer')
       if (incident) {
         saveData().then()
       }
@@ -132,7 +131,11 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
       ...selectedHazards,
       [event.target.name]: event.target.checked
     })
-    setNeedSave(true)
+
+    // Exclude scenario: 'Others' checked but no text input yet
+    if (!(event.target.name === 'Others' && event.target.checked && !otherHazardText.trim())) {
+      setNeedSave(true)
+    }
   }
 
   const handleOtherHazardChange = (event: ChangeEvent<HTMLInputElement>) => {
