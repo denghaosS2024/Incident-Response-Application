@@ -1,3 +1,6 @@
+import IHospital from '@/models/Hospital'
+import IPatient from '@/models/Patient'
+import request, { IRequestError } from '@/utils/request'
 import { MedicalQuestions } from '@/utils/types'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
@@ -23,9 +26,6 @@ import { RootState } from '../../../redux/store'
 import Loading from '../../common/Loading'
 import { IVisitLogForm } from './IVisitLogForm'
 import VisitLogHelper from './VisitLogHelper'
-import request, { IRequestError } from '@/utils/request'
-import IPatient from '@/models/Patient'
-import IHospital from '@/models/Hospital'
 
 // Default: E
 
@@ -237,7 +237,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
       {/* Priority */}
       <FormControl>
-        <div>
+        <Box display="flex" alignItems="center" gap={2}>
           <Typography sx={{ width: 120, flexShrink: 0 }}>Priority:</Typography>
           <Select
             name="priority"
@@ -257,7 +257,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
               </MenuItem>
             ))}
           </Select>
-        </div>
+        </Box>
       </FormControl>
 
       {/* Location */}
