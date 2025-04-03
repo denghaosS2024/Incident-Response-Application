@@ -11,46 +11,46 @@ describe.skip('Router - Patient', () => {
     await Patient.deleteMany({})
   })
 
-  const createPatient = () => {
-    return request(app)
-      .post('/api/patients')
-      .set('x-application-uid', new mongoose.Types.ObjectId().toString())
-      .send({
-        patientId: 'IZoe',
-        name: 'Zoe E',
-        nameLower: 'zoe',
-        hospitalId: 'hospital123',
-        priority: 'could_wait',
-        status: 'at_er',
-        location: 'ER',
-      })
-  }
+  // const createPatient = () => {
+  //   return request(app)
+  //     .post('/api/patients')
+  //     .set('x-application-uid', new mongoose.Types.ObjectId().toString())
+  //     .send({
+  //       patientId: new mongoose.Types.ObjectId().toString(),
+  //       name: 'Zoe1',
+  //       nameLower: 'zoe',
+  //       hospitalId: 'hospital123',
+  //       priority: 'e',
+  //       status: 'to_er',
+  //       location: 'ER',
+  //     })
+  // }
 
-  const createPatient2 = () => {
-    return request(app)
-      .post('/api/patients')
-      .set('x-application-uid', new mongoose.Types.ObjectId().toString())
-      .send({
-        patientId: 'IZ6oe',
-        name: 'Zoe 6E',
-        nameLower: 'zoet',
-        hospitalId: 'hospital1299t3',
-        priority: 'could_wait',
-        status: 'at_er',
-        location: 'ER',
-      })
-  }
+  // const createPatient2 = () => {
+  //   return request(app)
+  //     .post('/api/patients')
+  //     .set('x-application-uid', new mongoose.Types.ObjectId().toString())
+  //     .send({
+  //       patientId: new mongoose.Types.ObjectId().toString(),
+  //       name: 'Zoe2',
+  //       nameLower: 'zoet',
+  //       hospitalId: 'hospital1299t3',
+  //       priority: 'e',
+  //       status: 'to_er',
+  //       location: 'ER',
+  //     })
+  // }
 
   const createPatient3 = () => {
     return request(app)
       .post('/api/patients')
       .set('x-application-uid', new mongoose.Types.ObjectId().toString())
       .send({
-        patientId: 'IZzzz',
+        patientId: new mongoose.Types.ObjectId().toString(),
         name: 'Zoe zzzz',
         nameLower: 'zoet',
         hospitalId: 'hospital1299t3',
-        priority: 'could_wait',
+        priority: 'e',
         status: 'at_er',
         location: 'ER',
       })

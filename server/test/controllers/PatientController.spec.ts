@@ -1,31 +1,31 @@
-// import { Query, Types } from 'mongoose'
-import PatientController from '../../src/controllers/PatientController'
-import Patient from '../../src/models/Patient'
-import * as TestDatabase from '../utils/TestDatabase'
+// // import { Query, Types } from 'mongoose'
+// import PatientController from '../../src/controllers/PatientController'
+// import Patient from '../../src/models/Patient'
+// import * as TestDatabase from '../utils/TestDatabase'
 
-describe.skip('Patient Controller', () => {
-  beforeAll(TestDatabase.connect)
-  beforeEach(() => jest.clearAllMocks())
-  afterEach(async () => {
-    jest.restoreAllMocks()
-    await Patient.deleteMany({})
-  })
-  afterAll(TestDatabase.close)
+// describe.skip('Patient Controller', () => {
+//   beforeAll(TestDatabase.connect)
+//   beforeEach(() => jest.clearAllMocks())
+//   afterEach(async () => {
+//     jest.restoreAllMocks()
+//     await Patient.deleteMany({})
+//   })
+//   afterAll(TestDatabase.close)
 
 
-  const createTestPatient = async (username: string) => {
-    const rawPatient = new Patient({
-      patientId: `I${username}`,
-      name: 'Zoe E',
-      nameLower: 'zoe',
-      hospitalId: 'hospital123',
-      priority: 'could_wait',
-      status: 'to_er',
-      location: 'Road',
-    })
+  // const createTestPatient = async (username: string) => {
+  //   const rawPatient = new Patient({
+  //     patientId: `I${username}`,
+  //     name: 'Zoe E',
+  //     nameLower: 'zoe',
+  //     hospitalId: 'hospital123',
+  //     priority: 'could_wait',
+  //     status: 'to_er',
+  //     location: 'Road',
+  //   })
 
-    return rawPatient.save()
-  }
+  //   return rawPatient.save()
+  // }
 
   // FIXME
   // it('should be able to get all patients by hospitalID', async () => {

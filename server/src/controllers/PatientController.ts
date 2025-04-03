@@ -1,15 +1,15 @@
-import { uuidv4 } from 'mongodb-memory-server-core/lib/util/utils'
 import { IHospital } from '../models/Hospital'
 import Patient, {
-  IPatientBase,
-  IVisitLog,
-  PatientSchema,
+    IPatientBase,
+    IVisitLog,
+    PatientSchema,
 } from '../models/Patient'
 import { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
 import HospitalController from './HospitalController'
 import UserController from './UserController'
 
+import mongoose from 'mongoose'
 import HttpError from '../utils/HttpError'
 
 export interface IExpandedPatientInfo extends IPatientBase {
@@ -144,7 +144,7 @@ class PatientController {
 
             const payload = {
                 // Generate a new patientId if not provided
-                patientId: patientData.patientId || uuidv4(),
+                patientId: patientData.patientId || new mongoose.Types.ObjectId().toString(),
                 ...patientData,
                 master: callerId, // Set the master field to the caller's UID
             }
