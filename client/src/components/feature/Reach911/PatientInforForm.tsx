@@ -68,7 +68,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
             name: '',
             sex: propSex || '',
             dob: '',
-            patientId: uuidv4(), // Generate a unique ID for the new patient
+            // patientId: uuidv4(), // Generate a unique ID for the new patient Don't use UUID in this project!!!
         }
         dispatch(addPatient(patient))
         setIsPatientAdded(true)

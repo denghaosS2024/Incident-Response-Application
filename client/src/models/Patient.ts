@@ -1,5 +1,5 @@
 export default interface IPatient {
-    patientId: string
+    patientId?: string     // comment becasue you trying to pass uuid as patient ID, don't use uuid in this project, should refactor later 
     username: string
     name?: string
     nameLower?: string
