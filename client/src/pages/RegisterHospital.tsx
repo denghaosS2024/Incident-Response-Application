@@ -279,8 +279,19 @@ const RegisterHospital: React.FC = () => {
             })
             return
         }
-        console.log('Submitting hospital:', hospitalData)
 
+        // Ensure total ER beds are not less than the number of patients.
+        if (
+            hospitalData.totalNumberERBeds < hospitalData.totalNumberOfPatients
+        ) {
+            showSnackbar(
+                `Total ER Beds (${hospitalData.totalNumberERBeds}) cannot be less than total number of patients (${hospitalData.totalNumberOfPatients}).`,
+                'error',
+            )
+            return
+        }
+
+        console.log('Submitting hospital:', hospitalData)
         let response
 
         // Check if hospitalId exists: update if true, else register new hospital
