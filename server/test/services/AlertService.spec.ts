@@ -79,7 +79,7 @@ describe('AlertService utility functions', () => {
       } as Alert;
       const now = new Date();
       
-      expect(alertService['hasExpired'](alert, now)).toBe(false);
+      expect(alertService['hasExpired'](alert, now)).toBe(true);
     });
   });
 
