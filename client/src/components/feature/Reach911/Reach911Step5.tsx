@@ -98,7 +98,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 })
                 const allPersonnelSet = new Set<string>()
                 personnelData.forEach((person: any) => {
-                    allPersonnelSet.add(person.username)
+                    allPersonnelSet.add(person.username) 
                 })
 
                 // Filter out assigned personnel from the personnel data
