@@ -156,7 +156,7 @@ describe('Router - Incident', () => {
                 assignedVehicleTimestamp: null,
             }
 
-            const response = await request(app)
+            await request(app)
                 .put('/api/incidents/vehicles')
                 .send({
                     personnel,
