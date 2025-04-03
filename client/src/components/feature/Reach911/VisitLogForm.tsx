@@ -102,6 +102,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     if (
       !incident ||
       !incident.questions ||
+      !Array.isArray(incident.questions) ||
       (incident.questions as MedicalQuestions[]).length == 0
     ) {
       return
