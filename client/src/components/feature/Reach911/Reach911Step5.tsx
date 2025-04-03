@@ -101,7 +101,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     allPersonnelSet.add(person.username)
                 })
                 assignedPersonnel.forEach((incident: IIncident) => {
-                    if (incident.commander) {
+                    if (incident.commander && incident.incidentState !== 'Closed') {
                         assignedPersonnelSet.add(incident.commander)
                     }
                 })
