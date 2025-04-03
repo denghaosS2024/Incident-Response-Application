@@ -205,14 +205,35 @@ class IncidentController {
                     incidentState: incident.incidentState,
                     role: role,
                 }
-                console.log(now, stateHistoryEntry)
+                console.log('this is exist' + existingIncident)
+                console.log('history', stateHistoryEntry)
                 existingIncident.incidentStateHistory =
                     existingIncident.incidentStateHistory || []
                 existingIncident.incidentStateHistory.push(stateHistoryEntry)
+                console.log('this is exist' + existingIncident)
             }
-            Object.assign(existingIncident, incident)
-            const updatedIncident = await existingIncident.save()
+            if (incident.incidentStateHistory === undefined) {
+                incident.incidentStateHistory =
+                    existingIncident.incidentStateHistory
+            }
+            const updateFields = { ...incident }
+            delete updateFields.incidentStateHistory
+            const updatedIncident = await Incident.findOneAndUpdate(
+                { incidentId: incident.incidentId },
+                {
+                    $set: updateFields,
+                    $push: {
+                        incidentStateHistory: {
+                            $each: existingIncident.incidentStateHistory,
+                        },
+                    },
+                },
+                { new: true },
+            ).exec()
 
+            // Object.assign(existingIncident, incident)
+            // const updatedIncident = await existingIncident.save()
+            // console.log('update', updatedIncident)
             return updatedIncident
         } catch (error) {
             throw error
