@@ -3,7 +3,7 @@ import HospitalList from '@/components/feature/FindHospital/HospitalList'
 import PatientList from '@/components/feature/FindHospital/PatientList'
 import IPatient from '@/models/Patient'
 import { fetchHospitals, sortHospitalsByDistance } from '@/redux/hospitalSlice'
-import { fetchPatients } from '@/redux/patientSlice'
+import { fetchPatient } from '@/redux/patientSlice'
 import { AppDispatch, RootState } from '@/redux/store'
 import eventEmitter from '@/utils/eventEmitter'
 import request from '@/utils/request'
@@ -12,7 +12,7 @@ import { Box, Button, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { DragDropContext, DropResult } from 'react-beautiful-dnd'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 const FindHospital: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -37,34 +37,50 @@ const FindHospital: React.FC = () => {
     const fetchData = async () => {
       await dispatch(fetchHospitals())
       await dispatch(sortHospitalsByDistance())
-      await dispatch(fetchPatients())
+      await dispatch(fetchPatient())
     }
     fetchData()
   }, [dispatch])
 
-  // inital the state data
   useEffect(() => {
-    const initialDraggedPatients: Record<string, IPatient[]> = {}
+    console.log('Hospitals:', hospitals);
+    console.log('Patients:', patients);
+  
+    const initialDraggedPatients: Record<string, IPatient[]> = {};
+  
     hospitals.forEach((hospital) => {
+  
       initialDraggedPatients[hospital.hospitalId] = hospital.patients
         ? hospital.patients
-            .map((patientId) =>
-              patients.find((patient) => patient.patientId === patientId),
-            )
-            .filter((patient): patient is IPatient => !!patient)
-        : []
-    })
-
-    const assignedPatientIds = hospitals.flatMap(
-      (hospital) => hospital.patients || [],
-    )
+            .map((patientId) => {
+              const matchedPatient = patients.find((patient) => {
+                return String(patient.patientId).trim() === String(patientId).trim();
+              });
+              if (!matchedPatient) {
+                console.warn(`No match found for patientId: ${patientId}`);
+              }
+              return matchedPatient;
+            })
+            .filter((patient): patient is IPatient => !!patient) // Filter out undefined patients
+        : [];
+    });
+  
+    const assignedPatientIds = hospitals
+      .flatMap((hospital) => hospital.patients || [])
+      .filter((id): id is string => !!id);
+  
     const initialUnassignedPatients = patients.filter(
-      (patient) => !assignedPatientIds.includes(patient.patientId),
-    )
-
-    setDraggedPatients(initialDraggedPatients)
-    setUnassignedPatients(initialUnassignedPatients)
-  }, [hospitals, patients])
+      (patient) =>
+        !!patient.patientId && // Ensure patientId is defined
+        !assignedPatientIds.includes(patient.patientId),
+    );
+  
+    console.log('Initial Dragged Patients:', initialDraggedPatients);
+    console.log('Initial Unassigned Patients:', initialUnassignedPatients);
+  
+    setDraggedPatients(initialDraggedPatients);
+    setUnassignedPatients(initialUnassignedPatients);
+  }, [hospitals, patients]);
 
   // Navigate to map and activate hospital layer
   const redirectToMapWithHospitals = () => {

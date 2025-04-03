@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import ClickableStepper, { StepIconStyle } from '../components/ClickableStepper'
 import SARTaskStep1 from '../components/feature/SARTask/SARTaskStep1.tsx'
 import SARTaskStep2 from '../components/feature/SARTask/SARTaskStep2.tsx'

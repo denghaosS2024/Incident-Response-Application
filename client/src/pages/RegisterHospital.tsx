@@ -16,7 +16,7 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import Globals from '../utils/Globals'
 import request from '../utils/request'
 
@@ -57,9 +57,7 @@ const RegisterHospital: React.FC = () => {
         (state: any) => state.hospital.hospitalData,
     )
 
-    const isNurseRegistered = hospitalData.nurses?.some((nurse: any) =>
-        typeof nurse === 'object' ? nurse._id === userId : nurse === userId,
-    )
+    const [nurseAlreadyRegistered, setNurseAlreadyRegistered] = useState(false)
 
     // Local state for the address input field
     const [inputAddress, setInputAddress] = useState(
@@ -84,6 +82,29 @@ const RegisterHospital: React.FC = () => {
 
         getHospital()
     }, [hospitalId])
+
+    // On Page load, check if a nurse is already registered at a hospital
+    useEffect(() => {
+        const checkNurseRegistration = async () => {
+            if (!userId) return
+            try {
+                const allHospitals: IHospital[] = await request(
+                    '/api/hospital',
+                    { method: 'GET' },
+                )
+                if (allHospitals && Array.isArray(allHospitals)) {
+                    const found = allHospitals.some(
+                        (hospital) =>
+                            hospital.nurses && hospital.nurses.includes(userId),
+                    )
+                    setNurseAlreadyRegistered(found)
+                }
+            } catch (error) {
+                console.error('Error fetching all hospitals:', error)
+            }
+        }
+        checkNurseRegistration()
+    }, [userId])
 
     /* ------------------------------ ADDRESS AUTOFILL ------------------------------ */
 
@@ -484,21 +505,44 @@ const RegisterHospital: React.FC = () => {
                     : 'None Listed'}
             </Typography>
 
-            {/* Show checkbox only if role is 'Nurse' and Nurse is not already registered in hospital */}
+            {/* Show checkbox only if role is 'Nurse' and the nurse is not registered in any hospital */}
             {role === 'Nurse' &&
-                (isNurseRegistered ? (
+                (nurseAlreadyRegistered ? (
                     <Typography variant="body2" color="textSecondary">
-                        You are registered in the hospital.
+                        You are already registered in a hospital.
                     </Typography>
                 ) : (
                     <FormControlLabel
                         control={
                             <Checkbox
+                                checked={
+                                    userId
+                                        ? hospitalData.nurses.includes(userId)
+                                        : false
+                                }
                                 onChange={(e) => {
                                     if (e.target.checked && userId) {
+                                        // Add nurse only if not already present
+                                        if (
+                                            !hospitalData.nurses.includes(
+                                                userId,
+                                            )
+                                        ) {
+                                            setHospitalData((prev) => ({
+                                                ...prev,
+                                                nurses: [
+                                                    ...prev.nurses,
+                                                    userId,
+                                                ],
+                                            }))
+                                        }
+                                    } else if (!e.target.checked && userId) {
+                                        // Remove the nurse on uncheck
                                         setHospitalData((prev) => ({
                                             ...prev,
-                                            nurses: [...prev.nurses, userId],
+                                            nurses: prev.nurses.filter(
+                                                (nurseId) => nurseId !== userId,
+                                            ),
                                         }))
                                     }
                                 }}
@@ -525,13 +569,15 @@ const RegisterHospital: React.FC = () => {
                 >
                     Cancel
                 </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleDelete}
-                >
-                    Delete
-                </Button>
+                {hospitalId && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleDelete}
+                    >
+                        Delete
+                    </Button>
+                )}
             </Box>
 
             {/* For Alerts pertaining to hospital registration or updation*/}

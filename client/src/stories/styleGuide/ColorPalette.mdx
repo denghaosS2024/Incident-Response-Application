@@ -2,7 +2,6 @@ import { Meta, ColorPalette, ColorItem } from '@storybook/blocks';
 
 <Meta title="Colors" />
 
-
 export const colors = {
   siteBackground: { White: '#FFFFFF' },
   primary: { Blue: '#1976d2' },
@@ -18,14 +17,19 @@ export const colors = {
 <ColorPalette>
   <ColorItem title="Site Background" subtitle="Site Background" colors={colors.siteBackground} />
 </ColorPalette>
- 
+
 # Button Colors
 
 <ColorPalette>
   <ColorItem title="Primary" subtitle="Primary" colors={colors.primary} />
+
   <ColorItem title="Secondary" subtitle="Secondary" colors={colors.secondary} />
+
   <ColorItem title="Error" subtitle="Error" colors={colors.error} />
+
   <ColorItem title="Warning" subtitle="Warning" colors={colors.warning} />
+
   <ColorItem title="Info" subtitle="Info" colors={colors.info} />
+
   <ColorItem title="Success" subtitle="Success" colors={colors.success} />
 </ColorPalette>

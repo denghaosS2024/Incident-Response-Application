@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { IProfile, IEmergencyContact } from "../models/Profile";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { IEmergencyContact, IProfile } from "../models/Profile";
 import request from "../utils/request";
 import { ProfileState } from "../utils/types";
 
@@ -58,12 +58,12 @@ const profileSlice = createSlice({
 
     updateProfileField: (
       state,
-      action: PayloadAction<{ field: keyof IProfile; value: any }>
+      action: PayloadAction<{ field: keyof IProfile; value: IProfile[keyof IProfile] }>
     ) => {
       if (!state.profile) return;
-      state.profile[action.payload.field] = action.payload.value;
+      const { field, value } = action.payload;
+      (state.profile[field] as typeof value) = value;
     },
-
 
     resetProfile: (state) => {
       state.profile = null;

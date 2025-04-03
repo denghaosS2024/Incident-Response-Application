@@ -1,63 +1,46 @@
-import IHospital from '@/models/Hospital';
-import request from '@/utils/request';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import { Box, Button, FormControl, FormControlLabel, IconButton, Link, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { RootState } from '../../../redux/store';
-import Loading from '../../common/Loading';
-
-const hospitalGroupId = '67e74c979e55e050073d6afb'
-const patientId = '455tt'
+import { MedicalQuestions } from '@/utils/types'
+import AddIcon from '@mui/icons-material/Add'
+import RemoveIcon from '@mui/icons-material/Remove'
+import {
+  Box,
+  Button,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  Link,
+  MenuItem,
+  Radio,
+  RadioGroup,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  Typography,
+} from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router'
+import { RootState } from '../../../redux/store'
+import Loading from '../../common/Loading'
+import { IVisitLogForm } from './IVisitLogForm'
+import VisitLogHelper from './VisitLogHelper'
+import request, { IRequestError } from '@/utils/request'
+import IPatient from '@/models/Patient'
+import IHospital from '@/models/Hospital'
 
 // Default: E
-const priorities = [
-  { value: 'E', label: 'E' },
-  { value: '1', label: '1' },
-  { value: '2', label: '2' },
-  { value: '3', label: '3' },
-  { value: '4', label: '4' },
-]
-
-const locations = [
-  { value: 'Road', label: 'Road' },
-  { value: 'ER', label: 'ER' },
-]
-
-const conditions = [
-  { value: 'Allergy', label: 'Allergy' },
-  { value: 'Asthma', label: 'Asthma' },
-  { value: 'Bleeding', label: 'Bleeding' },
-  { value: 'Broken bone', label: 'Broken bone' },
-  { value: 'Burn', label: 'Burn' },
-  { value: 'Choking', label: 'Choking' },
-  { value: 'Concussion', label: 'Concussion' },
-  { value: 'Covid-19', label: 'Covid-19' },
-  { value: 'Heart Attack', label: 'Heart Attack' },
-  { value: 'Heat Stroke', label: 'Heat Stroke' },
-  { value: 'Hypothermia', label: 'Hypothermia' },
-  { value: 'Poisoning', label: 'Poisoning' },
-  { value: 'Seizure', label: 'Seizure' },
-  { value: 'Shock', label: 'Shock' },
-  { value: 'Strain', label: 'Strain' },
-  { value: 'Sprain', label: 'Sprain' },
-  { value: 'Stroke', label: 'Stroke' },
-]
 
 // Returns the current date and time formatted as "MM.DD.YY-HH:mm"
 // Example formats: "12.03.21-10:00" or "11.22.20-08:00"
 const getCurrentDateTime = () => {
-  const now = new Date();
-  const formattedDate = `${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}.${String(now.getFullYear()).slice(-2)}-${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  return formattedDate;
-};
+  const now = new Date()
+  const formattedDate = `${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}.${String(now.getFullYear()).slice(-2)}-${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  return formattedDate
+}
 
 const VisitLogForm: React.FC<{ username?: string }> = ({
-  username: propUsername
+  username: propUsername,
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<IVisitLogForm>({
     priority: 'E', // Default value, { value: 'E', label: 'E' },
     location: 'Road',
     age: '',
@@ -66,169 +49,191 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     chiefComplaint: 'Difficulty Breathing',
     condition: '',
     drugs: '',
-    allergies: ''
-  });
+    allergies: '',
+  })
 
   const navigate = useNavigate()
 
   // Set the visit time to the current date and time
-  const [visitTime, setVisitTime] = useState(getCurrentDateTime());
-  const [incidentId, setIncidentId] = useState('');
+  const [visitTime, setVisitTime] = useState(getCurrentDateTime())
+  const [incidentId, setIncidentId] = useState('')
+  const [currentPatient, setCurrentPatient] = useState<IPatient>({} as IPatient)
+  const [currentHospital, setCurrentHospital] = useState<IHospital>(
+    {} as IHospital,
+  )
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }> | SelectChangeEvent<string>,
-    child?: React.ReactNode
+    event:
+      | React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
+      | SelectChangeEvent<string>,
+    child?: React.ReactNode,
   ) => {
-    const { name, value } = event.target;
+    const { name, value } = event.target
     setFormData((prev) => ({
       ...prev,
       [name as string]: value,
-    }));
-  };
+    }))
+  }
 
   const role = localStorage.getItem('role')
   // If the Visit is created by a First Responder, the Incident ID* is added and the default Location is Road
   // If the Visit is created by a Nurse, the default Location is ER
   const checkRole = () => {
-    if (role === 'Fire' || role === 'Police' || role === 'Administrator') {
+    if (new Set(['Fire', 'Police', 'Administrator']).has(role ?? '')) {
       const incidentId = incident.incidentId
 
-      setIncidentId(incidentId);
+      setIncidentId(incidentId)
       // Set the location to Road, if the role is First Responder
       setFormData((prev) => ({
         ...prev,
         location: 'Road',
-      }));
+      }))
       // Set patient data if available
       // This is to get the patient data from the incident
-      setPatientData();
+      setPatientData()
     } else if (role === 'Nurse') {
       // Set the location to ER, if the role is Nurse
       setFormData((prev) => ({
         ...prev,
         location: 'ER',
-      }));
+      }))
     }
   }
 
   // Pulls Age, Conscious, Breathing, and Chief Complaint from the Incident if available
   const setPatientData = () => {
-    if (incident && incident.questions && incident?.questions.length > 0) {
-      console.log("is setting patient data")
-      for (const question of incident.questions) {
-        if (question.isPatient && question.username === propUsername) {
-          console.log("Found patient data:", question);
-          setFormData((prev) => ({
-            ...prev,
-            // Only update age if it exists and can be converted to a string
-            age: question.age !== undefined ? question.age.toString() : prev.age,
-            // Only update conscious if it exists and is not empty
-            conscious: question.conscious ? question.conscious : prev.conscious,
-            // Only update breathing if it exists and is not empty
-            breathing: question.breathing ? question.breathing : prev.breathing,
-            // Only update chiefComplaint if it exists and is not empty
-            chiefComplaint: question.chiefComplaint ? question.chiefComplaint : prev.chiefComplaint,
-          }));
-          break;
-        }
+    // Don't do anything if the incident or questions are not available
+    if (
+      !incident ||
+      !incident.questions ||
+      !Array.isArray(incident.questions) ||
+      (incident.questions as MedicalQuestions[]).length == 0
+    ) {
+      return
+    }
+
+    for (const question of incident.questions as MedicalQuestions[]) {
+      if (question.isPatient && question.username === propUsername) {
+        console.log('Found patient data:', question)
+        setFormData((prev) => ({
+          ...prev,
+          // Only update age if it exists and can be converted to a string
+          age: question.age !== undefined ? question.age.toString() : prev.age,
+          // Only update conscious if it exists and is not empty
+          conscious: question.conscious ? question.conscious : prev.conscious,
+          // Only update breathing if it exists and is not empty
+          breathing: question.breathing ? question.breathing : prev.breathing,
+          // Only update chiefComplaint if it exists and is not empty
+          chiefComplaint: question.chiefComplaint
+            ? question.chiefComplaint
+            : prev.chiefComplaint,
+        }))
+        break
       }
     }
-  }
-
-  // Save the form data
-  const saveFormData = async () => {
-    // Post the form data to the server
-    console.log([{
-      ...formData,
-      incidentId: incidentId,
-      dateTime: visitTime,
-    }])
-    const message = await request('/api/patients/visitLogs', {
-      method: 'POST',
-      body: JSON.stringify({
-        patientId: getCurrentPatientId(),
-        visitLog: {
-          ...formData,
-          incidentId: incidentId,
-          dateTime: visitTime,
-        }
-      }),
-    });
-
-    // check if the message is successful
-    alert('Form data saved successfully');
   }
 
   // Check the role when the component mounts
   React.useEffect(() => {
     // Set the visit time to the current date and time
-    setVisitTime(getCurrentDateTime());
+    setVisitTime(getCurrentDateTime())
     // Check the role and set the incident ID if needed
-    checkRole();
-  }
-    , []);
+    checkRole()
+  }, [])
 
-  const { loading } = useSelector(
-    (state: RootState) => state.contactState,
-  )
-
-  const { incident } = useSelector(
-    (state: RootState) => state.incidentState
-  )
-
-  const { patients } = useSelector(
-    (state: RootState) => state.patientState
-  )
+  const { loading } = useSelector((state: RootState) => state.contactState)
+  const { incident } = useSelector((state: RootState) => state.incidentState)
+  const { patients } = useSelector((state: RootState) => state.patientState)
   console.log(patients)
 
   const getCurrentPatientId = () => {
     if (!patients || patients.length === 0 || !propUsername) {
-      return null;
+      return ''
     }
-    const patient = patients.find(p => p.username === propUsername);
-    return patient ? patient.patientId : null;
+    const patient = patients.find((p) => p.username === propUsername)
+    return patient ? patient.patientId : ''
   }
 
-  console.log("Current patient ID:", getCurrentPatientId());
+  useEffect(() => {
+    const patientId = getCurrentPatientId()
+    const fetchPatient = async () => {
+      try {
+        const patient: IPatient = await request(
+          `/api/patients/single?patientId=${patientId}`,
+        )
+        if (patient) {
+          setCurrentPatient(patient)
+        }
+      } catch (e) {
+        const error = e as IRequestError
+        console.log('Error fetching current patient ' + error.message)
+      }
+    }
 
-  const handleClick = () => {
+    fetchPatient()
+  }, [])
+
+  useEffect(() => {
+    const fetchHospital = async () => {
+      try {
+
+        if (currentPatient.hospitalId) {
+          const hospital = await request(
+            `/api/hospital?hospitaltId=${currentPatient.hospitalId}`,
+          )
+          if (hospital) {
+            console.log('hospital: ')
+            console.log(currentPatient)
+            setCurrentHospital(hospital[0] as IHospital)
+          }
+        }
+          
+      } catch (e) {
+        const error = e as IRequestError
+        console.log('Error fetching current hospital ' + error.message)
+      }
+    }
+
+    fetchHospital()
+  }, [currentPatient])
+
+  useEffect(() => {
+    console.log('Updated currentHospital:', currentHospital)
+  }, [currentHospital])
+
+  console.log('Current patient ID:', getCurrentPatientId())
+
+  const onClickHospital = () => {
     navigate('/find-hospital')
   }
 
-  const handelRequestHelpBtnClick = async () => {
+  const onClickRequestHelp = async () => {
     const uid = localStorage.getItem('uid')
-    console.log(uid)
-    const user = await request(`/api/users/${uid}`);
-    console.log(user)
-    const hospitalId = user.hospitalId;
 
-    const hospital: IHospital = await request(`/api/hospital?hospitalId=${hospitalId}`);
-    const channelId = hospital.hospitalGroupId;
+    const hospital = await VisitLogHelper.getHospitalByUserId(uid ?? '')
+
+    const channelId = hospital.hospitalGroupId
     console.log(channelId)
-    navigate(`/messages?channelId=${channelId}&showAlert=true&patient=${patientId}`)
+    navigate(
+      `/messages?channelId=${channelId}&showAlert=true&patient=${currentPatient.patientId}`,
+    )
   }
 
   if (loading) return <Loading />
 
   return (
-    <Box
-      width="100%"
-      maxWidth="800px"
-      my={4}
-      display="flex"
-      flexDirection="column"
-      paddingX="32px"
-      gap={3} // Added vertical spacing between form elements
-    >
-      <Typography variant="h6">Visit: {visitTime}</Typography>
-      <Typography variant="h6">Incident ID: {incidentId}</Typography>
+    <div className="flex flex-col gap-4 p-4 items-center">
+      <div className="flex flex-col gap-2 items-start w-full">
+        <p className="text-2xl font-bold text-start">Visit: {visitTime}</p>
+        <p className="text-2xl font-bold text-start">
+          Incident ID: {incidentId}
+        </p>
+      </div>
 
       {/* Priority */}
       <FormControl>
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography sx={{ width: 120, flexShrink: 0 }}>
-            Priority:
-          </Typography>
+        <div>
+          <Typography sx={{ width: 120, flexShrink: 0 }}>Priority:</Typography>
           <Select
             name="priority"
             value={formData.priority}
@@ -241,21 +246,19 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
               },
             }}
           >
-            {priorities.map((priority) => (
+            {VisitLogHelper.priorities.map((priority) => (
               <MenuItem key={priority.value} value={priority.value}>
                 {priority.label}
               </MenuItem>
             ))}
           </Select>
-        </Box>
+        </div>
       </FormControl>
 
       {/* Location */}
       <FormControl>
         <Box display="flex" alignItems="center" gap={2}>
-          <Typography sx={{ width: 120, flexShrink: 0 }}>
-            Location:
-          </Typography>
+          <Typography sx={{ width: 120, flexShrink: 0 }}>Location:</Typography>
           <RadioGroup
             name="location"
             value={formData.location}
@@ -263,7 +266,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             row
             sx={{ gap: 2 }}
           >
-            {locations.map((location) => (
+            {VisitLogHelper.locations.map((location) => (
               <FormControlLabel
                 key={location.value}
                 value={location.value}
@@ -287,7 +290,10 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                   formData.age === ''
                     ? 0
                     : Math.max(0, parseInt(formData.age) - 1)
-                setFormData((prev) => ({ ...prev, age: newValue.toString() }))
+                setFormData((prev) => ({
+                  ...prev,
+                  age: newValue.toString(),
+                }))
               }}
               size="small"
             >
@@ -307,7 +313,10 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
               onClick={() => {
                 const newValue =
                   formData.age === '' ? 1 : parseInt(formData.age) + 1
-                setFormData((prev) => ({ ...prev, age: newValue.toString() }))
+                setFormData((prev) => ({
+                  ...prev,
+                  age: newValue.toString(),
+                }))
               }}
               size="small"
             >
@@ -320,9 +329,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       {/* Conscious */}
       <FormControl>
         <Box display="flex" alignItems="center" gap={2}>
-          <Typography sx={{ width: 120, flexShrink: 0 }}>
-            Conscious:
-          </Typography>
+          <Typography sx={{ width: 120, flexShrink: 0 }}>Conscious:</Typography>
           <RadioGroup
             name="conscious"
             value={formData.conscious}
@@ -331,7 +338,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             sx={{ gap: 2 }}
           >
             <FormControlLabel
-              value={true}
+              value="Yes"
               control={<Radio />}
               label="Yes"
               sx={{ marginRight: 3 }}
@@ -344,9 +351,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       {/* Breathing */}
       <FormControl>
         <Box display="flex" alignItems="center" gap={2}>
-          <Typography sx={{ width: 120, flexShrink: 0 }}>
-            Breathing:
-          </Typography>
+          <Typography sx={{ width: 120, flexShrink: 0 }}>Breathing:</Typography>
           <RadioGroup
             name="breathing"
             value={formData.breathing}
@@ -385,9 +390,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       {/* Condition */}
       <FormControl>
         <Box display="flex" alignItems="center" gap={2}>
-          <Typography sx={{ width: 120, flexShrink: 0 }}>
-            Condition:
-          </Typography>
+          <Typography sx={{ width: 120, flexShrink: 0 }}>Condition:</Typography>
           <Select
             name="condition"
             value={formData.condition}
@@ -400,7 +403,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
               },
             }}
           >
-            {conditions.map((condition) => (
+            {VisitLogHelper.conditions.map((condition) => (
               <MenuItem key={condition.value} value={condition.value}>
                 {condition.label}
               </MenuItem>
@@ -427,9 +430,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       {/* Allergies */}
       <FormControl>
         <Box display="flex" alignItems="center" gap={2}>
-          <Typography sx={{ width: 120, flexShrink: 0 }}>
-            Allergies:
-          </Typography>
+          <Typography sx={{ width: 120, flexShrink: 0 }}>Allergies:</Typography>
 
           <TextField
             variant="outlined"
@@ -446,19 +447,23 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       <FormControl>
         <Box display="flex" alignItems="center" gap={2}>
           <Box className="flex flex-row">
-            <Typography sx={{ width: 120, flexShrink: 0 }} className="flex flex-row">
-              Hospital: None
+            <Typography
+              sx={{ width: 120, flexShrink: 0 }}
+            >
+              Hospital: {currentHospital?.hospitalName ?? 'None'}
             </Typography>
           </Box>
 
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            onClick={handleClick}
-          >
-            Find Hospital
-          </Button>
+          {!currentPatient.hospitalId && (
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              onClick={onClickHospital}
+            >
+              Find Hospital
+            </Button>
+          )}
         </Box>
       </FormControl>
 
@@ -477,7 +482,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                 fullWidth
                 variant="contained"
                 color="primary"
-                onClick={handelRequestHelpBtnClick}
+                onClick={onClickRequestHelp}
               >
                 Request Help
               </Button>
@@ -498,13 +503,18 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             fontSize: '16px',
           }}
           onClick={() => {
-            saveFormData();
+            VisitLogHelper.saveFormData(
+              formData,
+              incidentId,
+              visitTime,
+              getCurrentPatientId() ?? '',
+            )
           }}
         >
           Save
         </button>
       </Box>
-    </Box>
+    </div>
   )
 }
 

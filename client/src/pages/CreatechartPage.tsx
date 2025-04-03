@@ -7,7 +7,7 @@ import {
   MenuItem,
   Grid,
 } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import request from '../utils/request'
 
 type ChartType = 'Bar' | 'Line' | 'Pie'

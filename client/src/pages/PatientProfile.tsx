@@ -1,6 +1,6 @@
 import { Box, Button, Card, CardContent, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import request from '../utils/request'
 
 interface PatientData {
@@ -14,7 +14,7 @@ interface PatientData {
 }
 
 // Helper function to verify that patientId is a valid non-empty string
-const isValidPatientId = (id: any): boolean => {
+const isValidPatientId = (id: unknown): boolean => {
     return typeof id === 'string' && id.trim() !== ''
 }
 
@@ -49,11 +49,10 @@ const PatientProfile: React.FC = () => {
                 } else {
                     setPatient(res)
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 // Provide a friendly error message if the request fails
                 setError(
-                    err?.message ||
-                        'Failed to fetch patient data. Please try again later.',
+                    err instanceof Error ? err.message : 'Failed to fetch patient data. Please try again later.',
                 )
             } finally {
                 setLoading(false)

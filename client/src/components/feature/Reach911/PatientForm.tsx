@@ -13,7 +13,7 @@ import {
 
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import IIncident from '../../../models/Incident'
 import { loadContacts } from '../../../redux/contactSlice'
 import { updateIncident } from '../../../redux/incidentSlice'

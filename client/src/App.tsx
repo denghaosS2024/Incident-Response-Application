@@ -1,6 +1,6 @@
 import { StyledEngineProvider } from '@mui/material/styles'
 import { useFlags } from 'launchdarkly-react-client-sdk'
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+import { Route, BrowserRouter as Router, Routes } from 'react-router'
 import ChatRoomPage from './pages/ChatRoomPage'
 import Contacts from './pages/Contacts'
 import CreatechartPage from './pages/CreatechartPage.tsx'

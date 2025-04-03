@@ -1,15 +1,16 @@
-import { uuidv4 } from 'mongodb-memory-server-core/lib/util/utils'
 import { IHospital } from '../models/Hospital'
 import Patient, {
-  IPatientBase,
-  IVisitLog,
-  PatientSchema,
+    IPatientBase,
+    IVisitLog,
+    PatientSchema,
 } from '../models/Patient'
 import { IUser } from '../models/User'
 import ROLES from '../utils/Roles'
 import HospitalController from './HospitalController'
+import IncidentController from './IncidentController'
 import UserController from './UserController'
 
+import mongoose from 'mongoose'
 import HttpError from '../utils/HttpError'
 
 export interface IExpandedPatientInfo extends IPatientBase {
@@ -144,7 +145,9 @@ class PatientController {
 
             const payload = {
                 // Generate a new patientId if not provided
-                patientId: patientData.patientId || uuidv4(),
+                patientId:
+                    patientData.patientId ||
+                    new mongoose.Types.ObjectId().toString(),
                 ...patientData,
                 master: callerId, // Set the master field to the caller's UID
             }
@@ -349,83 +352,89 @@ class PatientController {
      * @throws Error if the patient with the given ID does not exist
      */
     async createUpdatePatientVisit(
-      patientId: string,
-      patientVisitData: IVisitLog
+        patientId: string,
+        patientVisitData: IVisitLog,
     ) {
-      const patient = await Patient.findOne({ patientId });
-      if (!patient) {
-        throw new Error(`Patient with ID ${patientId} does not exist`);
-      }
-
-      const {
-        dateTime,
-        incidentId,
-        location,
-        priority,
-        age,
-        conscious,
-        breathing,
-        chiefComplaint,
-        condition,
-        drugs,
-        allergies,
-      } = patientVisitData;
-
-      // A helper function to generate a new IVisitLog object
-      const createVisitLog = (): IVisitLog => {
-        return {
-          dateTime: dateTime ? new Date(dateTime) : new Date(),
-          incidentId,
-          location,
-          priority: priority || 'E',
-          age: age ?? null,
-          conscious: conscious ?? null,
-          breathing: breathing ?? null,
-          chiefComplaint: chiefComplaint ?? null,
-          condition: condition ?? null,
-          drugs: drugs ?? null,
-          allergies: allergies ?? null,
-          active: true,
-        };
-      };
-
-      // If there's no visitLog or it's empty, simply create a new entry
-      if (!patient.visitLog || patient.visitLog.length === 0) {
-        patient.visitLog = [createVisitLog()];
-      } else {
-        // Find the index of the latest active visit log
-        // pop() will get the last element from the filtered array
-        const lastActiveIndex = patient.visitLog
-          .map((visit, idx) => (visit.active ? idx : -1))
-          .filter((index) => index !== -1)
-          .pop();
-
-        // If we found an active visit log, update it
-        if (lastActiveIndex !== undefined && lastActiveIndex !== -1) {
-          const existingVisitLog = patient.visitLog[lastActiveIndex];
-          existingVisitLog.dateTime = dateTime ? new Date(dateTime) : existingVisitLog.dateTime;
-          existingVisitLog.incidentId = incidentId;
-          existingVisitLog.location = location;
-          existingVisitLog.priority = priority || existingVisitLog.priority;
-          existingVisitLog.age = age ?? existingVisitLog.age;
-          existingVisitLog.conscious = conscious ?? existingVisitLog.conscious;
-          existingVisitLog.breathing = breathing ?? existingVisitLog.breathing;
-          existingVisitLog.chiefComplaint = chiefComplaint ?? existingVisitLog.chiefComplaint;
-          existingVisitLog.condition = condition ?? existingVisitLog.condition;
-          existingVisitLog.drugs = drugs ?? existingVisitLog.drugs;
-          existingVisitLog.allergies = allergies ?? existingVisitLog.allergies;
-          existingVisitLog.active = true;
-        } else {
-          // If no active visits found, create a new entry
-          patient.visitLog.push(createVisitLog());
+        const patient = await Patient.findOne({ patientId })
+        if (!patient) {
+            throw new Error(`Patient with ID ${patientId} does not exist`)
         }
-      }
 
-      await patient.save();
-      return patient;
+        const {
+            dateTime,
+            incidentId,
+            location,
+            priority,
+            age,
+            conscious,
+            breathing,
+            chiefComplaint,
+            condition,
+            drugs,
+            allergies,
+        } = patientVisitData
+
+        // A helper function to generate a new IVisitLog object
+        const createVisitLog = (): IVisitLog => {
+            return {
+                dateTime: dateTime ? new Date(dateTime) : new Date(),
+                incidentId,
+                location,
+                priority: priority || 'E',
+                age: age ?? null,
+                conscious: conscious ?? null,
+                breathing: breathing ?? null,
+                chiefComplaint: chiefComplaint ?? null,
+                condition: condition ?? null,
+                drugs: drugs ?? null,
+                allergies: allergies ?? null,
+                active: true,
+            }
+        }
+
+        // If there's no visitLog or it's empty, simply create a new entry
+        if (!patient.visitLog || patient.visitLog.length === 0) {
+            patient.visitLog = [createVisitLog()]
+        } else {
+            // Find the index of the latest active visit log
+            // pop() will get the last element from the filtered array
+            const lastActiveIndex = patient.visitLog
+                .map((visit, idx) => (visit.active ? idx : -1))
+                .filter((index) => index !== -1)
+                .pop()
+
+            // If we found an active visit log, update it
+            if (lastActiveIndex !== undefined && lastActiveIndex !== -1) {
+                const existingVisitLog = patient.visitLog[lastActiveIndex]
+                existingVisitLog.dateTime = dateTime
+                    ? new Date(dateTime)
+                    : existingVisitLog.dateTime
+                existingVisitLog.incidentId = incidentId
+                existingVisitLog.location = location
+                existingVisitLog.priority =
+                    priority || existingVisitLog.priority
+                existingVisitLog.age = age ?? existingVisitLog.age
+                existingVisitLog.conscious =
+                    conscious ?? existingVisitLog.conscious
+                existingVisitLog.breathing =
+                    breathing ?? existingVisitLog.breathing
+                existingVisitLog.chiefComplaint =
+                    chiefComplaint ?? existingVisitLog.chiefComplaint
+                existingVisitLog.condition =
+                    condition ?? existingVisitLog.condition
+                existingVisitLog.drugs = drugs ?? existingVisitLog.drugs
+                existingVisitLog.allergies =
+                    allergies ?? existingVisitLog.allergies
+                existingVisitLog.active = true
+            } else {
+                // If no active visits found, create a new entry
+                patient.visitLog.push(createVisitLog())
+            }
+        }
+
+        await patient.save()
+        return patient
     }
-
-
 
     /**
      * Update the active visit log entry of a patient.
@@ -457,6 +466,28 @@ class PatientController {
 
         await patient.save()
         const updatedPatient = await Patient.findOne({ patientId })
+        if (
+            updatedPatient &&
+            updatedPatient.visitLog &&
+            updatedPatient.visitLog.length > 0
+        ) {
+            const incidentId = activeVisit.incidentId
+            const incidents =
+                await IncidentController.getIncidentByIncidentId(incidentId)
+            const incident = incidents[0]
+            if (incident && updatedPatient) {
+                if (!Array.isArray(incident.patients)) {
+                    incident.patients = []
+                }
+
+                incident.patients.push({
+                    username: updatedPatient.username,
+                    status: updatedPatient.status,
+                    dateTime: new Date().toISOString(),
+                })
+                await IncidentController.updateIncident(incident)
+            }
+        }
         return updatedPatient
     }
 

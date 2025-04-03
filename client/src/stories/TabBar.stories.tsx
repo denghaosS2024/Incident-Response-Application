@@ -1,15 +1,14 @@
 import {
-  Home,
-  LocalFireDepartment,
-  LocalHospital,
-  LocalPolice,
-  Message,
-  PermContactCalendar,
+    Home,
+    LocalFireDepartment,
+    LocalHospital,
+    LocalPolice,
+    Message,
+    PermContactCalendar,
 } from '@mui/icons-material'
 import Groups2Icon from '@mui/icons-material/Groups2'
 import { Badge } from '@mui/material'
 import { Meta, StoryObj } from '@storybook/react'
-import { useState } from 'react'
 import TabBar, { Link } from '../components/common/TabBar'
 
 const roleHomeTabs: Record<string, Link> = {
@@ -20,6 +19,8 @@ const roleHomeTabs: Record<string, Link> = {
     icon: (
       <img
         src="/911-icon-selected.png"
+        alt="Dispatch Icon"
+        title="Dispatch"
         style={{ width: '28px', height: '28px', borderRadius: '8px' }}
       />
     ),
@@ -60,9 +61,8 @@ export const RoleBasedTabBar: Story = {
   render: (_, { parameters }) => {
     const role = parameters.role as keyof typeof roleHomeTabs
     const homeTab = roleHomeTabs[role] || roleHomeTabs['Citizen']
-    const [links, setLinks] = useState([homeTab, ...commonLinks])
 
-    return <TabBar links={links} />
+    return <TabBar links={[homeTab, ...commonLinks]} />
   },
 }
 
@@ -103,8 +103,7 @@ export const CitizenUnreadMessageView: Story = {
         },
         { prefix: '/groups', key: 'groups', icon: <Groups2Icon />, to: '#' },
       ]
-      const [links] = useState([homeTab, unreadMessageLink, ...otherLinks])
-      return <TabBar links={links} />
+      return <TabBar links={[homeTab, unreadMessageLink, ...otherLinks]} />
     }
     return <UnreadMessageComponent />
   },

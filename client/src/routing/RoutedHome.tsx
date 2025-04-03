@@ -2,7 +2,7 @@
 import { Box, Modal, Typography, keyframes } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Navigate, Outlet, useNavigate } from 'react-router-dom'
+import { Navigate, Outlet, useNavigate } from 'react-router'
 import IMessage from '../models/Message'
 // IR App
 import NurseActionDialog from '@/components/feature/FindHospital/NurseActionDialog'
@@ -164,15 +164,15 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
   const setupAlertTimeout = () => {
     clearAlertTimeout() // Clear any existing timeout
 
-    // Set up a new timeout - 2 minutes = 120000 ms
+    // Set up a new timeout - 20 seconds = 20000 ms
     alertTimeoutRef.current = setTimeout(() => {
       console.log(
-        'Alert timeout reached (2 minutes) - automatically dismissing',
+        'Alert timeout reached (20 seconds) - automatically dismissing',
       )
       setAlertOpen(false)
       setMaydayOpen(false)
       setNurseAlertVisible(false)
-    }, 120000)
+    }, 20000)
   }
 
   useEffect(() => {
@@ -247,14 +247,20 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       )
       dispatch(addAlert(nurseAlertMessage))
     })
-      socket.on('nurse-alert-delayed', (message: string) => {
-        console.log('[DEBUG] Received nurse-alert-delayed in RoutedHome:', message)
-        window.alert("Your message has been delayed because of other alerts")
-      })
-      socket.on('nurse-alert-success', (message: string) => {
-        console.log('[DEBUG] Received nurse-alert-success in RoutedHome:', message)
-        window.alert("Your message has been sent")
-      })
+    socket.on('nurse-alert-delayed', (message: string) => {
+      console.log(
+        '[DEBUG] Received nurse-alert-delayed in RoutedHome:',
+        message,
+      )
+      window.alert('Your message has been delayed because of other alerts')
+    })
+    socket.on('nurse-alert-success', (message: string) => {
+      console.log(
+        '[DEBUG] Received nurse-alert-success in RoutedHome:',
+        message,
+      )
+      window.alert('Your message has been sent')
+    })
     socket.on('send-mayday', handleMaydayReceived)
     socket.on('user-status-changed', () => {
       dispatch(loadContacts())

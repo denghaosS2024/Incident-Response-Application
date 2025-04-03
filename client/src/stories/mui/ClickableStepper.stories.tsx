@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material';
 import { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
-import ClickableStepper from '../../components/ClickableStepper';
+import ClickableStepper, {StepIconStyle} from '../../components/ClickableStepper';
 
 const meta: Meta<typeof ClickableStepper> = {
     title: 'Material UI/Stepper',
@@ -48,4 +48,29 @@ export const DefaultStepper: Story = {
             />
         );
     },
+};
+
+export const SquareStepper: Story = {
+  args: {
+    numberOfSteps: 4,
+    activeStep: 0,
+  },
+  render: function DefaultStepperStory ({ numberOfSteps, activeStep }) {
+    const [currentStep, setCurrentStep] = useState<number>(activeStep);
+    const contents: JSX.Element[] = [
+      <Box key={0}><Typography>React Component for Step 1</Typography></Box>,
+      <Box key={1}><Typography>React Component for Step 2</Typography></Box>,
+      <Box key={2}><Typography>React Component for Step 3</Typography></Box>,
+    ];
+
+    return (
+      <ClickableStepper
+        numberOfSteps={numberOfSteps}
+        activeStep={currentStep}
+        setActiveStep={setCurrentStep}
+        contents={contents}
+        stepIconStyle={StepIconStyle.Square}
+      />
+    );
+  },
 };

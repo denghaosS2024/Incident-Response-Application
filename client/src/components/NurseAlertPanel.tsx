@@ -262,64 +262,6 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
 
       console.log('Alert created:', message)
 
-      // Process through the priority queue
-      // const result = AlertPriorityQueue.addAlert(message)
-
-      // if (result.active) {
-      //   // Alert is active, emit socket event
-      //   const socket = SocketClient
-      //   socket.connect()
-
-      //   // Make sure we ONLY include nurse responders in the message
-      //   const alertWithResponders = {
-      //     ...message,
-      //     channelId,
-      //     responders: availableNurses, // We already filtered for nurses above
-      //   }
-
-      //   console.log('Emitting nurse-alert socket event:', alertWithResponders)
-
-      //   // Emit directly to server for broadcasting to nurses
-      //   socket.emit('nurse-alert', alertWithResponders)
-
-      //   // No need to emit as a regular message since server will handle this
-      //   // socket.emit('message', alertWithResponders)
-
-      //   setNotification({
-      //     open: true,
-      //     message: 'Alert has been sent.',
-      //     severity: 'success',
-      //   })
-      // } else if (result.queued) {
-      //   // Alert is queued
-      //   window.alert("The alert is being delayed by other alerts and will be sent as soon as possible.");
-      //   setNotification({
-      //     open: true,
-      //     message: result.message,
-      //     severity: 'info',
-      //   })
-
-      //   // Set a timeout to try processing the queue after the 2-minute wait
-      //   setTimeout(() => {
-      //     const nextAlert = AlertPriorityQueue.getNextAlert(channelId)
-      //     if (nextAlert && nextAlert._id === message._id) {
-      //       // Our alert is now active, emit socket event
-      //       const socket = SocketClient
-      //       socket.connect()
-      //       socket.emit('nurse-alert', {
-      //         ...nextAlert,
-      //         channelId,
-      //       })
-
-      //       setNotification({
-      //         open: true,
-      //         message: 'The alert has been sent.',
-      //         severity: 'success',
-      //       })
-      //     }
-      //   }, 120000) // 2 minutes
-      // }
-
       dispatch(addMessage(message))
       if (onClose) onClose()
     } catch (error) {

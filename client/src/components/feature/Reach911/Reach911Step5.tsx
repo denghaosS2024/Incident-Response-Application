@@ -1,3 +1,5 @@
+import { getRoleIcon } from '@/components/common/RoleIcon'
+import ROLES from '@/utils/Roles'
 import {
     Box,
     Button,
@@ -11,15 +13,13 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import type IIncident from '../../../models/Incident'
 import { IncidentPriority } from '../../../models/Incident'
 import { updateIncident } from '../../../redux/incidentSlice'
 import type { AppDispatch } from '../../../redux/store'
 import request from '../../../utils/request'
 import ConfirmationDialog from '../../common/ConfirmationDialog'
-import ROLES from '@/utils/Roles'
-import { getRoleIcon } from '@/components/common/RoleIcon'
 
 interface Reach911Step5Props {
     incidentId?: string
@@ -450,6 +450,17 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             username === currentUsername ? `${username}(You) ` : `${username} `,
         )
 
+    const formatDate = (isoString: string) => {
+        const date = new Date(isoString)
+        const pad = (n: number) => n.toString().padStart(2, '0')
+        const year = date.getFullYear()
+        const month = pad(date.getMonth() + 1)
+        const day = pad(date.getDate())
+        const hours = pad(date.getHours())
+        const minutes = pad(date.getMinutes())
+        return `${year}-${month}-${day} ${hours}:${minutes}`
+    }
+
     return (
         <Paper elevation={3} sx={{ p: 2, m: 2 }}>
             <Box sx={{ mb: 2 }}>
@@ -457,8 +468,14 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     Response Team Corner
                 </Typography>
                 <Typography>
-                    Incident Open: {incidentData.openingDate}
+                    Incident Open: {formatDate(incidentData.openingDate)}
                 </Typography>
+                {incidentData.closingDate && (
+                    <Typography>
+                        Incident Close: {formatDate(incidentData.closingDate)}
+                    </Typography>
+                )}
+
                 <Typography>Incident ID: {incidentData.incidentId}</Typography>
                 <Typography>
                     Incident Caller: {incidentData.caller || 'None'}

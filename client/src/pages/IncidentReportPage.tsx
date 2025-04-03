@@ -1,5 +1,5 @@
 import { Box, Button, Divider, Typography } from '@mui/material'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 import StatisticsAndAdditionalInfo from '../components/IncidentReport/StatisticsAndAdditionalInfo.tsx'
 import Step1EmergencyDetails from '../components/IncidentReport/Step1EmergencyDetails'
 import Step2EmergencyType from '../components/IncidentReport/Step2EmergencyType'
@@ -18,9 +18,7 @@ const IncidentReportPage = () => {
     }
 
     const isResponderReadOnly =
-        incidentData.status === 'Closed' &&
-        incidentData.commander !== currentUsername &&
-        incidentData.currentUserRole === 'Responder'
+        incidentData.commander !== currentUsername 
 
     return (
         <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>

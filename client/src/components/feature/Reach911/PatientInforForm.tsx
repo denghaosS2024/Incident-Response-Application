@@ -22,8 +22,7 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { v4 as uuidv4 } from 'uuid'
+import { useNavigate, useSearchParams } from 'react-router'
 import IUser from '../../../models/User'
 import { loadContacts } from '../../../redux/contactSlice'
 import { AppDispatch, RootState } from '../../../redux/store'
@@ -35,6 +34,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     sex: propSex,
 }) => {
     const dispatch = useDispatch<AppDispatch>()
+    const [searchParams, setSearchParams] = useSearchParams();
     const [currentUsername, setcurrentUsername] = useState<string>(
         propUsername || '',
     )
@@ -66,8 +66,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
             username: propUsername,
             name: '',
             sex: propSex || '',
-            dob: '',
-            patientId: uuidv4(), // Generate a unique ID for the new patient
+            dob: ''
         }
         dispatch(addPatient(patient))
         setIsPatientAdded(true)
@@ -118,8 +117,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                             username: response.username,
                             name: '',
                             sex: propSex || '',
-                            dob: '',
-                            patientId: uuidv4(),
+                            dob: ''
                         }
                         dispatch(addPatient(patient))
 
@@ -157,12 +155,15 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                     username: value,
                     name: '',
                     sex: propSex || '',
-                    dob: '',
-                    patientId: uuidv4(),
+                    dob: ''
                 }
                 dispatch(addPatient(patient))
             }
             setcurrentUsername(value)
+            console.log("Current username set to:", value)
+            searchParams.set('username', value);
+            navigate(`/patients/admit?${searchParams.toString()}`)
+            // setSearchParams(searchParams);// Update the URL search params
         } else {
             dispatch(
                 setPatient({

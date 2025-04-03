@@ -78,27 +78,27 @@ export default function ManagedTabBar() {
   const additionalTabs: Link[] = [
     ...(role === 'Citizen' || role == 'Administrator'
       ? [
-          {
-            prefix: '/reach911',
-            key: 'reach911',
-            icon:
-              selectedTab === 'reach911' ? (
-                <img
-                  src="/911-icon-selected.png"
-                  alt="Selected 911 Icon"
-                  style={{ width: '28px', height: '28px', borderRadius: '8px' }}
-                />
-              ) : (
-                <img
-                  src="/911-icon.png"
-                  alt="911 Icon"
-                  style={{ width: '28px', height: '28px', borderRadius: '8px' }}
-                />
-              ),
-            to: '/reach911',
-            onClick: () => setSelectedTab('reach911'),
-          },
-        ]
+        {
+          prefix: '/reach911',
+          key: 'reach911',
+          icon:
+            selectedTab === 'reach911' ? (
+              <img
+                src="/911-icon-selected.png"
+                alt="Selected 911 Icon"
+                style={{ width: '28px', height: '28px', borderRadius: '8px' }}
+              />
+            ) : (
+              <img
+                src="/911-icon.png"
+                alt="911 Icon"
+                style={{ width: '28px', height: '28px', borderRadius: '8px' }}
+              />
+            ),
+          to: '/reach911',
+          onClick: () => setSelectedTab('reach911'),
+        },
+      ]
       : []),
   ]
 
@@ -188,6 +188,16 @@ export default function ManagedTabBar() {
         dispatch(setHasNewIncident(false))
         setSelectedTab('incidents')
       },
+    })
+  }
+
+  if (role === 'Police' || role === 'Fire') {
+    orderedTabs.push({
+      prefix: '/patients',
+      key: 'patients',
+      icon: <BedIcon />,
+      to: '/patients',
+      onClick: () => setSelectedTab('patients'),
     })
   }
 

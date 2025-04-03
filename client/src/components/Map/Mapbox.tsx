@@ -1096,7 +1096,6 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
   };
 
-  // 獲取並顯示 cars
   const fetchAndDisplayCars = async () => {
     try {
         // Fetch all users
