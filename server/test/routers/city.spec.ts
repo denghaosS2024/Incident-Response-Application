@@ -10,19 +10,23 @@ describe('City Routes', () => {
     beforeAll(async () => {
         await TestDatabase.connect()
 
-        // Clear data before testing
-        await City.deleteMany({})
-        await Car.deleteMany({})
-        await Truck.deleteMany({})
-        await Personnel.deleteMany({})
+        await Promise.all([
+            City.deleteMany({}),
+            Car.deleteMany({}),
+            Truck.deleteMany({}),
+            Personnel.deleteMany({}),
+        ])
     })
 
     afterAll(async () => {
         // Clean up test data
-        await City.deleteMany({})
-        await Car.deleteMany({})
-        await Truck.deleteMany({})
-        await Personnel.deleteMany({})
+
+        await Promise.all([
+            City.deleteMany({}),
+            Car.deleteMany({}),
+            Truck.deleteMany({}),
+            Personnel.deleteMany({}),
+        ])
 
         await TestDatabase.close()
     })
@@ -67,9 +71,11 @@ describe('City Routes', () => {
 
             expect(Array.isArray(response.body)).toBe(true)
             // Check that at least one city ("Test City") is returned
-            expect(response.body.some((c: any) => c.name === 'Test City')).toBe(
-                true,
-            )
+            expect(
+                response.body.some(
+                    (c: Record<string, unknown>) => c.name === 'Test City',
+                ),
+            ).toBe(true)
         })
     })
 
@@ -100,19 +106,22 @@ describe('City Routes', () => {
 
         it('should delete a city by id and reset related assignments', async () => {
             // Verify references exist before deletion
-            const carsBefore = await Car.find({
-                assignedCity: 'Removable City',
-            })
+
+            const [carsBefore, trucksBefore, personnelBefore] =
+                await Promise.all([
+                    Car.find({
+                        assignedCity: 'Removable City',
+                    }),
+                    Truck.find({
+                        assignedCity: 'Removable City',
+                    }),
+                    Personnel.find({
+                        assignedCity: 'Removable City',
+                    }),
+                ])
+
             expect(carsBefore.length).toBeGreaterThan(0)
-
-            const trucksBefore = await Truck.find({
-                assignedCity: 'Removable City',
-            })
             expect(trucksBefore.length).toBeGreaterThan(0)
-
-            const personnelBefore = await Personnel.find({
-                assignedCity: 'Removable City',
-            })
             expect(personnelBefore.length).toBeGreaterThan(0)
 
             // Delete the city
@@ -123,22 +132,20 @@ describe('City Routes', () => {
             expect(response.body).toHaveProperty('message')
             expect(response.body.message).toMatch(/City deleted/i)
 
+            const [deletedCity, carsAfter, trucksAfter, personnelAfter] =
+                await Promise.all([
+                    City.findById(cityIdToDelete),
+                    Car.find({ assignedCity: 'Removable City' }),
+                    Truck.find({ assignedCity: 'Removable City' }),
+                    Personnel.find({ assignedCity: 'Removable City' }),
+                ])
+
             // City should be gone
-            const deletedCity = await City.findById(cityIdToDelete)
             expect(deletedCity).toBeNull()
 
             // All references to the city should be reset
-            const carsAfter = await Car.find({ assignedCity: 'Removable City' })
             expect(carsAfter.length).toBe(0)
-
-            const trucksAfter = await Truck.find({
-                assignedCity: 'Removable City',
-            })
             expect(trucksAfter.length).toBe(0)
-
-            const personnelAfter = await Personnel.find({
-                assignedCity: 'Removable City',
-            })
             expect(personnelAfter.length).toBe(0)
         })
 
@@ -159,15 +166,17 @@ describe('City Routes', () => {
             // Create a city
             await City.create({ name: cityName })
 
-            // Create some Car/Truck/Personnel referencing that city
-            await Car.create({ name: 'CarA', assignedCity: cityName })
-            await Truck.create({ name: 'TruckA', assignedCity: cityName })
-            await Personnel.create({
-                username: 'UserA',
-                password: 'test123',
-                role: 'Police', // Must match validation requirement
-                assignedCity: cityName,
-            })
+            await Promise.all([
+                // Create some Car/Truck/Personnel referencing that city
+                Car.create({ name: 'CarA', assignedCity: cityName }),
+                Truck.create({ name: 'TruckA', assignedCity: cityName }),
+                Personnel.create({
+                    username: 'UserA',
+                    password: 'test123',
+                    role: 'Police', // Must match validation requirement
+                    assignedCity: cityName,
+                }),
+            ])
         })
 
         it('should get the assignments for a city', async () => {

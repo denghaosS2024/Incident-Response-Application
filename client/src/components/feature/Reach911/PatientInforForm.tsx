@@ -1,3 +1,4 @@
+import BirthdayField from '@/components/common/BirthdayField'
 import IPatient from '@/models/Patient'
 import {
     addPatient,
@@ -6,11 +7,9 @@ import {
     updatePatient,
 } from '@/redux/patientSlice'
 import {
-    Box,
     FormControl,
     FormControlLabel,
     FormHelperText,
-    FormLabel,
     InputLabel,
     MenuItem,
     Radio,
@@ -18,8 +17,8 @@ import {
     Select,
     SelectChangeEvent,
     TextField,
-    Typography,
 } from '@mui/material'
+import { Button } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useSearchParams } from 'react-router'
@@ -34,7 +33,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     sex: propSex,
 }) => {
     const dispatch = useDispatch<AppDispatch>()
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams()
     const [currentUsername, setcurrentUsername] = useState<string>(
         propUsername || '',
     )
@@ -66,7 +65,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
             username: propUsername,
             name: '',
             sex: propSex || '',
-            dob: ''
+            dob: '',
         }
         dispatch(addPatient(patient))
         setIsPatientAdded(true)
@@ -117,7 +116,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                             username: response.username,
                             name: '',
                             sex: propSex || '',
-                            dob: ''
+                            dob: '',
                         }
                         dispatch(addPatient(patient))
 
@@ -155,13 +154,13 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                     username: value,
                     name: '',
                     sex: propSex || '',
-                    dob: ''
+                    dob: '',
                 }
                 dispatch(addPatient(patient))
             }
             setcurrentUsername(value)
-            console.log("Current username set to:", value)
-            searchParams.set('username', value);
+            console.log('Current username set to:', value)
+            searchParams.set('username', value)
             navigate(`/patients/admit?${searchParams.toString()}`)
             // setSearchParams(searchParams);// Update the URL search params
         } else {
@@ -182,6 +181,20 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
         validateField(field, newValue)
     }
 
+    const onUpdateBirthday = (dob: Date) => {
+        dispatch(
+            setPatient({
+                ...patient,
+                dob: dob.toISOString(),
+            }),
+        )
+        dispatch(
+            updatePatient({
+                ...patient,
+                dob: dob.toISOString(),
+            }),
+        )
+    }
     // Validates field to set certain error messages
     const validateField = (field: string, value: string | boolean) => {
         if (field === 'username') {
@@ -223,27 +236,18 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     if (loading) return <Loading />
 
     return (
-        <>
-            <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                paddingX="32px"
-            >
-                <Box
-                    sx={{
-                        display: 'flex',
-                        maxWidth: '500px',
-                        width: '100%',
-                        alignItems: 'start',
-                        color: 'rgba(0, 0, 0, 0.6)',
-                    }}
-                >
-                    <Typography>Patient Username:</Typography>
-                </Box>
+        <div className="flex flex-col items-center p-10 gap-2">
+            <div className="flex flex-col w-1/3 items-center gap-2">
+                <div className="flex flex-row w-full gap-2 items-center justify-center">
+                    <p className="text-md my-0 text-nowrap">
+                        Patient Username:
+                    </p>
 
-                {!propUsername ? (
-                    <Box width="100%" maxWidth="500px" my={2}>
+                    {propUsername ? (
+                        <p className="text-lg font-bold my-0 w-full">
+                            {propUsername}
+                        </p>
+                    ) : (
                         <FormControl fullWidth error={!!usernameError}>
                             <InputLabel id="username-label">
                                 Select One
@@ -271,128 +275,87 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
 
                             <FormHelperText>{usernameError}</FormHelperText>
                         </FormControl>
-                    </Box>
-                ) : (
-                    <Box width="100%" maxWidth="500px" my={2}>
-                        {/* <TextField
+                    )}
+                </div>
+
+                {!propUsername ? <div className="w-full"></div> : null}
+
+                {/* Name, DOB, Sex */}
+                <div className="w-full flex flex-col gap-3 my-10 items-center justify-center">
+                    {/* Name */}
+                    <div className="w-full flex flex-row gap-5 items-center justify-center">
+                        <p className="text-lg font-bold text-center py-0 my-auto">
+                            Name:{' '}
+                        </p>
+
+                        <TextField
                             variant="outlined"
-                            label="Username"
-                            value={propUsername}
+                            label="Name"
+                            value={name || ''}
+                            onChange={(e) => onChange('name', e)}
                             fullWidth
-                            InputProps={{
-                                readOnly: true,
-                            }}
-                        /> */}
-                        <Typography>{propUsername}</Typography>
-                    </Box>
-                )}
+                            error={!!usernameError}
+                            helperText={usernameError}
+                        />
+                    </div>
 
-                {/** Asks the user for a name */}
-                <Box
-                    sx={{
-                        display: 'flex',
-                        maxWidth: '500px',
-                        width: '100%',
-                        alignItems: 'start',
-                        color: 'rgba(0, 0, 0, 0.6)',
-                    }}
-                >
-                    <Typography>Name:</Typography>
-                </Box>
+                    {/* DOB */}
+                    <div className="flex flex-row w-full gap-5 items-center justify-center">
+                        <p className="text-lg font-bold text-center py-0 my-auto">
+                            DOB:{' '}
+                        </p>
 
-                <Box width="100%" maxWidth="500px" my={2}>
-                    <TextField
-                        variant="outlined"
-                        label="Name"
-                        value={name || ''}
-                        onChange={(e) => onChange('name', e)}
-                        fullWidth
-                        error={!!usernameError}
-                        helperText={usernameError}
-                    />
-                </Box>
+                        <BirthdayField
+                            onChangeDob={(dob) => onUpdateBirthday(dob)}
+                        />
+                    </div>
 
-                <Box
-                    sx={{
-                        display: 'flex',
-                        maxWidth: '500px',
-                        width: '100%',
-                        alignItems: 'start',
-                        color: 'rgba(0, 0, 0, 0.6)',
-                    }}
-                >
-                    <Typography>Date of Birth:</Typography>
-                </Box>
+                    {/* Sex */}
+                    <div className="w-full flex flex-row gap-5 items-center justify-center">
+                        <p className="text-lg font-bold text-center py-0 my-auto">
+                            Sex:{' '}
+                        </p>
 
-                {/** Asks the user their date of birth */}
-                <Box width="100%" maxWidth="500px" my={2}>
-                    <TextField
-                        variant="outlined"
-                        // label="Date of Birth"
-                        type="date"
-                        fullWidth
-                        value={dob} // Replace with a state variable for date of birth if needed
-                        InputLabelProps={{
-                            shrink: true, // Ensures the label stays above the input
-                        }}
-                        onChange={(e) => onChange('dob', e)} // Update the field name accordingly
-                    />
-                </Box>
+                        <FormControl>
+                            <RadioGroup
+                                row
+                                aria-labelledby="sex-label"
+                                name="sex-radio-buttons-group"
+                                value={sex}
+                                onChange={(e) => onChange('sex', e)}
+                            >
+                                {['Female', 'Male', 'Other'].map((sex) => (
+                                    <FormControlLabel
+                                        key={sex}
+                                        value={sex}
+                                        control={<Radio />}
+                                        label={sex}
+                                    />
+                                ))}
+                            </RadioGroup>
+                        </FormControl>
+                    </div>
+                </div>
 
-                {/** Asks the user their sex */}
-                <Box width="100%" maxWidth="500px" my={2}>
-                    <FormControl>
-                        <FormLabel id="sex-label">Sex:</FormLabel>
-                        <RadioGroup
-                            row
-                            aria-labelledby="sex-label"
-                            name="sex-radio-buttons-group"
-                            value={sex}
-                            onChange={(e) => onChange('sex', e)}
-                        >
-                            <FormControlLabel
-                                value="female"
-                                control={<Radio />}
-                                label="Female"
-                            />
-                            <FormControlLabel
-                                value="male"
-                                control={<Radio />}
-                                label="Male"
-                            />
-                            <FormControlLabel
-                                value="other"
-                                control={<Radio />}
-                                label="Other"
-                            />
-                        </RadioGroup>
-                    </FormControl>
-                </Box>
-            </Box>
-
-            <Box display="flex" justifyContent="center" mt={4}>
-                <button
+                <Button
+                    type="primary"
                     style={{
-                        padding: '10px 20px',
+                        borderRadius: '10px',
                         backgroundColor: '#1976d2',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '16px',
                     }}
                     onClick={handleProfileClick}
                 >
-                    Profile
-                </button>
-            </Box>
+                    <p className="text-white text-lg font-bold m-0">Profile</p>
+                </Button>
+            </div>
+
             <hr
                 style={{
                     margin: '20px 0',
                     border: '1px solid #000',
                 }}
             />
-        </>
+        </div>
     )
 }
 

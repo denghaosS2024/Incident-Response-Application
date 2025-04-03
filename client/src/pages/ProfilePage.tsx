@@ -1,3 +1,4 @@
+import { setSnackbar, SnackbarType } from '@/redux/snackbarSlice'
 import Autocomplete from '@mui/lab/Autocomplete'
 import {
     FormControlLabel,
@@ -9,6 +10,7 @@ import {
 } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useCallback, useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { useParams } from 'react-router'
 import EmergencyContactField from '../components/Profile/EmergencyContactField'
 import MedicalInfoField from '../components/Profile/MedicalInfoField'
@@ -33,6 +35,9 @@ export default function ProfilePage() {
     const isViewingOwnProfile = !paramUserId || paramUserId === uid
     const isReadOnly = paramUserId !== undefined && paramUserId !== uid
     const effectiveUserId = paramUserId || uid
+
+    const dispatch = useDispatch()
+
     console.log('Effective UserId being used:', effectiveUserId)
     const [emergencyContacts, setEmergencyContacts] = useState<
         IEmergencyContact[]
@@ -44,18 +49,18 @@ export default function ProfilePage() {
     })
     const [emailError, setEmailError] = useState('')
     const [phoneError, setPhoneError] = useState('')
-    const [snackbarOpen, setSnackbarOpen] = useState(false)
-    const [snackbarMessage, setSnackbarMessage] = useState('')
-    const [snackbarSeverity, setSnackbarSeverity] = useState<
-        'success' | 'error' | 'warning' | 'info'
-    >('info')
+    // const [snackbarOpen, setSnackbarOpen] = useState(false)
+    // const [snackbarMessage, setSnackbarMessage] = useState('')
+    // const [snackbarSeverity, setSnackbarSeverity] = useState<
+    //     'success' | 'error' | 'warning' | 'info'
+    // >('info')
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     const phoneRegex = /^\+?[1-9]\d{1,14}$/
 
-    const handleSnackbarClose = () => {
-        setSnackbarOpen(false)
-    }
+    // const handleSnackbarClose = () => {
+    //     setSnackbarOpen(false)
+    // }
 
     const handleSexChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSex(event.target.value)
@@ -141,10 +146,16 @@ export default function ProfilePage() {
         const today = new Date()
         today.setHours(0, 0, 0, 0) // Normalize time to prevent time-zone issues
 
+        console.log('selectedDate', selectedDate)
+
         if (selectedDate > today) {
-            setSnackbarMessage('Date of Birth cannot be in the future.')
-            setSnackbarSeverity('error')
-            setSnackbarOpen(true)
+            dispatch(
+                setSnackbar({
+                    message: 'Date of Birth cannot be in the future.',
+                    type: SnackbarType.ERROR,
+                    durationMs: 1350,
+                }),
+            )
             return
         }
 
@@ -319,6 +330,7 @@ export default function ProfilePage() {
                 label="Name"
                 value={name}
                 onChange={(e) => {
+                    console.log('Name changed:', e.target.value)
                     setName(e.target.value)
                 }}
                 disabled={isReadOnly}
@@ -334,7 +346,13 @@ export default function ProfilePage() {
                         id="birthday"
                         name="birthday"
                         value={dob}
-                        onChange={handleDobChange}
+                        onChange={(e) => {
+                            console.log(
+                                'Date of Birth changed:',
+                                e.target.value,
+                            )
+                            handleDobChange(e)
+                        }}
                         style={{
                             width: '100%',
                             padding: '8px',

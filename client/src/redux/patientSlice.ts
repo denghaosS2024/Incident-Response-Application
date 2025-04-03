@@ -51,7 +51,11 @@ const addPatient = createAsyncThunk(
             return response
         } catch (error: unknown) {
             console.error('Error adding new patient:', error)
-            return rejectWithValue(error instanceof Error ? error.message : 'Failed to add patient')
+            return rejectWithValue(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to add patient',
+            )
         }
     },
 )
@@ -67,7 +71,11 @@ const updatePatient = createAsyncThunk(
             return response
         } catch (error: unknown) {
             console.error('Error updating patient:', error)
-            return rejectWithValue(error instanceof Error ? error.message : 'Failed to update patient')
+            return rejectWithValue(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to update patient',
+            )
         }
     },
 )
