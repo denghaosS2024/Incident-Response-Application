@@ -6,6 +6,7 @@ import {
     setPatient,
     updatePatient,
 } from '@/redux/patientSlice'
+import { setSnackbar, SnackbarType } from '@/redux/snackbarSlice'
 import {
     FormControl,
     FormControlLabel,
@@ -28,7 +29,7 @@ import { AppDispatch, RootState } from '../../../redux/store'
 import request from '../../../utils/request'
 import Loading from '../../common/Loading'
 
-const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
+const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
     username: propUsername,
     sex: propSex,
 }) => {
@@ -122,20 +123,29 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
 
                         setcurrentUsername(response.username)
 
-                        const newContact: IUser = {
-                            _id: response.userId,
-                            username: response.username,
-                            role: 'Citizen',
-                        }
+                        // const newContact: IUser = {
+                        //     _id: response.userId,
+                        //     username: response.username,
+                        //     role: 'Citizen',
+                        // }
 
                         dispatch(loadContacts())
 
-                        alert(
-                            `A new user account has been created for the Patient.\nTemporary Username: ${response.username}, Password: 1234`,
+                        dispatch(
+                            setSnackbar({
+                                message: `Patient account created!.\nTemporary Username: ${response.username}, Password: 1234`,
+                                type: SnackbarType.GOOD,
+                                durationMs: 3000,
+                            }),
                         )
                     } else {
-                        alert(
-                            'Failed to create a new patient account. Please try again.',
+                        dispatch(
+                            setSnackbar({
+                                message:
+                                    'Failed to create a new patient account. Please try again.',
+                                type: SnackbarType.ERROR,
+                                durationMs: 3000,
+                            }),
                         )
                     }
                 } catch (error) {
@@ -179,6 +189,12 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
         }
 
         validateField(field, newValue)
+    }
+
+    function onSelectUser(userId: string) {
+        
+        patients.find
+
     }
 
     const onUpdateBirthday = (dob: Date) => {
@@ -259,15 +275,14 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
                                 onChange={(e) => onChange('username', e)}
                                 fullWidth
                             >
-                                <MenuItem value="create-one">
-                                    Create One
-                                </MenuItem>
-
-                                {contacts.map((user: IUser) => (
-                                    <MenuItem
-                                        key={user._id}
-                                        value={user.username}
-                                    >
+                                {[
+                                    {
+                                        _id: 'create-one',
+                                        username: 'Create one',
+                                    } as IUser,
+                                    ...contacts,
+                                ].map((user: IUser) => (
+                                    <MenuItem key={user._id} value={user._id}>
                                         {user.username}
                                     </MenuItem>
                                 ))}
@@ -359,4 +374,4 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
     )
 }
 
-export default PatientInforForm
+export default PatientCreationForm

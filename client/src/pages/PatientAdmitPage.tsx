@@ -1,4 +1,4 @@
-import PatientInforForm from '@/components/feature/Reach911/PatientInforForm'
+import PatientCreationForm from '@/components/feature/Reach911/PatientCreationForm'
 import VisitLogList from '@/components/feature/Reach911/VisitLogList'
 import { Box } from '@mui/material'
 import React from 'react'
@@ -11,7 +11,7 @@ const PatientAdmitPage: React.FC = () => {
 
     return (
         <Box sx={{ height: '100%' }}>
-            <PatientInforForm username={username}></PatientInforForm>
+            <PatientCreationForm username={username}></PatientCreationForm>
             <VisitLogList username={username}></VisitLogList>
         </Box>
     )
