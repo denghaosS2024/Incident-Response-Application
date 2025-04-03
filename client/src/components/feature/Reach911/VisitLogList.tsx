@@ -9,11 +9,11 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { useNavigate } from 'react-router';
 
-// const rows = [
-//   { Date: '11.22.20-08:00', Location: 'ER El Camino', Link: '>' },
-//   { Date: '10.20.20-09:00', Location: 'ER Sequoia', Link: '>' },
-//   { Date: '09.13.20-13:00', Location: 'Road', Link: '>' }
-// ];
+const rows = [
+  // { Date: '11.22.20-08:00', Location: 'ER El Camino', Link: '>' },
+  // { Date: '10.20.20-09:00', Location: 'ER Sequoia', Link: '>' },
+  // { Date: '09.13.20-13:00', Location: 'Road', Link: '>' }
+];
 
 const VisitLogList: React.FC<{ username?: string }> = ({
   username: propUsername
