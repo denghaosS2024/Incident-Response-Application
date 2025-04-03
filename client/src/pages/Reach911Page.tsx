@@ -179,6 +179,7 @@ const Reach911Page: React.FC = () => {
     }
 
     const updateIncidentCall = async () => {
+        const { __v, ...safeIncident } = incident
         try {
             const token = localStorage.getItem('token')
             const uid = localStorage.getItem('uid')
@@ -199,7 +200,7 @@ const Reach911Page: React.FC = () => {
                     'x-application-uid': uid,
                 },
                 body: JSON.stringify({
-                    ...incident,
+                    ...safeIncident,
                     incidentState: incident.incidentState || 'Waiting',
                     openingDate:
                         incident.openingDate || new Date().toISOString(),
