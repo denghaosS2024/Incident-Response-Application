@@ -40,8 +40,6 @@ const Reach911Page: React.FC = () => {
     const role = localStorage.getItem('role')
     const uid = localStorage.getItem('uid')
 
-    const isIncidentReady = !!incident._id || !!incident.incidentId
-
     useEffect(() => {
         const initializeIncident = async () => {
             try {
@@ -178,6 +176,13 @@ const Reach911Page: React.FC = () => {
         contents.push(<Reach911Step5 incidentId={incidentId} />)
     }
 
+    const username = localStorage.getItem('username') ?? ''
+
+    const isFirstResponder =
+        incident?.assignedVehicles?.some((v) =>
+            v.usernames.includes(username),
+        ) && incident?.commander !== username
+
     const updateIncidentCall = async () => {
         const { __v, ...safeIncident } = incident
         try {
@@ -271,24 +276,11 @@ const Reach911Page: React.FC = () => {
         ),
     )
 
-    // if (!isIncidentReady) {
-    //     return (
-    //         <div className={styles.wrapper}>
-    //             <div
-    //                 className={styles.placeholder}
-    //                 style={{ paddingTop: '50px' }}
-    //             >
-    //                 <h3 style={{ textAlign: 'center' }}>Loading incident...</h3>
-    //             </div>
-    //         </div>
-    //     )
-    // }
-
     return (
         <div
             className={styles.wrapper}
             style={
-                readOnly
+                readOnly && !isFirstResponder
                     ? {
                           pointerEvents: 'none',
                           position: 'relative',
@@ -297,7 +289,7 @@ const Reach911Page: React.FC = () => {
                     : {}
             }
         >
-            {readOnly && (
+            {readOnly && !isFirstResponder && (
                 <div
                     style={{
                         position: 'absolute',
@@ -314,6 +306,7 @@ const Reach911Page: React.FC = () => {
                     This incident is in read-only mode.
                 </div>
             )}
+
             <div style={readOnly ? { pointerEvents: 'auto' } : {}}>
                 <ClickableStepper
                     numberOfSteps={contents.length}
