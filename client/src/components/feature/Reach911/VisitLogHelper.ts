@@ -76,6 +76,8 @@ export default class VisitLogHelper {
     'Strain',
     'Sprain',
     'Stroke',
+    'Others',
+    '',
   ]).map((value) => ({
     value,
     label: value,
