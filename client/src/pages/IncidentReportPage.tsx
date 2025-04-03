@@ -18,9 +18,7 @@ const IncidentReportPage = () => {
     }
 
     const isResponderReadOnly =
-        incidentData.status === 'Closed' &&
-        incidentData.commander !== currentUsername &&
-        incidentData.currentUserRole === 'Responder'
+        incidentData.commander !== currentUsername 
 
     return (
         <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
