@@ -16,16 +16,16 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router'
 import { RootState } from '../../../redux/store'
 import Loading from '../../common/Loading'
 import { IVisitLogForm } from './IVisitLogForm'
 import VisitLogHelper from './VisitLogHelper'
-
-const hospitalGroupId = '67e74c979e55e050073d6afb'
-const patientId = '455tt'
+import request, { IRequestError } from '@/utils/request'
+import IPatient from '@/models/Patient'
+import IHospital from '@/models/Hospital'
 
 // Default: E
 
@@ -57,6 +57,10 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
   // Set the visit time to the current date and time
   const [visitTime, setVisitTime] = useState(getCurrentDateTime())
   const [incidentId, setIncidentId] = useState('')
+  const [currentPatient, setCurrentPatient] = useState<IPatient>({} as IPatient)
+  const [currentHospital, setCurrentHospital] = useState<IHospital>(
+    {} as IHospital,
+  )
 
   const handleChange = (
     event:
@@ -144,11 +148,58 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
   const getCurrentPatientId = () => {
     if (!patients || patients.length === 0 || !propUsername) {
-      return null
+      return ''
     }
     const patient = patients.find((p) => p.username === propUsername)
-    return patient ? patient.patientId : null
+    return patient ? patient.patientId : ''
   }
+
+  useEffect(() => {
+    const patientId = getCurrentPatientId()
+    const fetchPatient = async () => {
+      try {
+        const patient: IPatient = await request(
+          `/api/patients/single?patientId=${patientId}`,
+        )
+        if (patient) {
+          setCurrentPatient(patient)
+        }
+      } catch (e) {
+        const error = e as IRequestError
+        console.log('Error fetching current patient ' + error.message)
+      }
+    }
+
+    fetchPatient()
+  }, [])
+
+  useEffect(() => {
+    const fetchHospital = async () => {
+      try {
+
+        if (currentPatient.hospitalId) {
+          const hospital = await request(
+            `/api/hospital?hospitaltId=${currentPatient.hospitalId}`,
+          )
+          if (hospital) {
+            console.log('hospital: ')
+            console.log(currentPatient)
+            setCurrentHospital(hospital[0] as IHospital)
+          }
+        }
+          
+      } catch (e) {
+        const error = e as IRequestError
+        console.log('Error fetching current hospital ' + error.message)
+      }
+    }
+
+    fetchHospital()
+  }, [currentPatient])
+
+  useEffect(() => {
+    console.log('Updated currentHospital:', currentHospital)
+  }, [currentHospital])
 
   console.log('Current patient ID:', getCurrentPatientId())
 
@@ -164,7 +215,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     const channelId = hospital.hospitalGroupId
     console.log(channelId)
     navigate(
-      `/messages?channelId=${channelId}&showAlert=true&patient=${patientId}`,
+      `/messages?channelId=${channelId}&showAlert=true&patient=${currentPatient.patientId}`,
     )
   }
 
@@ -398,20 +449,21 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
           <Box className="flex flex-row">
             <Typography
               sx={{ width: 120, flexShrink: 0 }}
-              className="flex flex-row"
             >
-              Hospital: None
+              Hospital: {currentHospital?.hospitalName ?? 'None'}
             </Typography>
           </Box>
 
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            onClick={onClickHospital}
-          >
-            Find Hospital
-          </Button>
+          {!currentPatient.hospitalId && (
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              onClick={onClickHospital}
+            >
+              Find Hospital
+            </Button>
+          )}
         </Box>
       </FormControl>
 
