@@ -1,6 +1,6 @@
 import request, { IRequestError } from "@/utils/request.ts"
 import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
-import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import { useSearchParams } from "react-router"
 import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
@@ -19,8 +19,11 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
   const [searchParams] = useSearchParams()
   const taskId = parseInt(searchParams.get('taskId') || '0')
   const [counts, setCounts] = useState<number[]>(categories.map(() => 0))
+  const [needSave, setNeedSave] = useState<boolean>(false)
   const [readOnly, setReadOnly] = useState(false)
   const [allowTreatVictim, setAllowTreatVictim] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   useEffect(() => {
     if (incident === null || incident?.sarTasks === null) return
@@ -32,13 +35,14 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
     if (victims.length === categories.length) {
       setAllowTreatVictim(victims[0] > 0 || victims[1] > 0 || victims[2] > 0)
     }
-  }, [incident]);
+  }, [incident])
 
   const handleCountChange = (index: number, value: string) => {
     const newCounts = [...counts]
     // Ensure value is a non-negative integer
     newCounts[index] = Math.max(0, parseInt(value) || 0)
     setCounts(newCounts)
+    setNeedSave(true)
     // console.log(newCounts)
 
     if (newCounts.length === categories.length) {
@@ -46,37 +50,52 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
     }
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    const updateSARTask = async (victims: number[]) => {
-      if (!incident) return
-      try {
-        const currentSarTask = incident?.sarTasks?.at(taskId)
-        const response: IIncident = await request(
-          `/api/incidents/sar/${incident.incidentId}`,
-          {
-            method: 'PUT',
-            body: JSON.stringify({
-              taskId: taskId,
-              sarTask: {
-                ...currentSarTask,
-                victims: victims,
-              }
-            }),
-          }
-        )
-        console.log('SAR task updated successfully:', JSON.stringify(response))
-        setIncident(response)
-      } catch (error) {
-        const err = error as IRequestError
-        console.error('Error updating SAR task:', err.message)
-      }
+  const saveData = async () => {
+    if (!incident) return
+
+    if (!needSave) {
+      console.log('[Step3] Form data not updated. Do not update to database', new Date())
+      return
     }
-
-    event.preventDefault()
-
-    console.log('Submitting victim counts:', counts)
-    updateSARTask(counts).then()
+    setSaving(true)
+    try {
+      const currentSarTask = incident?.sarTasks?.at(taskId)
+      const response: IIncident = await request(
+        `/api/incidents/sar/${incident.incidentId}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            taskId: taskId,
+            sarTask: {
+              ...currentSarTask,
+              victims: counts,
+            }
+          }),
+        }
+      )
+      // console.log('SAR task updated successfully:', JSON.stringify(response))
+      console.log('SAR task updated successfully:', counts)
+      setIncident(response)
+      setLastSaved(new Date())
+      setNeedSave(false)
+    } catch (error) {
+      const err = error as IRequestError
+      console.error('Error updating SAR task:', err.message)
+    } finally {
+      setSaving(false)
+    }
   }
+
+  // Auto-save on form changes with debounce
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (incident && !readOnly) {
+        saveData().then()
+      }
+    }, 1000) // Auto-save after 1 second of inactivity
+
+    return () => clearTimeout(debounceTimer)
+  }, [counts])
 
   return (
     <div className={styles.wrapperStep}>
@@ -87,8 +106,13 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
         subtitle={'Enter the number of victims:'}
       />
 
+      {/* Saving indicator */}
+      <div style={{ textAlign: 'right', padding: '0 1rem', fontSize: '0.8rem', color: 'gray' }}>
+        {saving ? 'Saving...' : lastSaved ? `Last saved: ${lastSaved.toLocaleTimeString()}` : ''}
+      </div>
+
       {/* Victim Form */}
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ px: 4 }}>
+      <Box sx={{ px: 4 }}>
         {categories.map((category, index) => (
           <Grid
             container
@@ -128,15 +152,15 @@ const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) =>
 
         <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
           <ReturnToTasksBtn />
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            disabled={readOnly}
-            sx={{ mt: 2, mx: 1 }}
-          >
-            Save
-          </Button>
+          {/*<Button*/}
+          {/*  type="submit"*/}
+          {/*  variant="contained"*/}
+          {/*  color="primary"*/}
+          {/*  disabled={readOnly}*/}
+          {/*  sx={{ mt: 2, mx: 1 }}*/}
+          {/*>*/}
+          {/*  Save*/}
+          {/*</Button>*/}
           <Button
             component={Link}
             href='/patients/admit'

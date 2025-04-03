@@ -1,6 +1,6 @@
 import request, { IRequestError } from "@/utils/request.ts"
-import { Box, Button, Checkbox, FormControl, FormControlLabel, FormGroup, TextField } from '@mui/material'
-import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
+import { Box, Checkbox, FormControl, FormControlLabel, FormGroup, TextField } from '@mui/material'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import IIncident from '../../../models/Incident.ts'
 import styles from '../../../styles/SARTaskPage.module.css'
@@ -33,7 +33,10 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
   const taskId = parseInt(searchParams.get('taskId') || '0')
   const [selectedHazards, setSelectedHazards] = useState<HazardSelections>({})
   const [otherHazardText, setOtherHazardText] = useState<string>('')
+  const [needSave, setNeedSave] = useState<boolean>(false)
   const [readOnly, setReadOnly] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   // update form states
   useEffect(() => {
@@ -67,45 +70,14 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
     setReadOnly(incident?.sarTasks?.at(taskId)?.state === 'Done')
   }, [incident])
 
-  const handleHazardChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSelectedHazards({
-      ...selectedHazards,
-      [event.target.name]: event.target.checked
-    })
-  }
+  // save form data
+  const saveData = async () => {
+    if (!incident) return
 
-  const handleOtherHazardChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setOtherHazardText(event.target.value)
-  }
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
-
-    const updateSARTask = async (hazards: string[]) => {
-      if (!incident) return
-      try {
-        const currentSarTask = incident?.sarTasks?.at(taskId)
-        const response: IIncident = await request(
-          `/api/incidents/sar/${incident.incidentId}`,
-          {
-            method: 'PUT',
-            body: JSON.stringify({
-              taskId: taskId,
-              sarTask: {
-                ...currentSarTask,
-                hazards: hazards,
-              }
-            }),
-          }
-        )
-        console.log('SAR task updated successfully:', JSON.stringify(response))
-        setIncident(response)
-      } catch (error) {
-        const err = error as IRequestError
-        console.error('Error updating SAR task:', err.message)
-      }
+    if (!needSave) {
+      console.log('[Step2] Form data not updated. Do not update to database', new Date())
+      return
     }
-
-    event.preventDefault();
 
     // get hazards from form states
     const hazards = Object.keys(selectedHazards)
@@ -114,8 +86,58 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
       hazards.push(otherHazardText.trim())
     }
 
-    // alert('Form to be submitted: ' + JSON.stringify(hazards))
-    updateSARTask(hazards).then()
+    setSaving(true)
+    try {
+      const currentSarTask = incident?.sarTasks?.at(taskId)
+      const response: IIncident = await request(
+        `/api/incidents/sar/${incident.incidentId}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            taskId: taskId,
+            sarTask: {
+              ...currentSarTask,
+              hazards: hazards,
+            }
+          }),
+        }
+      )
+      // console.log('SAR task updated successfully:', JSON.stringify(response))
+      console.log('SAR task updated successfully:', hazards)
+      setIncident(response)
+      setLastSaved(new Date())
+      setNeedSave(false)
+    } catch (error) {
+      const err = error as IRequestError
+      console.error('Error updating SAR task:', err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Auto-save on form changes with debounce
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      console.log('Debounce timer')
+      if (incident) {
+        saveData().then()
+      }
+    }, 1000) // Auto-save after 1 second of inactivity
+
+    return () => clearTimeout(debounceTimer)
+  }, [selectedHazards, otherHazardText])
+
+  const handleHazardChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSelectedHazards({
+      ...selectedHazards,
+      [event.target.name]: event.target.checked
+    })
+    setNeedSave(true)
+  }
+
+  const handleOtherHazardChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setOtherHazardText(event.target.value)
+    setNeedSave(true)
   }
 
   return (
@@ -128,8 +150,13 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
         subtitle={'Select the hazards you notice:'}
       />
 
+      {/* Saving indicator */}
+      <div style={{ textAlign: 'right', padding: '0 1rem', fontSize: '0.8rem', color: 'gray' }}>
+        {saving ? 'Saving...' : lastSaved ? `Last saved: ${lastSaved.toLocaleTimeString()}` : ''}
+      </div>
+
       {/* Hazards Selection Form */}
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box>
         <FormControl component="fieldset" fullWidth margin="normal" sx={{ pl: 4, pr: 4 }}>
           {/*<FormLabel component="legend">Select Hazard Types</FormLabel>*/}
           <FormGroup>
@@ -165,15 +192,15 @@ const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) =>
 
         <div className={styles.flexCenter} style={{ gap: '1rem', marginTop: '2rem' }}>
           <ReturnToTasksBtn />
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2, mx: 1 }}
-            disabled={readOnly}
-          >
-            Save
-          </Button>
+          {/*<Button*/}
+          {/*  type="submit"*/}
+          {/*  variant="contained"*/}
+          {/*  color="primary"*/}
+          {/*  sx={{ mt: 2, mx: 1 }}*/}
+          {/*  disabled={readOnly}*/}
+          {/*>*/}
+          {/*  Save*/}
+          {/*</Button>*/}
         </div>
 
       </Box>
