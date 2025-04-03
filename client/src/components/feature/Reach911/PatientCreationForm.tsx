@@ -63,6 +63,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
     ) {
         console.log('patientUsername is empty')
         patient = {
+            _id: '',
             username: propUsername,
             name: '',
             sex: propSex || '',
@@ -114,6 +115,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
 
                     if (response && response.userId && response.username) {
                         patient = {
+                            _id: '',
                             username: response.username,
                             name: '',
                             sex: propSex || '',
@@ -161,6 +163,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
                 patients.find((p) => p.username === value) || ({} as IPatient)
             if (Object.keys(patient).length === 0) {
                 patient = {
+                    _id: '',
                     username: value,
                     name: '',
                     sex: propSex || '',
@@ -191,11 +194,9 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
         validateField(field, newValue)
     }
 
-    function onSelectUser(userId: string) {
-        
-        patients.find
-
-    }
+    // function onSelectUser(userId: string) {
+    //     patients.find
+    // }
 
     const onUpdateBirthday = (dob: Date) => {
         dispatch(
@@ -282,7 +283,10 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
                                     } as IUser,
                                     ...contacts,
                                 ].map((user: IUser) => (
-                                    <MenuItem key={user._id} value={user._id}>
+                                    <MenuItem
+                                        key={user._id}
+                                        value={user.username}
+                                    >
                                         {user.username}
                                     </MenuItem>
                                 ))}
