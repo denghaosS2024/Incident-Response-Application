@@ -106,18 +106,20 @@ const DirectNurseAlert: React.FC<DirectNurseAlertProps> = ({
       const remaining = Math.max(0, endTimeRef.current - now)
       const seconds = Math.ceil(remaining / 1000)
 
-      if (secondsLeft !== seconds) {
-        console.log('Countdown update:', seconds)
-        setSecondsLeft(seconds)
-      }
+      // if (secondsLeft !== seconds) {
+      //   console.log('Countdown update:', seconds)
+      //   setSecondsLeft(seconds)
+      // }
+      setSecondsLeft(seconds);
 
-      if (remaining <= 0) {
-        console.log('Timer complete')
-        return
+      if (remaining > 0) {
+        frameId = requestAnimationFrame(updateTimer);
+      } else {
+        console.log('Timer complete');
       }
 
       // Schedule next update
-      frameId = requestAnimationFrame(updateTimer)
+      // frameId = requestAnimationFrame(updateTimer)
     }
 
     // Start the update loop
@@ -134,7 +136,7 @@ const DirectNurseAlert: React.FC<DirectNurseAlertProps> = ({
       clearTimeout(dismissTimeoutId)
       console.log('Countdown cleanup')
     }
-  }, [])
+  }, [alertKey])
 
   // Determine colors based on alert type
   let bgColor = '#1976d2' // Default blue for regular HELP

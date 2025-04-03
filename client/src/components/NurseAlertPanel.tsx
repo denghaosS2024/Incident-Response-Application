@@ -11,14 +11,12 @@ import {
   Typography,
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { NurseAlert } from '../models/NurseAlert'
 import IPatient from '../models/Patient'
 import IUser from '../models/User'
 import { addMessage } from '../redux/messageSlice'
 import { AppDispatch } from '../redux/store'
-import { selectCurrentHospitalId } from '../redux/userHospitalSlice'
-import { loadHospitalContext } from '../utils/hospitalGroupUtils'
 import request from '../utils/request'
 
 interface NurseAlertPanelProps {
@@ -57,17 +55,17 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
   })
 
   // Fetch patients and nurses working at the same hospital
-  const currentHospitalId = useSelector(selectCurrentHospitalId)
+  // const currentHospitalId = await request(`/api/users/`)
 
   // Get the hospital ID from the channel if available
-  useEffect(() => {
-    // Only try to load hospital context if we're in a specific channel
-    if (channelId && channelId !== 'general') {
-      console.log('Loading hospital context for channel:', channelId)
-      // This will automatically set currentHospitalId in Redux if successful
-      loadHospitalContext(channelId, dispatch)
-    }
-  }, [channelId, dispatch])
+  // useEffect(() => {
+  //   // Only try to load hospital context if we're in a specific channel
+  //   if (channelId && channelId !== 'general') {
+  //     console.log('Loading hospital context for channel:', channelId)
+  //     // This will automatically set currentHospitalId in Redux if successful
+  //     loadHospitalContext(channelId, dispatch)
+  //   }
+  // }, [channelId, dispatch])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -109,7 +107,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         // Use the hospital ID from Redux instead of localStorage
         try {
           // Log the current hospital ID for debugging
-          console.log('Current hospital ID from Redux:', currentHospitalId)
+          // console.log('Current hospital ID from Redux:', currentHospitalId)
 
           // Fetch all nurse users first
           const users = await request(`/api/users?role=Nurse`)
@@ -129,8 +127,18 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
               nurseUsersFiltered.length,
             )
 
+            // get current user from users array
+            const currentNurseUser = users.find(
+              (user: IUser) =>
+                 user._id === currentUserId,
+            )
+
+            console.log('currentNurseUser: ', currentNurseUser)
+            const currentHospitalId = currentNurseUser?.hospitalId
+
             // If we have a hospital ID, apply additional filter for hospital
             if (currentHospitalId) {
+              console.log('currentHospitalId: ', currentHospitalId)
               nurseUsersFiltered = nurseUsersFiltered.filter(
                 (user: IUser) => user.hospitalId === currentHospitalId,
               )
@@ -163,7 +171,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
     }
 
     fetchData()
-  }, [preSelectedPatient, currentHospitalId])
+  }, [preSelectedPatient])
 
   const closeNotification = () => {
     setNotification({ ...notification, open: false })
