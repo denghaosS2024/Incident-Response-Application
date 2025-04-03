@@ -459,7 +459,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             </Typography>
           </Box>
 
-          {!currentPatient.hospitalId && localStorage.getItem('role') === 'Nurse' && (
+          {!currentPatient.hospitalId && (localStorage.getItem('role') === 'Fire' || localStorage.getItem('role') === 'Police') && (
             <Button
               fullWidth
               variant="contained"
