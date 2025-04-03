@@ -3,7 +3,7 @@ import HospitalList from '@/components/feature/FindHospital/HospitalList'
 import PatientList from '@/components/feature/FindHospital/PatientList'
 import IPatient from '@/models/Patient'
 import { fetchHospitals, sortHospitalsByDistance } from '@/redux/hospitalSlice'
-import { fetchPatients } from '@/redux/patientSlice'
+import { fetchPatient } from '@/redux/patientSlice'
 import { AppDispatch, RootState } from '@/redux/store'
 import eventEmitter from '@/utils/eventEmitter'
 import request from '@/utils/request'
@@ -37,7 +37,7 @@ const FindHospital: React.FC = () => {
     const fetchData = async () => {
       await dispatch(fetchHospitals())
       await dispatch(sortHospitalsByDistance())
-      await dispatch(fetchPatients())
+      await dispatch(fetchPatient())
     }
     fetchData()
   }, [dispatch])
@@ -57,9 +57,11 @@ const FindHospital: React.FC = () => {
 
     const assignedPatientIds = hospitals.flatMap(
       (hospital) => hospital.patients || [],
-    )
+    ).filter((id): id is string => id !== undefined)
     const initialUnassignedPatients = patients.filter(
-      (patient) => !assignedPatientIds.includes(patient.patientId),
+      (patient) =>
+        !!patient.patientId && // Ensure patientId is defined
+        !assignedPatientIds.includes(patient.patientId),
     )
 
     setDraggedPatients(initialDraggedPatients)
