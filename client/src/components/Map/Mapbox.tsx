@@ -66,6 +66,9 @@ const Mapbox: React.FC<MapboxProps> = ({
   const [incidentsVisible, setIncidentsVisible] = useState(false);
   const [trucksVisible, setTrucksVisible] = useState(false);
   const [carsVisible, setCarsVisible] = useState(false);
+  const [sarVisible, setSarVisible] = useState(false);
+
+
   const [isCreatingArea, setIsCreatingArea] = useState(false)
   const [isUnauthorized, setIsUnauthorized] = useState(false)
   const geoLocateRef = useRef<mapboxgl.GeolocateControl | null>(null)
@@ -130,6 +133,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     const hasIncidents = incidentRef.current.size > 0
     const hasTrucks = truckRef.current.size > 0
     const hasCars = carRef.current.size > 0
+    const hasSAR = sarTaskRef.current.size > 0
 
     // Check which layers are actually visible based on state
     if (
@@ -169,6 +173,9 @@ const Mapbox: React.FC<MapboxProps> = ({
       }
       if (hasCars && carsVisible) {
         eventEmitter.emit('utilVisibility', { layer: 'Cars', visible: true })
+      }
+      if (hasSAR && sarVisible) {
+        eventEmitter.emit('utilVisibility', { layer: 'SAR', visible: true })
       }
     }
   }
@@ -1366,6 +1373,26 @@ const Mapbox: React.FC<MapboxProps> = ({
       });
   };
 
+  const toggleSAR = async () => {
+    if (!mapRef.current) return;
+    
+    setSarVisible(prev => {
+      const newState = !prev;
+      
+      if (newState) {
+        // display SAR tasks
+        fetchAndDisplaySARTasks();
+      } else {
+        // hide SAR tasks
+        sarTaskRef.current.forEach(marker => marker.remove());
+        sarTaskRef.current.clear();
+      }
+      
+      return newState;
+    });
+  };
+  
+
     eventEmitter.on('you_button_clicked', toggleUserLocation)
     eventEmitter.on('toggle_pin', togglePins)
     eventEmitter.on('toggle_roadblock', toggleRoadblocks)
@@ -1375,6 +1402,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     eventEmitter.on('toggle_incidents', toggleIncidents);
     eventEmitter.on('toggle_trucks', toggleTrucks);
     eventEmitter.on('toggle_cars', toggleCars);
+    eventEmitter.on('toggle_sar', toggleSAR);
     // Remove the area_util listener that's causing errors
     // eventEmitter.on('area_util', toggleAreaUtil)
 
@@ -1388,6 +1416,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       eventEmitter.removeListener('toggle_incidents', toggleIncidents);
       eventEmitter.removeListener('toggle_trucks', toggleTrucks);
       eventEmitter.removeListener('toggle_cars', toggleCars);
+      eventEmitter.removeListener('toggle_sar', toggleSAR);
       // Remove the area_util listener that's causing errors
       // eventEmitter.off('area_util', toggleAreaUtil)
     }
@@ -1997,83 +2026,6 @@ const Mapbox: React.FC<MapboxProps> = ({
     }
   }, [])
 
-  // Function to update SAR task markers on the map
-  const updateSARTaskMarkers = (data: { tasks: any[], incidentId?: string }) => {
-    if (!mapRef.current) return;
-
-    const { tasks, incidentId } = data;
-
-    // Clear existing SAR task markers
-    sarTaskRef.current.forEach(marker => marker.remove());
-    sarTaskRef.current.clear();
-
-    // Add new markers for each SAR task
-    tasks.forEach((task, index) => {
-      if (task.location && task.location.latitude && task.location.longitude) {
-        // Create marker element with appropriate icon based on status
-        const markerElement = document.createElement('div');
-        
-        // Set icon based on task status
-        if (task.status === 'done') {
-          // Green CheckCircleIcon for done tasks
-          markerElement.innerHTML = ReactDOMServer.renderToString(
-            <CheckCircleIcon style={{ color: '#4caf50', fontSize: '32px' }} />
-          );
-        } else if (task.status === 'in-progress') {
-          // Blue HomeIcon for in-progress tasks
-          markerElement.innerHTML = ReactDOMServer.renderToString(
-            <HomeIcon style={{ color: '#2196f3', fontSize: '32px' }} />
-          );
-        } else {
-          // Red HomeIcon for todo tasks
-          markerElement.innerHTML = ReactDOMServer.renderToString(
-            <HomeIcon style={{ color: '#f44336', fontSize: '32px' }} />
-          );
-        }
-
-        // Add cursor pointer style to indicate clickability
-        markerElement.style.cursor = 'pointer';
-
-        // Create popup content with task details and link
-        const popupContent = document.createElement('div');
-        
-        popupContent.innerHTML = `
-          <div style="padding: 8px;">
-            <h3 style="margin: 0 0 5px 0; font-size: 16px;">${task.name}</h3>
-            <p style="margin: 0 0 10px 0; font-size: 12px;">${task.address || 'No address'}</p>
-            <p style="margin: 0 0 5px 0; font-size: 12px;">${task.description || 'No description'}</p>
-            <p style="margin: 0 0 10px 0; font-size: 12px;">Status: ${task.status}</p>
-            ${incidentId ? `
-              <a href="/sar-task/${incidentId}?taskId=${index}" 
-                 style="display: inline-block; padding: 6px 12px; background-color: #1976d2; color: white; 
-                        text-decoration: none; border-radius: 4px; font-size: 12px;">
-                View Task Details
-              </a>
-            ` : ''}
-          </div>
-        `;
-
-        const popup = new mapboxgl.Popup({ offset: 25 })
-          .setDOMContent(popupContent);
-
-        // Create and add marker
-        const marker = new mapboxgl.Marker({ element: markerElement })
-          .setLngLat([task.location.longitude, task.location.latitude])
-          .setPopup(popup)
-          .addTo(mapRef.current!);
-
-        // Store the marker in the ref
-        sarTaskRef.current.set(task.id, marker);
-      }
-    });
-  };
-
-  useEffect(() => {
-    eventEmitter.on('update_sar_tasks', updateSARTaskMarkers);
-    return () => {
-      eventEmitter.removeListener('update_sar_tasks', updateSARTaskMarkers);
-    }
-  }, []);
 
   // -------------------------------- wildfire features end --------------------------------
 
@@ -2179,6 +2131,172 @@ const Mapbox: React.FC<MapboxProps> = ({
     return <LocationError errorText={mapError} />
   }
 
+  // -------------------------------- SAR tasks start --------------------------------
+  // Function to fetch and display SAR tasks on the map
+  const fetchAndDisplaySARTasks = async () => {
+    try {
+      if (!mapRef.current) return;
+
+      const currentUsername = localStorage.getItem('username');
+
+      const incidentResponse = await request(`/api/incidents?commander=${currentUsername}`);
+      const incident = incidentResponse[0] as IIncident;
+
+      console.log('incident', incident)
+
+      // Clear existing SAR task markers
+      sarTaskRef.current.forEach(marker => marker.remove());
+      sarTaskRef.current.clear();
+      
+      // Check if we have an active incident
+      if (!incident || !incident.incidentId) {
+        console.log('No active incident, cannot fetch SAR tasks');
+        return;
+      }
+
+      if (incident.type != 'S') {
+        console.log('No active incident, cannot fetch SAR tasks');
+        return;
+      }
+      
+      // Fetch SAR tasks from the API
+      const response = await request(`/api/incidents/${incident.incidentId}/sar-task`);
+      const rawTasks: any[] = await response;
+
+      console.log('Raw SAR tasks:', rawTasks);
+      
+      if (rawTasks && Array.isArray(rawTasks) && rawTasks.length > 0) {
+        // Process the tasks to match the expected format
+        const processedTasks = rawTasks.map((task: any) => ({
+          id: task._id || `task-${Math.random().toString(36).substr(2, 9)}`,
+          name: task.name || 'Unnamed Task',
+          description: task.description || '',
+          status: task.state?.toLowerCase() === 'todo' ? 'todo' : 
+                 task.state?.toLowerCase() === 'inprogress' ? 'in-progress' : 
+                 task.state?.toLowerCase() === 'done' ? 'done' : 'todo',
+          address: task.location || '',
+          location: task.coordinates || null
+        }));
+        
+        console.log('Processed SAR tasks:', processedTasks);
+        
+        // Use the existing updateSARTaskMarkers function to display the tasks
+        updateSARTaskMarkers({ tasks: processedTasks });
+        
+        // Mark SAR layer as active
+        eventEmitter.emit('utilVisibility', { layer: 'SAR', visible: true });
+      }
+    } catch (error) {
+      console.error('Error fetching SAR tasks:', error);
+    }
+  };
+  
+  // Function to update SAR task markers on the map
+  const updateSARTaskMarkers = (data: { tasks: any[], incidentId?: string }) => {
+    if (!mapRef.current) return;
+
+    const { tasks, incidentId } = data;
+
+    // Clear existing SAR task markers
+    sarTaskRef.current.forEach(marker => marker.remove());
+    sarTaskRef.current.clear();
+
+    // Add new markers for each SAR task
+    tasks.forEach((task, index) => {
+      if (task.location && task.location.latitude && task.location.longitude) {
+        // Create marker element with appropriate icon based on status
+        const markerElement = document.createElement('div');
+        
+        // Set icon based on task status
+        if (task.status === 'done') {
+          // Green CheckCircleIcon for done tasks
+          markerElement.innerHTML = ReactDOMServer.renderToString(
+            <CheckCircleIcon style={{ color: '#4caf50', fontSize: '32px' }} />
+          );
+        } else if (task.status === 'in-progress') {
+          // Blue HomeIcon for in-progress tasks
+          markerElement.innerHTML = ReactDOMServer.renderToString(
+            <HomeIcon style={{ color: '#2196f3', fontSize: '32px' }} />
+          );
+        } else {
+          // Red HomeIcon for todo tasks
+          markerElement.innerHTML = ReactDOMServer.renderToString(
+            <HomeIcon style={{ color: '#f44336', fontSize: '32px' }} />
+          );
+        }
+
+        // Add cursor pointer style to indicate clickability
+        markerElement.style.cursor = 'pointer';
+
+        // Create popup content with task details and link
+        const popupContent = document.createElement('div');
+        
+        popupContent.innerHTML = `
+          <div style="padding: 8px;">
+            <h3 style="margin: 0 0 5px 0; font-size: 16px;">${task.name}</h3>
+            <p style="margin: 0 0 10px 0; font-size: 12px;">${task.address || 'No address'}</p>
+            <p style="margin: 0 0 5px 0; font-size: 12px;">${task.description || 'No description'}</p>
+            <p style="margin: 0 0 10px 0; font-size: 12px;">Status: ${task.status}</p>
+            ${incidentId ? `
+              <a href="/sar-task/${incidentId}?taskId=${index}" 
+                 style="display: inline-block; padding: 6px 12px; background-color: #1976d2; color: white; 
+                        text-decoration: none; border-radius: 4px; font-size: 12px;">
+                View Task Details
+              </a>
+            ` : ''}
+          </div>
+        `;
+
+        const popup = new mapboxgl.Popup({ offset: 25 })
+          .setDOMContent(popupContent);
+
+        // Create and add marker
+        const marker = new mapboxgl.Marker({ element: markerElement })
+          .setLngLat([task.location.longitude, task.location.latitude])
+          .setPopup(popup)
+          .addTo(mapRef.current!);
+
+        // Store the marker in the ref
+        sarTaskRef.current.set(task.id, marker);
+      }
+    });
+  };
+
+  // Set up event listeners for SAR tasks
+  useEffect(() => {
+    // Listen for SAR task updates from other components
+    eventEmitter.on('update_sar_tasks', updateSARTaskMarkers);
+    
+    // // Listen for SAR layer toggle events
+    // const handleSarToggle = () => {
+    //   setSarVisible(prev => {
+    //     console.log('sarVisible', sarVisible)
+    //     const newState = !prev;
+        
+    //     if (newState) {
+    //       // If becoming visible, fetch and display the markers
+    //       fetchAndDisplaySARTasks();
+    //     } else {
+    //       // If becoming hidden, remove the markers
+    //       sarTaskRef.current.forEach(marker => marker.remove());
+    //       sarTaskRef.current.clear();
+    //     }
+        
+    //     // Emit event to update the overlay state
+    //     eventEmitter.emit('utilVisibility', { layer: 'SAR', visible: newState });
+        
+    //     return newState;
+    //   });
+    // };
+    // eventEmitter.on('toggle_sar', handleSarToggle);
+
+    return () => {
+      eventEmitter.removeListener('update_sar_tasks', updateSARTaskMarkers);
+      // eventEmitter.removeListener('toggle_sar', handleSarToggle);
+    };
+  }, []);
+  // -------------------------------- SAR tasks end --------------------------------
+
   return (
     <div
       style={{
@@ -2257,6 +2375,10 @@ const Mapbox: React.FC<MapboxProps> = ({
       {(!isMapLoaded || isNaviLoaded) && <MapLoading />}
     </div>
   )
+
+
+
+
 }
 
 export default Mapbox

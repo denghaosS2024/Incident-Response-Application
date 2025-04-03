@@ -103,6 +103,20 @@ const MapOverlay: React.FC = () => {
 
     setIsFullPage(path === '/map')
     setIs911Page(path.includes('911'))
+
+    // Add click event listener to close dropdown when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      const overlayElement = document.querySelector(`.${styles.levitatingList}`);
+      if (overlayElement && !overlayElement.contains(event.target as Node)) {
+        setSelectedIndex(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [])
 
   useEffect(() => {
@@ -195,7 +209,17 @@ const MapOverlay: React.FC = () => {
       ...prev,
       [layer]: !prev[layer],
     }))
+    
+    // Call the helper to handle the layer toggle
     MapOverlayHelper.onUtilLayerClick(layer)
+    
+    // If the layer is SAR, make sure the Util dropdown stays open
+    if (layer === 'SAR') {
+      setActiveMainButtons(prev => ({
+        ...prev,
+        util: true
+      }));
+    }
   }
 
   const toggleVisibility = () => {

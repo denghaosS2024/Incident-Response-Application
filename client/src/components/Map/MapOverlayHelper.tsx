@@ -95,7 +95,8 @@ export default class MapOverlayHelper {
     Hospitals: () => eventEmitter.emit('toggle_hospital'),
     Incidents: () => eventEmitter.emit('toggle_incidents'),
     Trucks: () => eventEmitter.emit('toggle_trucks'),
-    Cars: () => eventEmitter.emit('toggle_cars')
+    Cars: () => eventEmitter.emit('toggle_cars'),
+    SAR: () => eventEmitter.emit('toggle_sar')
   }
 
   /**

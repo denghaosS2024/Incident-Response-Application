@@ -543,6 +543,8 @@ export default Router()
             const { commander } = request.query
             const { incidentState } = request.query
 
+            console.log('commander', commander)
+
             if (commander) {
                 const result = await IncidentController.getIncidentByCommander(
                     commander as string,
