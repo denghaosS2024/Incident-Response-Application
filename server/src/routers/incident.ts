@@ -121,7 +121,6 @@ export default Router()
      */
     .post('/new', async (request, response) => {
         const incident = request.body as IIncident
-        console.log('Incident:', incident)
 
         try {
             const result = await IncidentController.createIncident(incident)
@@ -902,7 +901,6 @@ export default Router()
                 })
         }
     })
-
     /**
      * @swagger
      * /api/incidents/{incidentId}/sar-task:
@@ -943,8 +941,6 @@ export default Router()
      *                 type: string
      *               description:
      *                 type: string
-     *             required:
-     *               - state
      *     responses:
      *       200:
      *         description: Updated incident with new SAR task

@@ -76,9 +76,7 @@ class IncidentController {
      */
     async createIncident(incident: IIncident) {
         // Check if the incident already exists
-        const incidentId = `I${incident.caller}`
-        const existingIncident = await Incident.findOne({ incidentId }).exec()
-
+        const existingIncident = await Incident.findOne({ caller: incident.caller }).exec()
         if (existingIncident) {
             // TO-DO: Don't throw an error, update the existing incident or return existing incident or return a flag so that the route can use HTTP status code to tell frontend
             // The Error will always result an 400 http code to frontend
@@ -767,6 +765,7 @@ class IncidentController {
             throw error
         }
     }
+
 }
 
 export default new IncidentController()

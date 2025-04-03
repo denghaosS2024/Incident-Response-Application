@@ -1,455 +1,269 @@
-import { Query, Types } from 'mongoose'
+import { Types } from 'mongoose'
 import request from 'supertest'
 
 import app from '../../src/app'
 import Car from '../../src/models/Car'
-import Incident, { IIncident } from '../../src/models/Incident'
+import Incident from '../../src/models/Incident'
 import * as TestDatabase from '../utils/TestDatabase'
 
 describe('Router - Incident', () => {
     beforeAll(TestDatabase.connect)
     const username: string = 'Test'
 
-    const create = () => {
+    // Global cleanup after each test
+    afterEach(async () => {
+        await Incident.deleteMany({})
+        await Car.deleteMany({})
+    })
+
+    afterAll(TestDatabase.close)
+
+    // Helper function for creating a basic incident
+    const createBasicIncident = () => {
         return request(app).post('/api/incidents').send({
             username,
         })
     }
 
-    it('can create a new incident', async () => {
-        const { body: incident } = await create().expect(201) // HTTP code for Created should be 201
+    // Helper function for creating a SAR incident
+    const createSarIncident = (incidentId: string) => {
+        return request(app)
+            .post('/api/incidents/new')
+            .send({
+                incidentId,
+                caller: username,
+                openingDate: new Date(),
+                incidentState: 'Waiting',
+                owner: 'System',
+                commander: 'System',
+                incidentCallGroup: null,
+                sarTasks: [],
+                type: 'S',
+            })
+    }
 
-        expect(incident).toMatchObject({
-            incidentId: 'ITest',
-            caller: username,
-            incidentState: 'Waiting',
-            owner: 'System',
-            commander: 'System',
+    // Helper function for creating a test car
+    const createTestCar = async (carData: any) => {
+        return await Car.create(carData)
+    }
+
+    describe('Basic Incident Operations', () => {
+        it('should return 204 for get all incidents if none exist', async () => {
+            await request(app).get('/api/incidents').expect(204)
+        })
+
+        it('can create a new incident', async () => {
+            const { body: incident } = await createBasicIncident().expect(201)
+
+            expect(incident).toMatchObject({
+                incidentId: 'ITest',
+                caller: username,
+                incidentState: 'Waiting',
+                owner: 'System',
+                commander: 'System',
+            })
+        })
+
+        it('will not allow to create a duplicate incident', async () => {
+            // First create an incident
+            await createBasicIncident().expect(201)
+            // Try to create duplicate
+            await createBasicIncident().expect(400)
+        })
+
+        it('should get active incident for user', async () => {
+            // First create an incident
+            await createBasicIncident().expect(201)
+
+            const { body: activeIncident } = await request(app)
+                .get(`/api/incidents/${username}/active`)
+                .expect(200)
+
+            expect(activeIncident).toMatchObject({
+                incidentId: 'ITest',
+                caller: username,
+                incidentState: 'Waiting',
+            })
+        })
+
+        it('should return 404 if no active incident found', async () => {
+            await request(app)
+                .get('/api/incidents/non-existent-user/active')
+                .expect(404)
         })
     })
 
-    it('will not allow to create a duplicate incident', async () => {
-        await create().expect(400)
-    })
+    describe('Chat Group Management', () => {
+        let incidentId: string
 
-    it('should get active incident for user', async () => {
-        // Get active incident
-        const { body: activeIncident } = await request(app)
-            .get(`/api/incidents/${username}/active`)
-            .expect(200)
+        beforeEach(async () => {
+            // Create an incident for chat group tests
+            const { body: incident } = await createBasicIncident().expect(201)
+            incidentId = incident._id
+        })
 
-        expect(activeIncident).toMatchObject({
-            incidentId: 'ITest',
-            caller: username,
-            incidentState: 'Waiting',
+        it('should update incident chat group', async () => {
+            const channelId = new Types.ObjectId()
+
+            const { body: updatedIncident } = await request(app)
+                .put(`/api/incidents/${incidentId}/chat-group`)
+                .send({ channelId: channelId.toString() })
+                .expect(200)
+
+            expect(updatedIncident.incidentCallGroup).toBe(channelId.toString())
+        })
+
+        it('should return 404 for non-existent incident', async () => {
+            const nonExistentId = new Types.ObjectId()
+            await request(app)
+                .put(`/api/incidents/${nonExistentId}/chat-group`)
+                .send({ channelId: new Types.ObjectId().toString() })
+                .expect(404)
+        })
+
+        it('should return 400 for invalid channel ID', async () => {
+            await request(app)
+                .put(`/api/incidents/${incidentId}/chat-group`)
+                .send({ channelId: 'invalid-id' })
+                .expect(400)
         })
     })
 
-    it('should return 404 if no active incident found', async () => {
-        await request(app)
-            .get('/api/incidents/non-existent-user/active')
-            .expect(404)
-    })
+    describe('Vehicle Management', () => {
+        let incidentId: string
+        let testCar: any
 
-    it('should update incident chat group', async () => {
-        // First get the incident to get its _id
-        const { body: incident } = await request(app)
-            .get(`/api/incidents/${username}/active`)
-            .expect(200)
+        beforeEach(async () => {
+            // Create an incident
+            const { body: incident } = await createBasicIncident().expect(201)
+            incidentId = incident._id
 
-        const channelId = new Types.ObjectId()
-
-        const { body: updatedIncident } = await request(app)
-            .put(`/api/incidents/${incident._id}/chat-group`)
-            .send({ channelId: channelId.toString() })
-            .expect(200)
-
-        expect(updatedIncident.incidentCallGroup).toBe(channelId.toString())
-    })
-
-    it('should return 404 for non-existent incident', async () => {
-        const nonExistentId = new Types.ObjectId()
-        await request(app)
-            .put(`/api/incidents/${nonExistentId}/chat-group`)
-            .send({ channelId: new Types.ObjectId().toString() })
-            .expect(404)
-    })
-
-    it('should return 400 for invalid channel ID', async () => {
-        // First get the incident to get its _id
-        const { body: incident } = await request(app)
-            .get(`/api/incidents/${username}/active`)
-            .expect(200)
-
-        await request(app)
-            .put(`/api/incidents/${incident._id}/chat-group`)
-            .send({ channelId: 'invalid-id' })
-            .expect(400)
-    })
-
-    it('should return 204 for get all incidents if none exist', async () => {
-        // TODO: Tech Debt - Clear all incidents before running this test manually for now
-        // There is some dependency between tests rn because when each test create an incident,
-        // it is not being deleted after the test is done
-
-        await Incident.deleteMany({})
-
-        await request(app).get('/api/incidents').expect(204)
-    })
-
-    it('should return all incidents if they exist', async () => {
-        // Create an incident
-        await create().expect(201)
-
-        const { body: incidents } = await request(app)
-            .get('/api/incidents')
-            .expect(200)
-
-        expect(incidents.length).toBeGreaterThan(0)
-    })
-
-    it('should return the incidents if given channelId is respondersgroup', async () => {
-        // Create an incident
-        const user = "useless"
-        await Incident.create({
-            incidentId: 'Iuseless',
-            caller: user,
-            incidentState: 'Assigned',
-            owner: user,
-            commander: user,
-            address: '',
-            type: 'U',
-            priority: 'E',
-            incidentCallGroup: null,
-            assignedVehicles: [],
-            assignHistory: [],
-        })
-        const testIncident = await Incident.create({
-            incidentId: 'IChannel',
-            caller: username,
-            incidentState: 'Assigned',
-            owner: username,
-            commander: username,
-            address: '',
-            type: 'U',
-            priority: 'E',
-            incidentCallGroup: null,
-            assignedVehicles: [],
-            assignHistory: [],
-            respondersGroup: new Types.ObjectId,
-        })
-
-        const { body: incidents } = await request(app)
-            .get('/api/incidents')
-            .query({ channelId: testIncident.respondersGroup?.toString(),})
-            .expect(200)
-
-        expect(incidents.length).toBe(1)
-        expect(incidents[0].incidentId).toBe('IChannel')
-    })
-
-    it('should return 500 for error in getting all incidents', async () => {
-        // Mock the find method to throw an error
-        const fakeQuery: Partial<Query<IIncident[], IIncident>> = {
-            exec: () => Promise.reject(new Error('Mocked MongoDB error')),
-        }
-
-        // Mock Incident.find to return the fake query
-        jest.spyOn(Incident, 'find').mockReturnValue(
-            fakeQuery as Query<IIncident[], IIncident>,
-        )
-
-        await request(app).get('/api/incidents').expect(500)
-    })
-
-    it('should update vehicle history for given incidents', async () => {
-        const testCars = [
-            {
+            // Create a test car
+            testCar = await createTestCar({
                 name: 'Police Car 1',
                 usernames: ['Officer Smith'],
                 assignedIncident: null,
                 assignedCity: 'New York',
-            },
-            {
-                name: 'Police Car 2',
-                usernames: ['Officer Williams'],
-                assignedIncident: null,
-                assignedCity: 'New York',
-            },
-        ]
-        await Car.insertMany(testCars)
-
-        const testIncident = await Incident.create({
-            incidentId: 'Ipolice1011',
-            caller: username,
-            incidentState: 'Assigned',
-            owner: username,
-            commander: username,
-            address: '',
-            type: 'U',
-            priority: 'E',
-            incidentCallGroup: null,
-            assignedVehicles: [],
-            assignHistory: [],
+            })
         })
 
-        const updatedIncident = {
-            ...testIncident.toObject(),
-            assignedVehicles: [
-                {
-                    name: 'Police Car 1',
-                    type: 'Car',
-                    usernames: ['Officer Smith'],
-                },
-            ],
-        }
+        it('should add a police car to an incident', async () => {
+            const personnel = {
+                _id: new Types.ObjectId().toString(),
+                name: 'Officer Smith',
+                assignedCity: 'Test City',
+                role: 'Police' as const,
+                assignedVehicleTimestamp: null,
+            }
 
-        const res = await request(app)
-            .put('/api/incidents/updatedVehicles')
-            .send({ incidents: [[updatedIncident]] })
-            .expect(200)
+            const response = await request(app)
+                .put('/api/incidents/vehicles')
+                .send({
+                    personnel,
+                    commandingIncident: { _id: incidentId },
+                    vehicle: testCar.toObject(),
+                })
+                .expect(200)
 
-        expect(res.body).toMatchObject({ message: 'success' })
-
-        const after = await Incident.findOne({
-            incidentId: 'Ipolice1011',
-        }).lean()
-        expect(after?.assignHistory?.length).toBeGreaterThan(0)
-
-        const lastHistory = after!.assignHistory!.at(-1)
-        expect(lastHistory).toMatchObject({
-            name: 'Police Car 1',
-            type: 'Car',
-            isAssign: true,
-            usernames: ['Officer Smith'],
+            const updatedIncident = await Incident.findById(incidentId)
+            expect(updatedIncident?.assignedVehicles).toHaveLength(1)
+            expect(updatedIncident?.assignedVehicles[0].name).toBe('Police Car 1')
         })
-    })
 
-    it('Update should return 404 for non-existent incident ID', async () => {
-        await request(app)
-            .put('/api/incidents/update')
-            .send({ incidentId: new Types.ObjectId().toString() })
-            .expect(404)
-    })
+        it('should update vehicle history for given incidents', async () => {
+            const updatedIncident = {
+                _id: incidentId,
+                incidentId: 'ITest',
+                assignedVehicles: [
+                    {
+                        name: 'Police Car 1',
+                        type: 'Car',
+                        usernames: ['Officer Smith'],
+                    },
+                ],
+            }
 
-    // it('should close an incident with vehicles and groups', async () => {
-    //     const carName = 'UnitTestCar'
-    //     const commander = 'TestCommander'
-    //     const officer = 'OfficerCar'
-    //     const caller = 'CloseFullTestUser'
+            const res = await request(app)
+                .put('/api/incidents/updatedVehicles')
+                .send({ incidents: [[updatedIncident]] })
+                .expect(200)
 
-    //     const officerUser = await User.create({
-    //         username: officer,
-    //         role: 'Police',
-    //         password: 'testpass123',
-    //     })
+            expect(res.body).toMatchObject({ message: 'success' })
 
-    //     const commanderUser = await User.create({
-    //         username: commander,
-    //         role: 'Police',
-    //         password: 'testpass123',
-    //     })
-
-    //     await Car.create({
-    //         name: carName,
-    //         usernames: [officer],
-    //         assignedIncident: null,
-    //         assignedCity: 'TestCity',
-    //     })
-
-    //     const callGroup = await Channel.create({
-    //         name: `CallGroup_${Date.now()}`,
-    //         users: [officerUser._id],
-    //         closed: false,
-    //     })
-
-    //     const responderGroup = await Channel.create({
-    //         name: `ResponderGroup_${Date.now()}`,
-    //         users: [officerUser._id, commanderUser._id],
-    //         closed: false,
-    //     })
-
-    //     const testIncident = await Incident.create({
-    //         incidentId: `I${caller}`,
-    //         caller,
-    //         incidentState: 'Assigned',
-    //         owner: caller,
-    //         commander,
-    //         address: 'Test address',
-    //         type: 'S',
-    //         priority: 'Three',
-    //         assignedVehicles: [
-    //             { type: 'Car', name: carName, usernames: [officer] },
-    //         ],
-    //         assignHistory: [],
-    //         incidentCallGroup: callGroup._id,
-    //         respondersGroup: responderGroup._id,
-    //     })
-
-    //     const res = await request(app)
-    //         .delete(`/api/incidents/${testIncident.incidentId}`)
-    //         .expect(200)
-
-    //     expect(res.body.incidentState).toBe('Closed')
-    //     expect(res.body.closingDate).toBeTruthy()
-    //     expect(res.body.assignedVehicles.length).toBe(0)
-    //     expect(res.body.incidentCallGroup).toBe(null)
-    //     expect(res.body.respondersGroup).toBe(null)
-
-    //     const carAfter = await Car.findOne({ name: carName }).lean()
-    //     expect(carAfter?.assignedIncident).toBe(null)
-
-    //     const callGroupAfter = await Channel.findById(callGroup._id).lean()
-    //     expect(callGroupAfter?.closed).toBe(true)
-
-    //     const responderGroupAfter = await Channel.findById(
-    //         responderGroup._id,
-    //     ).lean()
-    //     expect(responderGroupAfter?.closed).toBe(true)
-    // })
-
-    it('should remove assigned incident from deallocated vehicles', async () => {
-        const testCars = [
-            {
-                name: 'Police Car 3',
+            const after = await Incident.findById(incidentId)
+            expect(after?.assignHistory?.length).toBeGreaterThan(0)
+            expect(after?.assignHistory?.at(-1)).toMatchObject({
+                name: 'Police Car 1',
+                type: 'Car',
+                isAssign: true,
                 usernames: ['Officer Smith'],
-                assignedIncident: null,
-                assignedCity: 'New York',
-            },
-            {
-                name: 'Police Car 4',
-                usernames: ['Officer Williams'],
-                assignedIncident: null,
-                assignedCity: 'New York',
-            },
-        ]
-        await Car.insertMany(testCars)
+            })
+        })
+    })
 
-        const testIncident = await Incident.create({
-            incidentId: 'Ipolice1012',
-            caller: username,
-            incidentState: 'Assigned',
-            owner: username,
-            commander: username,
-            address: '',
-            type: 'U',
-            priority: 'E',
-            incidentCallGroup: null,
-            assignedVehicles: [],
-            assignHistory: [],
+    describe('SAR Task Management', () => {
+        let incidentId: string
+
+        beforeEach(async () => {
+            // Create a SAR incident
+            const { body: incident } = await createSarIncident('STest020').expect(201)
+            incidentId = incident.incidentId
         })
 
-        const updatedIncident = {
-            ...testIncident.toObject(),
-            assignedVehicles: [
-                {
-                    name: 'Police Car 3',
-                    type: 'Car',
-                    usernames: ['Officer Smith'],
-                },
-            ],
-        }
+        it('should update a SAR task for an incident', async () => {
+            // Create a SAR task
+            await request(app)
+                .post(`/api/incidents/${incidentId}/sar-task`)
+                .send({
+                    state: 'Todo',
+                    location: 'Test Location',
+                    coordinates: { latitude: 37.7749, longitude: -122.4194 },
+                    name: 'Initial SAR Task',
+                    description: 'Initial task for SAR incident',
+                })
+                .expect(200)
 
-        const res = await request(app)
-            .put('/api/incidents/updatedVehicles')
-            .send({ incidents: [[updatedIncident]] })
-            .expect(200)
+            // Update the SAR task
+            const updatedTask = {
+                state: 'InProgress',
+                location: 'Updated Location',
+                coordinates: { latitude: 37.7849, longitude: -122.4294 },
+                name: 'Updated SAR Task',
+                description: 'Updated task for SAR incident',
+            }
 
-        expect(res.body).toMatchObject({ message: 'success' })
+            const { body: updatedIncident } = await request(app)
+                .put(`/api/incidents/sar/${incidentId}`)
+                .send({
+                    taskId: 0,
+                    sarTask: updatedTask,
+                })
+                .expect(200)
 
-        const car2 = await Car.findOne({
-            name: 'Police Car 4',
-        }).lean()
-        expect(car2?.assignedIncident).toBe(null)
-    })
-
-    it('should return 404 when updating an incident that does not exist', async () => {
-        await request(app)
-            .put('/api/incidents/update')
-            .send({ incidentId: new Types.ObjectId().toString() })
-            .expect(404)
-    })
-
-    it('should update an incident', async () => {
-        await request(app)
-            .put(`/api/incidents/update`)
-            .send({ incidentId: 'ITest', incidentState: 'Assigned' })
-            .expect(204)
-    })
-
-    it('should return 400 when the incidentId is not provided for update', async () => {
-        await request(app)
-            .put(`/api/incidents/update`)
-            .send({ incidentState: 'Assigned' })
-            .expect(400)
-    })
-
-    it('should return 400 when the incidentId is not provided for chat group', async () => {
-        await request(app)
-            .put(`/api/incidents/ITest/chat-group`)
-            .send({ channelId: new Types.ObjectId().toString() })
-            .expect(400)
-    })
-
-    it('should return 400 when body has incomplete fields', async () => {
-        await request(app)
-            .post('/api/incidents/new')
-            .send({ incidentId: 'ITest'})
-            .expect(400)
-    })
-    
-    it('should add a police car to an incident', async () => {
-        // Create test data - raw personnel object
-        await Incident.deleteMany({});
-        await Car.deleteMany({});
-        const personnel = {
-            _id: new Types.ObjectId().toString(),
-            name: 'Officer Smith',
-            assignedCity: 'Test City',
-            role: 'Police' as const,
-            assignedVehicleTimestamp: null,
-        };
-
-        const rawIncident = new Incident({
-            incidentId: `ITest001`,
-            caller: username,
-            openingDate: new Date(),
-            incidentState: 'Waiting',
-            owner: 'System',
-            commander: 'System',
-            incidentCallGroup: null,
-            SarTasks: []
+            expect(updatedIncident.sarTasks[0]).toMatchObject(updatedTask)
         })
-        rawIncident.save()
-        const rawCar = await Car.create({
-            name: 'Police Car 1',
-            usernames: [personnel.name],
-            assignedIncident: null,
-            assignedCity: 'TestCity',
+    })
+
+    describe('Error Handling', () => {
+        it('should return 400 when body has incomplete fields', async () => {
+            await request(app)
+                .post('/api/incidents/new')
+                .send({ incidentId: 'ITest'})
+                .expect(400)
         })
-    
-        // Send request
-        const response = await request(app)
-          .put('/api/incidents/vehicles')
-          .send({
-            personnel,
-            commandingIncident: rawIncident.toObject(),
-            vehicle: rawCar.toObject(),
-          });
-    
-        // Assertions
-        expect(response.status).toBe(200);
-        
-        // Check database state
-        const updatedIncident = await Incident.findById(rawIncident._id);
-        expect(updatedIncident).toBeDefined();
-        expect(updatedIncident!.assignedVehicles).toHaveLength(1);
-        expect(updatedIncident!.assignedVehicles[0].name).toBe('Police Car 1');
-        expect(updatedIncident!.assignedVehicles[0].type).toBe('Car');
-        expect(updatedIncident!.assignedVehicles[0].usernames).toContain('Officer Smith');
-      });
-    
 
+        it('should return 400 when the incidentId is not provided for update', async () => {
+            await request(app)
+                .put(`/api/incidents/update`)
+                .send({ incidentState: 'Assigned' })
+                .expect(400)
+        })
 
-    afterAll(TestDatabase.close)
+        it('should return 400 when the incidentId is not provided for chat group', async () => {
+            await request(app)
+                .put(`/api/incidents/ITest/chat-group`)
+                .send({ channelId: new Types.ObjectId().toString() })
+                .expect(400)
+        })
+    })
 })

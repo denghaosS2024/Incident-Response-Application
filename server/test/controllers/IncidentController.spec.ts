@@ -1,4 +1,5 @@
 import { Query, Types } from 'mongoose'
+import ChannelController from '../../src/controllers/ChannelController'
 import IncidentController from '../../src/controllers/IncidentController'
 import Car, { ICar } from '../../src/models/Car'
 import Incident, {
@@ -8,7 +9,6 @@ import Incident, {
     IncidentType,
 } from '../../src/models/Incident'
 import * as TestDatabase from '../utils/TestDatabase'
-import ChannelController from '../../src/controllers/ChannelController'
 
 describe.skip('Incident Controller', () => {
     beforeAll(TestDatabase.connect)

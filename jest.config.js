@@ -1,7 +1,9 @@
 module.exports = {
+    preset: 'ts-jest',
     testEnvironment: 'node',
     transform: {
-        '^.+\\.tsx?$': 'ts-jest', // Add support for TypeScript
+        '^.+\\.tsx?$': 'ts-jest',
     },
-    testMatch: ['<rootDir>/server/test/**/*.spec.ts'], // Match all .spec.ts files
+    testMatch: ['<rootDir>/server/test/**/*.spec.ts'],
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 };
