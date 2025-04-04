@@ -106,6 +106,40 @@ class IncidentController {
                 patients: [],
             }).save()
 
+            if (incident.commander !== 'System') {
+                const commander = await UserController.getUserByUsername(incident.commander)
+                if (!commander) {
+                    throw new Error(`Commander ${incident.commander} not found`)
+                }
+                if (commander.role === ROLES.FIRE) {
+                    if (commander.assignedTruck) {
+                        const truck = await TruckController.getTruckByName(commander.assignedTruck)
+                        if (truck) {
+                            await TruckController.updateIncident(truck.name, incident.incidentId)
+                            incident.assignedVehicles.push({
+                                type: 'Truck',
+                                name: truck.name,
+                                usernames: truck.usernames ? truck.usernames : [incident.commander],
+                            })
+                            await incident.save()
+                        }
+                    }
+                } else if (commander.role === ROLES.POLICE) {
+                    if (commander.assignedCar) {
+                        const car = await CarController.getCarByName(commander.assignedCar)
+                        if (car) {
+                            await CarController.updateIncident(car.name, incident.incidentId)
+                            incident.assignedVehicles.push({
+                                type: 'Car',
+                                name: car.name,
+                                usernames: car.usernames ? car.usernames : [incident.commander],
+                            })
+                            await incident.save()
+                        }
+                    }
+                }
+            }
+
             const notifyDispatchers = async (
                 username: string,
                 incidentId: string,
