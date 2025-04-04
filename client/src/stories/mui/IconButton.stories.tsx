@@ -6,6 +6,9 @@ import {
   Phone,
   Settings,
   Warning,
+  Hotel as BedIcon,
+  Map as MapIcon,
+
 } from '@mui/icons-material'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { IconButton, IconButtonProps } from '@mui/material'
@@ -106,4 +109,18 @@ export const IncidentTypeSettingsButton: Story = {
     size: 'medium',
     children: <Settings />,
   },      
+}
+
+export const PatientButton: Story = {
+  args: {
+    size: 'medium',
+    children: <BedIcon />,
+  },      
+}
+
+export const MapButton: Story = {
+    args: {
+        size: 'medium',
+        children: <MapIcon />,
+    },
 }
