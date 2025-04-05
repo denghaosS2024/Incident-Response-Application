@@ -76,7 +76,9 @@ class IncidentController {
      */
     async createIncident(incident: IIncident) {
         // Check if the incident already exists
-        const existingIncident = await Incident.findOne({ caller: incident.caller }).exec()
+        const existingIncident = await Incident.findOne({
+            incidentId: incident.incidentId,
+        })
         if (existingIncident) {
             // TO-DO: Don't throw an error, update the existing incident or return existing incident or return a flag so that the route can use HTTP status code to tell frontend
             // The Error will always result an 400 http code to frontend
@@ -107,32 +109,48 @@ class IncidentController {
             }).save()
 
             if (incident.commander !== 'System') {
-                const commander = await UserController.getUserByUsername(incident.commander)
+                const commander = await UserController.getUserByUsername(
+                    incident.commander,
+                )
                 if (!commander) {
                     throw new Error(`Commander ${incident.commander} not found`)
                 }
                 if (commander.role === ROLES.FIRE) {
                     if (commander.assignedTruck) {
-                        const truck = await TruckController.getTruckByName(commander.assignedTruck)
+                        const truck = await TruckController.getTruckByName(
+                            commander.assignedTruck,
+                        )
                         if (truck) {
-                            await TruckController.updateIncident(truck.name, incident.incidentId)
+                            await TruckController.updateIncident(
+                                truck.name,
+                                incident.incidentId,
+                            )
                             incident.assignedVehicles.push({
                                 type: 'Truck',
                                 name: truck.name,
-                                usernames: truck.usernames ? truck.usernames : [incident.commander],
+                                usernames: truck.usernames
+                                    ? truck.usernames
+                                    : [incident.commander],
                             })
                             await incident.save()
                         }
                     }
                 } else if (commander.role === ROLES.POLICE) {
                     if (commander.assignedCar) {
-                        const car = await CarController.getCarByName(commander.assignedCar)
+                        const car = await CarController.getCarByName(
+                            commander.assignedCar,
+                        )
                         if (car) {
-                            await CarController.updateIncident(car.name, incident.incidentId)
+                            await CarController.updateIncident(
+                                car.name,
+                                incident.incidentId,
+                            )
                             incident.assignedVehicles.push({
                                 type: 'Car',
                                 name: car.name,
-                                usernames: car.usernames ? car.usernames : [incident.commander],
+                                usernames: car.usernames
+                                    ? car.usernames
+                                    : [incident.commander],
                             })
                             await incident.save()
                         }
@@ -784,7 +802,6 @@ class IncidentController {
                 { new: true },
             ).exec()
 
-
             // SAR Roles Task Update
             UserConnections.broadcaseToRole(ROLES.FIRE, 'sar-task-update', {
                 incidentId,
@@ -832,7 +849,6 @@ class IncidentController {
             throw error
         }
     }
-
 }
 
 export default new IncidentController()
