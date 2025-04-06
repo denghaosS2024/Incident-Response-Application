@@ -309,8 +309,11 @@ function IncidentsPage() {
     // Check if the user has an active incident (not closed)
     const hasActiveResponderIncident = data.some(
         (incident) =>
-            (incident.owner === userId || incident.commander === userId) &&
-            incident.incidentState !== 'Closed',
+            incident.incidentState !== 'Closed' &&
+            (incident.commander === userId ||
+                incident.assignedVehicles?.some((vehicle) =>
+                    vehicle.usernames.includes(userId),
+                )),
     )
 
     // Navigate to incident description with auto-populate on
@@ -340,8 +343,7 @@ function IncidentsPage() {
 
         if (
             updatedIncident.incidentState === 'Closed' ||
-            (
-                updatedIncident.commander !== userId &&
+            (updatedIncident.commander !== userId &&
                 updatedIncident.owner !== userId)
         ) {
             readOnly = true
