@@ -1,6 +1,7 @@
 import { Query, Types } from 'mongoose'
 import ChannelController from '../../src/controllers/ChannelController'
 import IncidentController from '../../src/controllers/IncidentController'
+import UserController from '../../src/controllers/UserController'
 import Car, { ICar } from '../../src/models/Car'
 import Incident, {
     IIncident,
@@ -8,9 +9,10 @@ import Incident, {
     IncidentState,
     IncidentType,
 } from '../../src/models/Incident'
+import ROLES from '../../src/utils/Roles'
 import * as TestDatabase from '../utils/TestDatabase'
 
-describe.skip('Incident Controller', () => {
+describe('Incident Controller', () => {
     beforeAll(TestDatabase.connect)
     beforeEach(() => jest.clearAllMocks())
     afterEach(async () => {
@@ -288,6 +290,8 @@ describe.skip('Incident Controller', () => {
     it('should create new incident with provided values', async () => {
         // example id
         const validGroupId = '507f1f77bcf86cd799439011'
+        const role = ROLES.FIRE
+        const testCommander = await UserController.register("TestCommander", "1234", role)
 
         const caller = 'Test2'
         const incident = new Incident({
@@ -296,7 +300,7 @@ describe.skip('Incident Controller', () => {
             openingDate: new Date(),
             incidentState: 'Waiting',
             owner: 'TestOwner',
-            commander: 'TestCommander',
+            commander: testCommander.username,
             address: '110 Test Avenue',
             type: 'U',
             questions: {},
@@ -311,7 +315,7 @@ describe.skip('Incident Controller', () => {
         expect(newIncident.caller).toBe(caller)
         expect(newIncident.incidentState).toBe('Waiting')
         expect(newIncident.owner).toBe('TestOwner')
-        expect(newIncident.commander).toBe('TestCommander')
+        expect(newIncident.commander).toBe(incident.commander)
         expect(newIncident.address).toBe('110 Test Avenue')
         expect(newIncident.type).toBe('U')
         expect(newIncident.questions).toEqual({})
@@ -361,6 +365,9 @@ describe.skip('Incident Controller', () => {
 
     it('should create a new SAR incident with correct type and ID format', async () => {
         const username = 'test-sar-user'
+        const role = ROLES.FIRE
+        const testCommander = await UserController.register(username, "1234", role)
+
 
         const sarIncident = new Incident({
             incidentId: `S${username}1`,
@@ -368,7 +375,7 @@ describe.skip('Incident Controller', () => {
             openingDate: new Date(),
             incidentState: 'Assigned',
             owner: username,
-            commander: username,
+            commander: testCommander.username,
             type: IncidentType.Sar,
         })
 
@@ -381,7 +388,7 @@ describe.skip('Incident Controller', () => {
         expect(newSARIncident.type).toBe(IncidentType.Sar)
         expect(newSARIncident.incidentState).toBe('Assigned')
         expect(newSARIncident.owner).toBe(username)
-        expect(newSARIncident.commander).toBe(username)
+        expect(newSARIncident.commander).toBe(sarIncident.commander)
     })
 
     it('shoudl find an incident by its id', async () => {
@@ -1026,8 +1033,8 @@ describe.skip('Incident Controller', () => {
             })
 
             // Verify incident IDs
-            const incidentIds = incidents.map(incident => incident.incidentId).sort()
-            expect(incidentIds).toEqual(['Icommander1', 'Icommander2'].sort())
+            const incidentIds = incidents.map(incident => incident.incidentId).sort((a, b) => a.localeCompare(b))
+            expect(incidentIds).toEqual(['Icommander1', 'Icommander2'].sort((a, b) => a.localeCompare(b)))
         })
 
         it('should return an empty array if no incidents exist for the commander', async () => {

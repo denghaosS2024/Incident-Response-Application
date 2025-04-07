@@ -402,7 +402,7 @@ const getLineChartData = async (
         });
       });
 
-      const labels = Object.keys(dateMap).sort();
+      const labels = Object.keys(dateMap).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       const datasets = categories.map((label, idx) => ({
         label,
         data: labels.map((d) => dateMap[d][idx] || 0),
@@ -490,7 +490,7 @@ const getLineChartData = async (
         dateMap[date][cat] += 1;
       });
 
-      const labels = Object.keys(dateMap).sort();
+      const labels = Object.keys(dateMap).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       const datasets = categories.map((cat) => ({
         label: cat,
         data: labels.map((d) => dateMap[d][cat] || 0),
@@ -714,7 +714,7 @@ export async function getBarChartData(
       });
 
       // Build sorted list of dates
-      const dates = Object.keys(dateMap).sort();
+      const dates = Object.keys(dateMap).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
       // Build datasets array
       const datasets = dates.map((dateStr) => ({
@@ -859,7 +859,7 @@ export async function getBarChartData(
         dateMap[dateStr][idx] += 1;
       });
 
-      const dates = Object.keys(dateMap).sort();
+      const dates = Object.keys(dateMap).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       const datasets = dates.map((dateStr) => ({
         label: dateStr,
         data: dateMap[dateStr],
