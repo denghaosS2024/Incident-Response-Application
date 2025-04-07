@@ -643,13 +643,13 @@ const Mapbox: React.FC<MapboxProps> = ({
     if (type === 'airQuality') {
       // Simplified popup content for air quality markers before confirmation
       popupContent.innerHTML = `
-        <p id="popup-address-${tempId}">${initialAddress || 'Fetching address...'}</p>
+        <p id="popup-address-${tempId}">${initialAddress ?? 'Fetching address...'}</p>
         <button id="confirm-pin-${tempId}" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
       `
     } else {
       // Standard popup content for other marker types
       popupContent.innerHTML = `
-        <p id="popup-address-${tempId}">${initialAddress || 'Fetching address...'}</p>
+        <p id="popup-address-${tempId}">${initialAddress ?? 'Fetching address...'}</p>
         <button id="confirm-pin-${tempId}" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
       `
     }
@@ -2167,12 +2167,12 @@ const Mapbox: React.FC<MapboxProps> = ({
         const processedTasks = rawTasks.map((task: any) => ({
           id: task._id || `task-${Math.random().toString(36).substr(2, 9)}`,
           name: task.name || 'Unnamed Task',
-          description: task.description || '',
+          description: task.description ?? '',
           status: task.state?.toLowerCase() === 'todo' ? 'todo' : 
                  task.state?.toLowerCase() === 'inprogress' ? 'in-progress' : 
                  task.state?.toLowerCase() === 'done' ? 'done' : 'todo',
-          address: task.location || '',
-          location: task.coordinates || null
+          address: task.location ?? '',
+          location: task.coordinates ?? null
         }));
         
         console.log('Processed SAR tasks:', processedTasks);
@@ -2286,7 +2286,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     // Create popup content with unique ID
     const popupContent = document.createElement('div');
     popupContent.innerHTML = `
-      <p id="popup-address-${tempId}">${initialAddress || 'Fetching address...'}</p>
+      <p id="popup-address-${tempId}">${initialAddress ?? 'Fetching address...'}</p>
       <button id="confirm-pin-${tempId}" style="padding:5px 10px; margin-top:5px; cursor:pointer;">Confirm</button>
     `;
 
@@ -2323,7 +2323,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       // Update the address in the popup
       const addressElement = document.getElementById(`popup-address-${tempId}`);
       if (addressElement) {
-        addressElement.textContent = address || 'Address not found';
+        addressElement.textContent = address ?? 'Address not found';
       }
     });
 
@@ -2355,13 +2355,13 @@ const Mapbox: React.FC<MapboxProps> = ({
         // Prepare the data for the API - match the expected schema
         const sarTaskData = {
           state: 'Todo',
-          location: finalAddress || 'Unknown location',
+          location: finalAddress ?? 'Unknown location',
           coordinates: {
             latitude: finalLngLat.lat,
             longitude: finalLngLat.lng
           },
           startDate: new Date().toISOString(),
-          name: `Task at ${finalAddress || 'Unknown location'}`,
+          name: `Task at ${finalAddress ?? 'Unknown location'}`,
           description: "SAR task created from map",
           hazards: [],
           victims: [0, 0, 0, 0, 0],
