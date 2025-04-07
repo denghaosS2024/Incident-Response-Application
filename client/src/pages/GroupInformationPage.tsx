@@ -226,7 +226,7 @@ const GroupInformationPage: React.FC = () => {
       <AlertSnackbar
         open={openSnackbar}
         onClose={() => setOpenSnackbar(false)}
-        message={errorMessage || successMessage}
+        message={errorMessage ?? successMessage}
         severity={errorMessage ? 'error' : 'success'}
       />
     </Container>

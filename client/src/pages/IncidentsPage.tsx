@@ -292,7 +292,7 @@ function IncidentsPage() {
             })
 
             // Update Redux store with the new incident data
-            dispatch(updateIncident(response || newSARIncident))
+            dispatch(updateIncident(response ?? newSARIncident))
 
             // Navigate to the SAR incident page
             navigate('/sar-incident', {

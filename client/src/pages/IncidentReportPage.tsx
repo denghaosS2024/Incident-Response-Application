@@ -9,7 +9,7 @@ import Step5ResponseTimeline from '../components/IncidentReport/Step5ResponseTim
 
 const IncidentReportPage = () => {
     const location = useLocation()
-    const { incidentData } = location.state || {}
+    const { incidentData } = location.state ?? {}
 
     const currentUsername = localStorage.getItem('username')
 

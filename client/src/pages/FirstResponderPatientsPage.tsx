@@ -125,9 +125,9 @@ const FirstResponderPatientsPage: React.FC = () => {
           
           const patientItem: Patient = {
             patientId: patient.patientId,
-            name: patient.name || 'Unknown',
-            priority: recentLog.priority || '4',
-            location: recentLog.location || 'Unknown',
+            name: patient.name ?? 'Unknown',
+            priority: recentLog.priority ?? '4',
+            location: recentLog.location ?? 'Unknown',
             incidentId: recentLog.incidentId
           };
           

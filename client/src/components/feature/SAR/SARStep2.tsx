@@ -48,14 +48,14 @@ const SARStep2: React.FC<TaskStatsProps> = () => {
         // Convert the tasks from the backend format to our frontend format
         const processedTasks = response.map((task: any, index: number) => ({
           _id: task._id,
-          name: task.name || 'Unnamed Task',
-          description: task.description || '',
-          state: task.state || 'Todo',
-          location: task.location || '',
-          coordinates: task.coordinates || null,
+          name: task.name ?? 'Unnamed Task',
+          description: task.description ?? '',
+          state: task.state ?? 'Todo',
+          location: task.location ?? '',
+          coordinates: task.coordinates ?? null,
           taskIndex: index,
-          hazards: task.hazards || [],
-          victims: task.victims || []
+          hazards: task.hazards ?? [],
+          victims: task.victims ?? []
         }));
         
         setTasks(processedTasks);
@@ -151,7 +151,7 @@ const SARStep2: React.FC<TaskStatsProps> = () => {
                 </ListItemAvatar>
                 <ListItemText
                   primary={task.name}
-                  secondary={task.location || "No address"}
+                  secondary={task.location ?? "No address"}
                 />
               </Box>
 

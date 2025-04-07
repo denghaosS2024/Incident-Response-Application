@@ -109,14 +109,14 @@ const SARStep1: React.FC<SARStep1Props> = ({
       if (response && Array.isArray(response)) {
         // Convert the tasks from the backend format to our frontend format
         const tasks = response.map((task: any) => ({
-          id: task._id || `task-${Math.random().toString(36).substr(2, 9)}`,
-          name: task.name || 'Unnamed Task',
-          description: task.description || '',
+          id: task._id ?? `task-${Math.random().toString(36).substr(2, 9)}`,
+          name: task.name ?? 'Unnamed Task',
+          description: task.description ?? '',
           status: task.state?.toLowerCase() === 'todo' ? 'todo' : 
                  task.state?.toLowerCase() === 'inprogress' ? 'in-progress' : 
                  task.state?.toLowerCase() === 'done' ? 'done' : 'todo',
-          address: task.location || '',
-          location: task.coordinates || null
+          address: task.location ?? '',
+          location: task.coordinates ?? null
         }));
         
         console.log('Processed SAR tasks:', tasks);
@@ -287,7 +287,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
 
   // When user clicks out of the input, revert to task address
   const onTaskAddressBlur = () => {
-    setTaskInputAddress(taskForm.address || '');
+    setTaskInputAddress(taskForm.address ?? '');
   };
 
   // Create new task
@@ -368,7 +368,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
       console.error('Error creating task:', err);
       setSnackbar({
         open: true,
-        message: err.message || 'Failed to create task',
+        message: err.message ?? 'Failed to create task',
         severity: 'error'
       });
     } finally {

@@ -30,7 +30,7 @@ interface SARTaskStep2Props {
 
 const SARTaskStep2: React.FC<SARTaskStep2Props> = ({ incident, setIncident }) => {
   const [searchParams] = useSearchParams()
-  const taskId = parseInt(searchParams.get('taskId') || '0')
+  const taskId = parseInt(searchParams.get('taskId') ?? '0')
   const [selectedHazards, setSelectedHazards] = useState<HazardSelections>({})
   const [otherHazardText, setOtherHazardText] = useState<string>('')
   const [needSave, setNeedSave] = useState<boolean>(false)

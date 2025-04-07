@@ -83,7 +83,7 @@ const LoginPage: React.FC = () => {
       </Box>
       <AlertSnackbar
         open={openSnackbar}
-        message={errorMessage || ''}
+        message={errorMessage ?? ''}
         onClose={handleCloseSnackbar}
         severity="error"
         vertical="bottom"

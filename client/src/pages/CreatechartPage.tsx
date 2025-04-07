@@ -50,8 +50,8 @@ const CreateChartPage: React.FC = () => {
           setName(chart.title)
           setType(chart.chartType)
           setData(chart.dataType)
-          setStartDay(chart.customPeriod?.startDate?.substring(0, 10) || '')
-          setEndDay(chart.customPeriod?.endDate?.substring(0, 10) || '')
+          setStartDay(chart.customPeriod?.startDate?.substring(0, 10) ?? '')
+          setEndDay(chart.customPeriod?.endDate?.substring(0, 10) ?? '')
         } catch (err) {
           console.error('Failed to fetch chart data:', err)
         }
@@ -83,13 +83,13 @@ const CreateChartPage: React.FC = () => {
       })
 
       console.log('Chart saved:', res)
-      setMessage(res.message || 'Chart created successfully.')
+      setMessage(res.message ?? 'Chart created successfully.')
       setMessageType('success')
       navigate('/dashboard')
       localStorage.removeItem('editChartId')
     } catch (err: any) {
       const errorMessage =
-        err?.message || err?.response?.message || 'Failed to save chart.'
+        err?.message ?? err?.response?.message ?? 'Failed to save chart.'
       setMessage(errorMessage)
       setMessageType('error')
     }
@@ -116,7 +116,7 @@ const CreateChartPage: React.FC = () => {
       localStorage.removeItem('editChartId')
     } catch (err: any) {
         const errorMessage =
-          err?.message || err?.response?.message || 'Failed to update chart.'
+          err?.message ?? err?.response?.message ?? 'Failed to update chart.'
         setMessage(errorMessage)
         setMessageType('error')
       }

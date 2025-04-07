@@ -14,11 +14,11 @@ interface AddressBarProps {
 
 const AddressBar: React.FC<AddressBarProps> = ({ task }) => {
   // Get address and coordinates from the task
-  const address = task?.location || 'No Address'
+  const address = task?.location ?? 'No Address'
   
   // Get coordinates from task.coordinates or use default
-  const latitude = task?.coordinates?.latitude || 40.7128
-  const longitude = task?.coordinates?.longitude || -74.0060
+  const latitude = task?.coordinates?.latitude ?? 40.7128
+  const longitude = task?.coordinates?.longitude ?? -74.0060
   
   // Navigate to map page with coordinates
   const navigateToMap = (): void => {

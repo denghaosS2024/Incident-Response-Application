@@ -68,7 +68,7 @@ const SARStep3: React.FC<TaskStatsProps> = () => {
                 <ListItemAvatar>
                   <CheckCircleIcon style={{ color: '#4caf50', marginLeft: '10' }} />
                 </ListItemAvatar>
-                <ListItemText primary={task.location || 'No address'} />
+                <ListItemText primary={task.location ?? 'No address'} />
               </Box>
 
               {/* Right side: Link with arrow icon */}

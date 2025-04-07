@@ -66,7 +66,7 @@ const FindHospital: React.FC = () => {
     });
   
     const assignedPatientIds = hospitals
-      .flatMap((hospital) => hospital.patients || [])
+      .flatMap((hospital) => hospital.patients ?? [])
       .filter((id): id is string => !!id);
   
     const initialUnassignedPatients = patients.filter(

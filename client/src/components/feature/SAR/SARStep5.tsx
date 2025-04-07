@@ -65,7 +65,7 @@ const SARStep5: React.FC<SARStep5Props> = ({ incidentId }) => {
             console.log('SARStep5: Fetched incident:', fetchedIncident)
             setIncidentData(fetchedIncident)
             dispatch(updateIncident(fetchedIncident))
-            setStatus(fetchedIncident.incidentState || 'Active')
+            setStatus(fetchedIncident.incidentState ?? 'Active')
           } else {
             console.error('SARStep5: No incident found for this incidentId')
             setError('No incident found for this incidentId')
@@ -76,7 +76,7 @@ const SARStep5: React.FC<SARStep5Props> = ({ incidentId }) => {
         }
       } catch (err: any) {
         console.error('SARStep5: Error fetching incident details:', err)
-        setError(`Failed to load incident details: ${err.message || 'Unknown error'}`)
+        setError(`Failed to load incident details: ${err.message ?? 'Unknown error'}`)
       } finally {
         setLoading(false)
       }
@@ -169,7 +169,7 @@ const SARStep5: React.FC<SARStep5Props> = ({ incidentId }) => {
       console.log('Incident closed successfully')
     } catch (err: any) {
       console.error('Error closing incident:', err)
-      setError(err.message || 'Unknown error while closing incident')
+      setError(err.message ?? 'Unknown error while closing incident')
     } finally {
       setLoading(false)
     }

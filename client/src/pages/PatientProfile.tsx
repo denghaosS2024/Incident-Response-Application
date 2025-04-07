@@ -110,20 +110,20 @@ const PatientProfile: React.FC = () => {
                         <strong>Name:</strong> {patient.name}
                     </Typography>
                     <Typography variant="body1">
-                        <strong>Location:</strong> {patient.location || 'N/A'}
+                        <strong>Location:</strong> {patient.location ?? 'N/A'}
                     </Typography>
                     <Typography variant="body1">
-                        <strong>Priority:</strong> {patient.priority || 'N/A'}
+                        <strong>Priority:</strong> {patient.priority ?? 'N/A'}
                     </Typography>
                     <Typography variant="body1">
-                        <strong>Status:</strong> {patient.status || 'N/A'}
+                        <strong>Status:</strong> {patient.status ?? 'N/A'}
                     </Typography>
                     <Typography variant="body1">
                         <strong>Hospital ID:</strong>{' '}
-                        {patient.hospitalId || 'N/A'}
+                        {patient.hospitalId ?? 'N/A'}
                     </Typography>
                     <Typography variant="body1">
-                        <strong>Nurse ID:</strong> {patient.nurseId || 'N/A'}
+                        <strong>Nurse ID:</strong> {patient.nurseId ?? 'N/A'}
                     </Typography>
                     <Box mt={2}>
                         <Button variant="outlined" onClick={() => navigate(-1)}>

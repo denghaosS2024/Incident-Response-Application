@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router'
 
 const PatientVisitPage: React.FC = () => {
     const [searchParams] = useSearchParams()
-    const username = searchParams.get('username') || undefined
+    const username = searchParams.get('username') ?? undefined
 
     console.log('PatientVisitPage username:', username)
 

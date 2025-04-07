@@ -16,10 +16,10 @@ interface SARTaskStep1Props {
 
 const SARTaskStep1: React.FC<SARTaskStep1Props> = ({ incident, setIncident }) => {
   const [searchParams] = useSearchParams()
-  const taskId = parseInt(searchParams.get('taskId') || '0')
+  const taskId = parseInt(searchParams.get('taskId') ?? '0')
   const startDate = (incident?.sarTasks?.at(taskId)?.startDate) ? new Date(incident?.sarTasks?.at(taskId)?.startDate || '') : new Date()
   const formattedDateTime = formatDateTime(startDate)
-  const incidentId = incident?.incidentId || 'NullId101'
+  const incidentId = incident?.incidentId ?? 'NullId101'
 
   const leftText = `${incidentId} ${formattedDateTime}`
 

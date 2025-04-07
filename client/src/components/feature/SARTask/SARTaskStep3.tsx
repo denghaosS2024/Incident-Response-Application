@@ -17,7 +17,7 @@ interface SARTaskStep3Props {
 
 const SARTaskStep3: React.FC<SARTaskStep3Props> = ({ incident, setIncident }) => {
   const [searchParams] = useSearchParams()
-  const taskId = parseInt(searchParams.get('taskId') || '0')
+  const taskId = parseInt(searchParams.get('taskId') ?? '0')
   const [counts, setCounts] = useState<number[]>(categories.map(() => 0))
   const [needSave, setNeedSave] = useState<boolean>(false)
   const [readOnly, setReadOnly] = useState(false)
