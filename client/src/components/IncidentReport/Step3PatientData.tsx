@@ -56,7 +56,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
                     <Typography variant="body1" sx={{ mb: 1 }}>
                         Is it a structure fire or wildfire?
                     </Typography>
-                    <RadioGroup value={questions.fireType || ''} sx={{ ml: 2 }}>
+                    <RadioGroup value={questions.fireType ?? ''} sx={{ ml: 2 }}>
                         <FormControlLabel
                             value="structure fire"
                             control={<Radio disabled />}
@@ -138,7 +138,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
                         What is the number of people within the fire perimeter?
                     </Typography>
                     <TextField
-                        value={questions.numPeople || '0'}
+                        value={questions.numPeople ?? '0'}
                         InputProps={{ readOnly: true }}
                         fullWidth
                         variant="outlined"
@@ -157,7 +157,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
                     <TextField
                         multiline
                         rows={3}
-                        value={questions.otherDetails || ''}
+                        value={questions.otherDetails ?? ''}
                         InputProps={{ readOnly: true }}
                         fullWidth
                         variant="outlined"
@@ -194,7 +194,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
                         Username:
                     </Typography>
                     <TextField
-                        value={questions.username || incidentData.caller || ''}
+                        value={questions.username ?? incidentData.caller ?? ''}
                         InputProps={{ readOnly: true }}
                         fullWidth
                         variant="outlined"
@@ -211,7 +211,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
                         Age:
                     </Typography>
                     <TextField
-                        value={questions.age || ''}
+                        value={questions.age ?? ''}
                         InputProps={{ readOnly: true }}
                         fullWidth
                         variant="outlined"
@@ -227,7 +227,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
                     <Typography variant="body1" sx={{ mb: 1 }}>
                         Sex:
                     </Typography>
-                    <RadioGroup value={questions.sex || ''} sx={{ ml: 2 }}>
+                    <RadioGroup value={questions.sex ?? ''} sx={{ ml: 2 }}>
                         <FormControlLabel
                             value="Female"
                             control={<Radio disabled />}
@@ -295,7 +295,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
                     <TextField
                         multiline
                         rows={3}
-                        value={questions.chiefComplaint || ''}
+                        value={questions.chiefComplaint ?? ''}
                         InputProps={{ readOnly: true }}
                         fullWidth
                         variant="outlined"
@@ -364,7 +364,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
                     <TextField
                         multiline
                         rows={3}
-                        value={questions.suspectDescription || ''}
+                        value={questions.suspectDescription ?? ''}
                         InputProps={{ readOnly: true }}
                         fullWidth
                         variant="outlined"
@@ -383,7 +383,7 @@ const Step3PatientData: React.FC<Step3PatientDataProps> = ({
                     <TextField
                         multiline
                         rows={3}
-                        value={questions.crimeDetails || ''}
+                        value={questions.crimeDetails ?? ''}
                         InputProps={{ readOnly: true }}
                         fullWidth
                         variant="outlined"

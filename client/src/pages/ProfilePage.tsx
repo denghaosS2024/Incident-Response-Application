@@ -30,7 +30,7 @@ export default function ProfilePage() {
     const [email, setEmail] = useState('')
     const [addressOptions, setAddressOptions] = useState<string[]>([])
     const mapboxToken = Globals.getMapboxToken()
-    const patientUserId = localStorage.getItem('patientUserId') || ''
+    const patientUserId = localStorage.getItem('patientUserId') ?? ''
     const uid = localStorage.getItem('uid') || ''
     const isViewingOwnProfile = !paramUserId || paramUserId === uid
     const isReadOnly = paramUserId !== undefined && paramUserId !== uid
@@ -58,9 +58,6 @@ export default function ProfilePage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     const phoneRegex = /^\+?[1-9]\d{1,14}$/
 
-    // const handleSnackbarClose = () => {
-    //     setSnackbarOpen(false)
-    // }
 
     const handleSexChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSex(event.target.value)
@@ -317,7 +314,6 @@ export default function ProfilePage() {
     // 🚀 if user leave the page, save immediately
     useEffect(() => {
         return () => {
-            // console.log("🚀 Leaving Profile Page. Flushing save...");
             debouncedHandleSave.flush()
             localStorage.removeItem('patientUserId')
         }

@@ -93,23 +93,6 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
     handleFetchResponders()
   }, [isIncidentCommander])
 
-  // useEffect(() => {
-  //   const handleMaydayReceived = (data: any) => {
-  //     console.log('Mayday received:', data);
-  //     // Check if the received Mayday is for this channel and from another user
-  //     if (data.senderId !== currentUserId) {
-  //       setMaydayOpen(true);
-  //     }
-  //   };
-
-  //   socket.connect();
-  //   socket.on('send-mayday', handleMaydayReceived);
-
-  //   return () => {
-  //     socket.off('send-mayday');
-  //   };
-
-  // }, [currentUserId]);
 
   const handleMenuClose = () => {
     setAnchorEl(null)

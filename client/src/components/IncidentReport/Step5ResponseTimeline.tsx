@@ -85,7 +85,7 @@ const Step5ResponseTimeline: React.FC<Step5ResponseTimelineProps> = ({
             <span key={historyItem.commander}>
                 Commander:
                 {getRoleIcon(historyItem.role)}
-                {historyItem.commander || 'Unknown'}
+                {historyItem.commander ?? 'Unknown'}
             </span>,
         ],
         time: formatTime(historyItem.timestamp),

@@ -69,14 +69,14 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
                                     _id: message._id,
                                     content: message.content,
                                     sender:
-                                        message.sender._id || message.sender,
+                                        message.sender._id ?? message.sender,
                                     timestamp: message.timestamp,
                                     senderName:
-                                        message.sender.username ||
+                                        message.sender.username ??
                                         'Unknown User',
-                                    senderRole: message.sender.role || '',
+                                    senderRole: message.sender.role ?? '',
                                     messageGroup: 'caller', // Add message group identifier
-                                    isAlert: message.isAlert || false,
+                                    isAlert: message.isAlert ?? false,
                                 })
                             } catch (error) {
                                 console.warn(
@@ -131,14 +131,14 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
                                     _id: message._id,
                                     content: message.content,
                                     sender:
-                                        message.sender._id || message.sender,
+                                        message.sender._id ?? message.sender,
                                     timestamp: message.timestamp,
                                     senderName:
-                                        message.sender.username ||
+                                        message.sender.username ??
                                         'Unknown User',
-                                    senderRole: message.sender.role || '',
+                                    senderRole: message.sender.role ?? '',
                                     messageGroup: 'responder', // Add message group identifier
-                                    isAlert: message.isAlert || false,
+                                    isAlert: message.isAlert ?? false,
                                 })
                             } catch (error) {
                                 console.warn(
@@ -190,8 +190,8 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
         incidentData.caller,
     ])
     const getMessageIcon = (message: Message) => {
-        const role = message.senderRole || ''
-        const name = message.senderName || ''
+        const role = message.senderRole ?? ''
+        const name = message.senderName ?? ''
 
         if (role.includes('fire') || name.toLowerCase().includes('fire')) {
             return <LocalFireDepartmentIcon color="error" />
@@ -229,7 +229,7 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
         }
 
         // Fallback to using sender name/role if messageGroup is not available
-        const name = message.senderName || ''
+        const name = message.senderName ?? ''
 
         if (
             name.toLowerCase().includes('dispatch') ||
@@ -342,7 +342,7 @@ const Step4Communication: React.FC<Step4CommunicationProps> = ({
                                     fontWeight="bold"
                                     sx={{ ml: getMessageIcon(message) ? 1 : 0 }}
                                 >
-                                    {message.senderName || 'Unknown User'}
+                                    {message.senderName ?? 'Unknown User'}
                                 </Typography>
                             </Box>
 

@@ -711,7 +711,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       // For all marker types, just update the address
       const addressElement = document.getElementById(`popup-address-${tempId}`)
       if (addressElement) {
-        addressElement.textContent = address || 'Address not found'
+        addressElement.textContent = address ?? 'Address not found'
       }
     })
 
@@ -1687,7 +1687,7 @@ const Mapbox: React.FC<MapboxProps> = ({
     })
 
     nameCheckbox?.addEventListener('click', () => {
-      const previousName = nameDisplay?.innerText || ''
+      const previousName = nameDisplay?.innerText ?? ''
       const newName = nameInput.value
 
       if (nameDisplay) {
@@ -1938,7 +1938,7 @@ const Mapbox: React.FC<MapboxProps> = ({
       const addressElement = popupElement.querySelector(
         `#popup-address-${locationId}`,
       )
-      const addressText = addressElement?.textContent || ''
+      const addressText = addressElement?.textContent ?? ''
 
       const aqiPopup = MapBoxHelper.spawnAqiPopup(
         aqiData,
@@ -2165,8 +2165,8 @@ const Mapbox: React.FC<MapboxProps> = ({
       if (rawTasks && Array.isArray(rawTasks) && rawTasks.length > 0) {
         // Process the tasks to match the expected format
         const processedTasks = rawTasks.map((task: any) => ({
-          id: task._id || `task-${Math.random().toString(36).substr(2, 9)}`,
-          name: task.name || 'Unnamed Task',
+          id: task._id ?? `task-${Math.random().toString(36).substr(2, 9)}`,
+          name: task.name ?? 'Unnamed Task',
           description: task.description ?? '',
           status: task.state?.toLowerCase() === 'todo' ? 'todo' : 
                  task.state?.toLowerCase() === 'inprogress' ? 'in-progress' : 
@@ -2231,8 +2231,8 @@ const Mapbox: React.FC<MapboxProps> = ({
         popupContent.innerHTML = `
           <div style="padding: 8px;">
             <h3 style="margin: 0 0 5px 0; font-size: 16px;">${task.name}</h3>
-            <p style="margin: 0 0 10px 0; font-size: 12px;">${task.address || 'No address'}</p>
-            <p style="margin: 0 0 5px 0; font-size: 12px;">${task.description || 'No description'}</p>
+            <p style="margin: 0 0 10px 0; font-size: 12px;">${task.address ?? 'No address'}</p>
+            <p style="margin: 0 0 5px 0; font-size: 12px;">${task.description ?? 'No description'}</p>
             <p style="margin: 0 0 10px 0; font-size: 12px;">Status: ${task.status}</p>
             ${incidentId ? `
               <a href="/sar-task/${incidentId}?taskId=${index}" 

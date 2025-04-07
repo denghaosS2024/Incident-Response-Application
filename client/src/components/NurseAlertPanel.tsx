@@ -84,7 +84,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
           ) {
             patientsList = patientsData.map((patient: IPatient) => ({
               id: patient.patientId,
-              name: patient.name || 'Unknown Patient',
+              name: patient.name ?? 'Unknown Patient',
             })) as Patient[]
           } else {
             // Fallback to mock data if API returns empty array

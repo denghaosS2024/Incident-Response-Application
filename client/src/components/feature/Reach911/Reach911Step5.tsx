@@ -204,7 +204,6 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                     commander: incidentData.commander,
                 }),
             )
-            // alert("Incident updated successfully!");
         } catch (err) {
             console.error('Error updating incident:', err)
             setError('Failed to update incident')

@@ -17,8 +17,7 @@ import {
     ListItemIcon,
     ListItemText,
     TextField,
-    Typography,
-    useMediaQuery,
+    Typography
 } from '@mui/material'
 import {
     DragDropContext,
@@ -26,7 +25,6 @@ import {
     Droppable,
     DropResult,
 } from 'react-beautiful-dnd'
-import { useNavigate } from 'react-router'
 import CityContainer from '../components/Organization/CityContainer'
 import getRoleIcon from '../components/common/RoleIcon'
 import ROLES from '../utils/Roles'
@@ -60,8 +58,6 @@ interface Personnel {
 }
 
 const Organization: React.FC = () => {
-    const navigate = useNavigate()
-
     // Arrays for each data type
     const [cars, setCars] = useState<Car[]>([])
     const [trucks, setTrucks] = useState<Truck[]>([])
@@ -75,9 +71,6 @@ const Organization: React.FC = () => {
 
     // Used to refresh CityContainer after changes
     const [refreshTrigger, setRefreshTrigger] = useState(0)
-
-    // For responsive layout
-    const isMobile = useMediaQuery('(max-width:600px)')
 
     // -----------------------------
     //   FETCH DATA FROM BACKEND

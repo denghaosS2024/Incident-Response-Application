@@ -160,7 +160,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   const profile = () => {
     const userId =
-      localStorage.getItem('userId') || localStorage.getItem('uid')
+      localStorage.getItem('userId') ?? localStorage.getItem('uid')
     if (userId) {
       navigate(`/profile/${userId}`)
     } else {
