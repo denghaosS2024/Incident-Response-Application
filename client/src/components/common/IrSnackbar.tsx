@@ -34,7 +34,6 @@ export default function IrSnackbar() {
       bgColor = '#137F0B'
       break
     default:
-      //bgColor = "bg-inherit";
       break
   }
 

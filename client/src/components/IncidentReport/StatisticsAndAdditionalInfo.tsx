@@ -208,7 +208,7 @@ const StatisticsAndAdditionalInformation: React.FC<Props> = ({
                                 ? incident.commanderDetail.role
                                 : incident.assignHistory.find(
                                       (a) => a.user?.username === name,
-                                  )?.user?.role || '',
+                                  )?.user?.role ?? '',
                         )}
                         <StarRating
                             label={name}

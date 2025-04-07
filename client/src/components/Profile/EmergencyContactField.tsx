@@ -90,28 +90,6 @@ const ContactInfo = ({
     const [nameError, setNameError] = useState('')
     const phoneRegex = /^\+?[1-9]\d{1,14}$/
 
-    // const validatePhone = (phone: string) => {
-    //     if (phone.length < 7) {
-    //       setPhoneError("Phone number is too short.");
-    //       return false;
-    //   }
-    //   if (phone.length > 15) {
-    //       setPhoneError("Phone number is too long.");
-    //       return false;
-    //   }
-    //   if (!phone.startsWith("+")) {
-    //       setPhoneError("Include country code (e.g., +1 for US).");
-    //       return false;
-    //   }
-    //   if (!phoneRegex.test(phone)) {
-    //       setPhoneError("Only numbers are allowed (no spaces or symbols).");
-    //       return false;
-    //   }
-
-    //   setPhoneError("");
-    //   return true;
-    // };
-
     const validatePhone = (email: string) => {
         if (!phoneRegex.test(email)) {
             setEmailError('Invalid email format')

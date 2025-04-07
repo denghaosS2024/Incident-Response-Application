@@ -13,7 +13,7 @@ describe('User model', () => {
         password: string,
         phoneNumber,
     ) => {
-        const rawUser = await new User({
+        const rawUser = new User({
             username,
             password,
             phoneNumber,

@@ -95,9 +95,9 @@ describe('Dispatcher - Logout', () => {
   })
 
   afterEach(async () => {
-    await UserConnections.removeUserConnection(dispatcher1.id)
-    await UserConnections.removeUserConnection(dispatcher2.id)
-    await UserConnections.removeUserConnection(dispatcher3.id)
+    UserConnections.removeUserConnection(dispatcher1.id)
+    UserConnections.removeUserConnection(dispatcher2.id)
+    UserConnections.removeUserConnection(dispatcher3.id)
    })
 
     afterAll(async () => {
@@ -229,10 +229,10 @@ describe('First Responder - Logout', () => {
   })
 
   afterEach(async () => {
-    await UserConnections.removeUserConnection(police1.id)
-    await UserConnections.removeUserConnection(police2.id)
-    await UserConnections.removeUserConnection(fire1.id)
-    await UserConnections.removeUserConnection(fire2.id)
+    UserConnections.removeUserConnection(police1.id)
+    UserConnections.removeUserConnection(police2.id)
+    UserConnections.removeUserConnection(fire1.id)
+    UserConnections.removeUserConnection(fire2.id)
   })
 
   afterAll(async () => {

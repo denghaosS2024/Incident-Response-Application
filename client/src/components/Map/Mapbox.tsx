@@ -974,11 +974,6 @@ const Mapbox: React.FC<MapboxProps> = ({
           body: JSON.stringify({ description: newDescription }),
         })
 
-        // if (!updateResponse.ok) {
-        //   console.error('Failed to update pin description')
-        //   return
-        // }
-
         // Restore popup with updated description
         popupContent.innerHTML = `
           <p id="popup-address-${id}">${newDescription}</p>
@@ -1764,7 +1759,6 @@ const Mapbox: React.FC<MapboxProps> = ({
   ) => {
     const draw = MapBoxHelper.getMapboxDraw()
 
-    // const data = draw.getAll();
     const mode = draw.getMode()
     console.log(mode)
     if (mode === 'draw_polygon') {
@@ -1784,7 +1778,6 @@ const Mapbox: React.FC<MapboxProps> = ({
   const selectRestrict = (
     e: mapboxgl.MapMouseEvent & { features: mapboxgl.GeoJSONFeature[] },
   ) => {
-    // const data = draw.getAll();
     if (role !== 'Fire') {
       setIsUnauthorized(true)
       MapBoxHelper.getMapboxDraw().changeMode('simple_select')

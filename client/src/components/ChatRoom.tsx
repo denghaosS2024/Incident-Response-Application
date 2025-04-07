@@ -3,9 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router'
 import ChatBox from '../components/Chat/ChatBox'
-import IChannel from '../models/Channel'
+import IChannel, { resolveChannelName } from '../models/Channel'
 import IHospital from '../models/Hospital'
-import { resolveChannelName } from '../models/Channel'
 import { addMessage, loadMessages } from '../redux/messageSlice'
 import { AppDispatch, RootState } from '../redux/store'
 import request from '../utils/request'
@@ -26,7 +25,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ channelId }) => {
   )[channelId]
   const dispatch = useDispatch<AppDispatch>()
   const history = useNavigate()
-  const [isLoading, setLoading] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [channelName, setChannelName] = useState<string>('')
   const [isHospitalGroup, setIsHospitalGroup] = useState<boolean>(false)
 
@@ -76,7 +75,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ channelId }) => {
     loadChannelInfo()
     // Load messages for the current channel
     dispatch(loadMessages(channelId))
-    setLoading(false)
+    setIsLoading(false)
   }, [channelId, dispatch, history])
 
   // Reuse ChatBox component

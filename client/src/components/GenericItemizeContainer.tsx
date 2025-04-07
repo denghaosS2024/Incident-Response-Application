@@ -76,7 +76,7 @@ const GenericItemizeContainer = <T,>({
                 {headerColumns.map((column) => (
                   <TableCell
                     key={column.key}
-                    align={column.align || 'center'}
+                    align={column.align ?? 'center'}
                     sx={{
                       padding: '8px 16px',
                       whiteSpace: 'normal',
@@ -87,7 +87,7 @@ const GenericItemizeContainer = <T,>({
                       borderRight: `1px solid ${theme.palette.primary.main}`,
                     }}
                   >
-                    {column.label || ''}
+                    {column.label ?? ''}
                   </TableCell>
                 ))}
               </TableRow>
@@ -117,7 +117,7 @@ const GenericItemizeContainer = <T,>({
                     >
                       {column.render
                         ? column.render(item)
-                        : String((item as T)[column.key as keyof T] ?? '')}
+                        : String(item[column.key as keyof typeof item] ?? '')}
                     </TableCell>
                   ))}
                 </TableRow>
