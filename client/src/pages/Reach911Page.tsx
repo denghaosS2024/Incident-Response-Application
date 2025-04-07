@@ -36,7 +36,7 @@ const Reach911Page: React.FC = () => {
         isCreatedByFirstResponder,
         autoPopulateData,
         readOnly,
-    } = location.state || {}
+    } = location.state ?? {}
     const role = localStorage.getItem('role')
     const uid = localStorage.getItem('uid')
 
@@ -59,8 +59,8 @@ const Reach911Page: React.FC = () => {
                     `${import.meta.env.VITE_BACKEND_URL}/api/incidents/${username}/active`,
                     {
                         headers: {
-                            'x-application-token': token || '',
-                            'x-application-uid': uid || '',
+                            'x-application-token': token ?? '',
+                            'x-application-uid': uid ?? '',
                         },
                     },
                 )

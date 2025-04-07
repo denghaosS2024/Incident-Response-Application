@@ -147,8 +147,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                 `${import.meta.env.VITE_BACKEND_URL}/api/incidents/${value}/active`,
                 {
                     headers: {
-                        'x-application-token': token || '',
-                        'x-application-uid': uid || '',
+                        'x-application-token': token ?? '',
+                        'x-application-uid': uid ?? '',
                     },
                 },
             )

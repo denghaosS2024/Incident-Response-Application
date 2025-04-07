@@ -36,7 +36,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
     const dispatch = useDispatch<AppDispatch>()
     const [searchParams, setSearchParams] = useSearchParams()
     const [currentUsername, setcurrentUsername] = useState<string>(
-        propUsername || '',
+        propUsername ?? '',
     )
     const patients: IPatient[] = useSelector(
         (state: RootState) => state.patientState.patients,
@@ -53,7 +53,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
     const [isPatientAdded, setIsPatientAdded] = useState(false)
 
     let patient: IPatient =
-        patients.find((p) => p.username === currentUsername) || ({} as IPatient)
+        patients.find((p) => p.username === currentUsername) ?? ({} as IPatient)
 
     if (
         !isFetchingPatients &&
@@ -66,7 +66,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
             _id: '',
             username: propUsername,
             name: '',
-            sex: propSex || '',
+            sex: propSex ?? '',
             dob: '',
         }
         dispatch(addPatient(patient))
@@ -77,7 +77,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
     const username = patient.username ?? null
     const name = patient.name ?? ''
     const dob = patient.dob ?? ''
-    const userId = localStorage.getItem('uid') || ''
+    const userId = localStorage.getItem('uid') ?? ''
     const [usernameError, setUserNameError] = useState<string>('')
     const incident = useSelector(
         (state: RootState) => state.incidentState.incident,
@@ -118,7 +118,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
                             _id: '',
                             username: response.username,
                             name: '',
-                            sex: propSex || '',
+                            sex: propSex ?? '',
                             dob: '',
                         }
                         dispatch(addPatient(patient))
@@ -160,13 +160,13 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
             }
 
             patient =
-                patients.find((p) => p.username === value) || ({} as IPatient)
+                patients.find((p) => p.username === value) ?? ({} as IPatient)
             if (Object.keys(patient).length === 0) {
                 patient = {
                     _id: '',
                     username: value,
                     name: '',
-                    sex: propSex || '',
+                    sex: propSex ?? '',
                     dob: '',
                 }
                 dispatch(addPatient(patient))
@@ -310,7 +310,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
                         <TextField
                             variant="outlined"
                             label="Name"
-                            value={name || ''}
+                            value={name ?? ''}
                             onChange={(e) => onChange('name', e)}
                             fullWidth
                             error={!!usernameError}

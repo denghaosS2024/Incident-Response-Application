@@ -152,15 +152,12 @@ class AirQualityController {
       headers: { 'X-API-Key': PURPLEAIR_API_KEY },
     })
 
-    // console.log(response);
 
     if (!response.ok) {
       throw new Error(`PurpleAir API returned status: ${response.status}`)
     }
 
     const data = (await response.json()) as Record<string, unknown>
-    // console.log(data);
-    // fields: [ 'sensor_index', 'latitude', 'longitude', 'pm2.5_atm' ]
     const sensors = data.data as Array<unknown>
 
     if (!sensors || sensors.length === 0) {

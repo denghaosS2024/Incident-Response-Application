@@ -31,10 +31,10 @@ export default function ProfilePage() {
     const [addressOptions, setAddressOptions] = useState<string[]>([])
     const mapboxToken = Globals.getMapboxToken()
     const patientUserId = localStorage.getItem('patientUserId') ?? ''
-    const uid = localStorage.getItem('uid') || ''
+    const uid = localStorage.getItem('uid') ?? ''
     const isViewingOwnProfile = !paramUserId || paramUserId === uid
     const isReadOnly = paramUserId !== undefined && paramUserId !== uid
-    const effectiveUserId = paramUserId || uid
+    const effectiveUserId = paramUserId ?? uid
 
     const dispatch = useDispatch()
 
@@ -280,15 +280,15 @@ export default function ProfilePage() {
                             ? new Date(response.dob).toISOString().split('T')[0]
                             : '',
                     )
-                    setSex(response.sex || '')
-                    setAddress(response.address || '')
-                    setPhone(response.phone || '')
-                    setEmail(response.email || '')
-                    setEmergencyContacts(response.emergencyContacts || [])
+                    setSex(response.sex ?? '')
+                    setAddress(response.address ?? '')
+                    setPhone(response.phone ?? '')
+                    setEmail(response.email ?? '')
+                    setEmergencyContacts(response.emergencyContacts ?? [])
                     setMedicalInfo({
-                        condition: response.medicalInfo?.condition || '',
-                        drugs: response.medicalInfo?.drugs || '',
-                        allergies: response.medicalInfo?.allergies || '',
+                        condition: response.medicalInfo?.condition ?? '',
+                        drugs: response.medicalInfo?.drugs ?? '',
+                        allergies: response.medicalInfo?.allergies ?? '',
                     })
                 } else {
                     console.log('🟡 Profile not found. No profile data loaded.')
@@ -417,7 +417,7 @@ export default function ProfilePage() {
                     if (!isReadOnly) handleAddressInputChange(event, value)
                 }}
                 onChange={(event, newValue) => {
-                    if (!isReadOnly) handleAddressSelect(newValue || '')
+                    if (!isReadOnly) handleAddressSelect(newValue ?? '')
                 }}
                 renderInput={(params) => (
                     <TextField
