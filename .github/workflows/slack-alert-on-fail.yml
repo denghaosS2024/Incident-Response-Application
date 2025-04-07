@@ -1,0 +1,26 @@
+name: Notify Slack on Build Failure
+
+on:
+    workflow_run:
+        workflows: ['Build']
+        types:
+            - completed
+
+jobs:
+    notify:
+        if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Send Slack alert
+              uses: slackapi/slack-github-action@v1.24.0
+              with:
+                  channel-id: 'C08M3Q51LJZ'
+                  slack-message: |
+                      🚨 *Build Failed!*  
+                      🕒 *Started:* ${{ github.event.workflow_run.run_started_at }}  
+                      🔗 <${{ github.event.workflow_run.html_url }}|View build logs>  
+                      📘 *Workflow:* `${{ github.event.workflow_run.name }}`  
+                      🛠️ *Repo:* `${{ github.repository }}`  
+                      📌 *Branch:* `${{ github.event.workflow_run.head_branch }}`
+              env:
+                  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
