@@ -71,8 +71,8 @@ const Reach911Page: React.FC = () => {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'x-application-token': token || '',
-                                'x-application-uid': uid || '',
+                                'x-application-token': token ?? '',
+                                'x-application-uid': uid ?? '',
                             },
                             body: JSON.stringify({
                                 caller: username,

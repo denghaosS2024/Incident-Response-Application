@@ -101,7 +101,7 @@ const FindHospital: React.FC = () => {
     if (!destination || source.droppableId === destination.droppableId) return
 
     const draggedPatient =
-      unassignedPatients.find((p) => p.patientId === draggableId) ||
+      unassignedPatients.find((p) => p.patientId === draggableId) ??
       Object.values(draggedPatients)
         .flat()
         .find((p) => p.patientId === draggableId)

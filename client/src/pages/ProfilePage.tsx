@@ -274,7 +274,7 @@ export default function ProfilePage() {
                     console.log(
                         '🟢 Profile already exists. Data loaded successfully.',
                     )
-                    setName(response.name || '')
+                    setName(response.name ?? '')
                     setDob(
                         response.dob
                             ? new Date(response.dob).toISOString().split('T')[0]

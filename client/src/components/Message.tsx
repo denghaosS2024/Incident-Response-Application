@@ -91,7 +91,7 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
       ) : isImage ? (
         <img
           src={message.content}
-          alt="Sent image"
+          alt="Sent message"
           style={{
             maxWidth: '30%',
             height: 'auto',

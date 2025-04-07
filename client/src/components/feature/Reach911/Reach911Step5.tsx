@@ -68,7 +68,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 setAmICommander(true)
                 setCurrentCommander('You')
             } else {
-                setCurrentCommander(incidentData?.commander || 'You')
+                setCurrentCommander(incidentData?.commander ?? 'You')
             }
 
             try {
@@ -247,7 +247,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             console.log('Incident closed successfully')
         } catch (err: any) {
             console.error('Error closing incident:', err)
-            setError(err.message || 'Unknown error while closing incident')
+            setError(err.message ?? 'Unknown error while closing incident')
         } finally {
             setLoading(false)
         }
@@ -384,7 +384,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
                 'Failed to create or open responders chat group:',
                 err,
             )
-            setError(err.message || 'Error occurred while creating chat group')
+            setError(err.message ?? 'Error occurred while creating chat group')
         } finally {
             setLoading(false)
         }

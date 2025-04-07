@@ -61,7 +61,7 @@ const RegisterHospital: React.FC = () => {
 
     // Local state for the address input field
     const [inputAddress, setInputAddress] = useState(
-        hospitalData.hospitalAddress || '',
+        hospitalData.hospitalAddress ?? '',
     )
 
     /* ------------------------------ USE EFFECTS ------------------------------ */

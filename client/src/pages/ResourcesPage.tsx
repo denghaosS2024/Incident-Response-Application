@@ -1,13 +1,12 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import React, { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, useMediaQuery, Alert } from '@mui/material';
-import { DragDropContext, DropResult } from 'react-beautiful-dnd';
-import { Button } from '@mui/material';
+import IncidentList from '@/components/AllocateResource/IncidentList';
+import VehicleList from '@/components/AllocateResource/VehicleList';
 import AlertSnackbar from '@/components/common/AlertSnackbar';
 import IIncident from '@/models/Incident';
+import { Box, Button, Card, CardContent, Typography, useMediaQuery } from '@mui/material';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useEffect, useState } from 'react';
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import request from '../utils/request';
-import VehicleList from '@/components/AllocateResource/VehicleList';
-import IncidentList from '@/components/AllocateResource/IncidentList';
 
 // Interfaces representing the backend data
 interface Car {
@@ -329,7 +328,7 @@ const ResourcesPage: React.FC = () => {
       
       <AlertSnackbar
         open={openSnackbar}
-        message={errorMessage || ''}
+        message={errorMessage ?? ''}
         onClose={handleCloseSnackbar}
         severity="error"
         vertical="bottom"
@@ -338,7 +337,7 @@ const ResourcesPage: React.FC = () => {
 
       <AlertSnackbar
         open={openSuccessSnackbar}
-        message={successMessage || ''}
+        message={successMessage ?? ''}
         onClose={handleCloseSuccessSnackbar}
         severity="success"
         vertical="bottom"

@@ -88,7 +88,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
     const patientQuestion = questionsArray.find(
         (question: any) => question.username === currentUsername,
     )
-    const sex = (patientQuestion?.sex ?? patient.sex) || ''
+    const sex = (patientQuestion?.sex ?? patient.sex) ?? ''
 
     // Loads contacts upon page loading
 

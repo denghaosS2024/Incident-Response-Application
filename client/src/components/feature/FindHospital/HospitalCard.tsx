@@ -28,7 +28,7 @@ const HospitalCard: React.FC<HospitalProps> = ({ hospital, id, patients }) => {
                 {hospital.distance}m
               </Typography>
               <Typography className="text-gray-500">
-                {availableBeds} - ({hospital.totalNumberERBeds || 0}) Beds
+                {availableBeds} - ({hospital.totalNumberERBeds ?? 0}) Beds
               </Typography>
             </Box>
           </Box>

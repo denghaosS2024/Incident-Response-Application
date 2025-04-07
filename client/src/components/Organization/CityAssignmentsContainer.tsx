@@ -104,11 +104,11 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
         currentUserPersonnel.role === 'Fire'
           ? data.trucks.find(
               (truck) => truck.name === currentUserPersonnel.assignedTruck,
-            )?.name || null
+            )?.name ?? null
           : currentUserPersonnel.role === 'Police'
             ? data.cars.find(
                 (car) => car.name === currentUserPersonnel.assignedCar,
-              )?.name || null
+              )?.name ?? null
             : null
 
       if (assignedVehicleName) {
@@ -184,7 +184,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
         method: 'PUT',
         body: JSON.stringify({
           personnelName: currentUser,
-          commandingIncident: commandingIncident || null,
+          commandingIncident: commandingIncident ?? null,
           vehicle,
         }),
       })
@@ -194,7 +194,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
           body: JSON.stringify({
             truckName: vehicleName,
             username: currentUser,
-            commandingIncident: commandingIncident || null,
+            commandingIncident: commandingIncident ?? null,
           }),
         })
       } else if (currentUserPersonnel?.role === 'Police') {
@@ -203,7 +203,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
           body: JSON.stringify({
             carName: vehicleName,
             username: currentUser,
-            commandingIncident: commandingIncident || null,
+            commandingIncident: commandingIncident ?? null,
           }),
         })
       }
@@ -211,7 +211,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
         method: 'PUT',
         body: JSON.stringify({
           personnel: currentUserPersonnel,
-          commandingIncident: commandingIncident || null,
+          commandingIncident: commandingIncident ?? null,
           vehicle: vehicle,
         }),
       })
@@ -498,7 +498,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
       </Accordion>
       <AlertSnackbar
         open={openSnackbar}
-        message={errorMessage || ''}
+        message={errorMessage ?? ''}
         onClose={handleCloseSnackbar}
         severity="error"
         vertical="bottom"
