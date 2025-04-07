@@ -200,7 +200,7 @@ const getLineChartData = async (
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const labels = [...new Set(incidents.map((i) => i._id.date))].sort();
+      const labels = [...new Set(incidents.map((i) => i._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       const types = [...new Set(incidents.map((i) => i._id.type))];
 
       const datasets = types.map((t) => ({
@@ -235,7 +235,7 @@ const getLineChartData = async (
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const labels = [...new Set(incidents.map((i) => i._id.date))].sort();
+      const labels = [...new Set(incidents.map((i) => i._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       const priorities = [...new Set(incidents.map((i) => i._id.priority))];
 
       const datasets = priorities.map((p) => ({
@@ -270,7 +270,7 @@ const getLineChartData = async (
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const labels = [...new Set(incidents.map((i) => i._id.date))].sort();
+      const labels = [...new Set(incidents.map((i) => i._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       const states = [...new Set(incidents.map((i) => i._id.state))];
 
       const datasets = states.map((s) => ({
@@ -320,7 +320,7 @@ const getLineChartData = async (
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const labels = [...new Set(visits.map((v) => v._id.date))].sort();
+      const labels = [...new Set(visits.map((v) => v._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       const locs = [...new Set(visits.map((v) => v._id.location))];
 
       const datasets = locs.map((loc) => ({
@@ -360,7 +360,7 @@ const getLineChartData = async (
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const labels = [...new Set(tasks.map((t) => t._id.date))].sort();
+      const labels = [...new Set(tasks.map((t) => t._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       const states = [...new Set(tasks.map((t) => t._id.state))];
 
       const datasets = states.map((s) => ({
@@ -435,7 +435,7 @@ const getLineChartData = async (
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const labels = [...new Set(alerts.map((a) => a._id.date))].sort();
+      const labels = [...new Set(alerts.map((a) => a._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       const contents = [...new Set(alerts.map((a) => a._id.content))];
 
       const datasets = contents.map((c) => ({
@@ -539,9 +539,9 @@ export async function getBarChartData(
       ]);
 
       // Unique categories (incident types) in sorted order
-      const categories = [...new Set(agg.map((x) => x._id.type))].sort();
+      const categories = [...new Set(agg.map((x) => x._id.type))].sort((a, b) => a.localeCompare(b));
       // Unique dates in sorted order
-      const dates = [...new Set(agg.map((x) => x._id.date))].sort();
+      const dates = [...new Set(agg.map((x) => x._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
       // Build datasets array
       const datasets = dates.map((dateStr) => ({
@@ -582,8 +582,8 @@ export async function getBarChartData(
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const categories = [...new Set(agg.map((x) => x._id.priority))].sort();
-      const dates = [...new Set(agg.map((x) => x._id.date))].sort();
+      const categories = [...new Set(agg.map((x) => x._id.priority))].sort((a, b) => a.localeCompare(b));
+      const dates = [...new Set(agg.map((x) => x._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
       const datasets = dates.map((dateStr) => ({
         label: dateStr,
@@ -622,8 +622,8 @@ export async function getBarChartData(
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const categories = [...new Set(agg.map((x) => x._id.state))].sort();
-      const dates = [...new Set(agg.map((x) => x._id.date))].sort();
+      const categories = [...new Set(agg.map((x) => x._id.state))].sort((a, b) => a.localeCompare(b));
+      const dates = [...new Set(agg.map((x) => x._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
       const datasets = dates.map((dateStr) => ({
         label: dateStr,
@@ -667,8 +667,8 @@ export async function getBarChartData(
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const categories = [...new Set(agg.map((x) => x._id.state))].sort();
-      const dates = [...new Set(agg.map((x) => x._id.date))].sort();
+      const categories = [...new Set(agg.map((x) => x._id.state))].sort((a, b) => a.localeCompare(b));
+      const dates = [...new Set(agg.map((x) => x._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
       const datasets = dates.map((dateStr) => ({
         label: dateStr,
@@ -755,8 +755,8 @@ export async function getBarChartData(
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const categories = [...new Set(agg.map((x) => x._id.loc))].sort();
-      const dates = [...new Set(agg.map((x) => x._id.date))].sort();
+      const categories = [...new Set(agg.map((x) => x._id.loc))].sort((a, b) => a.localeCompare(b));
+      const dates = [...new Set(agg.map((x) => x._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
       const datasets = dates.map((dateStr) => ({
         label: dateStr,
@@ -800,8 +800,8 @@ export async function getBarChartData(
         { $sort: { "_id.date": 1 } },
       ]);
 
-      const categories = [...new Set(agg.map((x) => x._id.content))].sort();
-      const dates = [...new Set(agg.map((x) => x._id.date))].sort();
+      const categories = [...new Set(agg.map((x) => x._id.content))].sort((a, b) => a.localeCompare(b));
+      const dates = [...new Set(agg.map((x) => x._id.date))].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
       const datasets = dates.map((dateStr) => ({
         label: dateStr,
