@@ -1,19 +1,19 @@
-import IHospital from '@/models/Hospital'
-import IPatient from '@/models/Patient'
-import { Box, Typography } from '@mui/material'
-import React from 'react'
-import { Droppable } from 'react-beautiful-dnd'
-import PatientCard from './PatientCard'
+import IHospital from "@/models/Hospital";
+import IPatient from "@/models/Patient";
+import { Box, Typography } from "@mui/material";
+import React from "react";
+import { Droppable } from "react-beautiful-dnd";
+import PatientCard from "./PatientCard";
 
 interface HospitalProps {
-  hospital: IHospital
-  id: string
-  index: number
-  patients: IPatient[]
+  hospital: IHospital;
+  id: string;
+  index: number;
+  patients: IPatient[];
 }
 
 const HospitalCard: React.FC<HospitalProps> = ({ hospital, id, patients }) => {
-  const availableBeds = hospital.totalNumberERBeds - patients.length
+  const availableBeds = hospital.totalNumberERBeds - patients.length;
 
   return (
     <Droppable droppableId={id}>
@@ -58,7 +58,7 @@ const HospitalCard: React.FC<HospitalProps> = ({ hospital, id, patients }) => {
         </Box>
       )}
     </Droppable>
-  )
-}
+  );
+};
 
-export default HospitalCard
+export default HospitalCard;

@@ -1,7 +1,7 @@
-import React from 'react';
-import { Typography, Box, List } from '@mui/material';
-import { Droppable } from 'react-beautiful-dnd';
-import VehicleItem from './VehicleItem';
+import React from "react";
+import { Typography, Box, List } from "@mui/material";
+import { Droppable } from "react-beautiful-dnd";
+import VehicleItem from "./VehicleItem";
 
 interface Vehicle {
   _id: string;
@@ -15,11 +15,18 @@ interface VehicleListProps {
   title: string;
   vehicles: Vehicle[];
   droppableId: string;
-  vehicleType: 'Car' | 'Truck';
+  vehicleType: "Car" | "Truck";
 }
 
-const VehicleList: React.FC<VehicleListProps> = ({ title, vehicles, droppableId, vehicleType }) => {
-  const sortedVehicles = [...vehicles].sort((a, b) => a.name.localeCompare(b.name));
+const VehicleList: React.FC<VehicleListProps> = ({
+  title,
+  vehicles,
+  droppableId,
+  vehicleType,
+}) => {
+  const sortedVehicles = [...vehicles].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
 
   return (
     <>
@@ -32,7 +39,7 @@ const VehicleList: React.FC<VehicleListProps> = ({ title, vehicles, droppableId,
           <List
             ref={provided.innerRef}
             {...provided.droppableProps}
-            style={{ minHeight: '50px' }}
+            style={{ minHeight: "50px" }}
           >
             {sortedVehicles.map((vehicle, index) => (
               <VehicleItem

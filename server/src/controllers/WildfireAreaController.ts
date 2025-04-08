@@ -1,6 +1,6 @@
 // import WildfireArea, { IWildfireArea } from '../models/WildfireArea';
-import WildfireArea from '../models/WildfireArea'
-import UserConnections from '../utils/UserConnections'
+import WildfireArea from "../models/WildfireArea";
+import UserConnections from "../utils/UserConnections";
 
 class WildfireAreaController {
   /**
@@ -12,26 +12,26 @@ class WildfireAreaController {
    */
   async add(areaId: string, coordinates: number[][], name?: string) {
     // Check if the wildfire area already exists
-    const wildfireArea = await WildfireArea.findOne({ areaId }).exec()
+    const wildfireArea = await WildfireArea.findOne({ areaId }).exec();
 
     if (wildfireArea) {
-      throw new Error(`WildfireArea "${areaId}" already exists`)
+      throw new Error(`WildfireArea "${areaId}" already exists`);
     }
 
     const newWildfireArea = new WildfireArea({
       areaId,
       coordinates,
       name,
-    })
+    });
 
-    await newWildfireArea.save()
+    await newWildfireArea.save();
     const areaJson = {
       areaId: newWildfireArea.areaId,
       coordinates: newWildfireArea.coordinates,
       name: newWildfireArea.name,
-    }
-    UserConnections.broadcast('map-area-update', areaJson)
-    return areaJson
+    };
+    UserConnections.broadcast("map-area-update", areaJson);
+    return areaJson;
   }
 
   /**
@@ -41,13 +41,13 @@ class WildfireAreaController {
    * @throws Error if the wildfire area does not exist
    */
   async findById(areaId: string) {
-    const target = await WildfireArea.findOne({ areaId })
+    const target = await WildfireArea.findOne({ areaId });
 
     if (target === null || target === undefined) {
-      return null
+      return null;
     }
 
-    return target
+    return target;
   }
 
   /**
@@ -57,21 +57,21 @@ class WildfireAreaController {
    * @throws Error if the user doesn't exist or the password is incorrect
    */
   async update(areaId: string, newName: string) {
-    const wildfireArea = await WildfireArea.findOne({ areaId })
+    const wildfireArea = await WildfireArea.findOne({ areaId });
 
     if (wildfireArea) {
-      wildfireArea.name = newName
-      await wildfireArea.save()
+      wildfireArea.name = newName;
+      await wildfireArea.save();
       const newWildfireArea = {
         areaId,
         coordinates: wildfireArea.coordinates,
         name: newName,
-      }
-      UserConnections.broadcast('map-area-update', newWildfireArea)
-      return wildfireArea
+      };
+      UserConnections.broadcast("map-area-update", newWildfireArea);
+      return wildfireArea;
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -82,17 +82,17 @@ class WildfireAreaController {
    * @throws Error if the wildfire area does not exist
    */
   async updateContainmentLevel(areaId: string, containmentLevel: number) {
-    const wildfireArea = await WildfireArea.findOne({ areaId })
+    const wildfireArea = await WildfireArea.findOne({ areaId });
 
     if (wildfireArea) {
-      wildfireArea.containment = containmentLevel
+      wildfireArea.containment = containmentLevel;
       // Update last updated time (timestamp)
-      wildfireArea.last_updated = new Date()
-      await wildfireArea.save()
-      return wildfireArea
+      wildfireArea.last_updated = new Date();
+      await wildfireArea.save();
+      return wildfireArea;
     }
 
-    throw new Error(`WildfireArea "${areaId}" does not exist`)
+    throw new Error(`WildfireArea "${areaId}" does not exist`);
   }
 
   /**
@@ -102,15 +102,15 @@ class WildfireAreaController {
    * @throws Error if the wildfire area does not exist
    */
   async delete(areaId: string) {
-    const wildfireArea = await WildfireArea.findOne({ areaId })
+    const wildfireArea = await WildfireArea.findOne({ areaId });
 
     if (wildfireArea) {
-      await wildfireArea.deleteOne()
-      UserConnections.broadcast('map-area-delete', areaId)
-      return { message: `WildfireArea "${areaId}" has been deleted` }
+      await wildfireArea.deleteOne();
+      UserConnections.broadcast("map-area-delete", areaId);
+      return { message: `WildfireArea "${areaId}" has been deleted` };
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -118,11 +118,11 @@ class WildfireAreaController {
    * @returns An array of user objects, each containing _id, username, role, and online status
    */
   async listWildfireAreas() {
-    const wildfireAreas = await WildfireArea.find().exec()
+    const wildfireAreas = await WildfireArea.find().exec();
     return wildfireAreas.map((wildfireArea) => ({
       ...wildfireArea.toJSON(),
-    }))
+    }));
   }
 }
 
-export default new WildfireAreaController()
+export default new WildfireAreaController();

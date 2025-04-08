@@ -1,89 +1,89 @@
-import { Box, Button, FormHelperText, TextField } from '@mui/material'
-import React, { useState } from 'react'
-import { Link } from 'react-router'
-import ConfirmationDialog from './common/ConfirmationDialog'
+import { Box, Button, FormHelperText, TextField } from "@mui/material";
+import React, { useState } from "react";
+import { Link } from "react-router";
+import ConfirmationDialog from "./common/ConfirmationDialog";
 
 export interface IFormData {
-  username: string
-  password: string
-  role: string
+  username: string;
+  password: string;
+  role: string;
 }
 
 export interface IProps {
   /**
    * Function to call when the form is submitted
    */
-  onSubmit: (data: IFormData) => void
+  onSubmit: (data: IFormData) => void;
 }
 
 const RegisterForm: React.FC<IProps> = (props: IProps) => {
-  const [username, setUserName] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [role, setRole] = useState<string>('')
-  const [confirmPassword, setConfirmPassword] = useState<string>('')
-  const [usernameError, setUserNameError] = useState<string>('')
-  const [passwordError, setPasswordError] = useState<string>('')
-  const [confirmPasswordError, setConfirmPasswordError] = useState<string>('')
-  const [roleError, setRoleError] = useState<string>('')
-  const [openDialog, setOpenDialog] = useState(false)
+  const [username, setUserName] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [role, setRole] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [usernameError, setUserNameError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string>("");
+  const [roleError, setRoleError] = useState<string>("");
+  const [openDialog, setOpenDialog] = useState(false);
 
   const clearError = () => {
-    setUserNameError('')
-    setPasswordError('')
-    setConfirmPasswordError('')
-    setRoleError('')
-  }
+    setUserNameError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+    setRoleError("");
+  };
   const onSubmitHandler = () => {
-    clearError()
+    clearError();
 
-    let hasError = false
+    let hasError = false;
 
     if (!username) {
-      setUserNameError('Username can not be empty')
-      hasError = true
+      setUserNameError("Username can not be empty");
+      hasError = true;
     }
 
     if (!password) {
-      setPasswordError('Password can not be empty')
-      hasError = true
+      setPasswordError("Password can not be empty");
+      hasError = true;
     }
 
     if (!confirmPassword) {
-      setConfirmPasswordError('Confirm password can not be empty')
-      hasError = true
+      setConfirmPasswordError("Confirm password can not be empty");
+      hasError = true;
     }
 
     if (confirmPassword !== password) {
-      setConfirmPasswordError('Two passwords do not match')
-      hasError = true
+      setConfirmPasswordError("Two passwords do not match");
+      hasError = true;
     }
 
     if (!role) {
-      setRoleError('Role can not be empty')
-      hasError = true
+      setRoleError("Role can not be empty");
+      hasError = true;
     }
 
     if (!hasError) {
-      setOpenDialog(true) // Open the confirmation dialog
+      setOpenDialog(true); // Open the confirmation dialog
     }
-  }
+  };
 
   const handleDialogConfirm = () => {
-    setOpenDialog(false)
+    setOpenDialog(false);
     props.onSubmit({
       username,
       password,
       role,
-    })
-  }
+    });
+  };
 
   const handleDialogCancel = () => {
-    setOpenDialog(false)
-  }
+    setOpenDialog(false);
+  };
   const handleRoleSelection = (selectedRole: string) => {
-    setRole(selectedRole)
-    setRoleError('')
-  }
+    setRole(selectedRole);
+    setRoleError("");
+  };
   return (
     <>
       <Box
@@ -130,24 +130,24 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
         <Box width="100%" maxWidth="500px" my={2}>
           <Box display="flex " flexWrap="wrap" justifyContent="space-between">
             {[
-              'Citizen',
-              'Dispatch',
-              'Police',
-              'Fire',
-              'Nurse',
-              'Administrator',
+              "Citizen",
+              "Dispatch",
+              "Police",
+              "Fire",
+              "Nurse",
+              "Administrator",
             ].map((r) => (
               <Button
                 key={r}
-                variant={role === r ? 'contained' : 'outlined'}
+                variant={role === r ? "contained" : "outlined"}
                 color="primary"
                 onClick={() => handleRoleSelection(r)}
                 sx={{
-                  flex: '1 1 30%',
-                  marginBottom: '8px',
-                  marginLeft: '10px',
-                  marginRight: '10px',
-                  height: '70px',
+                  flex: "1 1 30%",
+                  marginBottom: "8px",
+                  marginLeft: "10px",
+                  marginRight: "10px",
+                  height: "70px",
                 }}
               >
                 {r}
@@ -162,9 +162,9 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
             color="primary"
             type="submit"
             onClick={(e) => {
-              e.preventDefault()
+              e.preventDefault();
 
-              onSubmitHandler()
+              onSubmitHandler();
             }}
             fullWidth
           >
@@ -186,7 +186,7 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
         onCancel={handleDialogCancel}
       />
     </>
-  )
-}
+  );
+};
 
-export default RegisterForm
+export default RegisterForm;

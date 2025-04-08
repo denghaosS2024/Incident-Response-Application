@@ -1,9 +1,9 @@
 // LoginRouter handles user login operations and generates authentication tokens.
 // It interacts with the User model and manages user authentication.
 
-import { Router } from 'express'
+import { Router } from "express";
 
-import UserController from '../controllers/UserController'
+import UserController from "../controllers/UserController";
 
 export default Router()
   /**
@@ -15,14 +15,14 @@ export default Router()
    * @returns {Object} An object containing the authentication token, user ID, and role
    * @throws {400} If the user doesn't exist or the password is incorrect
    */
-  .post('/', async (request, response) => {
-    const { username, password } = request.body
+  .post("/", async (request, response) => {
+    const { username, password } = request.body;
 
     try {
-      const result = await UserController.login(username, password)
-      response.send(result)
+      const result = await UserController.login(username, password);
+      response.send(result);
     } catch (e) {
-      const error = e as Error
-      response.status(400).send({ message: error.message })
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
     }
-  })
+  });

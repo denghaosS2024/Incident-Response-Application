@@ -1,21 +1,21 @@
-import { Box, Card, CardActionArea, Typography, Zoom } from '@mui/material'
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import IIncident, { IncidentType } from '../../../models/Incident'
-import { updateIncident } from '../../../redux/incidentSlice'
-import { AppDispatch, RootState } from '../../../redux/store'
+import { Box, Card, CardActionArea, Typography, Zoom } from "@mui/material";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import IIncident, { IncidentType } from "../../../models/Incident";
+import { updateIncident } from "../../../redux/incidentSlice";
+import { AppDispatch, RootState } from "../../../redux/store";
 
 // Icons for emergency types
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital'
-import LocalPoliceIcon from '@mui/icons-material/LocalPolice'
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import LocalPoliceIcon from "@mui/icons-material/LocalPolice";
 
 const Reach911Step2: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>();
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
-  )
+  );
 
   const handleTypeSelection = (type: IncidentType) => {
     dispatch(
@@ -23,49 +23,49 @@ const Reach911Step2: React.FC = () => {
         ...incident,
         type: type,
       }),
-    )
-  }
+    );
+  };
 
   // Helper function to determine if a card is selected
-  const isSelected = (type: IncidentType) => incident.type === type
+  const isSelected = (type: IncidentType) => incident.type === type;
 
   // Function for getting correct incident color
   const getIncidentColor = (type: IncidentType) => {
     switch (type) {
       case IncidentType.Fire:
-        return '#f44336';
+        return "#f44336";
       case IncidentType.Medical:
-        return '#2196f3';
+        return "#2196f3";
       default:
-        return '#4caf50';
-      }
+        return "#4caf50";
+    }
   };
 
   // Function for getting the correct Incident Label
   const getIncidentLabel = (type: IncidentType) => {
     switch (type) {
       case IncidentType.Fire:
-        return 'Fire';
+        return "Fire";
       case IncidentType.Medical:
-        return 'Medical';
+        return "Medical";
       default:
-        return 'Police';
+        return "Police";
     }
   };
 
   return (
     <Box
       sx={{
-        height: '100%',
-        maxHeight: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
+        height: "100%",
+        maxHeight: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
         px: 2,
         pb: 1,
-        boxSizing: 'border-box',
-        mt: '10px',
-        p: '10px',
+        boxSizing: "border-box",
+        mt: "10px",
+        p: "10px",
       }}
     >
       <Box>
@@ -76,12 +76,12 @@ const Reach911Step2: React.FC = () => {
 
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
+          display: "flex",
+          flexDirection: "column",
           gap: 1,
-          width: '100%',
+          width: "100%",
           flex: 1,
-          overflow: 'hidden',
+          overflow: "hidden",
           my: 0.5,
         }}
       >
@@ -90,49 +90,49 @@ const Reach911Step2: React.FC = () => {
           elevation={isSelected(IncidentType.Fire) ? 3 : 1}
           sx={{
             borderRadius: 1,
-            transition: 'all 0.3s ease',
-            height: isSelected(IncidentType.Fire) ? '35%' : '28%',
-            position: 'relative',
+            transition: "all 0.3s ease",
+            height: isSelected(IncidentType.Fire) ? "35%" : "28%",
+            position: "relative",
             backgroundColor: isSelected(IncidentType.Fire)
-              ? 'rgba(244, 67, 54, 0.05)'
-              : 'white',
+              ? "rgba(244, 67, 54, 0.05)"
+              : "white",
             boxShadow: isSelected(IncidentType.Fire)
-              ? '0 2px 8px rgba(244, 67, 54, 0.2)'
-              : 'none',
+              ? "0 2px 8px rgba(244, 67, 54, 0.2)"
+              : "none",
             borderTop: isSelected(IncidentType.Fire)
-              ? '4px solid #f44336'
-              : 'none',
-            borderLeft: 'none',
-            borderRight: 'none',
-            borderBottom: '1px solid #e0e0e0',
+              ? "4px solid #f44336"
+              : "none",
+            borderLeft: "none",
+            borderRight: "none",
+            borderBottom: "1px solid #e0e0e0",
           }}
         >
           <CardActionArea
             onClick={() => handleTypeSelection(IncidentType.Fire)}
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
+              display: "flex",
+              justifyContent: "center",
               py: isSelected(IncidentType.Fire) ? 1.5 : 1,
-              height: '100%',
+              height: "100%",
             }}
           >
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                width: '100%',
-                position: 'relative',
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%",
+                position: "relative",
               }}
             >
               {isSelected(IncidentType.Fire) && (
                 <Zoom in={true}>
                   <CheckCircleIcon
                     sx={{
-                      position: 'absolute',
+                      position: "absolute",
                       top: -5,
                       right: 16,
-                      color: '#f44336',
+                      color: "#f44336",
                       fontSize: 24,
                     }}
                   />
@@ -141,17 +141,17 @@ const Reach911Step2: React.FC = () => {
               <LocalFireDepartmentIcon
                 sx={{
                   fontSize: isSelected(IncidentType.Fire) ? 48 : 36,
-                  color: '#f44336',
+                  color: "#f44336",
                   mb: 0.5,
-                  transition: 'all 0.3s ease',
+                  transition: "all 0.3s ease",
                 }}
               />
               <Typography
                 variant="subtitle1"
                 align="center"
                 sx={{
-                  fontWeight: isSelected(IncidentType.Fire) ? 'bold' : 'medium',
-                  fontSize: isSelected(IncidentType.Fire) ? '1.1rem' : '1rem',
+                  fontWeight: isSelected(IncidentType.Fire) ? "bold" : "medium",
+                  fontSize: isSelected(IncidentType.Fire) ? "1.1rem" : "1rem",
                   lineHeight: 1.2,
                 }}
               >
@@ -161,7 +161,7 @@ const Reach911Step2: React.FC = () => {
                 variant="caption"
                 color="text.secondary"
                 align="center"
-                sx={{ fontSize: '0.85rem', lineHeight: 1.2 }}
+                sx={{ fontSize: "0.85rem", lineHeight: 1.2 }}
               >
                 Report a fire emergency
               </Typography>
@@ -174,49 +174,49 @@ const Reach911Step2: React.FC = () => {
           elevation={isSelected(IncidentType.Medical) ? 3 : 1}
           sx={{
             borderRadius: 1,
-            transition: 'all 0.3s ease',
-            height: isSelected(IncidentType.Medical) ? '35%' : '28%',
-            position: 'relative',
+            transition: "all 0.3s ease",
+            height: isSelected(IncidentType.Medical) ? "35%" : "28%",
+            position: "relative",
             backgroundColor: isSelected(IncidentType.Medical)
-              ? 'rgba(33, 150, 243, 0.05)'
-              : 'white',
+              ? "rgba(33, 150, 243, 0.05)"
+              : "white",
             boxShadow: isSelected(IncidentType.Medical)
-              ? '0 2px 8px rgba(33, 150, 243, 0.2)'
-              : 'none',
+              ? "0 2px 8px rgba(33, 150, 243, 0.2)"
+              : "none",
             borderTop: isSelected(IncidentType.Medical)
-              ? '4px solid #2196f3'
-              : 'none',
-            borderLeft: 'none',
-            borderRight: 'none',
-            borderBottom: '1px solid #e0e0e0',
+              ? "4px solid #2196f3"
+              : "none",
+            borderLeft: "none",
+            borderRight: "none",
+            borderBottom: "1px solid #e0e0e0",
           }}
         >
           <CardActionArea
             onClick={() => handleTypeSelection(IncidentType.Medical)}
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
+              display: "flex",
+              justifyContent: "center",
               py: isSelected(IncidentType.Medical) ? 1.5 : 1,
-              height: '100%',
+              height: "100%",
             }}
           >
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                width: '100%',
-                position: 'relative',
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%",
+                position: "relative",
               }}
             >
               {isSelected(IncidentType.Medical) && (
                 <Zoom in={true}>
                   <CheckCircleIcon
                     sx={{
-                      position: 'absolute',
+                      position: "absolute",
                       top: -5,
                       right: 16,
-                      color: '#2196f3',
+                      color: "#2196f3",
                       fontSize: 24,
                     }}
                   />
@@ -225,9 +225,9 @@ const Reach911Step2: React.FC = () => {
               <LocalHospitalIcon
                 sx={{
                   fontSize: isSelected(IncidentType.Medical) ? 48 : 36,
-                  color: '#2196f3',
+                  color: "#2196f3",
                   mb: 0.5,
-                  transition: 'all 0.3s ease',
+                  transition: "all 0.3s ease",
                 }}
               />
               <Typography
@@ -235,11 +235,11 @@ const Reach911Step2: React.FC = () => {
                 align="center"
                 sx={{
                   fontWeight: isSelected(IncidentType.Medical)
-                    ? 'bold'
-                    : 'medium',
+                    ? "bold"
+                    : "medium",
                   fontSize: isSelected(IncidentType.Medical)
-                    ? '1.1rem'
-                    : '1rem',
+                    ? "1.1rem"
+                    : "1rem",
                   lineHeight: 1.2,
                 }}
               >
@@ -249,7 +249,7 @@ const Reach911Step2: React.FC = () => {
                 variant="caption"
                 color="text.secondary"
                 align="center"
-                sx={{ fontSize: '0.85rem', lineHeight: 1.2 }}
+                sx={{ fontSize: "0.85rem", lineHeight: 1.2 }}
               >
                 Report a medical emergency
               </Typography>
@@ -262,49 +262,49 @@ const Reach911Step2: React.FC = () => {
           elevation={isSelected(IncidentType.Police) ? 3 : 1}
           sx={{
             borderRadius: 1,
-            transition: 'all 0.3s ease',
-            height: isSelected(IncidentType.Police) ? '35%' : '28%',
-            position: 'relative',
+            transition: "all 0.3s ease",
+            height: isSelected(IncidentType.Police) ? "35%" : "28%",
+            position: "relative",
             backgroundColor: isSelected(IncidentType.Police)
-              ? 'rgba(76, 175, 80, 0.05)'
-              : 'white',
+              ? "rgba(76, 175, 80, 0.05)"
+              : "white",
             boxShadow: isSelected(IncidentType.Police)
-              ? '0 2px 8px rgba(76, 175, 80, 0.2)'
-              : 'none',
+              ? "0 2px 8px rgba(76, 175, 80, 0.2)"
+              : "none",
             borderTop: isSelected(IncidentType.Police)
-              ? '4px solid #4caf50'
-              : 'none',
-            borderLeft: 'none',
-            borderRight: 'none',
-            borderBottom: '1px solid #e0e0e0',
+              ? "4px solid #4caf50"
+              : "none",
+            borderLeft: "none",
+            borderRight: "none",
+            borderBottom: "1px solid #e0e0e0",
           }}
         >
           <CardActionArea
             onClick={() => handleTypeSelection(IncidentType.Police)}
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
+              display: "flex",
+              justifyContent: "center",
               py: isSelected(IncidentType.Police) ? 1.5 : 1,
-              height: '100%',
+              height: "100%",
             }}
           >
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                width: '100%',
-                position: 'relative',
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%",
+                position: "relative",
               }}
             >
               {isSelected(IncidentType.Police) && (
                 <Zoom in={true}>
                   <CheckCircleIcon
                     sx={{
-                      position: 'absolute',
+                      position: "absolute",
                       top: -5,
                       right: 16,
-                      color: '#4caf50',
+                      color: "#4caf50",
                       fontSize: 24,
                     }}
                   />
@@ -313,9 +313,9 @@ const Reach911Step2: React.FC = () => {
               <LocalPoliceIcon
                 sx={{
                   fontSize: isSelected(IncidentType.Police) ? 48 : 36,
-                  color: '#4caf50',
+                  color: "#4caf50",
                   mb: 0.5,
-                  transition: 'all 0.3s ease',
+                  transition: "all 0.3s ease",
                 }}
               />
               <Typography
@@ -323,9 +323,9 @@ const Reach911Step2: React.FC = () => {
                 align="center"
                 sx={{
                   fontWeight: isSelected(IncidentType.Police)
-                    ? 'bold'
-                    : 'medium',
-                  fontSize: isSelected(IncidentType.Police) ? '1.1rem' : '1rem',
+                    ? "bold"
+                    : "medium",
+                  fontSize: isSelected(IncidentType.Police) ? "1.1rem" : "1rem",
                   lineHeight: 1.2,
                 }}
               >
@@ -335,7 +335,7 @@ const Reach911Step2: React.FC = () => {
                 variant="caption"
                 color="text.secondary"
                 align="center"
-                sx={{ fontSize: '0.85rem', lineHeight: 1.2 }}
+                sx={{ fontSize: "0.85rem", lineHeight: 1.2 }}
               >
                 Report a police emergency
               </Typography>
@@ -349,10 +349,10 @@ const Reach911Step2: React.FC = () => {
           variant="body2"
           align="center"
           sx={{
-            fontWeight: 'bold',
-            fontSize: '1rem',
+            fontWeight: "bold",
+            fontSize: "1rem",
             lineHeight: 1.2,
-            p: '10px',
+            p: "10px",
             color: getIncidentColor(incident.type),
           }}
         >
@@ -360,7 +360,7 @@ const Reach911Step2: React.FC = () => {
         </Typography>
       )}
     </Box>
-  )
-}
+  );
+};
 
-export default Reach911Step2
+export default Reach911Step2;

@@ -4,17 +4,17 @@
  * Represents a wildfire area entity that will be shown on the map.
  */
 
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { Document, Schema } from "mongoose";
 
 /**
  * Interface for the WildfireArea document
  */
 export interface IWildfireArea extends Document {
-  areaId: string
-  coordinates: number[][]
-  name?: string
-  containment?: number
-  last_updated?: Date
+  areaId: string;
+  coordinates: number[][];
+  name?: string;
+  containment?: number;
+  last_updated?: Date;
 }
 
 /**
@@ -45,6 +45,9 @@ const WildfireAreaSchema = new Schema<IWildfireArea>({
     required: false,
     default: Date.now,
   },
-})
+});
 
-export default mongoose.model<IWildfireArea>('WildfireArea', WildfireAreaSchema)
+export default mongoose.model<IWildfireArea>(
+  "WildfireArea",
+  WildfireAreaSchema,
+);

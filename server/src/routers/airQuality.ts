@@ -1,5 +1,5 @@
-import { Request, Response, Router } from 'express';
-import AirQualityController from '../controllers/AirQualityController';
+import { Request, Response, Router } from "express";
+import AirQualityController from "../controllers/AirQualityController";
 
 const airQualityRouter = Router();
 
@@ -31,26 +31,28 @@ const airQualityRouter = Router();
  *         description: Server error
  */
 airQualityRouter.get("/", async (req: Request, res: Response) => {
-    const { latitude, longitude } = req.query;
+  const { latitude, longitude } = req.query;
 
-    if (!latitude || !longitude) {
-        return res.status(400).json({ error: 'Latitude and longitude are required' });
-    }
+  if (!latitude || !longitude) {
+    return res
+      .status(400)
+      .json({ error: "Latitude and longitude are required" });
+  }
 
-    const lat = parseFloat(latitude as string);
-    const lon = parseFloat(longitude as string);
+  const lat = parseFloat(latitude as string);
+  const lon = parseFloat(longitude as string);
 
-    if (isNaN(lat) || isNaN(lon)) {
-        return res.status(400).json({ error: 'Invalid latitude or longitude' });
-    }
+  if (isNaN(lat) || isNaN(lon)) {
+    return res.status(400).json({ error: "Invalid latitude or longitude" });
+  }
 
-    try {
-        const result = await AirQualityController.getAirQuality(lat, lon);
-        return res.json(result);
-    } catch (err) {
-        const error = err as Error;
-        return res.status(500).json({ error: error.message });
-    }
+  try {
+    const result = await AirQualityController.getAirQuality(lat, lon);
+    return res.json(result);
+  } catch (err) {
+    const error = err as Error;
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 /**
@@ -75,19 +77,21 @@ airQualityRouter.get("/", async (req: Request, res: Response) => {
  *         description: Server error
  */
 airQualityRouter.get("/all", async (req: Request, res: Response) => {
-    try {
-        const { locationId } = req.query;
-        
-        if (!locationId) {
-            return res.status(400).json({ error: 'Location ID is required' });
-        }
-        
-        const result = await AirQualityController.getAllAirQuality(locationId as string);
-        return res.json(result);
-    } catch (err) {
-        const error = err as Error;
-        return res.status(500).json({ error: error.message });
+  try {
+    const { locationId } = req.query;
+
+    if (!locationId) {
+      return res.status(400).json({ error: "Location ID is required" });
     }
+
+    const result = await AirQualityController.getAllAirQuality(
+      locationId as string,
+    );
+    return res.json(result);
+  } catch (err) {
+    const error = err as Error;
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 /**
@@ -121,14 +125,20 @@ airQualityRouter.get("/all", async (req: Request, res: Response) => {
  *         description: Server error
  */
 airQualityRouter.post("/", async (req: Request, res: Response) => {
-    const { locationId, latitude, longitude, air_quality, timeStamp } = req.body;
-    try {
-        const result = await AirQualityController.addAirQuality(locationId, latitude, longitude, air_quality, timeStamp);
-        return res.json(result);
-    } catch (err) {
-        const error = err as Error;
-        return res.status(500).json({ error: error.message });
-    }
+  const { locationId, latitude, longitude, air_quality, timeStamp } = req.body;
+  try {
+    const result = await AirQualityController.addAirQuality(
+      locationId,
+      latitude,
+      longitude,
+      air_quality,
+      timeStamp,
+    );
+    return res.json(result);
+  } catch (err) {
+    const error = err as Error;
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 /**
@@ -153,14 +163,14 @@ airQualityRouter.post("/", async (req: Request, res: Response) => {
  *         description: Server error
  */
 airQualityRouter.delete("/", async (req: Request, res: Response) => {
-    const { locationId } = req.body;
-    try {
-        const result = await AirQualityController.deleteAirQuality(locationId);
-        return res.json(result);
-    } catch (err) {
-        const error = err as Error;
-        return res.status(500).json({ error: error.message });
-    }
+  const { locationId } = req.body;
+  try {
+    const result = await AirQualityController.deleteAirQuality(locationId);
+    return res.json(result);
+  } catch (err) {
+    const error = err as Error;
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 /**
@@ -190,27 +200,31 @@ airQualityRouter.delete("/", async (req: Request, res: Response) => {
  *       500:
  *         description: Server error
  */
-airQualityRouter.get("/MeasurementQuality", async (req: Request, res: Response) => {
+airQualityRouter.get(
+  "/MeasurementQuality",
+  async (req: Request, res: Response) => {
     try {
-        const { latitude, longitude } = req.query;
+      const { latitude, longitude } = req.query;
 
-        if (!latitude || !longitude) {
-            return res.status(400).json({ error: 'Latitude and longitude are required' });
-        }
+      if (!latitude || !longitude) {
+        return res
+          .status(400)
+          .json({ error: "Latitude and longitude are required" });
+      }
 
-        const lat = parseFloat(latitude as string);
-        const lon = parseFloat(longitude as string);
+      const lat = parseFloat(latitude as string);
+      const lon = parseFloat(longitude as string);
 
-        if (isNaN(lat) || isNaN(lon)) {
-            return res.status(400).json({ error: 'Invalid latitude or longitude' });
-        }
+      if (isNaN(lat) || isNaN(lon)) {
+        return res.status(400).json({ error: "Invalid latitude or longitude" });
+      }
 
-        const result = await AirQualityController.getMeasurementQuality(lat, lon);
-        return res.json(result);
+      const result = await AirQualityController.getMeasurementQuality(lat, lon);
+      return res.json(result);
     } catch (err) {
-        const error = err as Error;
-        return res.status(500).json({ error: error.message });
+      const error = err as Error;
+      return res.status(500).json({ error: error.message });
     }
-
-})
+  },
+);
 export default airQualityRouter;

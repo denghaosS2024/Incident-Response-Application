@@ -1,55 +1,69 @@
-import { aqiFromPM, calcAQI, calculateDistance, getBoundingBox } from '../../src/utils/AirQualityHelpers';
+import {
+  aqiFromPM,
+  calcAQI,
+  calculateDistance,
+  getBoundingBox,
+} from "../../src/utils/AirQualityHelpers";
 
-describe('calculateDistance', () => {
-  it('should return 0 for identical points', () => {
-    expect(calculateDistance(40.7128, -74.0060, 40.7128, -74.0060)).toBeCloseTo(0);
+describe("calculateDistance", () => {
+  it("should return 0 for identical points", () => {
+    expect(calculateDistance(40.7128, -74.006, 40.7128, -74.006)).toBeCloseTo(
+      0,
+    );
   });
 
-  it('should calculate distance between NYC and Philadelphia (~80 miles)', () => {
-    const nyc = [40.7128, -74.0060];
+  it("should calculate distance between NYC and Philadelphia (~80 miles)", () => {
+    const nyc = [40.7128, -74.006];
     const philadelphia = [39.9526, -75.1652];
     // Actual distance ~94 miles; allow some approximation
     expect(calculateDistance(...nyc, ...philadelphia)).toBeCloseTo(80.63, 0);
   });
 
-  it('should convert meters to miles correctly', () => {
+  it("should convert meters to miles correctly", () => {
     // 1609.34 meters = 1 mile
     // const distanceMeters = 1609.34;
     expect(calculateDistance(0, 0, 0, 0.0166667)).toBeCloseTo(1.15, 1); // ~1 degree longitude at equator
   });
 });
 
-describe('getBoundingBox', () => {
+describe("getBoundingBox", () => {
   const lat = 40.7128;
-  const lon = -74.0060;
+  const lon = -74.006;
 
-  it('should return correct NW/SE for 10-mile radius', () => {
+  it("should return correct NW/SE for 10-mile radius", () => {
     const box = getBoundingBox(lat, lon);
     // Approximate calculations
-    expect(box.nw.lat).toBeCloseTo(40.7128 + (10 / 3958.8) * (180 / Math.PI), 4);
-    expect(box.nw.lon).toBeCloseTo(-74.0060 - ((10 / 3958.8) * (180 / Math.PI)) / Math.cos((lat * Math.PI) / 180), 4);
+    expect(box.nw.lat).toBeCloseTo(
+      40.7128 + (10 / 3958.8) * (180 / Math.PI),
+      4,
+    );
+    expect(box.nw.lon).toBeCloseTo(
+      -74.006 -
+        ((10 / 3958.8) * (180 / Math.PI)) / Math.cos((lat * Math.PI) / 180),
+      4,
+    );
   });
 
-  it('should adjust longitude more at equator', () => {
-    const equatorBox = getBoundingBox(0, -74.0060, 10);
+  it("should adjust longitude more at equator", () => {
+    const equatorBox = getBoundingBox(0, -74.006, 10);
     // At equator, cos(lat) = 1, so lonChange equals latChange
     const latChange = (10 / 3958.8) * (180 / Math.PI);
-    expect(equatorBox.nw.lon).toBeCloseTo(-74.0060 - latChange, 4);
+    expect(equatorBox.nw.lon).toBeCloseTo(-74.006 - latChange, 4);
   });
 });
 
-describe('aqiFromPM', () => {
+describe("aqiFromPM", () => {
   it('should return "-" for invalid inputs', () => {
-    expect(aqiFromPM(NaN)).toBe('-');
-    expect(aqiFromPM(undefined as unknown as number)).toBe('-');
-    expect(aqiFromPM(1001)).toBe('-');
+    expect(aqiFromPM(NaN)).toBe("-");
+    expect(aqiFromPM(undefined as unknown as number)).toBe("-");
+    expect(aqiFromPM(1001)).toBe("-");
   });
 
-  it('should return raw value for negative PM', () => {
+  it("should return raw value for negative PM", () => {
     expect(aqiFromPM(-5)).toBe(-5);
   });
 
-  it('should return correct AQI for each category', () => {
+  it("should return correct AQI for each category", () => {
     // Good
     expect(aqiFromPM(0)).toBe(0);
     expect(aqiFromPM(12)).toBe(50);
@@ -73,14 +87,14 @@ describe('aqiFromPM', () => {
     expect(aqiFromPM(500.4)).toBe(500);
   });
 
-  it('should handle edge cases', () => {
+  it("should handle edge cases", () => {
     expect(aqiFromPM(12.0)).toBe(50); // Upper bound of Good
     expect(aqiFromPM(500.4)).toBe(500); // Max allowed
   });
 });
 
-describe('calcAQI', () => {
-  it('should interpolate correctly', () => {
+describe("calcAQI", () => {
+  it("should interpolate correctly", () => {
     // Midpoint test: Cp = (BPl + BPh)/2 → AQI = (Il + Ih)/2
     expect(calcAQI(75, 100, 50, 100, 50)).toBe(75);
     // Lower bound

@@ -1,21 +1,21 @@
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 
 /**
  * Class for setting up Env, retrieving parameters from the .env file, and setting keys dynamically
  */
 export default class Env {
-  private static _isEnvSet = false
-  private static _env_data = {}
+  private static _isEnvSet = false;
+  private static _env_data = {};
 
   /**
    * Ensure the .env file is loaded into memory before any other operations
    */
   public static ensureEnvSet() {
     if (!this._isEnvSet) {
-      this._isEnvSet = true
-      dotenv.config()
+      this._isEnvSet = true;
+      dotenv.config();
 
-      this._env_data = process.env
+      this._env_data = process.env;
     }
   }
 
@@ -31,25 +31,25 @@ export default class Env {
     defaultValue: string | undefined = undefined,
     errorOnMissing: boolean = false,
   ) {
-    this.ensureEnvSet()
+    this.ensureEnvSet();
 
-    if (key === undefined || key === '' || key === null) {
-      throw Error(`Invalid key passed: ${key}`)
+    if (key === undefined || key === "" || key === null) {
+      throw Error(`Invalid key passed: ${key}`);
     }
 
-    const match_key = (key ?? '').toUpperCase()
+    const match_key = (key ?? "").toUpperCase();
 
     if (Object.keys(this._env_data).includes(match_key)) {
-      return this._env_data[match_key]
+      return this._env_data[match_key];
     } else if (defaultValue !== undefined) {
-      return defaultValue
+      return defaultValue;
     } else if (errorOnMissing) {
       throw Error(
         `Key is not present in .env file or not dynamically set: ${key}`,
-      )
+      );
     }
 
-    return undefined
+    return undefined;
   }
 
   /**
@@ -58,21 +58,21 @@ export default class Env {
    * @param value - The value to set the key to
    */
   public static setKey(key: string, value: string) {
-    this.ensureEnvSet()
+    this.ensureEnvSet();
 
-    this._env_data[key.toUpperCase()] = value
+    this._env_data[key.toUpperCase()] = value;
   }
 
   public static getFrontendCorsUrl() {
-    return this.getParam('FRONTEND_URL', '*')
+    return this.getParam("FRONTEND_URL", "*");
   }
 
   public static getBackendPort() {
-    return this.getParam('PORT', '3001')
+    return this.getParam("PORT", "3001");
   }
 
   public static getApiUrl() {
-    return this.getParam('API_URL', 'http://localhost:3001')
+    return this.getParam("API_URL", "http://localhost:3001");
   }
 
   /**
@@ -82,11 +82,11 @@ export default class Env {
   public static getPurpleAirUrl() {
     return (
       this.getParam(
-        'PURPLEAIR_API_URL',
-        'https://api.purpleair.com/v1/',
+        "PURPLEAIR_API_URL",
+        "https://api.purpleair.com/v1/",
         false,
-      ) + 'sensors/'
-    )
+      ) + "sensors/"
+    );
   }
 
   /**
@@ -94,6 +94,6 @@ export default class Env {
    * @returns The key for the PurpleAir API
    */
   public static getPurpleAirKey() {
-    return this.getParam('PURPLEAIR_API_KEY_READ', undefined, false)
+    return this.getParam("PURPLEAIR_API_KEY_READ", undefined, false);
   }
 }

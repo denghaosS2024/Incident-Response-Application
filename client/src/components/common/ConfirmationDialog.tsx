@@ -5,17 +5,17 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-} from '@mui/material'
-import React from 'react'
+} from "@mui/material";
+import React from "react";
 
 interface ConfirmationDialogProps {
-  open: boolean
-  title: string
-  description: string
-  onConfirm: () => void
-  onCancel: () => void
-  confirmText?: string
-  cancelText?: string
+  open: boolean;
+  title: string;
+  description: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  confirmText?: string;
+  cancelText?: string;
 }
 
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
@@ -24,8 +24,8 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   description,
   onConfirm,
   onCancel,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = "Confirm",
+  cancelText = "Cancel",
 }) => {
   return (
     <Dialog
@@ -49,7 +49,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
-export default ConfirmationDialog
+export default ConfirmationDialog;

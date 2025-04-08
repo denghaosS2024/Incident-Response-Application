@@ -1,72 +1,72 @@
-import { AttachFile } from '@mui/icons-material'
-import { Dialog, IconButton, Menu, MenuItem } from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
-import request from '../utils/request'
-import CameraCapture from './CameraCapture'
-import FileUploadForm from './FileUploadForm'
-import MessageVideoRecorder from './MessageVideoRecorder'
+import { AttachFile } from "@mui/icons-material";
+import { Dialog, IconButton, Menu, MenuItem } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import request from "../utils/request";
+import CameraCapture from "./CameraCapture";
+import FileUploadForm from "./FileUploadForm";
+import MessageVideoRecorder from "./MessageVideoRecorder";
 
 interface MessageAttachmentOptionsProps {
-  channelId: string
-  currentUserId: string
+  channelId: string;
+  currentUserId: string;
 }
 
 const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
   channelId,
   currentUserId,
 }) => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false)
-  const [videoRecorderOpen, setVideoRecorderOpen] = useState<boolean>(false)
-  const [openFileUpload, setOpenFileUpload] = useState(false)
-  const [openCamera, setOpenCamera] = useState(false)
-  const handleOpenFileUpload = () => setOpenFileUpload(true)
-  const handleCloseFileUpload = () => setOpenFileUpload(false)
-  const dispatch = useDispatch()
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false);
+  const [videoRecorderOpen, setVideoRecorderOpen] = useState<boolean>(false);
+  const [openFileUpload, setOpenFileUpload] = useState(false);
+  const [openCamera, setOpenCamera] = useState(false);
+  const handleOpenFileUpload = () => setOpenFileUpload(true);
+  const handleCloseFileUpload = () => setOpenFileUpload(false);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchChannelDetails = async () => {
       try {
-        const channels = await request(`/api/channels`)
+        const channels = await request(`/api/channels`);
         const currentChannel = channels.find(
           (channel: any) => channel._id === channelId,
-        ) // Find the current channel
+        ); // Find the current channel
         if (currentChannel) {
-          setPrivateChannel(currentChannel.users.length === 2) // Check if only two users exist in the channel
+          setPrivateChannel(currentChannel.users.length === 2); // Check if only two users exist in the channel
         }
       } catch (error) {
-        console.error('Failed to fetch channel details:', error)
+        console.error("Failed to fetch channel details:", error);
       }
-    }
+    };
 
-    fetchChannelDetails()
-  }, [channelId])
+    fetchChannelDetails();
+  }, [channelId]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
   const openVideoRecorder = () => {
-    handleMenuClose()
-    setVideoRecorderOpen(true)
-  }
+    handleMenuClose();
+    setVideoRecorderOpen(true);
+  };
 
   const closeVideoRecorder = () => {
-    setVideoRecorderOpen(false)
-  }
+    setVideoRecorderOpen(false);
+  };
 
   const handelOpenCamera = () => {
-    setOpenCamera(true)
-  }
+    setOpenCamera(true);
+  };
 
   const handelcCloseCamera = () => {
-    setOpenCamera(false)
-  }
+    setOpenCamera(false);
+  };
 
   return (
     <>
@@ -111,7 +111,7 @@ const MessageAttachmentOptions: React.FC<MessageAttachmentOptionsProps> = ({
         <FileUploadForm onClose={handleCloseFileUpload} channelId={channelId} />
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default MessageAttachmentOptions
+export default MessageAttachmentOptions;

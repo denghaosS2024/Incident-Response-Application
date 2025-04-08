@@ -1,30 +1,30 @@
-import { Container, Skeleton, Typography } from '@mui/material'
-import React, { Fragment, useEffect } from 'react'
-import IMessage from '../models/Message'
-import Message from './Message'
+import { Container, Skeleton, Typography } from "@mui/material";
+import React, { Fragment, useEffect } from "react";
+import IMessage from "../models/Message";
+import Message from "./Message";
 
 interface IProps {
   /**
    * Additional class name to be applied to the component
    */
-  className?: string
+  className?: string;
   /**
    * List of messages to be displayed
    */
-  messages: IMessage[]
+  messages: IMessage[];
   /**
    * Whether the messages are still loading
    */
-  loading?: boolean
+  loading?: boolean;
 }
 
 const MessageList: React.FC<IProps> = (props: IProps) => {
-  const ref = React.useRef<HTMLDivElement>(null)
+  const ref = React.useRef<HTMLDivElement>(null);
 
-  const { className, messages, loading } = props
+  const { className, messages, loading } = props;
   useEffect(() => {
-    !loading && scrollToTheEnd(ref)
-  }, [loading, messages])
+    !loading && scrollToTheEnd(ref);
+  }, [loading, messages]);
   return (
     <Container className={className} ref={ref}>
       {loading ? (
@@ -41,15 +41,15 @@ const MessageList: React.FC<IProps> = (props: IProps) => {
         <Typography>No messages yet</Typography>
       )}
     </Container>
-  )
-}
+  );
+};
 
 const scrollToTheEnd = (ref: React.RefObject<HTMLDivElement>) => {
   if (ref.current && ref.current.lastChild) {
-    const lastChild = ref.current.lastChild as Element
+    const lastChild = ref.current.lastChild as Element;
     lastChild.scrollIntoView({
-      behavior: 'smooth',
-    })
+      behavior: "smooth",
+    });
   }
-}
-export default MessageList
+};
+export default MessageList;

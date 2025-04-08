@@ -1,173 +1,177 @@
-import BuildIcon from '@mui/icons-material/Build'
-import ContactsIcon from '@mui/icons-material/Contacts'
-import GroupIcon from '@mui/icons-material/Group'
-import PersonIcon from '@mui/icons-material/Person'
-import Box from '@mui/material/Box'
-import List from '@mui/material/List'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import React, { useEffect, useState } from 'react'
-import eventEmitter from '../../utils/eventEmitter'
+import BuildIcon from "@mui/icons-material/Build";
+import ContactsIcon from "@mui/icons-material/Contacts";
+import GroupIcon from "@mui/icons-material/Group";
+import PersonIcon from "@mui/icons-material/Person";
+import Box from "@mui/material/Box";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import React, { useEffect, useState } from "react";
+import eventEmitter from "../../utils/eventEmitter";
 
-import CheckIcon from '@mui/icons-material/Check'
-import LayersIcon from '@mui/icons-material/Layers'
-import LayersClearIcon from '@mui/icons-material/LayersClear'
-import IconButton from '@mui/material/IconButton'
-import { useDispatch, useSelector } from 'react-redux'
-import IChannel from '../../models/Channel'
-import IUser from '../../models/User'
-import { loadContacts } from '../../redux/contactSlice'
-import { AppDispatch, RootState } from '../../redux/store'
-import styles from '../../styles/MapOverlay.module.css'
-import getRoleIcon from '../common/RoleIcon'
-import MapGroupItems from './MapGroupItems'
-import MapOverlayHelper from './MapOverlayHelper'
+import CheckIcon from "@mui/icons-material/Check";
+import LayersIcon from "@mui/icons-material/Layers";
+import LayersClearIcon from "@mui/icons-material/LayersClear";
+import IconButton from "@mui/material/IconButton";
+import { useDispatch, useSelector } from "react-redux";
+import IChannel from "../../models/Channel";
+import IUser from "../../models/User";
+import { loadContacts } from "../../redux/contactSlice";
+import { AppDispatch, RootState } from "../../redux/store";
+import styles from "../../styles/MapOverlay.module.css";
+import getRoleIcon from "../common/RoleIcon";
+import MapGroupItems from "./MapGroupItems";
+import MapOverlayHelper from "./MapOverlayHelper";
 
 const MapOverlay: React.FC = () => {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(3)
-  const [isVisible, setIsVisible] = useState<boolean>(false)
-  const [navbarHeight, setNavbarHeight] = useState<number>(56)
-  const [tabbarHeight, setTabbarHeight] = useState<number>(48)
-  const [isFullPage, setIsFullPage] = useState<boolean>(false)
-  const [is911Page, setIs911Page] = useState<boolean>(false)
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(3);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [navbarHeight, setNavbarHeight] = useState<number>(56);
+  const [tabbarHeight, setTabbarHeight] = useState<number>(48);
+  const [isFullPage, setIsFullPage] = useState<boolean>(false);
+  const [is911Page, setIs911Page] = useState<boolean>(false);
 
   // State to track toggling for dropdown items
-  const [activeUtil, setActiveUtil] = useState<Record<string, boolean>>({})
+  const [activeUtil, setActiveUtil] = useState<Record<string, boolean>>({});
   const [activeContact, setActiveContact] = useState<Record<string, boolean>>(
     {},
-  )
-  const [activeGroup, setActiveGroup] = useState<Record<string, boolean>>({})
+  );
+  const [activeGroup, setActiveGroup] = useState<Record<string, boolean>>({});
 
   // State for storing groups
-  const [myManagingGroups, setOwnedGroups] = useState<IChannel[]>([])
-  const [myParticipatingGroups, setActiveGroups] = useState<IChannel[]>([])
-  const [groupsLoading, setGroupsLoading] = useState<boolean>(true)
+  const [myManagingGroups, setOwnedGroups] = useState<IChannel[]>([]);
+  const [myParticipatingGroups, setActiveGroups] = useState<IChannel[]>([]);
+  const [groupsLoading, setGroupsLoading] = useState<boolean>(true);
 
   const [activeMainButtons, setActiveMainButtons] = useState({
     group: false,
     util: false,
     contacts: false,
     you: true, // "You" is active by default
-  })
+  });
 
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>();
   const { contacts, loading } = useSelector(
     (state: RootState) => state.contactState,
-  )
+  );
 
   const utilLayers = MapOverlayHelper.getUtilItems().sort((a, b) =>
     a.localeCompare(b),
-  )
+  );
 
   const handleSelectUtil = (layer: string, visible: boolean) => {
-    if (layer === 'Util') {
+    if (layer === "Util") {
       setActiveMainButtons((prev) => ({
         ...prev,
         util: visible,
-      }))
+      }));
 
       // Open util dropdown if any of the util layers drops down a marker
       if (visible) {
-        setSelectedIndex(1)
+        setSelectedIndex(1);
       }
     } else {
       // Update visibility of util layers when toggled from the map
       setActiveUtil((prev) => ({
         ...prev,
         [layer]: visible,
-      }))
+      }));
     }
-  }
+  };
 
   useEffect(() => {
     // Configure overlay dimensions based on current page
     // These are dead code
-    const navbar = document.querySelector('header')
-    const tabbar = document.querySelector('[role="tablist"]')
-    if (navbar) setNavbarHeight(navbar.clientHeight)
-    if (tabbar) setTabbarHeight(tabbar.clientHeight)
-    const path = window.location.pathname
+    const navbar = document.querySelector("header");
+    const tabbar = document.querySelector('[role="tablist"]');
+    if (navbar) setNavbarHeight(navbar.clientHeight);
+    if (tabbar) setTabbarHeight(tabbar.clientHeight);
+    const path = window.location.pathname;
 
     //Fetch groups
-    setGroupsLoading(true)
+    setGroupsLoading(true);
 
     MapOverlayHelper.fetchGroups()
       .then((groups) => {
         if (groups) {
-          setActiveGroups(groups.active)
-          setOwnedGroups(groups.owned)
+          setActiveGroups(groups.active);
+          setOwnedGroups(groups.owned);
         }
       })
-      .finally(() => setGroupsLoading(false))
+      .finally(() => setGroupsLoading(false));
 
-    setIsFullPage(path === '/map')
-    setIs911Page(path.includes('911'))
+    setIsFullPage(path === "/map");
+    setIs911Page(path.includes("911"));
 
     // Add click event listener to close dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
-      const overlayElement = document.querySelector(`.${styles.levitatingList}`);
+      const overlayElement = document.querySelector(
+        `.${styles.levitatingList}`,
+      );
       if (overlayElement && !overlayElement.contains(event.target as Node)) {
         setSelectedIndex(null);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [])
+  }, []);
 
   useEffect(() => {
-    dispatch(loadContacts())
-  }, [dispatch])
+    dispatch(loadContacts());
+  }, [dispatch]);
 
   // Listen for util visibility events to update the state from mapbox component
   useEffect(() => {
-    eventEmitter.on('selectUtil', handleSelectUtil)
+    eventEmitter.on("selectUtil", handleSelectUtil);
 
     return () => {
-      eventEmitter.removeListener('selectUtil', handleSelectUtil)
-    }
-  }, [])
+      eventEmitter.removeListener("selectUtil", handleSelectUtil);
+    };
+  }, []);
 
   // Listen for utilVisibility events from the map
   useEffect(() => {
     const handleUtilVisibility = (data: {
-      layer: string
-      visible: boolean
+      layer: string;
+      visible: boolean;
     }) => {
       // If any util layer becomes visible, also mark the Util main button as active
-      if (data.visible && data.layer !== 'Util') {
+      if (data.visible && data.layer !== "Util") {
         setActiveMainButtons((prev) => ({
           ...prev,
           util: true,
         }));
       }
-      
+
       setActiveUtil((prev) => ({
         ...prev,
         [data.layer]: data.visible,
-      }))
-    }
+      }));
+    };
 
-    eventEmitter.on('utilVisibility', handleUtilVisibility)
+    eventEmitter.on("utilVisibility", handleUtilVisibility);
 
     return () => {
-      eventEmitter.removeListener('utilVisibility', handleUtilVisibility)
-    }
-  }, [])
+      eventEmitter.removeListener("utilVisibility", handleUtilVisibility);
+    };
+  }, []);
 
   // Auto-emit "you" clicked event on component mount
   useEffect(() => {
-    eventEmitter.emit('you_button_clicked', true)
-  }, [])
+    eventEmitter.emit("you_button_clicked", true);
+  }, []);
 
   // Check if any util layers are active and expand the Util section if needed
   useEffect(() => {
     // If any util layer is active, select the Util dropdown
-    const hasActiveUtil = Object.values(activeUtil).some(isActive => isActive);
+    const hasActiveUtil = Object.values(activeUtil).some(
+      (isActive) => isActive,
+    );
     if (hasActiveUtil && activeMainButtons.util) {
       setSelectedIndex(1);
     }
@@ -175,123 +179,123 @@ const MapOverlay: React.FC = () => {
 
   const handleContactsClick = () => {
     if (selectedIndex === 2) {
-      setSelectedIndex(null)
+      setSelectedIndex(null);
     } else {
-      setSelectedIndex(2)
+      setSelectedIndex(2);
     }
-  }
+  };
 
   // toggle visibility of contacts dropdown items
   const handleContactItemClick = (userId: string) => {
     setActiveContact((prev) => ({
       ...prev,
       [userId]: !prev[userId],
-    }))
-  }
+    }));
+  };
 
   // toggle visibility of group dropdown items
   const handleGroupItemClick = (groupId: string) => {
     setActiveGroup((prev) => ({
       ...prev,
       [groupId]: !prev[groupId],
-    }))
-    handleGroupSelected(groupId)
-  }
+    }));
+    handleGroupSelected(groupId);
+  };
 
   // TODO: handle group selected future implementation
   const handleGroupSelected = (groupId: string) => {
-    console.log(`Group selected: ${groupId}`)
-  }
+    console.log(`Group selected: ${groupId}`);
+  };
 
   // toggle visibility of util dropdown items
   const handleUtilItemClick = (layer: string) => {
     setActiveUtil((prev) => ({
       ...prev,
       [layer]: !prev[layer],
-    }))
-    
+    }));
+
     // Call the helper to handle the layer toggle
-    MapOverlayHelper.onUtilLayerClick(layer)
-    
+    MapOverlayHelper.onUtilLayerClick(layer);
+
     // If the layer is SAR, make sure the Util dropdown stays open
-    if (layer === 'SAR') {
-      setActiveMainButtons(prev => ({
+    if (layer === "SAR") {
+      setActiveMainButtons((prev) => ({
         ...prev,
-        util: true
+        util: true,
       }));
     }
-  }
+  };
 
   const toggleVisibility = () => {
-    setIsVisible((prev) => !prev)
-    if (!isVisible) setSelectedIndex(null)
-  }
+    setIsVisible((prev) => !prev);
+    if (!isVisible) setSelectedIndex(null);
+  };
 
-  const menuStyle = MapOverlayHelper.getMenuStyle(isFullPage, is911Page)
+  const menuStyle = MapOverlayHelper.getMenuStyle(isFullPage, is911Page);
 
   // change background color of selected item
   const getButtonStyle = (index: number) => ({
-    backgroundColor: selectedIndex === index ? '#F0F5FB' : 'transparent',
-  })
+    backgroundColor: selectedIndex === index ? "#F0F5FB" : "transparent",
+  });
 
   const handleMainButtonClick = (
-    buttonText: 'group' | 'util' | 'contacts' | 'you',
+    buttonText: "group" | "util" | "contacts" | "you",
   ) => {
     // Index of sub-pages in the overlay
     const stateMapping: Record<string, number> = {
       group: 0,
       util: 1,
       contacts: 2,
-    }
+    };
 
     setActiveMainButtons((prev) => {
       const newState = {
         ...prev,
         [buttonText]: !prev[buttonText],
-      }
+      };
 
       // Emit you button clicked event
       // new state is true if the button is clicked and false otherwise
-      if (buttonText === 'you') {
-        eventEmitter.emit('you_button_clicked', newState.you)
+      if (buttonText === "you") {
+        eventEmitter.emit("you_button_clicked", newState.you);
       }
 
-      return newState
-    })
+      return newState;
+    });
 
-    if (buttonText === 'you') {
-      return
+    if (buttonText === "you") {
+      return;
     } else if (stateMapping[buttonText] === selectedIndex) {
-      setSelectedIndex(null)
+      setSelectedIndex(null);
     } else {
-      setSelectedIndex(stateMapping[buttonText])
+      setSelectedIndex(stateMapping[buttonText]);
     }
-  }
+  };
 
   return (
     <div>
       <Box
-        className={`${styles.levitatingList} ${!isVisible ? 'hidden' : ''}`}
+        className={`${styles.levitatingList} ${!isVisible ? "hidden" : ""}`}
         style={menuStyle}
       >
         <List component="nav" aria-label="map layer selection">
           {/* Group */}
           <ListItemButton
             dense
-            onClick={() => handleMainButtonClick('group')}
+            onClick={() => handleMainButtonClick("group")}
             sx={{
               backgroundColor:
                 selectedIndex === 0 || activeMainButtons.group
-                  ? '#F0F5FB'
-                  : 'transparent',
+                  ? "#F0F5FB"
+                  : "transparent",
             }}
           >
-            <ListItemIcon sx={{ minWidth: '32px', mr: 1 }}>
+            <ListItemIcon sx={{ minWidth: "32px", mr: 1 }}>
               <GroupIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
               primary="Group"
-              sx={{ color: 'black', fontSize: '0.875rem', marginLeft: 0 }}
+              sx={{ color: "black", fontSize: "0.875rem", marginLeft: 0 }}
             />
           </ListItemButton>
 
@@ -302,16 +306,16 @@ const MapOverlay: React.FC = () => {
                 mt: 0,
                 ml: 0,
                 maxHeight: 120,
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '4px',
+                overflowY: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "4px",
                 },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  borderRadius: '2px',
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  borderRadius: "2px",
                 },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: 'transparent',
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "transparent",
                 },
               }}
             >
@@ -320,7 +324,7 @@ const MapOverlay: React.FC = () => {
                   <ListItemButton>
                     <ListItemText
                       primary="Loading..."
-                      sx={{ fontSize: '0.875rem' }}
+                      sx={{ fontSize: "0.875rem" }}
                     />
                   </ListItemButton>
                 ) : myManagingGroups.length === 0 &&
@@ -328,7 +332,7 @@ const MapOverlay: React.FC = () => {
                   <ListItemButton>
                     <ListItemText
                       primary="No groups"
-                      sx={{ fontSize: '0.875rem' }}
+                      sx={{ fontSize: "0.875rem" }}
                     />
                   </ListItemButton>
                 ) : (
@@ -352,20 +356,20 @@ const MapOverlay: React.FC = () => {
           {/* Util */}
           <ListItemButton
             dense
-            onClick={() => handleMainButtonClick('util')}
+            onClick={() => handleMainButtonClick("util")}
             sx={{
               backgroundColor:
                 selectedIndex === 1 || activeMainButtons.util
-                  ? '#F0F5FB'
-                  : 'transparent',
+                  ? "#F0F5FB"
+                  : "transparent",
             }}
           >
-            <ListItemIcon sx={{ minWidth: '32px', mr: 1 }}>
+            <ListItemIcon sx={{ minWidth: "32px", mr: 1 }}>
               <BuildIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
               primary="Util"
-              sx={{ color: 'black', fontSize: '0.875rem' }}
+              sx={{ color: "black", fontSize: "0.875rem" }}
             />
           </ListItemButton>
 
@@ -376,16 +380,16 @@ const MapOverlay: React.FC = () => {
                 mt: 0,
                 ml: 0,
                 maxHeight: 120,
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '4px',
+                overflowY: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "4px",
                 },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  borderRadius: '2px',
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  borderRadius: "2px",
                 },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: 'transparent',
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "transparent",
                 },
               }}
             >
@@ -397,14 +401,14 @@ const MapOverlay: React.FC = () => {
                     onClick={() => handleUtilItemClick(layer)}
                     sx={{
                       backgroundColor: activeUtil[layer]
-                        ? '#F0F5FB'
-                        : 'transparent',
-                      fontSize: '0.875rem',
+                        ? "#F0F5FB"
+                        : "transparent",
+                      fontSize: "0.875rem",
                     }}
                   >
                     <ListItemText
                       primary={layer}
-                      sx={{ fontSize: '0.875rem' }}
+                      sx={{ fontSize: "0.875rem" }}
                     />
                     {activeUtil[layer] && (
                       <CheckIcon fontSize="small" color="primary" />
@@ -421,12 +425,12 @@ const MapOverlay: React.FC = () => {
             onClick={handleContactsClick}
             sx={getButtonStyle(2)}
           >
-            <ListItemIcon sx={{ minWidth: '32px', mr: 1 }}>
+            <ListItemIcon sx={{ minWidth: "32px", mr: 1 }}>
               <ContactsIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
               primary="Contacts"
-              sx={{ color: 'black', fontSize: '0.875rem', marginLeft: 0 }}
+              sx={{ color: "black", fontSize: "0.875rem", marginLeft: 0 }}
             />
           </ListItemButton>
 
@@ -437,16 +441,16 @@ const MapOverlay: React.FC = () => {
                 mt: 0,
                 ml: 0,
                 maxHeight: 120,
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '4px',
+                overflowY: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "4px",
                 },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  borderRadius: '2px',
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  borderRadius: "2px",
                 },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: 'transparent',
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "transparent",
                 },
               }}
             >
@@ -455,14 +459,14 @@ const MapOverlay: React.FC = () => {
                   <ListItemButton>
                     <ListItemText
                       primary="Loading..."
-                      sx={{ fontSize: '0.875rem' }}
+                      sx={{ fontSize: "0.875rem" }}
                     />
                   </ListItemButton>
                 ) : MapOverlayHelper.getUsers(contacts).length === 0 ? (
                   <ListItemButton>
                     <ListItemText
                       primary="No contacts"
-                      sx={{ fontSize: '0.875rem' }}
+                      sx={{ fontSize: "0.875rem" }}
                     />
                   </ListItemButton>
                 ) : (
@@ -473,17 +477,17 @@ const MapOverlay: React.FC = () => {
                       onClick={() => handleContactItemClick(user._id)}
                       sx={{
                         backgroundColor: activeContact[user._id]
-                          ? '#F0F5FB'
-                          : 'transparent',
-                        fontSize: '0.875rem',
+                          ? "#F0F5FB"
+                          : "transparent",
+                        fontSize: "0.875rem",
                       }}
                     >
-                      <ListItemIcon sx={{ minWidth: '32px', mr: 1 }}>
+                      <ListItemIcon sx={{ minWidth: "32px", mr: 1 }}>
                         {getRoleIcon(user.role)}
                       </ListItemIcon>
                       <ListItemText
                         primary={user.username}
-                        sx={{ fontSize: '0.875rem' }}
+                        sx={{ fontSize: "0.875rem" }}
                       />
                     </ListItemButton>
                   ))
@@ -495,19 +499,19 @@ const MapOverlay: React.FC = () => {
           {/* You */}
           <ListItemButton
             dense
-            onClick={() => handleMainButtonClick('you')}
+            onClick={() => handleMainButtonClick("you")}
             sx={{
               backgroundColor: activeMainButtons.you
-                ? '#F0F5FB'
-                : 'transparent',
+                ? "#F0F5FB"
+                : "transparent",
             }}
           >
-            <ListItemIcon sx={{ minWidth: '32px', mr: 1 }}>
+            <ListItemIcon sx={{ minWidth: "32px", mr: 1 }}>
               <PersonIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
               primary="You"
-              sx={{ color: 'black', fontSize: '0.875rem' }}
+              sx={{ color: "black", fontSize: "0.875rem" }}
             />
           </ListItemButton>
         </List>
@@ -520,9 +524,9 @@ const MapOverlay: React.FC = () => {
           className={`${styles.toggleButton}`}
           onClick={toggleVisibility}
           sx={{
-            position: 'absolute',
-            bottom: '60px',
-            left: '20px',
+            position: "absolute",
+            bottom: "60px",
+            left: "20px",
             zIndex: 1000,
           }}
         >
@@ -534,7 +538,7 @@ const MapOverlay: React.FC = () => {
         </IconButton>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MapOverlay
+export default MapOverlay;

@@ -1,10 +1,10 @@
-import IPatient from '@/models/Patient'
-import { Box, Typography } from '@mui/material'
-import { Droppable } from 'react-beautiful-dnd'
-import PatientCard from './PatientCard'
+import IPatient from "@/models/Patient";
+import { Box, Typography } from "@mui/material";
+import { Droppable } from "react-beautiful-dnd";
+import PatientCard from "./PatientCard";
 
 interface PatientListProps {
-  patients: IPatient[]
+  patients: IPatient[];
 }
 
 const PatientList: React.FC<PatientListProps> = ({ patients }) => {
@@ -20,7 +20,7 @@ const PatientList: React.FC<PatientListProps> = ({ patients }) => {
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`h-99 overflow-scroll ${
-              snapshot.isDraggingOver ? 'bg-gray-100' : ''
+              snapshot.isDraggingOver ? "bg-gray-100" : ""
             }`}
           >
             {patients.length > 0 ? (
@@ -47,7 +47,7 @@ const PatientList: React.FC<PatientListProps> = ({ patients }) => {
         )}
       </Droppable>
     </Box>
-  )
-}
+  );
+};
 
-export default PatientList
+export default PatientList;

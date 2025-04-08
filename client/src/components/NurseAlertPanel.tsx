@@ -9,50 +9,50 @@ import {
   Select,
   Snackbar,
   Typography,
-} from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { NurseAlert } from '../models/NurseAlert'
-import IPatient from '../models/Patient'
-import IUser from '../models/User'
-import { addMessage } from '../redux/messageSlice'
-import { AppDispatch } from '../redux/store'
-import request from '../utils/request'
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { NurseAlert } from "../models/NurseAlert";
+import IPatient from "../models/Patient";
+import IUser from "../models/User";
+import { addMessage } from "../redux/messageSlice";
+import { AppDispatch } from "../redux/store";
+import request from "../utils/request";
 
 interface NurseAlertPanelProps {
-  channelId?: string
-  onClose?: () => void
-  preSelectedPatient?: string
+  channelId?: string;
+  onClose?: () => void;
+  preSelectedPatient?: string;
 }
 
 interface Patient {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
-  channelId = 'general', // Default to general channel if not provided
+  channelId = "general", // Default to general channel if not provided
   onClose, // Optional callback function
-  preSelectedPatient = '',
+  preSelectedPatient = "",
 }) => {
-  const dispatch = useDispatch<AppDispatch>()
-  const [patients, setPatients] = useState<Patient[]>([])
+  const dispatch = useDispatch<AppDispatch>();
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatientId, setSelectedPatientId] =
-    useState<string>(preSelectedPatient)
-  const [nursesCount, setNursesCount] = useState<number>(1)
-  const [nurseUsers, setNurseUsers] = useState<IUser[]>([])
-  const [totalNurses, setTotalNurses] = useState<number>(0)
+    useState<string>(preSelectedPatient);
+  const [nursesCount, setNursesCount] = useState<number>(1);
+  const [nurseUsers, setNurseUsers] = useState<IUser[]>([]);
+  const [totalNurses, setTotalNurses] = useState<number>(0);
 
   // Notification state
   const [notification, setNotification] = useState<{
-    open: boolean
-    message: string
-    severity: 'success' | 'info' | 'warning' | 'error'
+    open: boolean;
+    message: string;
+    severity: "success" | "info" | "warning" | "error";
   }>({
     open: false,
-    message: '',
-    severity: 'info',
-  })
+    message: "",
+    severity: "info",
+  });
 
   // Fetch patients and nurses working at the same hospital
   // const currentHospitalId = await request(`/api/users/`)
@@ -71,11 +71,11 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
     const fetchData = async () => {
       try {
         // Fetch patients
-        let patientsList: Patient[] = []
+        let patientsList: Patient[] = [];
 
         try {
-          const patientsData = await request('/api/patients')
-          console.log('Patients API response:', patientsData)
+          const patientsData = await request("/api/patients");
+          console.log("Patients API response:", patientsData);
 
           if (
             patientsData &&
@@ -84,22 +84,22 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
           ) {
             patientsList = patientsData.map((patient: IPatient) => ({
               id: patient.patientId,
-              name: patient.name ?? 'Unknown Patient',
-            })) as Patient[]
+              name: patient.name ?? "Unknown Patient",
+            })) as Patient[];
           } else {
             // Fallback to mock data if API returns empty array
-            console.log('No patients returned from API')
+            console.log("No patients returned from API");
           }
         } catch (patientError) {
-          console.error('Error fetching patients:', patientError)
+          console.error("Error fetching patients:", patientError);
         }
 
-        setPatients(patientsList)
-        console.log('Setting patients:', patientsList)
+        setPatients(patientsList);
+        console.log("Setting patients:", patientsList);
 
         // If we have a preSelectedPatient (ID), select it
         if (preSelectedPatient && preSelectedPatient !== selectedPatientId) {
-          setSelectedPatientId(preSelectedPatient)
+          setSelectedPatientId(preSelectedPatient);
         }
 
         // Fetch nurses working at the same hospital
@@ -110,87 +110,86 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
           // console.log('Current hospital ID from Redux:', currentHospitalId)
 
           // Fetch all nurse users first
-          const users = await request(`/api/users?role=Nurse`)
+          const users = await request(`/api/users?role=Nurse`);
 
           if (users && Array.isArray(users)) {
-            const currentUserId = localStorage.getItem('uid')
+            const currentUserId = localStorage.getItem("uid");
 
             // Filter nurses based on role and exclude current user
             let nurseUsersFiltered = users.filter(
               (user: IUser) =>
                 user._id !== currentUserId && // Exclude current user
-                user.role === 'Nurse', // STRICT role check
-            )
+                user.role === "Nurse", // STRICT role check
+            );
 
             console.log(
-              'All nurses before hospital filtering:',
+              "All nurses before hospital filtering:",
               nurseUsersFiltered.length,
-            )
+            );
 
             // get current user from users array
             const currentNurseUser = users.find(
-              (user: IUser) =>
-                 user._id === currentUserId,
-            )
+              (user: IUser) => user._id === currentUserId,
+            );
 
-            console.log('currentNurseUser: ', currentNurseUser)
-            const currentHospitalId = currentNurseUser?.hospitalId
+            console.log("currentNurseUser: ", currentNurseUser);
+            const currentHospitalId = currentNurseUser?.hospitalId;
 
             // If we have a hospital ID, apply additional filter for hospital
             if (currentHospitalId) {
-              console.log('currentHospitalId: ', currentHospitalId)
+              console.log("currentHospitalId: ", currentHospitalId);
               nurseUsersFiltered = nurseUsersFiltered.filter(
                 (user: IUser) => user.hospitalId === currentHospitalId,
-              )
+              );
               console.log(
                 `Nurses after filtering by hospital (${currentHospitalId}):`,
                 nurseUsersFiltered.length,
-              )
+              );
             } else {
               console.log(
-                'No hospital ID available - not filtering by hospital',
-              )
+                "No hospital ID available - not filtering by hospital",
+              );
             }
 
-            setNurseUsers(nurseUsersFiltered)
+            setNurseUsers(nurseUsersFiltered);
             // Set totalNurses to the filtered list length (ensure we have at least 1 for dropdown)
-            setTotalNurses(Math.max(nurseUsersFiltered.length, 1))
+            setTotalNurses(Math.max(nurseUsersFiltered.length, 1));
           } else {
             // Fallback to empty array if no nurses found
-            setNurseUsers([])
-            setTotalNurses(1) // Default value for dropdown
+            setNurseUsers([]);
+            setTotalNurses(1); // Default value for dropdown
           }
         } catch (nurseError) {
-          console.error('Error fetching nurses:', nurseError)
-          setNurseUsers([])
-          setTotalNurses(1) // Default value for dropdown
+          console.error("Error fetching nurses:", nurseError);
+          setNurseUsers([]);
+          setTotalNurses(1); // Default value for dropdown
         }
       } catch (error) {
-        console.error('Error in fetchData:', error)
+        console.error("Error in fetchData:", error);
       }
-    }
+    };
 
-    fetchData()
-  }, [preSelectedPatient])
+    fetchData();
+  }, [preSelectedPatient]);
 
   const closeNotification = () => {
-    setNotification({ ...notification, open: false })
-  }
+    setNotification({ ...notification, open: false });
+  };
 
   // Helper function to get patient name from ID
   const getPatientNameById = (patientId: string): string => {
-    const patient = patients.find((p) => p.id === patientId)
-    return patient ? patient.name : `Patient ${patientId}`
-  }
+    const patient = patients.find((p) => p.id === patientId);
+    return patient ? patient.name : `Patient ${patientId}`;
+  };
 
-  const sendAlert = async (alertType: 'E' | 'U' | '') => {
+  const sendAlert = async (alertType: "E" | "U" | "") => {
     if (!selectedPatientId) {
       setNotification({
         open: true,
-        message: 'Please select a patient',
-        severity: 'error',
-      })
-      return
+        message: "Please select a patient",
+        severity: "error",
+      });
+      return;
     }
 
     try {
@@ -198,92 +197,94 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
       if (nurseUsers.length === 0) {
         setNotification({
           open: true,
-          message: 'No nurses available to receive alerts',
-          severity: 'error',
-        })
-        return
+          message: "No nurses available to receive alerts",
+          severity: "error",
+        });
+        return;
       }
 
       // We've already filtered to include ONLY nurses in nurseUsers, but let's be extra safe
-      const availableNurses = nurseUsers.filter((user) => user.role === 'Nurse')
+      const availableNurses = nurseUsers.filter(
+        (user) => user.role === "Nurse",
+      );
 
       // Ensure we don't request more nurses than are available
       // If nursesCount is somehow 0, default to 1 (should not happen with UI constraints)
       const actualNurseCount = Math.min(
         nursesCount || 1,
         availableNurses.length,
-      )
+      );
 
       // Get responder IDs for only nurses
-      const responderIds = availableNurses.map((user) => user._id)
+      const responderIds = availableNurses.map((user) => user._id);
 
       // Get patient name for display
-      const patientName = getPatientNameById(selectedPatientId)
+      const patientName = getPatientNameById(selectedPatientId);
 
       // Create a more readable alert content format
-      const alertContent = `${alertType} HELP - Patient: ${patientName} - Nurses: ${actualNurseCount} - PatientID: ${selectedPatientId}`
+      const alertContent = `${alertType} HELP - Patient: ${patientName} - Nurses: ${actualNurseCount} - PatientID: ${selectedPatientId}`;
       const messageData = {
         content: alertContent,
         isAlert: true,
         responders: responderIds, // Include all nurses as responders
         acknowledgedBy: [],
         acknowledgeAt: [],
-        alertType: alertType ? `${alertType} HELP` : 'HELP',
+        alertType: alertType ? `${alertType} HELP` : "HELP",
         patientUsername: patientName,
         patientId: selectedPatientId, // Store the ID too for reference
         nursesNeeded: actualNurseCount,
-      }
+      };
 
       // Send the message through the API
       // If called from Messages page without a specific channel, use the nurse alerts channel
-      const targetChannelId = channelId
+      const targetChannelId = channelId;
 
       const message = await request(
         `/api/channels/${targetChannelId}/messages`,
         {
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify(messageData),
         },
-      )
+      );
 
       const alert: NurseAlert = {
         id: message._id,
         patientId: selectedPatientId,
         patientName: patientName,
         numNurse: actualNurseCount,
-        priority: alertType === 'E' ? 'E' : alertType === 'U' ? 'U' : 'H',
+        priority: alertType === "E" ? "E" : alertType === "U" ? "U" : "H",
         createdAt: new Date(),
         groupId: targetChannelId,
-        senderId: localStorage.getItem('uid') ?? '',
+        senderId: localStorage.getItem("uid") ?? "",
         numNurseAccepted: 0,
-      }
+      };
       const alertResult = await request(`/api/alertQueue/${targetChannelId}`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(alert),
-      })
-      if (alertResult.message == 'Alert queued') {
+      });
+      if (alertResult.message == "Alert queued") {
         window.alert(
-          'The alert is being delayed by other alerts and will be sent as soon as possible.',
-        )
+          "The alert is being delayed by other alerts and will be sent as soon as possible.",
+        );
       }
-      console.log('Alert Result:', alertResult)
+      console.log("Alert Result:", alertResult);
 
-      console.log('Alert created:', message)
+      console.log("Alert created:", message);
 
-      dispatch(addMessage(message))
-      if (onClose) onClose()
+      dispatch(addMessage(message));
+      if (onClose) onClose();
     } catch (error) {
-      console.error('Error sending alert:', error)
+      console.error("Error sending alert:", error);
       setNotification({
         open: true,
-        message: 'Error sending alert. Please try again.',
-        severity: 'error',
-      })
+        message: "Error sending alert. Please try again.",
+        severity: "error",
+      });
     }
-  }
+  };
 
   return (
-    <Box sx={{ p: 3, width: 400, maxWidth: '100%' }}>
+    <Box sx={{ p: 3, width: 400, maxWidth: "100%" }}>
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel id="patient-select-label">Patient</InputLabel>
         <Select
@@ -300,7 +301,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
           ))}
         </Select>
         {preSelectedPatient && (
-          <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
             Selected: {getPatientNameById(preSelectedPatient)}
           </Typography>
         )}
@@ -314,10 +315,10 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
           label="Nurses Needed"
           onChange={(e) => {
             // Ensure count doesn't exceed available nurses
-            const count = Number(e.target.value)
+            const count = Number(e.target.value);
             // Make sure we don't exceed the actual number of available nurses
-            const maxCount = Math.min(count, totalNurses)
-            setNursesCount(maxCount)
+            const maxCount = Math.min(count, totalNurses);
+            setNursesCount(maxCount);
           }}
         >
           {/* Only show options if there are nurses available */}
@@ -343,13 +344,13 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
             fullWidth
             variant="contained"
             sx={{
-              bgcolor: 'red',
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'darkred',
+              bgcolor: "red",
+              color: "white",
+              "&:hover": {
+                bgcolor: "darkred",
               },
             }}
-            onClick={() => sendAlert('E')}
+            onClick={() => sendAlert("E")}
           >
             E HELP
           </Button>
@@ -359,13 +360,13 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
             fullWidth
             variant="contained"
             sx={{
-              bgcolor: 'orange',
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'darkorange',
+              bgcolor: "orange",
+              color: "white",
+              "&:hover": {
+                bgcolor: "darkorange",
               },
             }}
-            onClick={() => sendAlert('U')}
+            onClick={() => sendAlert("U")}
           >
             U HELP
           </Button>
@@ -375,7 +376,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
             fullWidth
             variant="contained"
             color="primary"
-            onClick={() => sendAlert('')}
+            onClick={() => sendAlert("")}
           >
             HELP
           </Button>
@@ -386,18 +387,18 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         open={notification.open}
         autoHideDuration={6000}
         onClose={closeNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
           onClose={closeNotification}
           severity={notification.severity}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {notification.message}
         </Alert>
       </Snackbar>
     </Box>
-  )
-}
+  );
+};
 
-export default NurseAlertPanel
+export default NurseAlertPanel;

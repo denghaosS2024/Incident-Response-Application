@@ -1,9 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit'
-import type { Meta, StoryObj } from '@storybook/react'
-import { Provider } from 'react-redux'
-import ChatBox from '../components/Chat/ChatBox'
-import type IMessage from '../models/Message'
-import type IUser from '../models/User'
+import { configureStore } from "@reduxjs/toolkit";
+import type { Meta, StoryObj } from "@storybook/react";
+import { Provider } from "react-redux";
+import ChatBox from "../components/Chat/ChatBox";
+import type IMessage from "../models/Message";
+import type IUser from "../models/User";
 
 // Create a mock store
 const mockStore = configureStore({
@@ -12,13 +12,13 @@ const mockStore = configureStore({
     messageState: (state = { messages: {} }) => state,
     // Add other reducers as needed
   },
-})
+});
 
 const meta: Meta<typeof ChatBox> = {
-  title: 'Chat/ChatBox',
+  title: "Chat/ChatBox",
   component: ChatBox,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
   decorators: [
     (Story) => (
@@ -27,58 +27,58 @@ const meta: Meta<typeof ChatBox> = {
       </Provider>
     ),
   ],
-  tags: ['autodocs'],
-}
+  tags: ["autodocs"],
+};
 
-export default meta
-type Story = StoryObj<typeof ChatBox>
+export default meta;
+type Story = StoryObj<typeof ChatBox>;
 
 const mockUsers: { [key: string]: IUser } = {
   user1: {
-    _id: 'user1',
-    username: 'John Doe',
-    role: 'Citizen',
+    _id: "user1",
+    username: "John Doe",
+    role: "Citizen",
     online: true,
   },
   user2: {
-    _id: 'user2',
-    username: 'Dispatcher',
-    role: 'Dispatch',
+    _id: "user2",
+    username: "Dispatcher",
+    role: "Dispatch",
     online: true,
   },
-}
+};
 
 const mockMessages: IMessage[] = [
   {
-    _id: '1',
-    content: 'Hello, this is a test message',
+    _id: "1",
+    content: "Hello, this is a test message",
     sender: mockUsers.user1,
-    timestamp: new Date('2024-03-07T10:00:00').toString(),
-    channelId: 'channel1',
+    timestamp: new Date("2024-03-07T10:00:00").toString(),
+    channelId: "channel1",
     isAlert: false,
   },
   {
-    _id: '2',
-    content: 'This is a response',
+    _id: "2",
+    content: "This is a response",
     sender: mockUsers.user2,
-    timestamp: new Date('2024-03-07T10:01:00').toString(),
-    channelId: 'channel1',
+    timestamp: new Date("2024-03-07T10:01:00").toString(),
+    channelId: "channel1",
     isAlert: false,
   },
-]
+];
 
 export const Default: Story = {
   args: {
-    channelId: 'channel1',
+    channelId: "channel1",
     messages: mockMessages,
-    currentUserId: 'user1',
-    currentUserRole: 'Citizen',
+    currentUserId: "user1",
+    currentUserRole: "Citizen",
     isLoading: false,
     onSendMessage: async (content: string, channelId: string) => {
-      console.log('Message sent:', content, 'to channel:', channelId)
+      console.log("Message sent:", content, "to channel:", channelId);
     },
   },
-}
+};
 
 export const Loading: Story = {
   args: {
@@ -86,25 +86,25 @@ export const Loading: Story = {
     isLoading: true,
     messages: [],
   },
-}
+};
 
 export const EmptyChat: Story = {
   args: {
     ...Default.args,
     messages: [],
   },
-}
+};
 
 export const FirefighterView: Story = {
   args: {
     ...Default.args,
-    currentUserRole: 'Fire',
+    currentUserRole: "Fire",
   },
-}
+};
 
 export const PoliceView: Story = {
   args: {
     ...Default.args,
-    currentUserRole: 'Police',
+    currentUserRole: "Police",
   },
-}
+};

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -6,97 +6,97 @@ import {
   TextField,
   MenuItem,
   Grid,
-} from '@mui/material'
-import { useNavigate } from 'react-router'
-import request from '../utils/request'
+} from "@mui/material";
+import { useNavigate } from "react-router";
+import request from "../utils/request";
 
-type ChartType = 'Bar' | 'Line' | 'Pie'
+type ChartType = "Bar" | "Line" | "Pie";
 
-const chartTypes: ChartType[] = ['Bar', 'Line', 'Pie']
+const chartTypes: ChartType[] = ["Bar", "Line", "Pie"];
 const chartDataOptions = [
-    'Alert Acknowledgment Time',
-    'Fire/Police Alerts',
-    'Incident Duration',
-    'Incident Priority',
-    'Incident Resources',
-    'Incident State',
-    'Incident Type',
-    'Patient Location',
-    'SAR Tasks',
-    'SAR Victims',
-  ]
-  
-  
+  "Alert Acknowledgment Time",
+  "Fire/Police Alerts",
+  "Incident Duration",
+  "Incident Priority",
+  "Incident Resources",
+  "Incident State",
+  "Incident Type",
+  "Patient Location",
+  "SAR Tasks",
+  "SAR Victims",
+];
 
 const CreateChartPage: React.FC = () => {
-  const [name, setName] = useState('')
-  const [type, setType] = useState<ChartType | ''>('')
-  const [data, setData] = useState('')
-  const [startDay, setStartDay] = useState('')
-  const [endDay, setEndDay] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
-  const [messageType, setMessageType] = useState<'success' | 'error'>('success')
+  const [name, setName] = useState("");
+  const [type, setType] = useState<ChartType | "">("");
+  const [data, setData] = useState("");
+  const [startDay, setStartDay] = useState("");
+  const [endDay, setEndDay] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<"success" | "error">(
+    "success",
+  );
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const chartId = localStorage.getItem('editChartId')
+  const chartId = localStorage.getItem("editChartId");
 
   useEffect(() => {
     if (chartId) {
       const fetchChartData = async () => {
         try {
-          const chart = await request(`/api/charts/${chartId}`)
-          console.log('Chart:', chart)
-          setName(chart.title)
-          setType(chart.chartType)
-          setData(chart.dataType)
-          setStartDay(chart.customPeriod?.startDate?.substring(0, 10) ?? '')
-          setEndDay(chart.customPeriod?.endDate?.substring(0, 10) ?? '')
+          const chart = await request(`/api/charts/${chartId}`);
+          console.log("Chart:", chart);
+          setName(chart.title);
+          setType(chart.chartType);
+          setData(chart.dataType);
+          setStartDay(chart.customPeriod?.startDate?.substring(0, 10) ?? "");
+          setEndDay(chart.customPeriod?.endDate?.substring(0, 10) ?? "");
         } catch (err) {
-          console.error('Failed to fetch chart data:', err)
+          console.error("Failed to fetch chart data:", err);
         }
-      }
+      };
 
-      fetchChartData()
+      fetchChartData();
     }
-  }, [chartId])
+  }, [chartId]);
 
   const handleCancel = () => {
-    localStorage.removeItem('editChartId')
-    navigate('/dashboard')
-  }
+    localStorage.removeItem("editChartId");
+    navigate("/dashboard");
+  };
 
   const handleSave = async () => {
     try {
       const chartPayload = {
-        userId: localStorage.getItem('uid'),
+        userId: localStorage.getItem("uid"),
         name,
         type,
         dataType: data,
         startDate: startDay ? new Date(startDay).toISOString() : null,
         endDate: endDay ? new Date(endDay).toISOString() : null,
-      }
+      };
 
-      const res = await request('/api/charts', {
-        method: 'POST',
+      const res = await request("/api/charts", {
+        method: "POST",
         body: JSON.stringify(chartPayload),
-      })
+      });
 
-      console.log('Chart saved:', res)
-      setMessage(res.message ?? 'Chart created successfully.')
-      setMessageType('success')
-      navigate('/dashboard')
-      localStorage.removeItem('editChartId')
+      console.log("Chart saved:", res);
+      setMessage(res.message ?? "Chart created successfully.");
+      setMessageType("success");
+      navigate("/dashboard");
+      localStorage.removeItem("editChartId");
     } catch (err: any) {
       const errorMessage =
-        err?.message ?? err?.response?.message ?? 'Failed to save chart.'
-      setMessage(errorMessage)
-      setMessageType('error')
+        err?.message ?? err?.response?.message ?? "Failed to save chart.";
+      setMessage(errorMessage);
+      setMessageType("error");
     }
-  }
+  };
 
   const handleUpdate = async () => {
-    if (!chartId) return
+    if (!chartId) return;
     try {
       const chartPayload = {
         name,
@@ -104,45 +104,45 @@ const CreateChartPage: React.FC = () => {
         dataType: data,
         startDate: startDay ? new Date(startDay).toISOString() : null,
         endDate: endDay ? new Date(endDay).toISOString() : null,
-      }
+      };
 
       const res = await request(`/api/charts/${chartId}`, {
-        method: 'PUT',
+        method: "PUT",
         body: JSON.stringify(chartPayload),
-      })
+      });
 
-      console.log('Chart updated:', res)
-      navigate('/dashboard')
-      localStorage.removeItem('editChartId')
+      console.log("Chart updated:", res);
+      navigate("/dashboard");
+      localStorage.removeItem("editChartId");
     } catch (err: any) {
-        const errorMessage =
-          err?.message ?? err?.response?.message ?? 'Failed to update chart.'
-        setMessage(errorMessage)
-        setMessageType('error')
-      }
-  }
+      const errorMessage =
+        err?.message ?? err?.response?.message ?? "Failed to update chart.";
+      setMessage(errorMessage);
+      setMessageType("error");
+    }
+  };
 
   const handleRemove = async () => {
-    if (!chartId) return
+    if (!chartId) return;
     try {
       await request(`/api/charts/${chartId}`, {
-        method: 'DELETE',
-      })
-      console.log('Chart deleted successfully.')
+        method: "DELETE",
+      });
+      console.log("Chart deleted successfully.");
     } catch (err) {
-      console.error('Failed to delete chart:', err)
+      console.error("Failed to delete chart:", err);
     }
 
-    localStorage.removeItem('editChartId')
-    navigate('/dashboard')
-  }
+    localStorage.removeItem("editChartId");
+    navigate("/dashboard");
+  };
 
   return (
     <Box
       sx={{
-        height: '100vh',
-        backgroundColor: '#fff',
-        display: 'flex',
+        height: "100vh",
+        backgroundColor: "#fff",
+        display: "flex",
         marginTop: 5,
         px: 2,
       }}
@@ -222,9 +222,14 @@ const CreateChartPage: React.FC = () => {
             />
           </Grid>
 
-          {message && messageType === 'error' && (
+          {message && messageType === "error" && (
             <Grid item xs={12}>
-              <Box textAlign="center" color="error.main" fontSize="0.9rem" mb={-1}>
+              <Box
+                textAlign="center"
+                color="error.main"
+                fontSize="0.9rem"
+                mb={-1}
+              >
                 {message}
               </Box>
             </Grid>
@@ -237,7 +242,7 @@ const CreateChartPage: React.FC = () => {
                   variant="outlined"
                   color="error"
                   onClick={handleRemove}
-                  sx={{ flex: 1, height: '40px' }}
+                  sx={{ flex: 1, height: "40px" }}
                 >
                   Remove
                 </Button>
@@ -246,7 +251,7 @@ const CreateChartPage: React.FC = () => {
                 variant="outlined"
                 color="inherit"
                 onClick={handleCancel}
-                sx={{ flex: 1, height: '40px' }}
+                sx={{ flex: 1, height: "40px" }}
               >
                 Cancel
               </Button>
@@ -255,7 +260,7 @@ const CreateChartPage: React.FC = () => {
                   variant="contained"
                   color="primary"
                   onClick={handleUpdate}
-                  sx={{ flex: 1, height: '40px' }}
+                  sx={{ flex: 1, height: "40px" }}
                 >
                   Update
                 </Button>
@@ -264,7 +269,7 @@ const CreateChartPage: React.FC = () => {
                   variant="contained"
                   color="primary"
                   onClick={handleSave}
-                  sx={{ flex: 1, height: '40px' }}
+                  sx={{ flex: 1, height: "40px" }}
                 >
                   Save
                 </Button>
@@ -274,7 +279,7 @@ const CreateChartPage: React.FC = () => {
         </Grid>
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default CreateChartPage
+export default CreateChartPage;

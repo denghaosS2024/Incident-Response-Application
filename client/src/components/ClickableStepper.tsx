@@ -1,19 +1,18 @@
-import { Step, StepLabel, Stepper } from '@mui/material'
-import React from 'react'
-import SquareStepIconComponent from './SquareStepIconComponent.tsx'
-
+import { Step, StepLabel, Stepper } from "@mui/material";
+import React from "react";
+import SquareStepIconComponent from "./SquareStepIconComponent.tsx";
 
 enum StepIconStyle {
-  Round = 'Round',
-  Square = 'Square'
+  Round = "Round",
+  Square = "Square",
 }
 
 interface IClickableStepperProps {
-  numberOfSteps: number
-  activeStep: number
-  setActiveStep: (step: number) => void
-  contents: JSX.Element[]
-  stepIconStyle?: StepIconStyle
+  numberOfSteps: number;
+  activeStep: number;
+  setActiveStep: (step: number) => void;
+  contents: JSX.Element[];
+  stepIconStyle?: StepIconStyle;
 }
 
 const ClickableStepper: React.FC<IClickableStepperProps> = ({
@@ -24,8 +23,8 @@ const ClickableStepper: React.FC<IClickableStepperProps> = ({
   stepIconStyle = StepIconStyle.Round,
 }) => {
   const handleStepClick = (index: number) => {
-    setActiveStep(index)
-  }
+    setActiveStep(index);
+  };
 
   return (
     <>
@@ -43,8 +42,8 @@ const ClickableStepper: React.FC<IClickableStepperProps> = ({
       </Stepper>
       <div>{contents[activeStep]}</div>
     </>
-  )
-}
+  );
+};
 
-export default ClickableStepper
-export { StepIconStyle }
+export default ClickableStepper;
+export { StepIconStyle };

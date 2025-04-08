@@ -1,12 +1,12 @@
-import { TableBody, TableCell, TableRow, Typography } from '@mui/material'
-import { ReactNode } from 'react'
-import Loading from './common/Loading'
+import { TableBody, TableCell, TableRow, Typography } from "@mui/material";
+import { ReactNode } from "react";
+import Loading from "./common/Loading";
 
 export interface ItemListProps<T> {
-  items?: T[]
-  loading: boolean
-  getKey: (item: T) => string
-  renderItem: (item: T) => ReactNode
+  items?: T[];
+  loading: boolean;
+  getKey: (item: T) => string;
+  renderItem: (item: T) => ReactNode;
 }
 
 const ItemList = <T,>({
@@ -15,7 +15,7 @@ const ItemList = <T,>({
   getKey,
   renderItem,
 }: ItemListProps<T>) => {
-  if (loading) return <Loading />
+  if (loading) return <Loading />;
 
   if (!items || items.length === 0) {
     return (
@@ -28,7 +28,7 @@ const ItemList = <T,>({
           </TableCell>
         </TableRow>
       </TableBody>
-    )
+    );
   }
 
   return (
@@ -37,7 +37,7 @@ const ItemList = <T,>({
         <TableRow key={getKey(item)}>{renderItem(item)}</TableRow>
       ))}
     </TableBody>
-  )
-}
+  );
+};
 
-export default ItemList
+export default ItemList;

@@ -1,13 +1,13 @@
-import { action } from '@storybook/addon-actions'
-import { Meta, StoryObj } from '@storybook/react'
-import AddIcon from '@mui/icons-material/Add'
+import { action } from "@storybook/addon-actions";
+import { Meta, StoryObj } from "@storybook/react";
+import AddIcon from "@mui/icons-material/Add";
 import {
   Divider,
   Link,
   ListItem,
   ListItemIcon,
   ListItemText,
-} from '@mui/material'
+} from "@mui/material";
 
 const AddGroup = () => (
   <>
@@ -21,20 +21,20 @@ const AddGroup = () => (
     </Link>
     <Divider />
   </>
-)
+);
 
 const meta = {
-  title: 'Groups/AddGroup',
+  title: "Groups/AddGroup",
   component: AddGroup,
-  tags: ['autodocs'],
-} satisfies Meta<typeof AddGroup>
+  tags: ["autodocs"],
+} satisfies Meta<typeof AddGroup>;
 
-export default meta
-type Story = StoryObj<typeof meta>
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    onClick: action('onClick'),
-    'aria-label': 'Add Group',
+    onClick: action("onClick"),
+    "aria-label": "Add Group",
   },
-}
+};

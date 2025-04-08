@@ -1,5 +1,5 @@
-import _ from 'lodash'
-import Globals from './Globals'
+import _ from "lodash";
+import Globals from "./Globals";
 /**
  * Request Utility
  *
@@ -10,8 +10,8 @@ import Globals from './Globals'
  * Interface for request errors
  */
 export interface IRequestError {
-    status: number // HTTP status code of the error
-    message: string // Error message
+  status: number; // HTTP status code of the error
+  message: string; // Error message
 }
 
 /**
@@ -25,42 +25,42 @@ export interface IRequestError {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const request = async <T = any>(
-    url: RequestInfo,
-    options?: RequestInit | undefined,
-    multipart = false,
+  url: RequestInfo,
+  options?: RequestInit | undefined,
+  multipart = false,
 ) => {
-    // Merge default headers with provided options
-    const fetchOptions = _.merge(
-        {
-            headers: {
-                'Content-Type': 'application/json',
-                'x-application-token': localStorage.getItem('token'),
-                'x-application-uid': localStorage.getItem('uid'),
-            },
-        },
-        options,
-    )
+  // Merge default headers with provided options
+  const fetchOptions = _.merge(
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "x-application-token": localStorage.getItem("token"),
+        "x-application-uid": localStorage.getItem("uid"),
+      },
+    },
+    options,
+  );
 
-    // Handle multipart requests
-    if (multipart) {
-        fetchOptions.headers['Content-Type'] = ''
-    }
+  // Handle multipart requests
+  if (multipart) {
+    fetchOptions.headers["Content-Type"] = "";
+  }
 
-    // Send the request and handle the response
-    return fetch(`${Globals.backendUrl()}${url}`, fetchOptions).then(
-        async (response) => {
-            const body = (await response.json()) as Promise<T>
+  // Send the request and handle the response
+  return fetch(`${Globals.backendUrl()}${url}`, fetchOptions).then(
+    async (response) => {
+      const body = (await response.json()) as Promise<T>;
 
-            if (response.ok) {
-                return body
-            } else {
-                throw {
-                    status: response.status,
-                    ...body,
-                } as unknown as IRequestError
-            }
-        },
-    )
-}
+      if (response.ok) {
+        return body;
+      } else {
+        throw {
+          status: response.status,
+          ...body,
+        } as unknown as IRequestError;
+      }
+    },
+  );
+};
 
-export default request
+export default request;

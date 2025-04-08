@@ -1,9 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import {
-  Box,
-  Typography,
-  CircularProgress,
-} from '@mui/material'
+import React, { useEffect, useState } from "react";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -15,10 +11,10 @@ import {
   LineElement,
   PointElement,
   Title,
-} from 'chart.js'
-import { Pie, Bar, Line } from 'react-chartjs-2'
-import { useNavigate } from 'react-router'
-import request from '../utils/request'
+} from "chart.js";
+import { Pie, Bar, Line } from "react-chartjs-2";
+import { useNavigate } from "react-router";
+import request from "../utils/request";
 
 ChartJS.register(
   ArcElement,
@@ -29,50 +25,57 @@ ChartJS.register(
   BarElement,
   LineElement,
   PointElement,
-  Title
-)
+  Title,
+);
 
-type ChartType = 'Pie' | 'Bar' | 'Line'
+type ChartType = "Pie" | "Bar" | "Line";
 
 interface Dataset {
-  label: string
-  data: number[]
+  label: string;
+  data: number[];
 }
 
 interface ChartDisplayProps {
-  chartId: string
+  chartId: string;
 }
 
-const colors = ['#1976d2', '#ff9800', '#4caf50', '#03a9f4', '#f44336', '#9c27b0']
+const colors = [
+  "#1976d2",
+  "#ff9800",
+  "#4caf50",
+  "#03a9f4",
+  "#f44336",
+  "#9c27b0",
+];
 
 const ChartDisplay: React.FC<ChartDisplayProps> = ({ chartId }) => {
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState(true)
-  const [chartType, setChartType] = useState<ChartType>('Pie')
-  const [title, setTitle] = useState('')
-  const [labels, setLabels] = useState<string[]>([])
-  const [datasets, setDatasets] = useState<Dataset[]>([])
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [chartType, setChartType] = useState<ChartType>("Pie");
+  const [title, setTitle] = useState("");
+  const [labels, setLabels] = useState<string[]>([]);
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
 
   useEffect(() => {
     const fetchChart = async () => {
       try {
-        const res = await request(`/api/charts/${chartId}`)
-        setTitle(res.title)
-        setChartType(res.chartType)
-        setLabels(res.labels)
-        setDatasets(res.datasets)
-        setLoading(false)
+        const res = await request(`/api/charts/${chartId}`);
+        setTitle(res.title);
+        setChartType(res.chartType);
+        setLabels(res.labels);
+        setDatasets(res.datasets);
+        setLoading(false);
       } catch (err) {
-        console.error('Failed to fetch chart:', err)
-        navigate('/dashboard')
+        console.error("Failed to fetch chart:", err);
+        navigate("/dashboard");
       }
-    }
+    };
 
-    fetchChart()
-  }, [chartId, navigate])
+    fetchChart();
+  }, [chartId, navigate]);
 
   const renderChart = () => {
-    if (chartType === 'Pie') {
+    if (chartType === "Pie") {
       return (
         <Pie
           data={{
@@ -88,15 +91,15 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ chartId }) => {
             responsive: true,
             plugins: {
               legend: {
-                position: 'bottom',
+                position: "bottom",
               },
             },
           }}
         />
-      )
+      );
     }
 
-    if (chartType === 'Line') {
+    if (chartType === "Line") {
       return (
         <Line
           data={{
@@ -113,15 +116,15 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ chartId }) => {
             responsive: true,
             plugins: {
               legend: {
-                position: 'bottom',
+                position: "bottom",
               },
             },
           }}
         />
-      )
+      );
     }
 
-    if (chartType === 'Bar') {
+    if (chartType === "Bar") {
       return (
         <Bar
           data={{
@@ -136,23 +139,28 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ chartId }) => {
             responsive: true,
             plugins: {
               legend: {
-                position: 'bottom',
+                position: "bottom",
               },
             },
           }}
         />
-      )
+      );
     }
 
-    return <Typography textAlign="center">Unsupported chart type</Typography>
-  }
+    return <Typography textAlign="center">Unsupported chart type</Typography>;
+  };
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100%"
+      >
         <CircularProgress />
       </Box>
-    )
+    );
   }
 
   return (
@@ -162,7 +170,7 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ chartId }) => {
       </Typography>
       {renderChart()}
     </Box>
-  )
-}
+  );
+};
 
-export default ChartDisplay
+export default ChartDisplay;

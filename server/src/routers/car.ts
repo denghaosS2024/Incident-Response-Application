@@ -1,7 +1,7 @@
-import { Request, Response, Router } from 'express'
-import CarController from '../controllers/CarController'
-import { ICar } from '../models/Car'
-const carRouter = Router()
+import { Request, Response, Router } from "express";
+import CarController from "../controllers/CarController";
+import { ICar } from "../models/Car";
+const carRouter = Router();
 
 /**
  * @swagger
@@ -11,13 +11,13 @@ const carRouter = Router()
  *     description: Retrieves a list of all available cars sorted by name.
  *     tags:
  *       - Cars
-*      parameters:
-*        - in: query
-*          name: name
-*          required: false
-*          schema:
-*            type: string
-*          description: Filter cars by name.
+ *      parameters:
+ *        - in: query
+ *          name: name
+ *          required: false
+ *          schema:
+ *            type: string
+ *          description: Filter cars by name.
  *     responses:
  *       200:
  *         description: A list of cars retrieved successfully.
@@ -34,21 +34,21 @@ const carRouter = Router()
  *             schema:
  *               $ref: "#/components/schemas/ErrorResponse"
  */
-carRouter.get('/', async (_req: Request, res: Response) => {
+carRouter.get("/", async (_req: Request, res: Response) => {
   try {
-    const { name } = _req.query
+    const { name } = _req.query;
     if (name) {
-      const car: ICar | null = await CarController.getCarByName(name as string)
-      res.json(car)
-      return
+      const car: ICar | null = await CarController.getCarByName(name as string);
+      res.json(car);
+      return;
     }
-    const cars = await CarController.getAllCars()
-    res.json(cars)
+    const cars = await CarController.getAllCars();
+    res.json(cars);
   } catch (err) {
-    const error = err as Error
-    res.status(500).json({ error: error.message })
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
   }
-})
+});
 
 /**
  * @swagger
@@ -70,15 +70,15 @@ carRouter.get('/', async (_req: Request, res: Response) => {
  *       500:
  *         description: Server error while fetching available cars.
  */
-carRouter.get('/availability', async (_req: Request, res: Response) => {
+carRouter.get("/availability", async (_req: Request, res: Response) => {
   try {
-    const cars = await CarController.getAvailableCarsWithResponder()
-    res.json(cars)
+    const cars = await CarController.getAvailableCarsWithResponder();
+    res.json(cars);
   } catch (err) {
-    const error = err as Error
-    res.status(500).json({ error: error.message })
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
   }
-})
+});
 
 /**
  * @swagger
@@ -113,16 +113,16 @@ carRouter.get('/availability', async (_req: Request, res: Response) => {
  *             schema:
  *               $ref: "#/components/schemas/ErrorResponse"
  */
-carRouter.post('/', async (req: Request, res: Response) => {
+carRouter.post("/", async (req: Request, res: Response) => {
   try {
-    const { name } = req.body
-    const newCar = await CarController.createCar(name)
-    res.status(201).json(newCar)
+    const { name } = req.body;
+    const newCar = await CarController.createCar(name);
+    res.status(201).json(newCar);
   } catch (err) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-})
+});
 
 /**
  * @swagger
@@ -159,16 +159,16 @@ carRouter.post('/', async (req: Request, res: Response) => {
  *             schema:
  *               $ref: "#/components/schemas/ErrorResponse"
  */
-carRouter.delete('/:id', async (req: Request, res: Response) => {
+carRouter.delete("/:id", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params
-    const removedCar = await CarController.removeCarById(id)
-    res.json({ message: 'Car deleted', car: removedCar })
+    const { id } = req.params;
+    const removedCar = await CarController.removeCarById(id);
+    res.json({ message: "Car deleted", car: removedCar });
   } catch (err) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-})
+});
 
 /**
  * @swagger
@@ -212,70 +212,74 @@ carRouter.delete('/:id', async (req: Request, res: Response) => {
  *             schema:
  *               $ref: "#/components/schemas/ErrorResponse"
  */
-carRouter.put('/cities', async (req: Request, res: Response) => {
+carRouter.put("/cities", async (req: Request, res: Response) => {
   try {
-    const { carName, cityName } = req.body
-    const updatedCar = await CarController.updateCarCity(carName, cityName)
-    res.status(200).json(updatedCar)
+    const { carName, cityName } = req.body;
+    const updatedCar = await CarController.updateCarCity(carName, cityName);
+    res.status(200).json(updatedCar);
   } catch (err) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-})
+});
 
 /**
-* @swagger
-* /api/cars/usernames:
-*   put:
-*     summary: Add a username to a car
-*     description: Assigns a user to a specific car and updates incident assignment if applicable
-*     tags:
-*       - Cars
-*     requestBody:
-*       required: true
-*       content:
-*         application/json:
-*           schema:
-*             type: object
-*             required:
-*               - carName
-*               - username
-*             properties:
-*               carName:
-*                 type: string
-*                 description: The name of the car to assign the user to
-*               username:
-*                 type: string
-*                 description: The username of the user to assign to the car
-*               commandingIncident:
-*                 type: object
-*                 description: Optional incident information if the user is commanding an incident
-*     responses:
-*       '200':
-*         description: User successfully assigned to car
-*         content:
-*           application/json:
-*       '400':
-*         description: Bad request, invalid input or operation
-*         content:
-*           application/json:
-*             schema:
-*               type: object
-*               properties:
-*                 message:
-*                   type: string
-*                   description: Error message explaining why the operation failed
-*/
-carRouter.put('/usernames', async (req: Request, res: Response) => {
+ * @swagger
+ * /api/cars/usernames:
+ *   put:
+ *     summary: Add a username to a car
+ *     description: Assigns a user to a specific car and updates incident assignment if applicable
+ *     tags:
+ *       - Cars
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - carName
+ *               - username
+ *             properties:
+ *               carName:
+ *                 type: string
+ *                 description: The name of the car to assign the user to
+ *               username:
+ *                 type: string
+ *                 description: The username of the user to assign to the car
+ *               commandingIncident:
+ *                 type: object
+ *                 description: Optional incident information if the user is commanding an incident
+ *     responses:
+ *       '200':
+ *         description: User successfully assigned to car
+ *         content:
+ *           application/json:
+ *       '400':
+ *         description: Bad request, invalid input or operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message explaining why the operation failed
+ */
+carRouter.put("/usernames", async (req: Request, res: Response) => {
   try {
-    const { carName, username, commandingIncident } = req.body
-    const updatedCar = await CarController.addUsernameToCar(carName, username, commandingIncident)
-    res.status(200).json(updatedCar)
+    const { carName, username, commandingIncident } = req.body;
+    const updatedCar = await CarController.addUsernameToCar(
+      carName,
+      username,
+      commandingIncident,
+    );
+    res.status(200).json(updatedCar);
   } catch (err) {
-    const error = err as Error
-    res.status(400).json({ message: error.message })
+    const error = err as Error;
+    res.status(400).json({ message: error.message });
   }
-})
+});
 
 /**
  * @swagger
@@ -317,17 +321,17 @@ carRouter.put('/usernames', async (req: Request, res: Response) => {
  *                   type: string
  *                   description: Error message
  */
-carRouter.put('/usernames/release', async (req: Request, res: Response) => {
+carRouter.put("/usernames/release", async (req: Request, res: Response) => {
   try {
-    const { carName, username } = req.body
+    const { carName, username } = req.body;
     const updatedCar = await CarController.releaseUsernameFromCar(
       carName,
       username,
-    )
-    res.status(200).json(updatedCar)
+    );
+    res.status(200).json(updatedCar);
   } catch (err) {
-    const error = err as Error
-    res.status(400).json({ message: error.message })
+    const error = err as Error;
+    res.status(400).json({ message: error.message });
   }
-})
-export default carRouter
+});
+export default carRouter;

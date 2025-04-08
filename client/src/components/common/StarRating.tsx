@@ -8,7 +8,12 @@ type StarRatingProps = {
   icon?: string;
 };
 
-const StarRating: React.FC<StarRatingProps> = ({ label, rating, onChange, icon }) => {
+const StarRating: React.FC<StarRatingProps> = ({
+  label,
+  rating,
+  onChange,
+  icon,
+}) => {
   return (
     <Box
       display="flex"

@@ -1,42 +1,42 @@
-import { Box, Typography } from '@mui/material'
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router'
-import AlertSnackbar from '../components/common/AlertSnackbar'
+import { Box, Typography } from "@mui/material";
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import AlertSnackbar from "../components/common/AlertSnackbar";
 import RegisterForm, {
   IProps as IRegisterFormProps,
-} from '../components/RegisterForm'
-import request, { IRequestError } from '../utils/request'
+} from "../components/RegisterForm";
+import request, { IRequestError } from "../utils/request";
 
 // RegisterPage component: Handles user registration
 const RegisterPage: React.FC = () => {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const navigator = useNavigate()
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const navigator = useNavigate();
 
   // Function to handle form submission
   // @param form - The registration form data submitted by the user
-  const onSubmit: IRegisterFormProps['onSubmit'] = async (form) => {
+  const onSubmit: IRegisterFormProps["onSubmit"] = async (form) => {
     try {
-      await request('/api/users', {
-        method: 'POST',
+      await request("/api/users", {
+        method: "POST",
         body: JSON.stringify(form),
-      })
+      });
 
-      navigator('/login')
+      navigator("/login");
     } catch (e) {
-      const error = e as IRequestError
+      const error = e as IRequestError;
       if (error.status >= 400 && error.status < 500) {
-        setErrorMessage(`Error: ${error.message}`)
+        setErrorMessage(`Error: ${error.message}`);
       } else {
-        setErrorMessage('Server error occurred. Please try again later.')
+        setErrorMessage("Server error occurred. Please try again later.");
       }
-      setOpenSnackbar(true)
+      setOpenSnackbar(true);
     }
-  }
+  };
 
   const handleCloseSnackbar = () => {
-    setOpenSnackbar(false)
-  }
+    setOpenSnackbar(false);
+  };
 
   return (
     <Box
@@ -56,14 +56,14 @@ const RegisterPage: React.FC = () => {
       </Box>
       <AlertSnackbar
         open={openSnackbar}
-        message={errorMessage ?? ''}
+        message={errorMessage ?? ""}
         onClose={handleCloseSnackbar}
         severity="error"
         vertical="bottom"
         horizontal="center"
       />
     </Box>
-  )
-}
+  );
+};
 
-export default RegisterPage
+export default RegisterPage;

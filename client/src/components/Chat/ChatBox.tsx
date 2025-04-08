@@ -1,27 +1,30 @@
-import { Box, Grid } from '@mui/material'
-import React, { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import IMessage from '../../models/Message'
-import { selectActiveAlert, selectHasActiveAlert } from '../../redux/alertQueueSlice'
-import { AppDispatch, RootState } from '../../redux/store'
-import styles from '../../styles/ChatBox.module.css'
-import AlertSnackbar from '../common/AlertSnackbar'
-import MessageAlertOptions from '../MessageAlertOptions'
-import MessageAttachmentOptions from '../MessageAttachmentOptions'
-import MessageCallOptions from '../MessageCallOptions'
-import MessageInput from '../MessageInput'
-import MessageList from '../MessageList'
-import MessageNurseAlertOptions from '../MessageNurseAlertOptions'
-import VoiceRecorder from '../VoiceRecorder'
+import { Box, Grid } from "@mui/material";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import IMessage from "../../models/Message";
+import {
+  selectActiveAlert,
+  selectHasActiveAlert,
+} from "../../redux/alertQueueSlice";
+import { AppDispatch, RootState } from "../../redux/store";
+import styles from "../../styles/ChatBox.module.css";
+import AlertSnackbar from "../common/AlertSnackbar";
+import MessageAlertOptions from "../MessageAlertOptions";
+import MessageAttachmentOptions from "../MessageAttachmentOptions";
+import MessageCallOptions from "../MessageCallOptions";
+import MessageInput from "../MessageInput";
+import MessageList from "../MessageList";
+import MessageNurseAlertOptions from "../MessageNurseAlertOptions";
+import VoiceRecorder from "../VoiceRecorder";
 
 interface ChatBoxProps {
-  channelId: string
-  messages: IMessage[]
-  currentUserId: string
-  currentUserRole: string
-  isLoading: boolean
-  onSendMessage: (content: string, channelId: string) => Promise<void>
-  isHospitalGroup?: boolean
+  channelId: string;
+  messages: IMessage[];
+  currentUserId: string;
+  currentUserRole: string;
+  isLoading: boolean;
+  onSendMessage: (content: string, channelId: string) => Promise<void>;
+  isHospitalGroup?: boolean;
 }
 
 const ChatBox: React.FC<ChatBoxProps> = ({
@@ -33,68 +36,68 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   onSendMessage,
   isHospitalGroup = false,
 }) => {
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>();
   // State for the snackbar
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   // Get active alert from Redux
-  const activeAlert = useSelector((state: RootState) => 
-    selectActiveAlert(state, channelId)
-  )
-  const hasActiveAlert = useSelector((state: RootState) => 
-    selectHasActiveAlert(state, channelId)
-  )
+  const activeAlert = useSelector((state: RootState) =>
+    selectActiveAlert(state, channelId),
+  );
+  const hasActiveAlert = useSelector((state: RootState) =>
+    selectHasActiveAlert(state, channelId),
+  );
 
   // Function to handle errors from MessageCallOptions
   const handleCallError = (message: string) => {
-    setSnackbarMessage(message)
-    setOpenSnackbar(true)
-  }
+    setSnackbarMessage(message);
+    setOpenSnackbar(true);
+  };
 
   // Function to close the snackbar
   const handleSnackbarClose = () => {
-    setOpenSnackbar(false)
-  }
+    setOpenSnackbar(false);
+  };
 
   // Get current patient from URL query params if in patient visit screen
   const getPatientFromUrl = (): string | undefined => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const patient = urlParams.get('patient')
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const patient = urlParams.get("patient");
       if (patient) {
-        return patient
+        return patient;
       }
     }
-    return undefined
-  }
+    return undefined;
+  };
 
-  const preSelectedPatient = getPatientFromUrl()
+  const preSelectedPatient = getPatientFromUrl();
 
   // Development testing code has been removed
 
   // Determine alert type from message content
-  const getAlertType = (content: string): 'E' | 'U' | '' => {
-    if (content.includes('E HELP')) return 'E'
-    if (content.includes('U HELP')) return 'U'
+  const getAlertType = (content: string): "E" | "U" | "" => {
+    if (content.includes("E HELP")) return "E";
+    if (content.includes("U HELP")) return "U";
     // For regular HELP, ensure it's not an E or U help
     if (
-      content.includes('HELP') &&
-      !content.includes('E HELP') &&
-      !content.includes('U HELP')
+      content.includes("HELP") &&
+      !content.includes("E HELP") &&
+      !content.includes("U HELP")
     )
-      return ''
-    return ''
-  }
+      return "";
+    return "";
+  };
 
   // Get patient name from alert message
   const getPatientName = (content: string): string => {
     // Extract patient name from the new format: 'HELP - Patient: PatientName - Nurses: X'
-    const patientMatch = content.match(/Patient:\s*([^-]+)/)
+    const patientMatch = content.match(/Patient:\s*([^-]+)/);
     return patientMatch && patientMatch[1]
       ? patientMatch[1].trim()
-      : 'Unknown Patient'
-  }
+      : "Unknown Patient";
+  };
 
   return (
     <Grid className={styles.root} container direction="column">
@@ -121,14 +124,14 @@ const ChatBox: React.FC<ChatBoxProps> = ({
               onError={handleCallError}
             />
             <VoiceRecorder channelId={channelId} />
-            {['Fire', 'Police'].includes(currentUserRole) && (
+            {["Fire", "Police"].includes(currentUserRole) && (
               <MessageAlertOptions
                 channelId={channelId}
                 currentUserId={currentUserId}
                 currentUserRole={currentUserRole}
               />
             )}
-            {currentUserRole === 'Nurse' && isHospitalGroup && (
+            {currentUserRole === "Nurse" && isHospitalGroup && (
               <MessageNurseAlertOptions
                 channelId={channelId}
                 currentUserId={currentUserId}
@@ -158,7 +161,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
         severity="error"
       />
     </Grid>
-  )
-}
+  );
+};
 
-export default ChatBox
+export default ChatBox;

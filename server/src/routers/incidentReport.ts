@@ -1,7 +1,7 @@
-import { Router } from 'express'
-import IncidentReport from '../models/IncidentReport'
+import { Router } from "express";
+import IncidentReport from "../models/IncidentReport";
 
-const incidentReportRouter = Router()
+const incidentReportRouter = Router();
 
 /**
  * @swagger
@@ -40,33 +40,33 @@ const incidentReportRouter = Router()
  *       400:
  *         description: Missing required fields
  */
-incidentReportRouter.post('/', async (req, res) => {
-    try {
-        const {
-            incidentId,
-            effectiveness,
-            resourceAllocation,
-            team,
-            additionalInfo,
-        } = req.body
+incidentReportRouter.post("/", async (req, res) => {
+  try {
+    const {
+      incidentId,
+      effectiveness,
+      resourceAllocation,
+      team,
+      additionalInfo,
+    } = req.body;
 
-        if (!incidentId) {
-            res.status(400).json({ message: 'incidentId is required' })
-            return
-        }
-
-        const result = await IncidentReport.findOneAndUpdate(
-            { incidentId },
-            { effectiveness, resourceAllocation, team, additionalInfo },
-            { upsert: true, new: true },
-        )
-
-        return res.status(201).json(result)
-    } catch (err) {
-        console.error(err)
-        return res.status(500).json({ message: 'Failed to save report' })
+    if (!incidentId) {
+      res.status(400).json({ message: "incidentId is required" });
+      return;
     }
-})
+
+    const result = await IncidentReport.findOneAndUpdate(
+      { incidentId },
+      { effectiveness, resourceAllocation, team, additionalInfo },
+      { upsert: true, new: true },
+    );
+
+    return res.status(201).json(result);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Failed to save report" });
+  }
+});
 
 /**
  * @swagger
@@ -86,21 +86,21 @@ incidentReportRouter.post('/', async (req, res) => {
  *       404:
  *         description: Report not found
  */
-incidentReportRouter.get('/:incidentId', async (req, res) => {
-    try {
-        const report = await IncidentReport.findOne({
-            incidentId: req.params.incidentId,
-        })
+incidentReportRouter.get("/:incidentId", async (req, res) => {
+  try {
+    const report = await IncidentReport.findOne({
+      incidentId: req.params.incidentId,
+    });
 
-        if (!report) {
-            return res.status(404).json({ message: 'Report not found' })
-        }
-
-        return res.status(200).json(report)
-    } catch (err) {
-        console.error(err)
-        return res.status(500).json({ message: 'Failed to fetch report' })
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
     }
-})
 
-export default incidentReportRouter
+    return res.status(200).json(report);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Failed to fetch report" });
+  }
+});
+
+export default incidentReportRouter;

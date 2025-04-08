@@ -1,10 +1,10 @@
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'
-import { Box, Typography } from '@mui/material'
-import React from 'react'
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import { Box, Typography } from "@mui/material";
+import React from "react";
 
 interface FilePreviewProps {
-  filename: string
-  size: number
+  filename: string;
+  size: number;
 }
 
 const FilePreview: React.FC<FilePreviewProps> = ({ filename, size }) => {
@@ -13,8 +13,8 @@ const FilePreview: React.FC<FilePreviewProps> = ({ filename, size }) => {
       ? `${size} B`
       : size < 1024 * 1024
         ? `${(size / 1024).toFixed(1)} KB`
-        : `${(size / 1024 / 1024).toFixed(1)} MB`
-  }
+        : `${(size / 1024 / 1024).toFixed(1)} MB`;
+  };
   return (
     <Box
       display="flex"
@@ -25,7 +25,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ filename, size }) => {
       mt={2}
       mb={2}
     >
-      <InsertDriveFileIcon sx={{ fontSize: 40, color: '#FFA726', mr: 2 }} />
+      <InsertDriveFileIcon sx={{ fontSize: 40, color: "#FFA726", mr: 2 }} />
       <Box>
         <Typography variant="body1">{filename}</Typography>
         <Typography variant="body2" color="gray">
@@ -33,7 +33,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ filename, size }) => {
         </Typography>
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default FilePreview
+export default FilePreview;

@@ -1,14 +1,14 @@
-import { Phone } from '@mui/icons-material'
-import { IconButton, Menu, MenuItem } from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { addMessage } from '../redux/messageSlice'
-import request from '../utils/request'
+import { Phone } from "@mui/icons-material";
+import { IconButton, Menu, MenuItem } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { addMessage } from "../redux/messageSlice";
+import request from "../utils/request";
 
 interface MessageCallOptionsProps {
-  channelId: string
-  currentUserId: string
-  onError: (message: string) => void
+  channelId: string;
+  currentUserId: string;
+  onError: (message: string) => void;
 }
 
 const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
@@ -16,64 +16,64 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
   currentUserId,
   onError,
 }) => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false)
-  const menuOpen = Boolean(anchorEl)
-  const dispatch = useDispatch()
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isPrivateChannel, setPrivateChannel] = useState<boolean>(false);
+  const menuOpen = Boolean(anchorEl);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchChannelDetails = async () => {
       try {
-        const currentChannel = await request(`/api/channels/${channelId}`) // Find the current channel
+        const currentChannel = await request(`/api/channels/${channelId}`); // Find the current channel
         if (currentChannel) {
-          setPrivateChannel(currentChannel.name === "PrivateContact") // Check if only two users exist in the channel
+          setPrivateChannel(currentChannel.name === "PrivateContact"); // Check if only two users exist in the channel
         }
       } catch (error) {
-        console.error('Failed to fetch channel details:', error)
+        console.error("Failed to fetch channel details:", error);
       }
-    }
+    };
 
-    fetchChannelDetails()
-  }, [channelId])
+    fetchChannelDetails();
+  }, [channelId]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
   // Option for making a phone call
   const handleMakeCall = async () => {
     // Waiting for implementing adding phone number in profile page
     try {
-      console.log('Make phone call...')
+      console.log("Make phone call...");
       const response = await request(`/api/channels/${channelId}/phone-call`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-application-uid': currentUserId,
+          "Content-Type": "application/json",
+          "x-application-uid": currentUserId,
         },
         body: JSON.stringify({}),
-      })
-      const phoneNumber = response.phoneNumber
+      });
+      const phoneNumber = response.phoneNumber;
       if (phoneNumber) {
-        window.location.href = `tel:${phoneNumber}`
+        window.location.href = `tel:${phoneNumber}`;
       } else {
         onError(
           "The user you are calling hasn't set up their profile with a phone number.",
-        )
+        );
       }
-      dispatch(addMessage(response.message))
+      dispatch(addMessage(response.message));
     } catch (error) {
       onError(
         "The user you are calling hasn't set up their profile. Phone calls are not available.",
-      )
-      console.error('Failed to make phone call:', error)
+      );
+      console.error("Failed to make phone call:", error);
     }
-    handleMenuClose()
-  }
+    handleMenuClose();
+  };
 
   // Option for starting a video conference
   const handleStartVideoConference = async () => {
@@ -82,21 +82,21 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
       const message = await request(
         `/api/channels/${channelId}/video-conference`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'x-application-uid': currentUserId,
+            "Content-Type": "application/json",
+            "x-application-uid": currentUserId,
           },
           body: JSON.stringify({}),
         },
-      )
+      );
       // Dispatch the new message to the Redux store
-      dispatch(addMessage(message))
+      dispatch(addMessage(message));
     } catch (error) {
-      console.error('Failed to start video conference:', error)
+      console.error("Failed to start video conference:", error);
     }
-    handleMenuClose()
-  }
+    handleMenuClose();
+  };
 
   return (
     <>
@@ -112,7 +112,7 @@ const MessageCallOptions: React.FC<MessageCallOptionsProps> = ({
         </MenuItem>
       </Menu>
     </>
-  )
-}
+  );
+};
 
-export default MessageCallOptions
+export default MessageCallOptions;

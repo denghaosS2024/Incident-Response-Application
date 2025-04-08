@@ -1,5 +1,5 @@
-import { Skeleton } from '@mui/material'
-import { Fragment, FunctionComponent } from 'react'
+import { Skeleton } from "@mui/material";
+import { Fragment, FunctionComponent } from "react";
 
 // interface ILoadingProps {}
 
@@ -9,6 +9,6 @@ const Loading: FunctionComponent = () => (
     <Skeleton animation={false} />
     <Skeleton animation="wave" />
   </Fragment>
-)
+);
 
-export default Loading
+export default Loading;

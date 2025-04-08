@@ -1,5 +1,5 @@
-import mapboxgl from 'mapbox-gl'
-import React, { useEffect } from 'react'
+import mapboxgl from "mapbox-gl";
+import React, { useEffect } from "react";
 
 /**
  * MapboxPopup component
@@ -14,26 +14,26 @@ export default function MapboxPopup({
   marker,
   events,
 }: {
-  child: React.ReactNode
-  marker: mapboxgl.Marker
-  events?: Record<string, () => void>
+  child: React.ReactNode;
+  marker: mapboxgl.Marker;
+  events?: Record<string, () => void>;
 }) {
-  const ref = React.useRef<HTMLDivElement>(null)
+  const ref = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (ref.current) {
       const popup = new mapboxgl.Popup({
         closeButton: false,
         closeOnClick: false,
-      }).setDOMContent(ref.current)
-      marker.setPopup(popup)
+      }).setDOMContent(ref.current);
+      marker.setPopup(popup);
 
       if (events) {
         Object.entries(events).forEach(([event, handler]) => {
-          popup.on(event, handler)
-        })
+          popup.on(event, handler);
+        });
       }
     }
-  }, [])
-  return <div ref={ref}>{child}</div>
+  }, []);
+  return <div ref={ref}>{child}</div>;
 }

@@ -1,10 +1,10 @@
-import { Router } from 'express'
-import { ObjectId } from 'mongoose'
-import HospitalController from '../controllers/HospitalController'
-import PatientController from '../controllers/PatientController'
-import type { IHospital } from '../models/Hospital'
-import HttpError from '../utils/HttpError'
-import UserConnections from '../utils/UserConnections'
+import { Router } from "express";
+import { ObjectId } from "mongoose";
+import HospitalController from "../controllers/HospitalController";
+import PatientController from "../controllers/PatientController";
+import type { IHospital } from "../models/Hospital";
+import HttpError from "../utils/HttpError";
+import UserConnections from "../utils/UserConnections";
 
 export default Router()
   /**
@@ -35,20 +35,20 @@ export default Router()
    *       500:
    *         description: Server error
    */
-  .post('/register', async (request, response) => {
+  .post("/register", async (request, response) => {
     try {
-      const hospitalData = request.body as IHospital
+      const hospitalData = request.body as IHospital;
       if (!hospitalData.hospitalName || !hospitalData.hospitalAddress) {
         return response.status(400).send({
-          message: 'hospitalName and hospitalAddress are mandatory fields.',
-        })
+          message: "hospitalName and hospitalAddress are mandatory fields.",
+        });
       }
-      const result = await HospitalController.create(hospitalData)
-      UserConnections.broadcast('registerHospital', result)
-      return response.status(201).send(result)
+      const result = await HospitalController.create(hospitalData);
+      UserConnections.broadcast("registerHospital", result);
+      return response.status(201).send(result);
     } catch (e) {
-      const error = e as Error
-      return response.status(500).send({ message: error.message })
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
     }
   })
 
@@ -73,23 +73,23 @@ export default Router()
    *       500:
    *         description: Server error
    */
-  .get('/', async (request, response) => {
+  .get("/", async (request, response) => {
     try {
-      const { hospitalId } = request.query
+      const { hospitalId } = request.query;
       if (hospitalId) {
         const result = await HospitalController.getHospitalById(
           hospitalId as string,
-        )
+        );
         if (!result) {
-          return response.status(404).json({ message: 'No Hospital found.' })
+          return response.status(404).json({ message: "No Hospital found." });
         }
-        return response.status(200).json(result)
+        return response.status(200).json(result);
       }
-      const allHospitals = await HospitalController.getAllHospitals()
-      return response.status(200).json(allHospitals)
+      const allHospitals = await HospitalController.getAllHospitals();
+      return response.status(200).json(allHospitals);
     } catch (e) {
-      const error = e as Error
-      return response.status(500).json({ message: error.message })
+      const error = e as Error;
+      return response.status(500).json({ message: error.message });
     }
   })
 
@@ -120,20 +120,20 @@ export default Router()
    *       500:
    *         description: Server error
    */
-  .put('/', async (request, response) => {
+  .put("/", async (request, response) => {
     try {
-      const hospitalData = request.body as Partial<IHospital>
+      const hospitalData = request.body as Partial<IHospital>;
 
-      const result = await HospitalController.updateHospital(hospitalData)
+      const result = await HospitalController.updateHospital(hospitalData);
 
       if (!result) {
-        return response.status(404).send({ message: 'No Hospital found.' })
+        return response.status(404).send({ message: "No Hospital found." });
       }
 
-      return response.status(200).send(result)
+      return response.status(200).send(result);
     } catch (e) {
-      const error = e as Error
-      return response.status(500).send({ message: error.message })
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
     }
   })
 
@@ -171,45 +171,45 @@ export default Router()
    *       500:
    *         description: Server error
    */
-  .patch('/patients/batch', async (request, response) => {
+  .patch("/patients/batch", async (request, response) => {
     try {
       const updates = request.body as {
-        hospitalId: string
-        patients: string[]
-      }[]
+        hospitalId: string;
+        patients: string[];
+      }[];
 
       // Step 1: Validate input data
-      validateBatchUpdates(updates)
+      validateBatchUpdates(updates);
 
       // Step 2: Fetch current hospital data
-      const currentHospitalData = await fetchCurrentHospitalData(updates)
-      console.log('Current hospital data:', currentHospitalData)
+      const currentHospitalData = await fetchCurrentHospitalData(updates);
+      console.log("Current hospital data:", currentHospitalData);
 
       // Step 3: Validate ER capacity
-      validateERCapacity(updates, currentHospitalData)
+      validateERCapacity(updates, currentHospitalData);
 
       // Step 4: Update hospitals and patients
-      const results = await updateHospitalsAndPatients(updates)
+      const results = await updateHospitalsAndPatients(updates);
 
       // Step 5: Broadcast updates
-      broadcastHospitalUpdates(updates, currentHospitalData)
+      broadcastHospitalUpdates(updates, currentHospitalData);
 
       // Step 6: Return success response
-      return response.status(200).send(results)
+      return response.status(200).send(results);
     } catch (e) {
-      const error = e as HttpError
+      const error = e as HttpError;
       console.error(
-        'Error updating multiple hospitals:',
+        "Error updating multiple hospitals:",
         error.stack || error.message,
-      )
+      );
 
       if (error instanceof HttpError) {
         return response
           .status(error.statusCode)
-          .send({ message: error.message })
+          .send({ message: error.message });
       }
 
-      return response.status(500).send({ message: 'Internal Server Error' })
+      return response.status(500).send({ message: "Internal Server Error" });
     }
   })
 
@@ -246,129 +246,129 @@ export default Router()
    *       500:
    *         description: Server error
    */
-  .delete('/', async (request, response) => {
+  .delete("/", async (request, response) => {
     try {
-      const { hospitalId } = request.query
+      const { hospitalId } = request.query;
       if (!hospitalId) {
         return response
           .status(400)
-          .json({ message: 'hospitalId query parameter is required.' })
+          .json({ message: "hospitalId query parameter is required." });
       }
       const deletedHospital = await HospitalController.deleteHospital(
         hospitalId as string,
-      )
+      );
       if (!deletedHospital) {
-        return response.status(404).json({ message: 'No Hospital found.' })
+        return response.status(404).json({ message: "No Hospital found." });
       }
 
-      UserConnections.broadcast('deleteHospital', hospitalId)
+      UserConnections.broadcast("deleteHospital", hospitalId);
       return response.status(200).json({
-        message: 'Hospital deleted successfully',
+        message: "Hospital deleted successfully",
         hospital: deletedHospital,
-      })
+      });
     } catch (e) {
-      const error = e as Error
-      return response.status(500).json({ message: error.message })
+      const error = e as Error;
+      return response.status(500).json({ message: error.message });
     }
-  })
+  });
 
 // supporting function
 interface UpdatePayload {
-  hospitalId: string
-  patients: string[]
+  hospitalId: string;
+  patients: string[];
 }
 
 const validateBatchUpdates = (updates: UpdatePayload[]): void => {
   if (!Array.isArray(updates)) {
-    console.error('Invalid request data:', updates)
-    throw new HttpError('Invalid request data', 400)
+    console.error("Invalid request data:", updates);
+    throw new HttpError("Invalid request data", 400);
   }
 
   for (const update of updates) {
     if (!update.hospitalId) {
-      console.error('Invalid hospitalId in update:', update)
-      throw new HttpError('Invalid hospitalId in update data', 400)
+      console.error("Invalid hospitalId in update:", update);
+      throw new HttpError("Invalid hospitalId in update data", 400);
     }
   }
-}
+};
 
 const fetchCurrentHospitalData = async (updates: { hospitalId: string }[]) => {
   return Promise.all(
     updates.map(async (update) => {
       const hospital = await HospitalController.getHospitalById(
         update.hospitalId,
-      )
+      );
       if (!hospital) {
-        console.error(`Hospital with ID ${update.hospitalId} does not exist`)
+        console.error(`Hospital with ID ${update.hospitalId} does not exist`);
         throw new HttpError(
           `Hospital with ID ${update.hospitalId} does not exist`,
           404,
-        )
+        );
       }
       return {
         hospitalId: update.hospitalId,
         currentPatients: hospital.patients.map((patient) => patient.toString()),
         totalNumberERBeds: hospital.totalNumberERBeds,
-      }
+      };
     }),
-  )
-}
+  );
+};
 
 const validateERCapacity = (
   updates: { hospitalId: string; patients: string[] }[],
   currentHospitalData: {
-    hospitalId: string
-    currentPatients: string[]
-    totalNumberERBeds: number
+    hospitalId: string;
+    currentPatients: string[];
+    totalNumberERBeds: number;
   }[],
 ): void => {
   updates.forEach((update) => {
     const hospitalData = currentHospitalData.find(
       (data) => data.hospitalId === update.hospitalId,
-    )
+    );
 
     if (!hospitalData) {
       throw new HttpError(
         `Hospital with ID ${update.hospitalId} not found`,
         404,
-      )
+      );
     }
 
-    const totalPatients = update.patients.length
+    const totalPatients = update.patients.length;
     if (totalPatients > hospitalData.totalNumberERBeds) {
       throw new HttpError(
         `Hospital ${update.hospitalId} exceeds ER capacity. Total ER beds: ${hospitalData.totalNumberERBeds}, Patients: ${totalPatients}`,
         400,
-      )
+      );
     }
-  })
-}
+  });
+};
 
 const updateHospitalsAndPatients = async (
   updates: { hospitalId: string; patients: string[] }[],
 ) => {
-  const results = await HospitalController.updateMultipleHospitals(updates)
+  const results = await HospitalController.updateMultipleHospitals(updates);
 
   const patientUpdatePromises = updates.flatMap((update) =>
     update.patients.map(async (patientId) => {
       const updatedPatient = await PatientController.setHospital(
         patientId,
         update.hospitalId,
-      )
+      );
       if (!updatedPatient) {
         throw new HttpError(
           `Failed to update patient with ID ${patientId}`,
           404,
-        )
+        );
       }
-      return updatedPatient
+      return updatedPatient;
     }),
-  )
+  );
 
-  await Promise.all(patientUpdatePromises)
+  await Promise.all(patientUpdatePromises);
 
-  return results
-}
+  return results;
+};
 
 const broadcastHospitalUpdates = (
   updates: { hospitalId: string; patients: string[] }[],
@@ -378,17 +378,17 @@ const broadcastHospitalUpdates = (
     arr1: (string | ObjectId)[],
     arr2: (string | ObjectId)[],
   ): boolean => {
-    const set1 = new Set(arr1.map((item) => item.toString()))
-    const set2 = new Set(arr2.map((item) => item.toString()))
+    const set1 = new Set(arr1.map((item) => item.toString()));
+    const set2 = new Set(arr2.map((item) => item.toString()));
     return (
       set1.size === set2.size && [...set1].every((value) => set2.has(value))
-    )
-  }
+    );
+  };
 
   updates.forEach((update) => {
     const currentData = currentHospitalData.find(
       (data) => data.hospitalId === update.hospitalId,
-    )
+    );
 
     if (
       currentData &&
@@ -397,19 +397,19 @@ const broadcastHospitalUpdates = (
       try {
         UserConnections.broadcastToHospitalRoom(
           update.hospitalId,
-          'hospital-patients-modified',
+          "hospital-patients-modified",
           {
             message: `Hospital ${update.hospitalId} has been updated.`,
             hospitalId: update.hospitalId,
             patients: update.patients,
           },
-        )
+        );
       } catch (error) {
         console.error(
           `Failed to broadcast update for hospital ID: ${update.hospitalId}`,
           error,
-        )
+        );
       }
     }
-  })
-}
+  });
+};

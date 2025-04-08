@@ -1,14 +1,16 @@
-import { Types } from 'mongoose';
-import request from 'supertest';
-import app from '../../src/app';
-import AlertService from '../../src/services/AlertService';
+import { Types } from "mongoose";
+import request from "supertest";
+import app from "../../src/app";
+import AlertService from "../../src/services/AlertService";
 
-describe('Alert Queue Router', () => {
+describe("Alert Queue Router", () => {
   const mockChannelId = new Types.ObjectId().toString();
-  
+
   beforeEach(() => {
     // Mock AlertService.queueOrSendAlert
-    jest.spyOn(AlertService, 'queueOrSendAlert').mockResolvedValue('Alert queued successfully');
+    jest
+      .spyOn(AlertService, "queueOrSendAlert")
+      .mockResolvedValue("Alert queued successfully");
     jest.useFakeTimers();
   });
 
@@ -17,17 +19,17 @@ describe('Alert Queue Router', () => {
     jest.useRealTimers();
   });
 
-  describe('POST /:id', () => {
-    it('should queue or send an alert', async () => {
+  describe("POST /:id", () => {
+    it("should queue or send an alert", async () => {
       const alertData = {
         id: new Types.ObjectId().toString(),
         senderId: new Types.ObjectId().toString(),
-        patientId: 'patient123',
-        patientName: 'John Doe',
-        priority: 'E',
+        patientId: "patient123",
+        patientName: "John Doe",
+        priority: "E",
         numNurses: 2,
         createdAt: new Date(),
-        numNurseAccepted: 0
+        numNurseAccepted: 0,
       };
 
       const response = await request(app)
@@ -36,9 +38,12 @@ describe('Alert Queue Router', () => {
         .expect(200);
 
       // Verify response structure
-      expect(response.body).toHaveProperty('message', 'Alert queued successfully');
-      expect(response.body).toHaveProperty('alert');
-      
+      expect(response.body).toHaveProperty(
+        "message",
+        "Alert queued successfully",
+      );
+      expect(response.body).toHaveProperty("alert");
+
       // Verify alert properties
       const responseAlert = response.body.alert;
       expect(responseAlert).toMatchObject({
@@ -49,7 +54,7 @@ describe('Alert Queue Router', () => {
         priority: alertData.priority,
         groupId: mockChannelId,
         senderId: alertData.senderId,
-        numNurseAccepted: 0
+        numNurseAccepted: 0,
       });
 
       // Verify AlertService was called correctly
@@ -62,9 +67,9 @@ describe('Alert Queue Router', () => {
           priority: alertData.priority,
           groupId: mockChannelId,
           senderId: alertData.senderId,
-          numNurseAccepted: 0
-        })
+          numNurseAccepted: 0,
+        }),
       );
-    });   
+    });
   });
 });

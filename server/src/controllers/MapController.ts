@@ -1,4 +1,4 @@
-import MapMarker from '../models/MapMarker';
+import MapMarker from "../models/MapMarker";
 
 class MapController {
   /**
@@ -14,17 +14,17 @@ class MapController {
     type: string,
     latitude: number,
     longitude: number,
-    description?: string
+    description?: string,
   ) {
     try {
       const marker = new MapMarker({ type, latitude, longitude, description });
       await marker.save();
       return marker;
     } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`Failed to add marker: ${error.message}`);
-        }
-        throw new Error('Failed to add marker due to an unknown error');
+      if (error instanceof Error) {
+        throw new Error(`Failed to add marker: ${error.message}`);
+      }
+      throw new Error("Failed to add marker due to an unknown error");
     }
   }
 
@@ -43,11 +43,11 @@ class MapController {
       await marker.deleteOne();
       return { message: `Marker ${markerId} removed successfully` };
     } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`Failed to remove marker: ${error.message}`);
-        }
-        throw new Error('Failed to remove marker due to an unknown error');
+      if (error instanceof Error) {
+        throw new Error(`Failed to remove marker: ${error.message}`);
       }
+      throw new Error("Failed to remove marker due to an unknown error");
+    }
   }
 
   /**
@@ -55,34 +55,38 @@ class MapController {
    * @returns An array of all markers including id, latitude, longitude, longitude, description, and type
    * @throws Error if listing fails
    */
-async listMarkers() {
+  async listMarkers() {
     try {
       const markers = await MapMarker.find();
       return markers;
     } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`Failed to list markers: ${error.message}`);
-        }
-        throw new Error('Failed to list markers due to an unknown error');
+      if (error instanceof Error) {
+        throw new Error(`Failed to list markers: ${error.message}`);
       }
+      throw new Error("Failed to list markers due to an unknown error");
+    }
   }
 
-async updateDescription(markerId: string, description: string) {
+  async updateDescription(markerId: string, description: string) {
     try {
-        const marker = await MapMarker.findById(markerId);
-        if (!marker) {
-            throw new Error(`Marker with ID ${markerId} not found`);
-        }
-        marker.description = description;
-        await marker.save();
-        return marker;
-    } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`Failed to update marker description: ${error.message}`);
-        }
-        throw new Error('Failed to update marker description due to an unknown error');
+      const marker = await MapMarker.findById(markerId);
+      if (!marker) {
+        throw new Error(`Marker with ID ${markerId} not found`);
       }
-}
+      marker.description = description;
+      await marker.save();
+      return marker;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(
+          `Failed to update marker description: ${error.message}`,
+        );
+      }
+      throw new Error(
+        "Failed to update marker description due to an unknown error",
+      );
+    }
+  }
 }
 
 export default new MapController();

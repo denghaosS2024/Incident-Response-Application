@@ -1,21 +1,21 @@
-import React from 'react'
+import React from "react";
 import {
   Draggable as Draggable1,
   DraggableProps,
   DraggableProvided,
   DraggableStateSnapshot,
-} from 'react-beautiful-dnd'
-import styled from 'styled-components'
-import IUser from '../models/User'
-import { getRoleIcon } from './common/RoleIcon'
+} from "react-beautiful-dnd";
+import styled from "styled-components";
+import IUser from "../models/User";
+import { getRoleIcon } from "./common/RoleIcon";
 
-export const Draggable = Draggable1 as React.ComponentClass<DraggableProps>
+export const Draggable = Draggable1 as React.ComponentClass<DraggableProps>;
 
 // Container styled component with TypeScript types for props
 interface ContainerProps {
-  $isDragging: boolean
-  $isDraggable: boolean
-  $isBacklog: boolean
+  $isDragging: boolean;
+  $isDraggable: boolean;
+  $isBacklog: boolean;
 }
 
 const Container = styled.div<ContainerProps>`
@@ -29,33 +29,33 @@ const Container = styled.div<ContainerProps>`
   display: flex;
   justify-content: space-between;
   flex-direction: column;
-`
+`;
 
-const TextContent = styled.div``
+const TextContent = styled.div``;
 
 const Icons = styled.div`
   display: flex;
   justify-content: end;
   padding: 2px;
-`
+`;
 
 function bgcolorChange(props: ContainerProps): string {
-  if (props.$isDragging) return '#0288d1'
+  if (props.$isDragging) return "#0288d1";
 
   if (props.$isDraggable) {
-    return props.$isBacklog ? '#F2D7D5' : '#DCDCDC'
+    return props.$isBacklog ? "#F2D7D5" : "#DCDCDC";
   }
 
-  return props.$isBacklog ? '#F2D7D5' : '#EAF4FC'
+  return props.$isBacklog ? "#F2D7D5" : "#EAF4FC";
 }
 
-const placeholder = { undefined }
+const placeholder = { undefined };
 // Define types for the props of the Card component
 
 interface CardProps {
-  task: IUser
-  index: number
-  canDrag?: boolean
+  task: IUser;
+  index: number;
+  canDrag?: boolean;
 }
 
 const Card: React.FC<CardProps> = ({ task, index, canDrag }) => {
@@ -76,7 +76,7 @@ const Card: React.FC<CardProps> = ({ task, index, canDrag }) => {
           $isBacklog={false}
         >
           <div
-            style={{ display: 'flex', justifyContent: 'center', padding: 10 }}
+            style={{ display: "flex", justifyContent: "center", padding: 10 }}
           >
             {getRoleIcon(task.role)}
             <TextContent>{task.username}</TextContent>
@@ -84,7 +84,7 @@ const Card: React.FC<CardProps> = ({ task, index, canDrag }) => {
         </Container>
       )}
     </Draggable>
-  )
-}
+  );
+};
 
-export default Card
+export default Card;

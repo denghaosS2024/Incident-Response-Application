@@ -1,51 +1,51 @@
-import { Box, Button, TextField } from '@mui/material'
-import React, { useState } from 'react'
-import { Link } from 'react-router'
+import { Box, Button, TextField } from "@mui/material";
+import React, { useState } from "react";
+import { Link } from "react-router";
 
 export interface IFormData {
-  username: string
-  password: string
+  username: string;
+  password: string;
 }
 
 export interface IProps {
   /**
    * Login function that will be called when the form is submitted
    */
-  login: (data: IFormData) => void
+  login: (data: IFormData) => void;
 }
 
 const LoginForm: React.FC<IProps> = (props: IProps) => {
-  const [username, setUsername] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [usernameError, setUsernameError] = useState<string>('')
-  const [passwordError, setPasswordError] = useState<string>('')
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [usernameError, setUsernameError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
 
   const onSubmit = () => {
-    clearError()
+    clearError();
 
-    let hasError = false
+    let hasError = false;
 
     if (!username) {
-      setUsernameError('Username can not be empty')
-      hasError = true
+      setUsernameError("Username can not be empty");
+      hasError = true;
     }
 
     if (!password) {
-      return setPasswordError('Password can not be empty')
+      return setPasswordError("Password can not be empty");
     }
 
     if (!hasError) {
       props.login({
         username,
         password,
-      })
+      });
     }
-  }
+  };
 
   const clearError = () => {
-    setUsernameError('')
-    setPasswordError('')
-  }
+    setUsernameError("");
+    setPasswordError("");
+  };
 
   return (
     <Box
@@ -83,8 +83,8 @@ const LoginForm: React.FC<IProps> = (props: IProps) => {
           color="primary"
           type="submit"
           onClick={(e) => {
-            e.preventDefault()
-            onSubmit()
+            e.preventDefault();
+            onSubmit();
           }}
           fullWidth
         >
@@ -97,7 +97,7 @@ const LoginForm: React.FC<IProps> = (props: IProps) => {
         </Button>
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default LoginForm
+export default LoginForm;

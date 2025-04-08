@@ -6,81 +6,81 @@ import {
   Switch,
   TextField,
   Typography,
-} from '@mui/material'
-import React, { FunctionComponent, useEffect, useState } from 'react'
-import ConfirmationDialog from '../components/common/ConfirmationDialog'
-import IChannel from '../models/Channel'
-import { isSystemGroup } from '../utils/SystemDefinedGroups'
-import Board from './Board'
+} from "@mui/material";
+import React, { FunctionComponent, useEffect, useState } from "react";
+import ConfirmationDialog from "../components/common/ConfirmationDialog";
+import IChannel from "../models/Channel";
+import { isSystemGroup } from "../utils/SystemDefinedGroups";
+import Board from "./Board";
 
 interface IFormData {
-  name: string
-  description: string
-  users: string[]
-  owner: string
-  closed: boolean
+  name: string;
+  description: string;
+  users: string[];
+  owner: string;
+  closed: boolean;
 }
 
 export interface IAddGroupFormProps {
-  createChannel: (data: IFormData) => void
-  deleteChannel: () => void
-  removeCurrentUserFromGroup: () => void
-  currentGroup: IChannel | null
+  createChannel: (data: IFormData) => void;
+  deleteChannel: () => void;
+  removeCurrentUserFromGroup: () => void;
+  currentGroup: IChannel | null;
 }
 
 const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
   channelProps: IAddGroupFormProps,
 ) => {
-  const owner = localStorage.getItem('uid') ?? ''
-  const currentUsername = localStorage.getItem('username')
+  const owner = localStorage.getItem("uid") ?? "";
+  const currentUsername = localStorage.getItem("username");
 
-  const [closed, setClosed] = useState<boolean>(false)
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
+  const [closed, setClosed] = useState<boolean>(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
 
-  const [nameError, setNameError] = useState<string>('')
-  const [allowEdit, setAllowEdit] = useState(true) // whether allow current user to edit selected channel (use this state to update UI)
-  const [allowDelete, setAllowDelete] = useState(true)
-  const [allowRemoveSelf, setAllowRemoveSelf] = useState(false) // whether allow current user to remove herself from channel (use this state to update UI)
+  const [nameError, setNameError] = useState<string>("");
+  const [allowEdit, setAllowEdit] = useState(true); // whether allow current user to edit selected channel (use this state to update UI)
+  const [allowDelete, setAllowDelete] = useState(true);
+  const [allowRemoveSelf, setAllowRemoveSelf] = useState(false); // whether allow current user to remove herself from channel (use this state to update UI)
 
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
-  const [users, setUsers] = useState<string[]>([owner])
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [users, setUsers] = useState<string[]>([owner]);
 
   useEffect(() => {
-    setUsers((prev) => (prev.includes(owner) ? prev : [owner, ...prev]))
-  }, [owner]) // Runs only when the owner changes
+    setUsers((prev) => (prev.includes(owner) ? prev : [owner, ...prev]));
+  }, [owner]); // Runs only when the owner changes
 
   const reloadForm = (group: IChannel | null) => {
     // set state in itself
-    setNameError('')
+    setNameError("");
 
-    setName(channelProps.currentGroup?.name ?? '')
-    setDescription(channelProps.currentGroup?.description ?? '')
-    setClosed(channelProps.currentGroup?.closed || false)
+    setName(channelProps.currentGroup?.name ?? "");
+    setDescription(channelProps.currentGroup?.description ?? "");
+    setClosed(channelProps.currentGroup?.closed || false);
 
-    const isSysGroup = isSystemGroup(group)
-    const isOwnerOfGroup = group != null && group.owner._id === owner
+    const isSysGroup = isSystemGroup(group);
+    const isOwnerOfGroup = group != null && group.owner._id === owner;
     const isParticipantOfGroup =
-      group != null && group.users.some((user) => user._id === owner)
-    setAllowEdit(group == null || isOwnerOfGroup)
+      group != null && group.users.some((user) => user._id === owner);
+    setAllowEdit(group == null || isOwnerOfGroup);
     setAllowRemoveSelf(
       group != null && isParticipantOfGroup && !isOwnerOfGroup && !isSysGroup,
-    )
-    setAllowDelete(isOwnerOfGroup)
-  }
+    );
+    setAllowDelete(isOwnerOfGroup);
+  };
 
   useEffect(() => {
-    reloadForm(channelProps.currentGroup)
-  }, [channelProps.currentGroup])
+    reloadForm(channelProps.currentGroup);
+  }, [channelProps.currentGroup]);
 
   const handleSubmit = () => {
-    let hasError = false
+    let hasError = false;
 
-    setNameError('')
+    setNameError("");
 
     if (!name.trim()) {
-      setNameError('Group name is required')
-      hasError = true
+      setNameError("Group name is required");
+      hasError = true;
     }
 
     if (!hasError) {
@@ -90,39 +90,39 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
         users: users.includes(owner) ? users : [...users, owner], // Ensure owner is in the list
         owner,
         closed,
-      })
+      });
     }
-  }
+  };
 
   const handleToggleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setClosed(event.target.checked)
-  }
+    setClosed(event.target.checked);
+  };
 
   const handleDeleteClick = () => {
-    setNameError('')
+    setNameError("");
     if (!name.trim()) {
-      setNameError('Group name is required')
+      setNameError("Group name is required");
     } else {
-      setOpenConfirmDialog(true)
+      setOpenConfirmDialog(true);
     }
-  }
+  };
 
   const handleDeleteChannel = () => {
-    setOpenConfirmDialog(false)
-    channelProps.deleteChannel()
-  }
+    setOpenConfirmDialog(false);
+    channelProps.deleteChannel();
+  };
 
   const handleRemoveCurrentUserFromGroup = () => {
-    channelProps.removeCurrentUserFromGroup()
-  }
+    channelProps.removeCurrentUserFromGroup();
+  };
 
   return (
     <Box
       sx={{
-        border: '1px solid #e0e0e0',
-        borderRadius: '4px',
-        width: '100%',
-        mx: 'auto',
+        border: "1px solid #e0e0e0",
+        borderRadius: "4px",
+        width: "100%",
+        mx: "auto",
       }}
     >
       <Box component="form" sx={{ mt: 2, mx: 2, mb: 2 }}>
@@ -182,8 +182,8 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               color="primary"
               type="submit"
               onClick={(e) => {
-                e.preventDefault()
-                handleRemoveCurrentUserFromGroup()
+                e.preventDefault();
+                handleRemoveCurrentUserFromGroup();
               }}
               sx={{ mt: 2, mx: 1 }}
             >
@@ -196,12 +196,12 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
               color="primary"
               type="submit"
               onClick={(e) => {
-                e.preventDefault()
-                handleSubmit()
+                e.preventDefault();
+                handleSubmit();
               }}
               sx={{ mt: 2, mx: 1 }}
             >
-              {channelProps.currentGroup == null ? 'Create' : 'Save'}
+              {channelProps.currentGroup == null ? "Create" : "Save"}
             </Button>
           )}
           <Button
@@ -233,7 +233,7 @@ const AddGroupForm: FunctionComponent<IAddGroupFormProps> = (
         </Box>
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default AddGroupForm
+export default AddGroupForm;

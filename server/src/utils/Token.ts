@@ -13,7 +13,7 @@
  *
  * TODO: Replace with a secure token generation method
  */
-export const generate = (uid: string) => uid
+export const generate = (uid: string) => uid;
 
 /**
  * Check if the token is valid
@@ -23,4 +23,4 @@ export const generate = (uid: string) => uid
  *
  * TODO: Replace with a secure token validation method
  */
-export const validate = (uid: string, token: string) => uid && uid === token
+export const validate = (uid: string, token: string) => uid && uid === token;

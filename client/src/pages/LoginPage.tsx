@@ -1,63 +1,63 @@
-import { Box, Typography } from '@mui/material'
-import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router'
-import AlertSnackbar from '../components/common/AlertSnackbar'
-import LoginForm, { IProps as ILoginFormProps } from '../components/LoginForm'
-import { AppDispatch } from '../redux/store'
-import request, { IRequestError } from '../utils/request'
+import { Box, Typography } from "@mui/material";
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router";
+import AlertSnackbar from "../components/common/AlertSnackbar";
+import LoginForm, { IProps as ILoginFormProps } from "../components/LoginForm";
+import { AppDispatch } from "../redux/store";
+import request, { IRequestError } from "../utils/request";
 
 // LoginPage component: Handles user authentication
 const LoginPage: React.FC = () => {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const history = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
-  dispatch({ type: 'socket/close' })
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const history = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  dispatch({ type: "socket/close" });
 
   // Function to handle login process
   // @param username - The username entered by the user
   // @param password - The password entered by the user
-  const login: ILoginFormProps['login'] = async ({ username, password }) => {
+  const login: ILoginFormProps["login"] = async ({ username, password }) => {
     try {
-      const { token, _id, role } = (await request('/api/login', {
-        method: 'POST',
+      const { token, _id, role } = (await request("/api/login", {
+        method: "POST",
         body: JSON.stringify({
           username,
           password,
         }),
       })) as {
-        token: string
-        _id: string
-        role: string
-      }
+        token: string;
+        _id: string;
+        role: string;
+      };
 
       // Store user data in localStorage
-      localStorage.setItem('token', token)
-      localStorage.setItem('uid', _id)
-      localStorage.setItem('username', username)
-      localStorage.setItem('role', role)
+      localStorage.setItem("token", token);
+      localStorage.setItem("uid", _id);
+      localStorage.setItem("username", username);
+      localStorage.setItem("role", role);
 
       // Wait for half a second before proceeding (localStorage is not always immediately available)
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      dispatch({ type: 'socket/connect' })
+      dispatch({ type: "socket/connect" });
 
-      history('/')
+      history("/");
     } catch (e) {
-      const error = e as IRequestError
+      const error = e as IRequestError;
       if (error.status >= 400 && error.status < 500) {
-        setErrorMessage(`Error: ${error.message}`)
+        setErrorMessage(`Error: ${error.message}`);
       } else {
-        setErrorMessage('Server error occurred. Please try again later.')
+        setErrorMessage("Server error occurred. Please try again later.");
       }
-      setOpenSnackbar(true)
+      setOpenSnackbar(true);
     }
-  }
+  };
 
   const handleCloseSnackbar = () => {
-    setOpenSnackbar(false)
-  }
+    setOpenSnackbar(false);
+  };
 
   return (
     <Box
@@ -83,13 +83,13 @@ const LoginPage: React.FC = () => {
       </Box>
       <AlertSnackbar
         open={openSnackbar}
-        message={errorMessage ?? ''}
+        message={errorMessage ?? ""}
         onClose={handleCloseSnackbar}
         severity="error"
         vertical="bottom"
         horizontal="center"
       />
     </Box>
-  )
-}
-export default LoginPage
+  );
+};
+export default LoginPage;

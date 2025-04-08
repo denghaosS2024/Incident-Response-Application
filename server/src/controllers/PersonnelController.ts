@@ -1,9 +1,9 @@
-import Car, { ICar } from '../models/Car'
-import City from '../models/City'
-import Incident, { IIncident } from '../models/Incident'
-import Truck, { ITruck } from '../models/Truck'
-import User, { IUser } from '../models/User'
-import { ROLES } from '../utils/Roles'
+import Car, { ICar } from "../models/Car";
+import City from "../models/City";
+import Incident, { IIncident } from "../models/Incident";
+import Truck, { ITruck } from "../models/Truck";
+import User, { IUser } from "../models/User";
+import { ROLES } from "../utils/Roles";
 class PersonnelController {
   /**
    * Update the assigned Car for a specific personnel.
@@ -21,13 +21,13 @@ class PersonnelController {
     const updateData: Partial<IUser> = {
       assignedCar: vehicleName,
       assignedVehicleTimestamp: new Date(),
-    }
+    };
 
     if (assignedIncidentId !== undefined) {
-      updateData.assignedIncident = assignedIncidentId
+      updateData.assignedIncident = assignedIncidentId;
     }
 
-    return User.findOneAndUpdate({ username }, updateData, { new: true })
+    return User.findOneAndUpdate({ username }, updateData, { new: true });
   }
 
   /**
@@ -46,13 +46,13 @@ class PersonnelController {
     const updateData: Partial<IUser> = {
       assignedTruck: vehicleName,
       assignedVehicleTimestamp: new Date(),
-    }
+    };
 
     if (assignedIncidentId !== undefined) {
-      updateData.assignedIncident = assignedIncidentId
+      updateData.assignedIncident = assignedIncidentId;
     }
 
-    return User.findOneAndUpdate({ username }, updateData, { new: true })
+    return User.findOneAndUpdate({ username }, updateData, { new: true });
   }
 
   /**
@@ -65,17 +65,17 @@ class PersonnelController {
         assignedCity: null,
       })
         .sort({ username: 1 })
-        .exec()
+        .exec();
 
       return unassignedUsers.map(({ _id, username, assignedCity, role }) => ({
         _id,
         name: username,
         assignedCity,
         role,
-      }))
+      }));
     } catch (error) {
-      console.error('Error fetching unassigned users:', error)
-      throw error
+      console.error("Error fetching unassigned users:", error);
+      throw error;
     }
   }
 
@@ -90,34 +90,34 @@ class PersonnelController {
     cityName: string,
   ): Promise<IUser | null> {
     try {
-      const personnel = await User.findOne({ username })
+      const personnel = await User.findOne({ username });
       if (
         !personnel ||
         (personnel.role !== ROLES.POLICE && personnel.role !== ROLES.FIRE)
       ) {
-        throw new Error(`Personnel with username '${username}' does not exist`)
+        throw new Error(`Personnel with username '${username}' does not exist`);
       }
       // unassign personnel from city
       if (!cityName) {
         if (personnel.assignedCar) {
           const car = await Car.findOne({
             name: personnel.assignedCar,
-          })
+          });
           if (car && car.assignedIncident !== null) {
             throw new Error(
               `Cannot unassign personnel '${username}' because their assigned car is currently involved in an incident`,
-            )
+            );
           }
         }
 
         if (personnel.assignedTruck) {
           const truck = await Truck.findOne({
             name: personnel.assignedTruck,
-          })
+          });
           if (truck && truck.assignedIncident !== null) {
             throw new Error(
               `Cannot unassign personnel '${username}' because their assigned truck is currently involved in an incident`,
-            )
+            );
           }
         }
 
@@ -125,23 +125,23 @@ class PersonnelController {
           { username },
           { assignedCity: null },
           { new: true },
-        )
-        return updatedPersonnel
+        );
+        return updatedPersonnel;
       }
       // assign personnel to city
-      const cityExists = await City.findOne({ name: cityName })
+      const cityExists = await City.findOne({ name: cityName });
       if (!cityExists) {
-        throw new Error(`City '${cityName}' does not exist in the database`)
+        throw new Error(`City '${cityName}' does not exist in the database`);
       }
       const updatedPersonnel = await User.findOneAndUpdate(
         { username },
         { assignedCity: cityName },
         { new: true },
-      )
-      return updatedPersonnel
+      );
+      return updatedPersonnel;
     } catch (error) {
-      console.error('Error updating personnel city:', error)
-      throw error
+      console.error("Error updating personnel city:", error);
+      throw error;
     }
   }
 
@@ -165,30 +165,30 @@ class PersonnelController {
       ) {
         throw new Error(
           `Cannot select a vehicle from another incident while commanding an incident`,
-        )
+        );
       }
-      const personnel = await User.findOne({ username: personnelName })
+      const personnel = await User.findOne({ username: personnelName });
 
       if (!personnel) {
         throw new Error(
           `Personnel with username '${personnelName}' does not exist`,
-        )
+        );
       }
 
       if (personnel.assignedCar || personnel.assignedTruck) {
         throw new Error(
           `Personnel with username '${personnelName}' already has a vehicle assigned`,
-        )
+        );
       }
-      const assignedIncidentId = vehicle.assignedIncident
-      let updatedPersonnel: IUser | null
+      const assignedIncidentId = vehicle.assignedIncident;
+      let updatedPersonnel: IUser | null;
       const personnelIncident = await Incident.findOne({
-        'assignedVehicles.usernames': personnelName,
-      })
+        "assignedVehicles.usernames": personnelName,
+      });
       if (personnelIncident) {
         throw new Error(
           `Cannot select a vehicle while you are assigned to an incident`,
-        )
+        );
       }
       if (personnel.role === ROLES.POLICE) {
         if (assignedIncidentId) {
@@ -196,37 +196,37 @@ class PersonnelController {
             personnelName,
             vehicle.name,
             vehicle.assignedIncident,
-          )
-          return updatedPersonnel
+          );
+          return updatedPersonnel;
         }
 
         updatedPersonnel = await this.updateCarAssignment(
           personnelName,
           vehicle.name,
-        )
-        return updatedPersonnel
+        );
+        return updatedPersonnel;
       } else if (personnel.role === ROLES.FIRE) {
         if (assignedIncidentId) {
           updatedPersonnel = await this.updateTruckAssignment(
             personnelName,
             vehicle.name,
             vehicle.assignedIncident,
-          )
-          return updatedPersonnel
+          );
+          return updatedPersonnel;
         }
 
         updatedPersonnel = await this.updateTruckAssignment(
           personnelName,
           vehicle.name,
-        )
-        return updatedPersonnel
+        );
+        return updatedPersonnel;
       }
       throw new Error(
         `Personnel with username '${personnelName}' is not a police or firefighter`,
-      )
+      );
     } catch (error) {
-      console.error('Error selecting vehicle for personnel:', error)
-      throw error
+      console.error("Error selecting vehicle for personnel:", error);
+      throw error;
     }
   }
 
@@ -309,39 +309,39 @@ class PersonnelController {
     personnelName: string,
     vehicleName: string,
   ) {
-    const personnel = await User.findOne({ username: personnelName })
+    const personnel = await User.findOne({ username: personnelName });
     if (!personnel) {
       throw new Error(
         `Personnel with username '${personnelName}' does not exist`,
-      )
+      );
     }
     if (personnel.role === ROLES.POLICE) {
-      const car = await Car.findOne({ name: vehicleName })
+      const car = await Car.findOne({ name: vehicleName });
       if (!car) {
-        throw new Error(`Car with name '${vehicleName}' does not exist`)
+        throw new Error(`Car with name '${vehicleName}' does not exist`);
       }
       const updatedPersonnel = await User.findOneAndUpdate(
         { username: personnelName },
         { assignedCar: null, assignedVehicleTimestamp: null },
         { new: true },
-      )
-      return updatedPersonnel
+      );
+      return updatedPersonnel;
     } else if (personnel.role === ROLES.FIRE) {
-      const truck = await Truck.findOne({ name: vehicleName })
+      const truck = await Truck.findOne({ name: vehicleName });
       if (!truck) {
-        throw new Error(`Truck with name '${vehicleName}' does not exist`)
+        throw new Error(`Truck with name '${vehicleName}' does not exist`);
       }
       const updatedPersonnel = await User.findOneAndUpdate(
         { username: personnelName },
         { assignedTruck: null, assignedVehicleTimestamp: null },
         { new: true },
-      )
-      return updatedPersonnel
+      );
+      return updatedPersonnel;
     }
     throw new Error(
       `Personnel with username '${personnelName}' is not a police or firefighter`,
-    )
+    );
   }
 }
 
-export default new PersonnelController()
+export default new PersonnelController();

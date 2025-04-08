@@ -1,35 +1,35 @@
-import { Button, TextField } from '@mui/material'
-import cx from 'classnames'
-import React, { ChangeEvent, MouseEvent, useState } from 'react'
+import { Button, TextField } from "@mui/material";
+import cx from "classnames";
+import React, { ChangeEvent, MouseEvent, useState } from "react";
 
-import styles from '../styles/MessageInput.module.css'
+import styles from "../styles/MessageInput.module.css";
 
 interface IProps {
   /**
    * Additional class name to be applied to the component
    */
-  className?: string
+  className?: string;
   /**
    * Function that will be called when the form is submitted
    */
-  onSubmit: (text: string) => void
+  onSubmit: (text: string) => void;
 }
 
 const MessageInput: React.FC<IProps> = ({ className, onSubmit }) => {
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState("");
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setContent(e.target.value)
-  }
+    setContent(e.target.value);
+  };
 
   const handleSubmit = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (content) {
-      onSubmit(content)
-      setContent('')
+      onSubmit(content);
+      setContent("");
     }
-  }
+  };
 
   return (
     <form>
@@ -41,7 +41,7 @@ const MessageInput: React.FC<IProps> = ({ className, onSubmit }) => {
           onChange={onChange}
         />
         <Button
-          variant={!content ? 'text' : 'contained'}
+          variant={!content ? "text" : "contained"}
           color="primary"
           type="submit"
           onClick={handleSubmit}
@@ -50,7 +50,7 @@ const MessageInput: React.FC<IProps> = ({ className, onSubmit }) => {
         </Button>
       </div>
     </form>
-  )
-}
+  );
+};
 
-export default MessageInput
+export default MessageInput;

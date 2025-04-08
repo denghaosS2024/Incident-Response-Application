@@ -1,10 +1,10 @@
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IMapMarker extends Document {
-  type: string
-  latitude: number
-  longitude: number
-  description?: string
+  type: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
 }
 
 const MapMarkerSchema: Schema = new Schema(
@@ -17,7 +17,7 @@ const MapMarkerSchema: Schema = new Schema(
   {
     timestamps: true, // Adds createdAt and updatedAt fields automatically
   },
-)
+);
 
-const MapMarker = mongoose.model<IMapMarker>('MapMarker', MapMarkerSchema)
-export default MapMarker
+const MapMarker = mongoose.model<IMapMarker>("MapMarker", MapMarkerSchema);
+export default MapMarker;

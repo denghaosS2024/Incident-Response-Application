@@ -1,57 +1,57 @@
-import CancelIcon from '@mui/icons-material/Cancel'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import CloseIcon from '@mui/icons-material/Close'
-import InfoIcon from '@mui/icons-material/Info'
-import WarningIcon from '@mui/icons-material/Warning'
-import { SnackbarContent } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import Snackbar from '@mui/material/Snackbar'
-import { useDispatch, useSelector } from 'react-redux'
-import * as UUID from 'uuid'
-import { clearSnackbar, SnackbarType } from '../../redux/snackbarSlice'
-import { RootState } from '../../redux/store'
+import CancelIcon from "@mui/icons-material/Cancel";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CloseIcon from "@mui/icons-material/Close";
+import InfoIcon from "@mui/icons-material/Info";
+import WarningIcon from "@mui/icons-material/Warning";
+import { SnackbarContent } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Snackbar from "@mui/material/Snackbar";
+import { useDispatch, useSelector } from "react-redux";
+import * as UUID from "uuid";
+import { clearSnackbar, SnackbarType } from "../../redux/snackbarSlice";
+import { RootState } from "../../redux/store";
 export default function IrSnackbar() {
-  const dispatcher = useDispatch()
-  const snackbarState = useSelector((state: RootState) => state.snackbarState)
+  const dispatcher = useDispatch();
+  const snackbarState = useSelector((state: RootState) => state.snackbarState);
 
   function handleClose() {
-    dispatcher(clearSnackbar())
+    dispatcher(clearSnackbar());
   }
 
-  let bgColor = undefined
+  let bgColor = undefined;
 
   switch (snackbarState.type) {
     case SnackbarType.ERROR:
-      bgColor = '#b3261e'
-      break
+      bgColor = "#b3261e";
+      break;
     case SnackbarType.WARNING:
-      bgColor = '#FFA500'
-      break
+      bgColor = "#FFA500";
+      break;
     case SnackbarType.INFO:
-      bgColor = '#2196f3'
-      break
+      bgColor = "#2196f3";
+      break;
     case SnackbarType.GOOD:
-      bgColor = '#137F0B'
-      break
+      bgColor = "#137F0B";
+      break;
     default:
-      break
+      break;
   }
 
-  const fgColor = bgColor !== undefined ? undefined : 'text-white'
+  const fgColor = bgColor !== undefined ? undefined : "text-white";
 
   const iconMap: Record<SnackbarType, React.ReactNode> = {
     [SnackbarType.ERROR]: (
-      <CancelIcon fontSize="medium" sx={{ color: fgColor ?? 'white' }} />
+      <CancelIcon fontSize="medium" sx={{ color: fgColor ?? "white" }} />
     ),
     [SnackbarType.WARNING]: (
-      <WarningIcon fontSize="medium" sx={{ color: fgColor ?? 'white' }} />
+      <WarningIcon fontSize="medium" sx={{ color: fgColor ?? "white" }} />
     ),
     [SnackbarType.INFO]: <InfoIcon fontSize="medium" />,
     [SnackbarType.GOOD]: (
-      <CheckCircleIcon fontSize="medium" sx={{ color: fgColor ?? 'white' }} />
+      <CheckCircleIcon fontSize="medium" sx={{ color: fgColor ?? "white" }} />
     ),
     [SnackbarType.CLOSED]: <></>,
-  }
+  };
 
   const content = (type: SnackbarType) => (
     <div className="flex flex-row items-center">
@@ -65,11 +65,11 @@ export default function IrSnackbar() {
         {snackbarState.message}
       </div>
     </div>
-  )
+  );
 
   return (
     <Snackbar
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       open={snackbarState.type !== SnackbarType.CLOSED}
       autoHideDuration={snackbarState.durationMs}
       onClose={handleClose}
@@ -79,10 +79,10 @@ export default function IrSnackbar() {
         sx={{
           backgroundColor: bgColor,
           color: fgColor,
-          boxShadow: 'none',
-          borderRadius: '16px',
-          padding: '12px',
-          fontSize: '1.1rem',
+          boxShadow: "none",
+          borderRadius: "16px",
+          padding: "12px",
+          fontSize: "1.1rem",
         }}
         message={content(snackbarState.type)}
         action={[
@@ -97,5 +97,5 @@ export default function IrSnackbar() {
         ]}
       ></SnackbarContent>
     </Snackbar>
-  )
+  );
 }

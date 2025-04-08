@@ -15,7 +15,7 @@
 }
 
 .input::before {
-  content: '';
+  content: "";
   position: absolute;
   background-color: #ddd;
   z-index: 1;

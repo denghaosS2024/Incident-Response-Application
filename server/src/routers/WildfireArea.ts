@@ -1,6 +1,6 @@
-import { Router } from 'express'
+import { Router } from "express";
 
-import WildfireAreaController from '../controllers/WildfireAreaController'
+import WildfireAreaController from "../controllers/WildfireAreaController";
 
 export default Router()
   /**
@@ -36,15 +36,19 @@ export default Router()
    *       400:
    *         description: Bad request
    */
-  .post('/areas', async (request, response) => {
-    const { areaId, coordinates, name } = request.body
+  .post("/areas", async (request, response) => {
+    const { areaId, coordinates, name } = request.body;
 
     try {
-      const result = await WildfireAreaController.add(areaId, coordinates, name)
-      response.status(201).send(result)
+      const result = await WildfireAreaController.add(
+        areaId,
+        coordinates,
+        name,
+      );
+      response.status(201).send(result);
     } catch (e) {
-      const error = e as Error
-      response.status(400).send({ message: error.message })
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
     }
   })
 
@@ -70,24 +74,24 @@ export default Router()
    *               name:
    *                 type: string
    */
-  .put('/areas', async (request, response) => {
+  .put("/areas", async (request, response) => {
     if (!request.body.areaId || !request.body.name) {
-      response.status(400).json({ message: 'areaId and name are required' })
-      return
+      response.status(400).json({ message: "areaId and name are required" });
+      return;
     }
 
-    const { areaId, name } = request.body
+    const { areaId, name } = request.body;
 
     try {
-      const result = await WildfireAreaController.update(areaId, name)
+      const result = await WildfireAreaController.update(areaId, name);
       if (!result) {
-        response.status(404).json({ message: 'Wildfire Area is not found' })
-        return
+        response.status(404).json({ message: "Wildfire Area is not found" });
+        return;
       }
-      response.json(result)
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -112,29 +116,29 @@ export default Router()
    *                 type: string
    *               containmentLevel:
    */
-  .put('/areas/containment', async (request, response) => {
+  .put("/areas/containment", async (request, response) => {
     if (!request.body.areaId || !request.body.containmentLevel) {
       response
         .status(400)
-        .json({ message: 'areaId and containmentLevel are required' })
-      return
+        .json({ message: "areaId and containmentLevel are required" });
+      return;
     }
 
-    const { areaId, containmentLevel } = request.body
+    const { areaId, containmentLevel } = request.body;
 
     try {
       const result = await WildfireAreaController.updateContainmentLevel(
         areaId,
         containmentLevel,
-      )
+      );
       if (!result) {
-        response.status(404).json({ message: 'the update operation failed' })
-        return
+        response.status(404).json({ message: "the update operation failed" });
+        return;
       }
-      response.json(result)
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(400).json({ message: error.message })
+      const error = e as Error;
+      response.status(400).json({ message: error.message });
     }
   })
 
@@ -164,24 +168,24 @@ export default Router()
    *       500:
    *         description: Internal Server Error
    */
-  .delete('/areas', async (request, response) => {
+  .delete("/areas", async (request, response) => {
     try {
-      if (request.query['areaId'] === undefined) {
-        response.status(400).json({ message: 'areaId is required' })
-        return
+      if (request.query["areaId"] === undefined) {
+        response.status(400).json({ message: "areaId is required" });
+        return;
       }
 
       const result = await WildfireAreaController.delete(
-        request.query['areaId'].toString(),
-      )
+        request.query["areaId"].toString(),
+      );
       if (!result) {
-        response.status(404).json({ message: 'Wildfire Area not found' })
-        return
+        response.status(404).json({ message: "Wildfire Area not found" });
+        return;
       }
-      response.json(result)
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -207,25 +211,25 @@ export default Router()
    *               type: array
    *               items:
    */
-  .get('/areas', async (request, response) => {
+  .get("/areas", async (request, response) => {
     try {
-      const areaId = request.query['areaId']
+      const areaId = request.query["areaId"];
 
       // if no areaId is provided, return all wildfire areas
       // In case the user sends malicious param, ignore such param
-      if (areaId !== undefined && areaId !== '' && areaId !== null) {
-        const result = await WildfireAreaController.findById(areaId as string)
+      if (areaId !== undefined && areaId !== "" && areaId !== null) {
+        const result = await WildfireAreaController.findById(areaId as string);
         if (!result) {
-          response.status(404).json({ message: 'area is not found' })
-          return
+          response.status(404).json({ message: "area is not found" });
+          return;
         }
-        response.json(result)
+        response.json(result);
       } else {
-        const result = await WildfireAreaController.listWildfireAreas()
-        response.json(result)
+        const result = await WildfireAreaController.listWildfireAreas();
+        response.json(result);
       }
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
-  })
+  });

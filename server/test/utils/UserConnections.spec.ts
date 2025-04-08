@@ -1,34 +1,34 @@
-import SocketIO from 'socket.io'
-import { mock } from 'jest-mock-extended'
+import SocketIO from "socket.io";
+import { mock } from "jest-mock-extended";
 
-import UserConnections from '../../src/utils/UserConnections'
-import * as TestDatabase from './TestDatabase'
-import { ROLES } from '../../src/utils/Roles'
+import UserConnections from "../../src/utils/UserConnections";
+import * as TestDatabase from "./TestDatabase";
+import { ROLES } from "../../src/utils/Roles";
 
-describe('UserConnections', () => {
-  beforeAll(TestDatabase.connect)
+describe("UserConnections", () => {
+  beforeAll(TestDatabase.connect);
 
-  const uid = 'fake-uid'
-  const socket = mock<SocketIO.Socket>()
+  const uid = "fake-uid";
+  const socket = mock<SocketIO.Socket>();
 
-  it('can return user online correctly', () => {
-    UserConnections.addUserConnection(uid, socket, ROLES.CITIZEN)
+  it("can return user online correctly", () => {
+    UserConnections.addUserConnection(uid, socket, ROLES.CITIZEN);
 
-    const connected = UserConnections.isUserConnected(uid)
-    const notConnected = UserConnections.isUserConnected('nonexist')
+    const connected = UserConnections.isUserConnected(uid);
+    const notConnected = UserConnections.isUserConnected("nonexist");
 
-    expect(connected).toBe(true)
-    expect(notConnected).toBe(false)
-  })
+    expect(connected).toBe(true);
+    expect(notConnected).toBe(false);
+  });
 
-  it('can list ids of all connected users', () => {
-    UserConnections.addUserConnection(uid, socket, ROLES.CITIZEN)
+  it("can list ids of all connected users", () => {
+    UserConnections.addUserConnection(uid, socket, ROLES.CITIZEN);
 
-    const uids = UserConnections.getConnectedUsers()
+    const uids = UserConnections.getConnectedUsers();
 
-    expect(uids.length).toBe(1)
-    expect(uids[0]).toBe(uid)
-  })
+    expect(uids.length).toBe(1);
+    expect(uids[0]).toBe(uid);
+  });
 
-  afterAll(TestDatabase.close)
-})
+  afterAll(TestDatabase.close);
+});

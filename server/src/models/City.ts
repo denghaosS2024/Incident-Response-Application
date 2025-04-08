@@ -1,6 +1,5 @@
 import { Document, Schema, model } from "mongoose";
 
-
 export interface ICity extends Document {
   name: string;
 }

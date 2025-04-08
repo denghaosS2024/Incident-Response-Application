@@ -1,8 +1,8 @@
-import AddIcon from '@mui/icons-material/Add'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import BarChartIcon from '@mui/icons-material/BarChart'
-import PieChartIcon from '@mui/icons-material/PieChart'
-import ShowChartIcon from '@mui/icons-material/ShowChart'
+import AddIcon from "@mui/icons-material/Add";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import PieChartIcon from "@mui/icons-material/PieChart";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 import {
   Box,
   Button,
@@ -12,81 +12,81 @@ import {
   Grid,
   IconButton,
   Typography,
-} from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
-import ChartDisplay from '../components/ChartDisplay'
-import request from '../utils/request'
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import ChartDisplay from "../components/ChartDisplay";
+import request from "../utils/request";
 
 interface Chart {
-  _id: string
-  name: string
-  type: 'Pie' | 'Bar' | 'Line'
-  dataType: string
-  startDate?: string
-  endDate?: string
+  _id: string;
+  name: string;
+  type: "Pie" | "Bar" | "Line";
+  dataType: string;
+  startDate?: string;
+  endDate?: string;
 }
 
-const chartIcon = (type: Chart['type']) => {
+const chartIcon = (type: Chart["type"]) => {
   switch (type) {
-    case 'Bar':
-      return <BarChartIcon color="primary" />
-    case 'Line':
-      return <ShowChartIcon color="primary" />
-    case 'Pie':
-      return <PieChartIcon color="primary" />
+    case "Bar":
+      return <BarChartIcon color="primary" />;
+    case "Line":
+      return <ShowChartIcon color="primary" />;
+    case "Pie":
+      return <PieChartIcon color="primary" />;
   }
-}
+};
 
 const DashboardPage: React.FC = () => {
-  const navigate = useNavigate()
-  const [charts, setCharts] = useState<Chart[]>([])
-  const [selectedChart, setSelectedChart] = useState<Chart | null>(null)
+  const navigate = useNavigate();
+  const [charts, setCharts] = useState<Chart[]>([]);
+  const [selectedChart, setSelectedChart] = useState<Chart | null>(null);
 
   useEffect(() => {
     const fetchCharts = async () => {
-      const uid = localStorage.getItem('uid')
-      if (!uid) return
+      const uid = localStorage.getItem("uid");
+      if (!uid) return;
 
       try {
-        const res = await request(`/api/charts/user/${uid}`)
-        setCharts(res.charts)
+        const res = await request(`/api/charts/user/${uid}`);
+        setCharts(res.charts);
       } catch (err) {
-        console.error('Failed to load charts:', err)
+        console.error("Failed to load charts:", err);
       }
-    }
+    };
 
-    fetchCharts()
-  }, [])
+    fetchCharts();
+  }, []);
 
   const handleAddChart = () => {
-    navigate('/create-chart')
-  }
+    navigate("/create-chart");
+  };
 
   const handleBack = () => {
-    setSelectedChart(null)
-  }
+    setSelectedChart(null);
+  };
 
   const handleEditChart = (chartId: string) => {
-    localStorage.setItem('editChartId', chartId)
-    navigate('/create-chart')
-  }
-
+    localStorage.setItem("editChartId", chartId);
+    navigate("/create-chart");
+  };
 
   return (
     <Box display="flex" flexDirection="column" padding="16px">
       {selectedChart === null ? (
         <>
           <Typography mb={2} ml={1} mr={1}>
-            Start customizing your dashboard by selecting the '+' sign below to add a new chart.
+            Start customizing your dashboard by selecting the '+' sign below to
+            add a new chart.
           </Typography>
 
           <Box
             sx={{
-              width: '100%',
-              maxHeight: '70vh',
-              overflowY: 'auto',
-              overflowX: 'hidden',
+              width: "100%",
+              maxHeight: "70vh",
+              overflowY: "auto",
+              overflowX: "hidden",
               pt: 1,
               pr: 1,
               pl: 1,
@@ -101,29 +101,39 @@ const DashboardPage: React.FC = () => {
                     onClick={() => setSelectedChart(chart)}
                     sx={{
                       borderRadius: 2,
-                      cursor: 'pointer',
-                      transition: 'transform 0.2s ease-in-out, box-shadow 0.2s',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
+                      cursor: "pointer",
+                      transition: "transform 0.2s ease-in-out, box-shadow 0.2s",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
                         boxShadow: 6,
                       },
                     }}
                   >
                     <CardContent>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="space-between"
+                      >
                         <Box display="flex" alignItems="center">
                           {chartIcon(chart.type)}
                           <Typography variant="h6" ml={1}>
                             {chart.name}
                           </Typography>
                         </Box>
-                        <Chip label={chart.type} size="small" color="primary" variant="outlined" />
+                        <Chip
+                          label={chart.type}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
                       </Box>
                       <Typography variant="body2" mt={1}>
                         Data: {chart.dataType}
                       </Typography>
                       <Typography variant="body2">
-                        Period: {chart.startDate?.slice(0, 10)} to {chart.endDate?.slice(0, 10)}
+                        Period: {chart.startDate?.slice(0, 10)} to{" "}
+                        {chart.endDate?.slice(0, 10)}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -138,7 +148,7 @@ const DashboardPage: React.FC = () => {
               color="primary"
               startIcon={<AddIcon />}
               onClick={handleAddChart}
-              sx={{ borderRadius: '999px' }}
+              sx={{ borderRadius: "999px" }}
             >
               Add Chart
             </Button>
@@ -146,7 +156,12 @@ const DashboardPage: React.FC = () => {
         </>
       ) : (
         <>
-          <Box display="flex" alignItems="center" mb={2} justifyContent="space-between">
+          <Box
+            display="flex"
+            alignItems="center"
+            mb={2}
+            justifyContent="space-between"
+          >
             <Box display="flex" alignItems="center">
               <IconButton onClick={handleBack}>
                 <ArrowBackIcon />
@@ -155,16 +170,16 @@ const DashboardPage: React.FC = () => {
                 {selectedChart.dataType}
               </Typography>
             </Box>
-            <Button onClick={() => handleEditChart(selectedChart._id)}>Edit</Button>
+            <Button onClick={() => handleEditChart(selectedChart._id)}>
+              Edit
+            </Button>
           </Box>
 
-          <ChartDisplay
-            chartId={selectedChart._id}
-          />
+          <ChartDisplay chartId={selectedChart._id} />
         </>
       )}
     </Box>
-  )
-}
+  );
+};
 
-export default DashboardPage
+export default DashboardPage;

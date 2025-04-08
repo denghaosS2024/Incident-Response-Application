@@ -9,12 +9,12 @@
  * Enum representing the different user roles in the system
  */
 export enum ROLES {
-  CITIZEN = 'Citizen',
-  DISPATCH = 'Dispatch',
-  POLICE = 'Police',
-  FIRE = 'Fire',
-  NURSE = 'Nurse',
-  ADMINISTRATOR = 'Administrator',
+  CITIZEN = "Citizen",
+  DISPATCH = "Dispatch",
+  POLICE = "Police",
+  FIRE = "Fire",
+  NURSE = "Nurse",
+  ADMINISTRATOR = "Administrator",
 }
 
-export default ROLES
+export default ROLES;

@@ -1,5 +1,5 @@
-import Hospital, { IHospital } from '../models/Hospital'
-import HttpError from '../utils/HttpError'
+import Hospital, { IHospital } from "../models/Hospital";
+import HttpError from "../utils/HttpError";
 
 class HospitalController {
   /**
@@ -17,12 +17,12 @@ class HospitalController {
         totalNumberOfPatients: hospital.totalNumberOfPatients,
         nurses: hospital.nurses,
         hospitalGroupId: hospital.hospitalGroupId,
-      })
-      await newHospital.save()
-      return newHospital
+      });
+      await newHospital.save();
+      return newHospital;
     } catch (error) {
-      console.error('Error creating hospital:', error)
-      throw new Error('Failed to create hospital')
+      console.error("Error creating hospital:", error);
+      throw new Error("Failed to create hospital");
     }
   }
 
@@ -33,11 +33,13 @@ class HospitalController {
    */
   async getHospitalById(hospitalId: string) {
     try {
-      const hospital = await Hospital.findOne({ hospitalId }).populate('nurses')
-      return hospital
+      const hospital = await Hospital.findOne({ hospitalId }).populate(
+        "nurses",
+      );
+      return hospital;
     } catch (error) {
-      console.error('Error fetching hospital details:', error)
-      throw new HttpError(`Failed to fetch hospital details`, 404)
+      console.error("Error fetching hospital details:", error);
+      throw new HttpError(`Failed to fetch hospital details`, 404);
     }
   }
 
@@ -47,11 +49,11 @@ class HospitalController {
    */
   async getAllHospitals() {
     try {
-      const hospitals = await Hospital.find().sort({ hospitalName: 1 })
-      return hospitals
+      const hospitals = await Hospital.find().sort({ hospitalName: 1 });
+      return hospitals;
     } catch (error) {
-      console.error('Error fetching hospitals:', error)
-      throw new Error('Failed to fetch hospitals')
+      console.error("Error fetching hospitals:", error);
+      throw new Error("Failed to fetch hospitals");
     }
   }
 
@@ -59,18 +61,18 @@ class HospitalController {
    * Update an existing Hospital
    */
   async updateHospital(hospital: Partial<IHospital>) {
-    if (!hospital.hospitalId) throw new Error('Invalid hospital data')
+    if (!hospital.hospitalId) throw new Error("Invalid hospital data");
 
     try {
       const updatedHospital = await Hospital.findOneAndUpdate(
         { hospitalId: hospital.hospitalId },
         { $set: hospital },
         { new: true },
-      ).exec()
-      return updatedHospital
+      ).exec();
+      return updatedHospital;
     } catch (error) {
-      console.error('Error updating hospital:', error)
-      throw error
+      console.error("Error updating hospital:", error);
+      throw error;
     }
   }
 
@@ -83,11 +85,11 @@ class HospitalController {
     try {
       const deletedHospital = await Hospital.findOneAndDelete({
         hospitalId,
-      }).exec()
-      return deletedHospital
+      }).exec();
+      return deletedHospital;
     } catch (error) {
-      console.error('Error deleting hospital:', error)
-      throw new Error('Failed to delete hospital')
+      console.error("Error deleting hospital:", error);
+      throw new Error("Failed to delete hospital");
     }
   }
 
@@ -95,26 +97,26 @@ class HospitalController {
     updates: { hospitalId: string; patients: string[] }[],
   ) {
     if (!Array.isArray(updates) || updates.length === 0) {
-      return [] // Return an empty array instead of throwing an error
+      return []; // Return an empty array instead of throwing an error
     }
 
     for (const update of updates) {
       if (!update.hospitalId) {
-        throw new HttpError('Invalid hospitalId in update data', 400)
+        throw new HttpError("Invalid hospitalId in update data", 400);
       }
     }
 
     // Validate that all hospitals exist before performing updates
-    const hospitalIds = updates.map((update) => update.hospitalId)
+    const hospitalIds = updates.map((update) => update.hospitalId);
     const existingHospitals = await Hospital.find({
       hospitalId: { $in: hospitalIds },
-    }).exec()
+    }).exec();
 
-    console.log('Existing Hospitals:', existingHospitals)
-    console.log('Updates:', updates)
+    console.log("Existing Hospitals:", existingHospitals);
+    console.log("Updates:", updates);
 
     if (existingHospitals.length !== updates.length) {
-      throw new HttpError('One or more hospitals do not exist', 404)
+      throw new HttpError("One or more hospitals do not exist", 404);
     }
 
     try {
@@ -129,16 +131,16 @@ class HospitalController {
             },
           }, // Overwrite patients array
           { new: true },
-        ).exec()
-      })
+        ).exec();
+      });
 
-      const updatedHospitals = await Promise.all(updatePromises)
-      return updatedHospitals
+      const updatedHospitals = await Promise.all(updatePromises);
+      return updatedHospitals;
     } catch (error: unknown) {
-      console.error('Error updating multiple hospitals:', error)
-      throw new HttpError(`Failed to update multiple hospitals: ${error}`, 500)
+      console.error("Error updating multiple hospitals:", error);
+      throw new HttpError(`Failed to update multiple hospitals: ${error}`, 500);
     }
   }
 }
 
-export default new HospitalController()
+export default new HospitalController();

@@ -1,8 +1,15 @@
-import { Avatar, Box, ListItem, ListItemAvatar, ListItemText, Typography } from '@mui/material';
-import React from 'react';
-import { Draggable, Droppable } from 'react-beautiful-dnd';
-import getRoleIcon from '../../components/common/RoleIcon';
-import IIncident from '../../models/Incident';
+import {
+  Avatar,
+  Box,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Typography,
+} from "@mui/material";
+import React from "react";
+import { Draggable, Droppable } from "react-beautiful-dnd";
+import getRoleIcon from "../../components/common/RoleIcon";
+import IIncident from "../../models/Incident";
 
 interface IncidentItemProps {
   incident: IIncident;
@@ -15,7 +22,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({ incident }) => {
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ fontStyle: 'italic', pl: 1 }}
+          sx={{ fontStyle: "italic", pl: 1 }}
         >
           No vehicles assigned
         </Typography>
@@ -25,8 +32,8 @@ const IncidentItem: React.FC<IncidentItemProps> = ({ incident }) => {
     return incident.assignedVehicles.map((vehicle, index) => {
       const usernames: string[] = vehicle.usernames;
       const draggableId = `${vehicle.type}::${vehicle.name}`;
-      const roleType = vehicle.type === 'Car' ? 'Police' : 'Fire';
-      
+      const roleType = vehicle.type === "Car" ? "Police" : "Fire";
+
       return (
         <Draggable key={draggableId} draggableId={draggableId} index={index}>
           {(providedDrag) => (
@@ -35,29 +42,29 @@ const IncidentItem: React.FC<IncidentItemProps> = ({ incident }) => {
               {...providedDrag.draggableProps}
               {...providedDrag.dragHandleProps}
               sx={{
-                touchAction: 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                borderRadius: '4px',
+                touchAction: "none",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                borderRadius: "4px",
                 mb: 1,
-                border: '1px solid',
-                borderColor: 'divider',
-                bgcolor: 'background.paper',
+                border: "1px solid",
+                borderColor: "divider",
+                bgcolor: "background.paper",
                 boxShadow: 1,
               }}
             >
               <ListItemText
                 primary={vehicle.name}
                 primaryTypographyProps={{
-                  variant: 'body2',
+                  variant: "body2",
                 }}
               />
               <Box
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  width: '100%',
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "100%",
                 }}
               >
                 {usernames && usernames.length > 0 ? (
@@ -65,8 +72,8 @@ const IncidentItem: React.FC<IncidentItemProps> = ({ incident }) => {
                     <Box
                       key={i}
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
+                        display: "flex",
+                        alignItems: "center",
                         pl: 1,
                         py: 0.5,
                       }}
@@ -74,10 +81,10 @@ const IncidentItem: React.FC<IncidentItemProps> = ({ incident }) => {
                       <ListItemAvatar>
                         <Avatar
                           sx={{
-                            bgcolor: 'white',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
+                            bgcolor: "white",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
                             padding: 0,
                           }}
                         >
@@ -116,26 +123,22 @@ const IncidentItem: React.FC<IncidentItemProps> = ({ incident }) => {
         >
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              width: '100%',
-              padding: '8px',
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              padding: "8px",
             }}
           >
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
               className="mb-2"
             >
               <ListItemText
-                primary={
-                  <span className="fw-bold">
-                    {incident.incidentId}
-                  </span>
-                }
+                primary={<span className="fw-bold">{incident.incidentId}</span>}
               />
             </Box>
             {renderAssignedVehicles()}

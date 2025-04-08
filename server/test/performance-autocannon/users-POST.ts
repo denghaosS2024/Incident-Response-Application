@@ -1,5 +1,5 @@
-import autocannon from 'autocannon';
-import * as TestDatabase from '../utils/TestDatabase';
+import autocannon from "autocannon";
+import * as TestDatabase from "../utils/TestDatabase";
 
 /**
  * This script sends requests to multiple endpoints (users, profiles, map, etc.)
@@ -20,7 +20,7 @@ async function runTest() {
     // The `requests` array below targets multiple endpoints & methods.
 
     const result = await autocannon({
-      url: 'http://localhost:3001', // Base URL, WITHOUT /api/*, we set paths in requests array
+      url: "http://localhost:3001", // Base URL, WITHOUT /api/*, we set paths in requests array
       connections: 5,
       duration: 30,
       overallRate: 5, // ~5 RPS
@@ -29,28 +29,25 @@ async function runTest() {
       requests: [
         // ========== USERS ROUTER ENDPOINTS ==========
         {
-          method: 'POST',
-          path: '/api/users',
+          method: "POST",
+          path: "/api/users",
           body: JSON.stringify({
-            username: 'autocannonTestUser',
-            password: 'password123',
-            role: 'CITIZEN',
+            username: "autocannonTestUser",
+            password: "password123",
+            role: "CITIZEN",
           }),
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         },
-
-
       ],
     });
 
     // 3) Log the results
-    console.log('Autocannon test completed. Results:');
+    console.log("Autocannon test completed. Results:");
     console.log(result);
-
   } catch (error) {
-    console.error('Autocannon error:', error);
+    console.error("Autocannon error:", error);
   } finally {
     // 4) Close DB
     await TestDatabase.close();

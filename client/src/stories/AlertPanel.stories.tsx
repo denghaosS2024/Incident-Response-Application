@@ -1,13 +1,13 @@
 import { Meta, StoryObj, StoryFn } from "@storybook/react";
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
 import AlertPanel from "../components/AlertPanel";
 
 // Create a mock store with a simple reducer
 const mockStore = configureStore({
   reducer: {
     messageState: (state = { messages: {} }, action) => {
-      if (action.type === 'message/addMessage') {
+      if (action.type === "message/addMessage") {
         // Simple mock implementation
         return state;
       }
@@ -35,8 +35,8 @@ const meta = {
   // Add default args that all stories will need
   args: {
     channelId: "mock-channel-id",
-    responders: ["responder1", "responder2"]
-  }
+    responders: ["responder1", "responder2"],
+  },
 } satisfies Meta<typeof AlertPanel>;
 
 export default meta;
@@ -45,11 +45,11 @@ type Story = StoryObj<typeof meta>;
 export const FireRole: Story = {
   args: {
     role: "Fire",
-  }
+  },
 };
 
 export const PoliceRole: Story = {
   args: {
     role: "Police",
-  }
+  },
 };

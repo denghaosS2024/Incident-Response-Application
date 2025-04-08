@@ -1,23 +1,23 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
-import * as Token from '../../src/utils/Token'
+import * as Token from "../../src/utils/Token";
 
-describe('Token', () => {
-  const uid = new mongoose.Types.ObjectId().toHexString()
-  let token: string
+describe("Token", () => {
+  const uid = new mongoose.Types.ObjectId().toHexString();
+  let token: string;
 
-  it('can generate a valid token', () => {
-    token = Token.generate(uid)
+  it("can generate a valid token", () => {
+    token = Token.generate(uid);
 
     // not null
-    expect(token).toMatch(/.+/)
-  })
+    expect(token).toMatch(/.+/);
+  });
 
-  it('can accpect a valid token', () => {
-    expect(Token.validate(uid, token)).toBeTruthy()
-  })
+  it("can accpect a valid token", () => {
+    expect(Token.validate(uid, token)).toBeTruthy();
+  });
 
-  it('will reject an invalid token', () => {
-    expect(Token.validate(uid, 'some-random-token')).toBeFalsy()
-  })
-})
+  it("will reject an invalid token", () => {
+    expect(Token.validate(uid, "some-random-token")).toBeFalsy();
+  });
+});

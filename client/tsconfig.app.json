@@ -29,7 +29,6 @@
       "@/*": ["./src/*"],
       "react": ["./node_modules/@types/react"]
     }
-
   },
   "include": ["src"]
 }

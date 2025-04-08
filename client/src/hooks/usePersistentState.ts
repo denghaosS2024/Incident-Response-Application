@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { getItem, setItem } from '../utils/localStorage'
+import { useEffect, useState } from "react";
+import { getItem, setItem } from "../utils/localStorage";
 
 // This is a custom hook derived from this video on how best to persist a state using local storage
 // link: https://www.youtube.com/watch?v=RDAFJ5ToMmQ
@@ -7,13 +7,13 @@ import { getItem, setItem } from '../utils/localStorage'
 // All you need to do is have a key that you want to store as well as the initial value your state starts as
 export function usePersistentState<T>(key: string, initialValue: T) {
   const [value, setValue] = useState(() => {
-    const item = getItem(key)
-    return (item as T) || initialValue
-  })
+    const item = getItem(key);
+    return (item as T) || initialValue;
+  });
 
   useEffect(() => {
-    setItem(key, value)
-  }, [value])
+    setItem(key, value);
+  }, [value]);
 
-  return [value, setValue] as const
+  return [value, setValue] as const;
 }

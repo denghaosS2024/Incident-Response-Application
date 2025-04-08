@@ -1,12 +1,12 @@
-import WarningIcon from '@mui/icons-material/Warning'
-import { IconButton, Popover } from '@mui/material'
-import React, { useEffect, useRef, useState } from 'react'
-import NurseAlertPanel from './NurseAlertPanel'
+import WarningIcon from "@mui/icons-material/Warning";
+import { IconButton, Popover } from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
+import NurseAlertPanel from "./NurseAlertPanel";
 
 interface MessageNurseAlertOptionsProps {
-  channelId: string
-  currentUserId: string
-  preSelectedPatient?: string
+  channelId: string;
+  currentUserId: string;
+  preSelectedPatient?: string;
 }
 
 const MessageNurseAlertOptions: React.FC<MessageNurseAlertOptionsProps> = ({
@@ -14,41 +14,43 @@ const MessageNurseAlertOptions: React.FC<MessageNurseAlertOptionsProps> = ({
   currentUserId,
   preSelectedPatient,
 }) => {
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
-  const open = Boolean(anchorEl)
-  const [selectedPatient, setSelectedPatient] = useState<string | undefined>(preSelectedPatient)
-  
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const open = Boolean(anchorEl);
+  const [selectedPatient, setSelectedPatient] = useState<string | undefined>(
+    preSelectedPatient,
+  );
+
   // Reference to the button element for auto-opening
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Check URL for showAlert parameter and patient parameter
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const shouldShowAlert = urlParams.get('showAlert') === 'true'
-      const patientFromUrl = urlParams.get('patient')
-      
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shouldShowAlert = urlParams.get("showAlert") === "true";
+      const patientFromUrl = urlParams.get("patient");
+
       // Set patient from URL if available
       if (patientFromUrl) {
-        console.log('Found patient in URL:', patientFromUrl)
-        setSelectedPatient(patientFromUrl)
+        console.log("Found patient in URL:", patientFromUrl);
+        setSelectedPatient(patientFromUrl);
       }
-      
+
       // Auto-open the panel if showAlert is true and we have a button reference
       if (shouldShowAlert && buttonRef.current && !open) {
         // Create a fake click event to pass to handleClick
         const fakeEvent = {
-          currentTarget: buttonRef.current
+          currentTarget: buttonRef.current,
         } as React.MouseEvent<HTMLButtonElement>;
-        
+
         // Use setTimeout to ensure this happens after component is fully mounted
         setTimeout(() => {
           handleClick(fakeEvent);
-          
+
           // Remove the showAlert parameter from URL to prevent reopening on refresh
           // but keep the patient parameter
           const newUrl = new URL(window.location.href);
-          newUrl.searchParams.delete('showAlert');
+          newUrl.searchParams.delete("showAlert");
           window.history.replaceState({}, document.title, newUrl.toString());
         }, 500);
       }
@@ -56,12 +58,12 @@ const MessageNurseAlertOptions: React.FC<MessageNurseAlertOptionsProps> = ({
   }, [open]);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
   return (
     <>
@@ -80,12 +82,12 @@ const MessageNurseAlertOptions: React.FC<MessageNurseAlertOptionsProps> = ({
         anchorEl={anchorEl}
         onClose={handleClose}
         anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
+          vertical: "top",
+          horizontal: "center",
         }}
         transformOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
+          vertical: "bottom",
+          horizontal: "center",
         }}
       >
         <NurseAlertPanel
@@ -95,7 +97,7 @@ const MessageNurseAlertOptions: React.FC<MessageNurseAlertOptionsProps> = ({
         />
       </Popover>
     </>
-  )
-}
+  );
+};
 
-export default MessageNurseAlertOptions
+export default MessageNurseAlertOptions;

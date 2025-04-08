@@ -1,15 +1,15 @@
-import { configureStore } from '@reduxjs/toolkit'
-import alertQueueReducer from './alertQueueSlice'
-import contactReducer from './contactSlice'
-import hospitalReducer from './hospitalSlice'
-import incidentReducer from './incidentSlice'
-import messageReducer from './messageSlice'
-import notifyReducer from './notifySlice'
-import patientReducer from './patientSlice'
-import profileReducer from './profileSlice'
-import snackbarReducer from './snackbarSlice'
-import storageReducer from './storageSlice'
-import userHospitalReducer from './userHospitalSlice'
+import { configureStore } from "@reduxjs/toolkit";
+import alertQueueReducer from "./alertQueueSlice";
+import contactReducer from "./contactSlice";
+import hospitalReducer from "./hospitalSlice";
+import incidentReducer from "./incidentSlice";
+import messageReducer from "./messageSlice";
+import notifyReducer from "./notifySlice";
+import patientReducer from "./patientSlice";
+import profileReducer from "./profileSlice";
+import snackbarReducer from "./snackbarSlice";
+import storageReducer from "./storageSlice";
+import userHospitalReducer from "./userHospitalSlice";
 /**
  * Redux Store Configuration
  *
@@ -56,13 +56,13 @@ export const store = configureStore({
     alertQueue: alertQueueReducer, // Reducer for managing alert queue state
     userHospital: userHospitalReducer, // Reducer for managing current user's hospital ID
   },
-})
+});
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 // export type RootState = ReturnType<typeof store.getState>
 // Uncomment above line to use RootState type for accessing full state type
 
 // Export AppDispatch type for use in typed dispatch calls
-export type AppDispatch = typeof store.dispatch
+export type AppDispatch = typeof store.dispatch;
 
-export type RootState = ReturnType<typeof store.getState>
+export type RootState = ReturnType<typeof store.getState>;

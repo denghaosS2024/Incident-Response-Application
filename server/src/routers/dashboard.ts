@@ -1,5 +1,11 @@
-import { Router } from 'express';
-import { createChart, deleteChart, getChart, getCharts, modifyChart } from '../controllers/DashboardController';
+import { Router } from "express";
+import {
+  createChart,
+  deleteChart,
+  getChart,
+  getCharts,
+  modifyChart,
+} from "../controllers/DashboardController";
 
 export default Router()
   /**
@@ -53,7 +59,7 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
-  .post('/', async (request, response) => {
+  .post("/", async (request, response) => {
     try {
       await createChart(request, response);
     } catch (e) {
@@ -87,7 +93,7 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
-  .get('/:chartId', async (request, response) => {
+  .get("/:chartId", async (request, response) => {
     try {
       await getChart(request, response);
     } catch (e) {
@@ -98,37 +104,37 @@ export default Router()
     }
   })
 
-/**
- * @swagger
- * /api/charts/user/{userId}:
- *   get:
- *     summary: Get all charts for a user
- *     description: Retrieves all saved charts for a user.
- *     tags:
- *       - Charts
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the user to retrieve charts for.
- *     responses:
- *       200:
- *         description: Successfully retrieved user's charts.
- *       500:
- *         description: Internal server error.
- */
-.get('/user/:userId', async (request, response) => {
-  try {
-    await getCharts(request, response);
-  } catch (e) {
-    const error = e as Error;
-    if (!response.headersSent) {
-      response.status(400).send({ message: error.message });
+  /**
+   * @swagger
+   * /api/charts/user/{userId}:
+   *   get:
+   *     summary: Get all charts for a user
+   *     description: Retrieves all saved charts for a user.
+   *     tags:
+   *       - Charts
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the user to retrieve charts for.
+   *     responses:
+   *       200:
+   *         description: Successfully retrieved user's charts.
+   *       500:
+   *         description: Internal server error.
+   */
+  .get("/user/:userId", async (request, response) => {
+    try {
+      await getCharts(request, response);
+    } catch (e) {
+      const error = e as Error;
+      if (!response.headersSent) {
+        response.status(400).send({ message: error.message });
+      }
     }
-  }
-})
+  })
 
   /**
    * @swagger
@@ -179,7 +185,7 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
-  .put('/:chartId', async (request, response) => {
+  .put("/:chartId", async (request, response) => {
     try {
       await modifyChart(request, response);
     } catch (e) {
@@ -213,7 +219,7 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
-  .delete('/:chartId', async (request, response) => {
+  .delete("/:chartId", async (request, response) => {
     try {
       await deleteChart(request, response);
     } catch (e) {

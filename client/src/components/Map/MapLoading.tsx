@@ -1,4 +1,4 @@
-import styles from '../../styles/MapLoading.module.css'
+import styles from "../../styles/MapLoading.module.css";
 
 const MapLoading = () => {
   return (
@@ -9,7 +9,7 @@ const MapLoading = () => {
         <div className={`${styles.loading} ${styles.three}`} />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MapLoading
+export default MapLoading;

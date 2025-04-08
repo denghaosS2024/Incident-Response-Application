@@ -6,28 +6,28 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import ItemList, { ItemListProps } from './GenericListItem'
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import ItemList, { ItemListProps } from "./GenericListItem";
 
 export interface GenericListContainerProps<T> {
-  header: string | string[]
-  listProps: ItemListProps<T>
+  header: string | string[];
+  listProps: ItemListProps<T>;
 }
 
 const GenericListContainer = <T,>({
   header,
   listProps,
 }: GenericListContainerProps<T>) => {
-  const theme = useTheme()
-  const isHeaderArray = Array.isArray(header)
+  const theme = useTheme();
+  const isHeaderArray = Array.isArray(header);
 
   return (
     <Box
       sx={{
-        border: '1px solid black',
-        borderRadius: '12px',
-        overflow: 'hidden',
+        border: "1px solid black",
+        borderRadius: "12px",
+        overflow: "hidden",
         marginBottom: 2,
       }}
     >
@@ -38,7 +38,7 @@ const GenericListContainer = <T,>({
           sx={{
             padding: 1.5,
             backgroundColor: theme.palette.primary.main,
-            borderBottom: '1px solid',
+            borderBottom: "1px solid",
             color: theme.palette.primary.contrastText,
           }}
         >
@@ -47,15 +47,15 @@ const GenericListContainer = <T,>({
       )}
 
       {/* Table for both header and rows */}
-      <TableContainer sx={{ width: '100%', overflowX: 'hidden' }}>
-        <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
+      <TableContainer sx={{ width: "100%", overflowX: "hidden" }}>
+        <Table size="small" sx={{ tableLayout: "fixed", width: "100%" }}>
           {isHeaderArray && (
             <TableHead>
               <TableRow>
                 {header.map((headerItem, index) => (
                   <TableCell
                     key={index}
-                    sx={{ fontWeight: 'bold' }}
+                    sx={{ fontWeight: "bold" }}
                     align="center"
                   >
                     {headerItem}
@@ -70,7 +70,7 @@ const GenericListContainer = <T,>({
         </Table>
       </TableContainer>
     </Box>
-  )
-}
+  );
+};
 
-export default GenericListContainer
+export default GenericListContainer;

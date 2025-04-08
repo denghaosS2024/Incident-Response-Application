@@ -1,5 +1,5 @@
-import { Storage } from '@google-cloud/storage'
-import Env from './Env'
+import { Storage } from "@google-cloud/storage";
+import Env from "./Env";
 
 export default class GoogleStorage {
   /**
@@ -8,13 +8,13 @@ export default class GoogleStorage {
    */
   public static getStorage() {
     return new Storage({
-      projectId: Env.getParam('GCP_PROJECT_ID', 'YOUR_PROJECT_ID', false),
+      projectId: Env.getParam("GCP_PROJECT_ID", "YOUR_PROJECT_ID", false),
       keyFilename: Env.getParam(
-        'GCP_KEY_FILE',
-        'path/to/your/service-account.json',
+        "GCP_KEY_FILE",
+        "path/to/your/service-account.json",
         false,
       ),
-    })
+    });
   }
 
   /**
@@ -22,6 +22,6 @@ export default class GoogleStorage {
    * @returns The name of the bucket to use for Google Cloud Storage
    */
   public static getBucketName() {
-    return Env.getParam('GCS_BUCKET_NAME', 'your-gcs-bucket-name', false)
+    return Env.getParam("GCS_BUCKET_NAME", "your-gcs-bucket-name", false);
   }
 }

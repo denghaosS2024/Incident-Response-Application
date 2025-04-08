@@ -1,23 +1,23 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import ROLES from '../utils/Roles';
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router";
+import ROLES from "../utils/Roles";
 
 /**
  * Router component that checks the user's role and redirects to the appropriate patients page
  */
 const PatientsRouter: React.FC = () => {
   const navigate = useNavigate();
-  const userRole = localStorage.getItem('role');
+  const userRole = localStorage.getItem("role");
 
   useEffect(() => {
     // Redirect based on user role
     if (userRole === ROLES.NURSE) {
-      navigate('/patients/nurse');
+      navigate("/patients/nurse");
     } else if (userRole === ROLES.FIRE || userRole === ROLES.POLICE) {
-      navigate('/patients/first-responder');
+      navigate("/patients/first-responder");
     } else {
       // For unauthorized roles or default case, redirect to home
-      navigate('/');
+      navigate("/");
     }
   }, [userRole, navigate]);
 
@@ -25,4 +25,4 @@ const PatientsRouter: React.FC = () => {
   return null;
 };
 
-export default PatientsRouter; 
+export default PatientsRouter;

@@ -1,9 +1,9 @@
-import IHospital from '@/models/Hospital'
-import IPatient from '@/models/Patient'
-import request, { IRequestError } from '@/utils/request'
-import { MedicalQuestions } from '@/utils/types'
-import AddIcon from '@mui/icons-material/Add'
-import RemoveIcon from '@mui/icons-material/Remove'
+import IHospital from "@/models/Hospital";
+import IPatient from "@/models/Patient";
+import request, { IRequestError } from "@/utils/request";
+import { MedicalQuestions } from "@/utils/types";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import {
   Box,
   Button,
@@ -18,49 +18,51 @@ import {
   SelectChangeEvent,
   TextField,
   Typography,
-} from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router'
-import { RootState } from '../../../redux/store'
-import Loading from '../../common/Loading'
-import { IVisitLogForm } from './IVisitLogForm'
-import VisitLogHelper from './VisitLogHelper'
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { RootState } from "../../../redux/store";
+import Loading from "../../common/Loading";
+import { IVisitLogForm } from "./IVisitLogForm";
+import VisitLogHelper from "./VisitLogHelper";
 
 // Default: E
 
 // Returns the current date and time formatted as "MM.DD.YY-HH:mm"
 // Example formats: "12.03.21-10:00" or "11.22.20-08:00"
 const getCurrentDateTime = () => {
-  const now = new Date()
-  const formattedDate = `${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}.${String(now.getFullYear()).slice(-2)}-${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-  return formattedDate
-}
+  const now = new Date();
+  const formattedDate = `${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")}.${String(now.getFullYear()).slice(-2)}-${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  return formattedDate;
+};
 
 const VisitLogForm: React.FC<{ username?: string }> = ({
   username: propUsername,
 }) => {
   const [formData, setFormData] = useState<IVisitLogForm>({
-    priority: 'E', // Default value, { value: 'E', label: 'E' },
-    location: '',
-    age: '',
-    conscious: '',
-    breathing: '',
-    chiefComplaint: '',
-    condition: '',
-    drugs: '',
-    allergies: '',
-  })
+    priority: "E", // Default value, { value: 'E', label: 'E' },
+    location: "",
+    age: "",
+    conscious: "",
+    breathing: "",
+    chiefComplaint: "",
+    condition: "",
+    drugs: "",
+    allergies: "",
+  });
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   // Set the visit time to the current date and time
-  const [visitTime, setVisitTime] = useState(getCurrentDateTime())
-  const [incidentId, setIncidentId] = useState('')
-  const [currentPatient, setCurrentPatient] = useState<IPatient>({} as IPatient)
+  const [visitTime, setVisitTime] = useState(getCurrentDateTime());
+  const [incidentId, setIncidentId] = useState("");
+  const [currentPatient, setCurrentPatient] = useState<IPatient>(
+    {} as IPatient,
+  );
   const [currentHospital, setCurrentHospital] = useState<IHospital>(
     {} as IHospital,
-  )
+  );
 
   const handleChange = (
     event:
@@ -68,37 +70,37 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       | SelectChangeEvent<string>,
     child?: React.ReactNode,
   ) => {
-    const { name, value } = event.target
+    const { name, value } = event.target;
     setFormData((prev) => ({
       ...prev,
       [name as string]: value,
-    }))
-  }
+    }));
+  };
 
-  const role = localStorage.getItem('role')
+  const role = localStorage.getItem("role");
   // If the Visit is created by a First Responder, the Incident ID* is added and the default Location is Road
   // If the Visit is created by a Nurse, the default Location is ER
   const checkRole = () => {
-    if (new Set(['Fire', 'Police', 'Administrator']).has(role ?? '')) {
-      const incidentId = incident.incidentId
+    if (new Set(["Fire", "Police", "Administrator"]).has(role ?? "")) {
+      const incidentId = incident.incidentId;
 
-      setIncidentId(incidentId)
+      setIncidentId(incidentId);
       // Set the location to Road, if the role is First Responder
       setFormData((prev) => ({
         ...prev,
-        location: 'Road',
-      }))
+        location: "Road",
+      }));
       // Set patient data if available
       // This is to get the patient data from the incident
-      setPatientData()
-    } else if (role === 'Nurse') {
+      setPatientData();
+    } else if (role === "Nurse") {
       // Set the location to ER, if the role is Nurse
       setFormData((prev) => ({
         ...prev,
-        location: 'ER',
-      }))
+        location: "ER",
+      }));
     }
-  }
+  };
 
   // Pulls Age, Conscious, Breathing, and Chief Complaint from the Incident if available
   const setPatientData = () => {
@@ -109,122 +111,122 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       !Array.isArray(incident.questions) ||
       (incident.questions as MedicalQuestions[]).length == 0
     ) {
-      return
+      return;
     }
 
-    console.log('Incident questions:', incident.questions)
+    console.log("Incident questions:", incident.questions);
 
     for (const question of incident.questions as MedicalQuestions[]) {
       // if (question.isPatient && question.username === propUsername) {
       if (question.username === propUsername) {
-        console.log('Found patient data:', question)
+        console.log("Found patient data:", question);
         setFormData((prev) => ({
           ...prev,
           // Only update age if it exists and can be converted to a string
           age: question.age !== undefined ? question.age.toString() : prev.age,
           // Only update conscious if it exists and is not empty
-          conscious: question.conscious !== "" ? question.conscious : prev.conscious,
+          conscious:
+            question.conscious !== "" ? question.conscious : prev.conscious,
           // Only update breathing if it exists and is not empty
-          breathing: question.breathing  !== "" ? question.breathing : prev.breathing,
+          breathing:
+            question.breathing !== "" ? question.breathing : prev.breathing,
           // Only update chiefComplaint if it exists and is not empty
           chiefComplaint: question.chiefComplaint
             ? question.chiefComplaint
             : prev.chiefComplaint,
-        }))
-        break
+        }));
+        break;
       }
     }
-  }
+  };
 
   // Check the role when the component mounts
   React.useEffect(() => {
     // Set the visit time to the current date and time
-    setVisitTime(getCurrentDateTime())
+    setVisitTime(getCurrentDateTime());
     // Check the role and set the incident ID if needed
-    checkRole()
-  }, [])
+    checkRole();
+  }, []);
 
-  const { loading } = useSelector((state: RootState) => state.contactState)
-  const { incident } = useSelector((state: RootState) => state.incidentState)
-  const { patients } = useSelector((state: RootState) => state.patientState)
-  console.log('Incident:', incident)
-  console.log('Incident questions:', incident.questions)
-  console.log(patients)
+  const { loading } = useSelector((state: RootState) => state.contactState);
+  const { incident } = useSelector((state: RootState) => state.incidentState);
+  const { patients } = useSelector((state: RootState) => state.patientState);
+  console.log("Incident:", incident);
+  console.log("Incident questions:", incident.questions);
+  console.log(patients);
 
   const getCurrentPatientId = () => {
     if (!patients || patients.length === 0 || !propUsername) {
-      return ''
+      return "";
     }
-    const patient = patients.find((p) => p.username === propUsername)
-    return patient ? patient.patientId : ''
-  }
+    const patient = patients.find((p) => p.username === propUsername);
+    return patient ? patient.patientId : "";
+  };
 
   useEffect(() => {
-    const patientId = getCurrentPatientId()
+    const patientId = getCurrentPatientId();
     const fetchPatient = async () => {
       try {
         const patient: IPatient = await request(
           `/api/patients/single?patientId=${patientId}`,
-        )
+        );
         if (patient) {
-          setCurrentPatient(patient)
+          setCurrentPatient(patient);
         }
       } catch (e) {
-        const error = e as IRequestError
-        console.log('Error fetching current patient ' + error.message)
+        const error = e as IRequestError;
+        console.log("Error fetching current patient " + error.message);
       }
-    }
+    };
 
-    fetchPatient()
-  }, [])
+    fetchPatient();
+  }, []);
 
   useEffect(() => {
     const fetchHospital = async () => {
       try {
-
         if (currentPatient.hospitalId) {
           const hospital = await request(
             `/api/hospital?hospitalId=${currentPatient.hospitalId}`,
-          )
+          );
           if (hospital) {
-            console.log('hospital: ', hospital)
-            console.log(currentPatient)
-            setCurrentHospital(hospital as IHospital)
+            console.log("hospital: ", hospital);
+            console.log(currentPatient);
+            setCurrentHospital(hospital as IHospital);
           }
         }
-          
       } catch (e) {
-        const error = e as IRequestError
-        console.log('Error fetching current hospital ' + error.message)
+        const error = e as IRequestError;
+        console.log("Error fetching current hospital " + error.message);
       }
-    }
+    };
 
-    fetchHospital()
-  }, [currentPatient])
+    fetchHospital();
+  }, [currentPatient]);
 
   useEffect(() => {
-    console.log('Updated currentHospital:', currentHospital)
-  }, [currentHospital])
+    console.log("Updated currentHospital:", currentHospital);
+  }, [currentHospital]);
 
-  console.log('Current patient ID:', getCurrentPatientId())
+  console.log("Current patient ID:", getCurrentPatientId());
 
   const onClickHospital = () => {
-    navigate('/find-hospital')
-  }
+    navigate("/find-hospital");
+  };
 
   const onClickRequestHelp = async () => {
     // const uid = localStorage.getItem('uid')
 
     // const hospital = await VisitLogHelper.getHospitalByUserId(uid ?? '')
 
-    const channelId = currentHospital.hospitalGroupId
-    console.log(channelId)
+    const channelId = currentHospital.hospitalGroupId;
+    console.log(channelId);
     navigate(
       `/messages?channelId=${currentHospital.hospitalGroupId}&showAlert=true&patient=${currentPatient.patientId}`,
-    )
-  }
+    );
+  };
 
-  if (loading) return <Loading />
+  if (loading) return <Loading />;
 
   return (
     <div className="flex flex-col gap-4 p-4 items-center">
@@ -246,8 +248,8 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             sx={{
               width: 200,
               height: 40,
-              '& .MuiSelect-select': {
-                padding: '8px 14px',
+              "& .MuiSelect-select": {
+                padding: "8px 14px",
               },
             }}
           >
@@ -292,13 +294,13 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             <IconButton
               onClick={() => {
                 const newValue =
-                  formData.age === ''
+                  formData.age === ""
                     ? 0
-                    : Math.max(0, parseInt(formData.age) - 1)
+                    : Math.max(0, parseInt(formData.age) - 1);
                 setFormData((prev) => ({
                   ...prev,
                   age: newValue.toString(),
-                }))
+                }));
               }}
               size="small"
             >
@@ -317,11 +319,11 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             <IconButton
               onClick={() => {
                 const newValue =
-                  formData.age === '' ? 1 : parseInt(formData.age) + 1
+                  formData.age === "" ? 1 : parseInt(formData.age) + 1;
                 setFormData((prev) => ({
                   ...prev,
                   age: newValue.toString(),
-                }))
+                }));
               }}
               size="small"
             >
@@ -403,8 +405,8 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             sx={{
               width: 200,
               height: 40,
-              '& .MuiSelect-select': {
-                padding: '8px 14px',
+              "& .MuiSelect-select": {
+                padding: "8px 14px",
               },
             }}
           >
@@ -452,28 +454,28 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       <FormControl>
         <Box display="flex" alignItems="center" gap={2}>
           <Box className="flex flex-row">
-            <Typography
-              sx={{ width: 120, flexShrink: 0 }}
-            >
-              Hospital: {currentHospital?.hospitalName ?? 'None'}
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Hospital: {currentHospital?.hospitalName ?? "None"}
             </Typography>
           </Box>
 
-          {!currentPatient.hospitalId && (localStorage.getItem('role') === 'Fire' || localStorage.getItem('role') === 'Police') && (
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              onClick={onClickHospital}
-            >
-              Find Hospital
-            </Button>
-          )}
+          {!currentPatient.hospitalId &&
+            (localStorage.getItem("role") === "Fire" ||
+              localStorage.getItem("role") === "Police") && (
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={onClickHospital}
+              >
+                Find Hospital
+              </Button>
+            )}
         </Box>
       </FormControl>
 
       {/*Request Help*/}
-      {localStorage.getItem('role') === 'Nurse' && (
+      {localStorage.getItem("role") === "Nurse" && (
         <FormControl>
           <Box display="flex" alignItems="center" gap={2}>
             <Typography sx={{ width: 120, flexShrink: 0 }}>
@@ -481,7 +483,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             </Typography>
             <Link
               // href={`/messages?channelId=${hospitalGroupId}&showAlert=true&patient=${patientId}`}
-              style={{ textDecoration: 'none' }}
+              style={{ textDecoration: "none" }}
             >
               <Button
                 fullWidth
@@ -499,28 +501,28 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
       <Box display="flex" justifyContent="center" mt={4}>
         <button
           style={{
-            padding: '10px 20px',
-            backgroundColor: '#1976d2',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '16px',
+            padding: "10px 20px",
+            backgroundColor: "#1976d2",
+            color: "#fff",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontSize: "16px",
           }}
           onClick={() => {
             VisitLogHelper.saveFormData(
               formData,
               incidentId,
               visitTime,
-              getCurrentPatientId() ?? '',
-            )
+              getCurrentPatientId() ?? "",
+            );
           }}
         >
           Save
         </button>
       </Box>
     </div>
-  )
-}
+  );
+};
 
-export default VisitLogForm
+export default VisitLogForm;

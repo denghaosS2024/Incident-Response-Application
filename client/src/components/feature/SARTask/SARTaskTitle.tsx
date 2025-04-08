@@ -1,7 +1,6 @@
-import React from 'react'
-import styles from '../../../styles/SARTaskPage.module.css'
-import {Typography} from "@mui/material";
-
+import React from "react";
+import styles from "../../../styles/SARTaskPage.module.css";
+import { Typography } from "@mui/material";
 
 interface SARTaskTitleProps {
   title: string;
@@ -20,15 +19,11 @@ const SARTaskTitle: React.FC<SARTaskTitleProps> = ({ title, subtitle }) => {
         {title}
       </Typography>
 
-      <Typography
-        variant="subtitle1"
-        align="center"
-        gutterBottom
-      >
+      <Typography variant="subtitle1" align="center" gutterBottom>
         {subtitle}
       </Typography>
     </div>
-  )
-}
+  );
+};
 
-export default SARTaskTitle
+export default SARTaskTitle;

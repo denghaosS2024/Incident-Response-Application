@@ -1,13 +1,13 @@
-import IHospital from '@/models/Hospital'
-import IPatient from '@/models/Patient'
-import { RootState } from '@/redux/store'
-import { Box, CircularProgress, Typography } from '@mui/material'
-import { useSelector } from 'react-redux'
-import HospitalCard from './HospitalCard'
+import IHospital from "@/models/Hospital";
+import IPatient from "@/models/Patient";
+import { RootState } from "@/redux/store";
+import { Box, CircularProgress, Typography } from "@mui/material";
+import { useSelector } from "react-redux";
+import HospitalCard from "./HospitalCard";
 
 interface HospitalListProps {
-  hospitals: IHospital[]
-  draggedPatients: Record<string, IPatient[]>
+  hospitals: IHospital[];
+  draggedPatients: Record<string, IPatient[]>;
 }
 const HospitalList: React.FC<HospitalListProps> = ({
   hospitals,
@@ -15,11 +15,11 @@ const HospitalList: React.FC<HospitalListProps> = ({
 }) => {
   const loading: boolean = useSelector(
     (state: RootState) => state.hospital.loading,
-  )
+  );
 
   const error: string | null = useSelector(
     (state: RootState) => state.hospital.error,
-  )
+  );
 
   if (loading) {
     return (
@@ -31,7 +31,7 @@ const HospitalList: React.FC<HospitalListProps> = ({
       >
         <CircularProgress />
       </Box>
-    )
+    );
   }
 
   if (error) {
@@ -44,7 +44,7 @@ const HospitalList: React.FC<HospitalListProps> = ({
       >
         <Typography color="error">Error: {error}</Typography>
       </Box>
-    )
+    );
   }
 
   return (
@@ -65,7 +65,7 @@ const HospitalList: React.FC<HospitalListProps> = ({
         </Typography>
       )}
     </Box>
-  )
-}
+  );
+};
 
-export default HospitalList
+export default HospitalList;

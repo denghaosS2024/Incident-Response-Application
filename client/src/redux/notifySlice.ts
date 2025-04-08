@@ -1,16 +1,16 @@
-import { PayloadAction } from '@reduxjs/toolkit'
+import { PayloadAction } from "@reduxjs/toolkit";
 
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
 
 /**
  * This slice is used to store the notification states of the app
  */
 export interface NotifyState {
-  hasNewIncident: boolean
-  hasGroupNotification: boolean
-  showIncidentAlert: boolean
-  showMaydayAlert: boolean
-  incidentAlertMessage: string
+  hasNewIncident: boolean;
+  hasGroupNotification: boolean;
+  showIncidentAlert: boolean;
+  showMaydayAlert: boolean;
+  incidentAlertMessage: string;
 }
 
 const initialState: NotifyState = {
@@ -18,30 +18,30 @@ const initialState: NotifyState = {
   hasGroupNotification: false,
   showIncidentAlert: false,
   showMaydayAlert: false,
-  incidentAlertMessage: '',
-}
+  incidentAlertMessage: "",
+};
 
 export const appSlice = createSlice({
-  name: 'app',
+  name: "app",
   initialState,
   reducers: {
     setHasNewIncident: (state, action: PayloadAction<boolean>) => {
-      state.hasNewIncident = action.payload
+      state.hasNewIncident = action.payload;
     },
     setHasGroupNotification: (state, action: PayloadAction<boolean>) => {
-      state.hasGroupNotification = action.payload
+      state.hasGroupNotification = action.payload;
     },
     setShowIncidentAlert: (state, action: PayloadAction<boolean>) => {
-      state.showIncidentAlert = action.payload
+      state.showIncidentAlert = action.payload;
     },
     setShowMaydayAlert: (state, action: PayloadAction<boolean>) => {
-      state.showMaydayAlert = action.payload
+      state.showMaydayAlert = action.payload;
     },
     setIncidentAlertMessage: (state, action: PayloadAction<string>) => {
-      state.incidentAlertMessage = action.payload
+      state.incidentAlertMessage = action.payload;
     },
   },
-})
+});
 
 export const {
   setHasNewIncident,
@@ -49,6 +49,6 @@ export const {
   setShowIncidentAlert,
   setShowMaydayAlert,
   setIncidentAlertMessage,
-} = appSlice.actions
+} = appSlice.actions;
 
-export default appSlice.reducer
+export default appSlice.reducer;

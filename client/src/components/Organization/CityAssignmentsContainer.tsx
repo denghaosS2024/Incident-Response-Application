@@ -1,5 +1,5 @@
-import IIncident from '@/models/Incident'
-import { IRequestError } from '@/utils/request'
+import IIncident from "@/models/Incident";
+import { IRequestError } from "@/utils/request";
 import {
   DirectionsCar,
   ExpandMore,
@@ -7,7 +7,7 @@ import {
   Place,
   RadioButtonChecked,
   RadioButtonUnchecked,
-} from '@mui/icons-material'
+} from "@mui/icons-material";
 import {
   Accordion,
   AccordionDetails,
@@ -26,40 +26,40 @@ import {
   ListItemText,
   Stack,
   Typography,
-} from '@mui/material'
-import { format } from 'date-fns'
-import React, { useEffect, useState } from 'react'
-import request from '../../utils/request'
-import AlertSnackbar from '../common/AlertSnackbar'
-import getRoleIcon from '../common/RoleIcon'
+} from "@mui/material";
+import { format } from "date-fns";
+import React, { useEffect, useState } from "react";
+import request from "../../utils/request";
+import AlertSnackbar from "../common/AlertSnackbar";
+import getRoleIcon from "../common/RoleIcon";
 
 interface Vehicle {
-  _id: string
-  name: string
-  assignedCity: string
+  _id: string;
+  name: string;
+  assignedCity: string;
 }
 
 interface Personnel {
-  _id: string
-  name: string // Username
-  assignedCity: string
-  role: 'Fire' | 'Police'
-  assignedVehicleTimestamp?: string | null
-  assignedCar?: string
-  assignedTruck?: string
+  _id: string;
+  name: string; // Username
+  assignedCity: string;
+  role: "Fire" | "Police";
+  assignedVehicleTimestamp?: string | null;
+  assignedCar?: string;
+  assignedTruck?: string;
 }
 
 interface CityAssignment {
-  cars: Vehicle[]
-  trucks: Vehicle[]
-  personnel: Personnel[]
+  cars: Vehicle[];
+  trucks: Vehicle[];
+  personnel: Personnel[];
 }
 
 interface CityAssignmentsContainerProps {
-  cityName: string
-  data: CityAssignment
+  cityName: string;
+  data: CityAssignment;
   /** Function to refresh data after any assignment changes */
-  refreshData: () => void
+  refreshData: () => void;
 }
 
 const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
@@ -67,32 +67,35 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
   data,
   refreshData,
 }) => {
-  const currentUser = localStorage.getItem('username') ?? ''
+  const currentUser = localStorage.getItem("username") ?? "";
   const currentUserPersonnel = data.personnel.find(
     (person) => person.name === currentUser,
-  )
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null)
-  const [isIncidentCommander, setIsIncidentCommander] = useState<boolean>(false)
-  const currentUsername = localStorage.getItem('username')
+  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
+  const [isIncidentCommander, setIsIncidentCommander] =
+    useState<boolean>(false);
+  const currentUsername = localStorage.getItem("username");
   const checkIncidentCommander = async () => {
     try {
       const incidents: IIncident[] = await request(
         `/api/incidents?commander=${currentUsername}`,
         {
-          method: 'GET',
+          method: "GET",
         },
-      )
+      );
       const isCommander = incidents.some(
-        (incident: IIncident) => incident.commander === currentUsername && incident.incidentState !== 'Closed'
-      )
-      setIsIncidentCommander(isCommander)
+        (incident: IIncident) =>
+          incident.commander === currentUsername &&
+          incident.incidentState !== "Closed",
+      );
+      setIsIncidentCommander(isCommander);
     } catch (error) {
-      console.error('Error fetching incidents:', error)
-      setIsIncidentCommander(false)
+      console.error("Error fetching incidents:", error);
+      setIsIncidentCommander(false);
     }
-  }
+  };
 
   /**
    * Preselect the vehicle based on current assignment
@@ -101,27 +104,27 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
   useEffect(() => {
     if (currentUserPersonnel && currentUserPersonnel.assignedVehicleTimestamp) {
       const assignedVehicleName =
-        currentUserPersonnel.role === 'Fire'
-          ? data.trucks.find(
+        currentUserPersonnel.role === "Fire"
+          ? (data.trucks.find(
               (truck) => truck.name === currentUserPersonnel.assignedTruck,
-            )?.name ?? null
-          : currentUserPersonnel.role === 'Police'
-            ? data.cars.find(
+            )?.name ?? null)
+          : currentUserPersonnel.role === "Police"
+            ? (data.cars.find(
                 (car) => car.name === currentUserPersonnel.assignedCar,
-              )?.name ?? null
-            : null
+              )?.name ?? null)
+            : null;
 
       if (assignedVehicleName) {
-        setSelectedVehicle(assignedVehicleName)
+        setSelectedVehicle(assignedVehicleName);
       } else {
-        setSelectedVehicle(null)
+        setSelectedVehicle(null);
       }
     } else {
-      setSelectedVehicle(null)
+      setSelectedVehicle(null);
     }
 
-    checkIncidentCommander()
-  }, [currentUserPersonnel, data.cars, data.trucks])
+    checkIncidentCommander();
+  }, [currentUserPersonnel, data.cars, data.trucks]);
 
   /**
    * Make a PUT request to /api/personnel/vehicles/release
@@ -129,102 +132,108 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
    */
   const releaseVehicle = async (vehicleName: string) => {
     try {
-      await request('/api/personnel/vehicles/release', {
-        method: 'PUT',
+      await request("/api/personnel/vehicles/release", {
+        method: "PUT",
         body: JSON.stringify({
           personnelName: currentUser,
           vehicleName,
         }),
-      })
-      if (currentUserPersonnel?.role === 'Fire') {
-        await request('/api/trucks/usernames/release', {
-          method: 'PUT',
+      });
+      if (currentUserPersonnel?.role === "Fire") {
+        await request("/api/trucks/usernames/release", {
+          method: "PUT",
           body: JSON.stringify({
             truckName: vehicleName,
             username: currentUser,
           }),
-        })
-      } else if (currentUserPersonnel?.role === 'Police') {
-        await request('/api/cars/usernames/release', {
-          method: 'PUT',
+        });
+      } else if (currentUserPersonnel?.role === "Police") {
+        await request("/api/cars/usernames/release", {
+          method: "PUT",
           body: JSON.stringify({
             carName: vehicleName,
             username: currentUser,
           }),
-        })
+        });
       }
       // After releasing, refresh
-      refreshData()
-      setSelectedVehicle(null)
+      refreshData();
+      setSelectedVehicle(null);
     } catch (error) {
-      console.error('Error releasing vehicle:', error)
+      console.error("Error releasing vehicle:", error);
     }
-  }
+  };
 
   const handleCloseSnackbar = () => {
-    setOpenSnackbar(false)
-  }
+    setOpenSnackbar(false);
+  };
   /**
    * Attempt to assign a new vehicle
    */
   const assignVehicle = async (vehicleName: string) => {
     try {
       let commandingIncident: IIncident | null = null;
-      const response = await request(`/api/incidents?commander=${encodeURIComponent(currentUser)}`)
+      const response = await request(
+        `/api/incidents?commander=${encodeURIComponent(currentUser)}`,
+      );
       if (response.length > 0) {
         commandingIncident = response[0];
       }
       let vehicle;
-      if (currentUserPersonnel?.role === 'Fire') {
-        vehicle = await request(`/api/trucks?name=${encodeURIComponent(vehicleName)}`)
-      } else if (currentUserPersonnel?.role === 'Police') {
-        vehicle = await request(`/api/cars?name=${encodeURIComponent(vehicleName)}`)
+      if (currentUserPersonnel?.role === "Fire") {
+        vehicle = await request(
+          `/api/trucks?name=${encodeURIComponent(vehicleName)}`,
+        );
+      } else if (currentUserPersonnel?.role === "Police") {
+        vehicle = await request(
+          `/api/cars?name=${encodeURIComponent(vehicleName)}`,
+        );
       }
-      await request('/api/personnel/vehicles/', {
-        method: 'PUT',
+      await request("/api/personnel/vehicles/", {
+        method: "PUT",
         body: JSON.stringify({
           personnelName: currentUser,
           commandingIncident: commandingIncident ?? null,
           vehicle,
         }),
-      })
-      if (currentUserPersonnel?.role === 'Fire') {
-        await request('/api/trucks/usernames', {
-          method: 'PUT',
+      });
+      if (currentUserPersonnel?.role === "Fire") {
+        await request("/api/trucks/usernames", {
+          method: "PUT",
           body: JSON.stringify({
             truckName: vehicleName,
             username: currentUser,
             commandingIncident: commandingIncident ?? null,
           }),
-        })
-      } else if (currentUserPersonnel?.role === 'Police') {
-        await request('/api/cars/usernames', {
-          method: 'PUT',
+        });
+      } else if (currentUserPersonnel?.role === "Police") {
+        await request("/api/cars/usernames", {
+          method: "PUT",
           body: JSON.stringify({
             carName: vehicleName,
             username: currentUser,
             commandingIncident: commandingIncident ?? null,
           }),
-        })
+        });
       }
-      await request('/api/incidents/vehicles', {
-        method: 'PUT',
+      await request("/api/incidents/vehicles", {
+        method: "PUT",
         body: JSON.stringify({
           personnel: currentUserPersonnel,
           commandingIncident: commandingIncident ?? null,
           vehicle: vehicle,
         }),
-      })
+      });
       // After assigning, refresh
-      refreshData()
-      setSelectedVehicle(vehicleName)
+      refreshData();
+      setSelectedVehicle(vehicleName);
     } catch (e) {
-      const error = e as IRequestError
-      console.log('Error:', error)
-      setErrorMessage(`Error: ${error.message}`)
-      setOpenSnackbar(true)
+      const error = e as IRequestError;
+      console.log("Error:", error);
+      setErrorMessage(`Error: ${error.message}`);
+      setOpenSnackbar(true);
     }
-  }
+  };
 
   /**
    * Single function to handle user clicking a vehicle (truck or car).
@@ -235,25 +244,27 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
     // If user clicks on the already-selected vehicle, unselect it
     if (vehicleName === selectedVehicle) {
       const assignedVehicle =
-        currentUserPersonnel?.role === 'Fire'
+        currentUserPersonnel?.role === "Fire"
           ? currentUserPersonnel?.assignedTruck
-          : currentUserPersonnel?.assignedCar
+          : currentUserPersonnel?.assignedCar;
 
       if (assignedVehicle) {
         // Prevent the Incident Commander from deselecting their vehicle
         if (isIncidentCommander) {
-          setErrorMessage("As an Incident Commander, you cannot release your assigned vehicle.");
+          setErrorMessage(
+            "As an Incident Commander, you cannot release your assigned vehicle.",
+          );
           setOpenSnackbar(true);
           return;
         }
-        await releaseVehicle(assignedVehicle)
+        await releaseVehicle(assignedVehicle);
       }
-      return
+      return;
     }
 
     // Otherwise, user is assigning a new vehicle
-    await assignVehicle(vehicleName)
-  }
+    await assignVehicle(vehicleName);
+  };
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -261,8 +272,8 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
         <AccordionSummary
           expandIcon={<ExpandMore />}
           sx={{
-            backgroundColor: 'primary.light',
-            color: 'primary.contrastText',
+            backgroundColor: "primary.light",
+            color: "primary.contrastText",
           }}
         >
           <Stack direction="row" spacing={1} alignItems="center">
@@ -284,40 +295,40 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                   avatar={
                     <Avatar
                       sx={{
-                        bgcolor: 'white',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        bgcolor: "white",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
                         padding: 0,
                       }}
                     >
-                      {getRoleIcon('Fire')}
+                      {getRoleIcon("Fire")}
                     </Avatar>
                   }
                   sx={{
-                    backgroundColor: 'error.light',
-                    color: 'error.contrastText',
+                    backgroundColor: "error.light",
+                    color: "error.contrastText",
                   }}
                 />
                 <CardContent>
                   <Typography variant="h6">Personnel</Typography>
-                  {data.personnel.some((p) => p.role === 'Fire') ? (
+                  {data.personnel.some((p) => p.role === "Fire") ? (
                     <List>
                       {data.personnel
-                        .filter((p) => p.role === 'Fire')
+                        .filter((p) => p.role === "Fire")
                         .map((person) => (
                           <ListItem key={person._id}>
                             <ListItemAvatar>
                               <Avatar
                                 sx={{
-                                  bgcolor: 'white',
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
+                                  bgcolor: "white",
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
                                   padding: 0,
                                 }}
                               >
-                                {getRoleIcon('Fire')}
+                                {getRoleIcon("Fire")}
                               </Avatar>
                             </ListItemAvatar>
                             <ListItemText
@@ -329,11 +340,11 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                                             new Date(
                                               person.assignedVehicleTimestamp,
                                             ),
-                                            'MM.dd h:mma',
+                                            "MM.dd h:mma",
                                           )
-                                        : 'N/A'
+                                        : "N/A"
                                     } )`
-                                  : ''
+                                  : ""
                               }`}
                             />
                           </ListItem>
@@ -357,7 +368,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                             {truck.name}
                           </Typography>
 
-                          {currentUserPersonnel?.role === 'Fire' &&
+                          {currentUserPersonnel?.role === "Fire" &&
                             currentUserPersonnel?.assignedCity === cityName && (
                               <FormControlLabel
                                 label=""
@@ -393,40 +404,40 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                   avatar={
                     <Avatar
                       sx={{
-                        bgcolor: 'white',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        bgcolor: "white",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
                         padding: 0,
                       }}
                     >
-                      {getRoleIcon('Police')}
+                      {getRoleIcon("Police")}
                     </Avatar>
                   }
                   sx={{
-                    backgroundColor: 'primary.light',
-                    color: 'primary.contrastText',
+                    backgroundColor: "primary.light",
+                    color: "primary.contrastText",
                   }}
                 />
                 <CardContent>
                   <Typography variant="h6">Personnel</Typography>
-                  {data.personnel.some((p) => p.role === 'Police') ? (
+                  {data.personnel.some((p) => p.role === "Police") ? (
                     <List>
                       {data.personnel
-                        .filter((p) => p.role === 'Police')
+                        .filter((p) => p.role === "Police")
                         .map((person) => (
                           <ListItem key={person._id}>
                             <ListItemAvatar>
                               <Avatar
                                 sx={{
-                                  bgcolor: 'white',
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
+                                  bgcolor: "white",
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
                                   padding: 0,
                                 }}
                               >
-                                {getRoleIcon('Police')}
+                                {getRoleIcon("Police")}
                               </Avatar>
                             </ListItemAvatar>
                             <ListItemText
@@ -438,11 +449,11 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                                             new Date(
                                               person.assignedVehicleTimestamp,
                                             ),
-                                            'MM.dd h:mma',
+                                            "MM.dd h:mma",
                                           )
-                                        : 'N/A'
+                                        : "N/A"
                                     } )`
-                                  : ''
+                                  : ""
                               }`}
                             />
                           </ListItem>
@@ -466,7 +477,7 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
                             {car.name}
                           </Typography>
 
-                          {currentUserPersonnel?.role === 'Police' &&
+                          {currentUserPersonnel?.role === "Police" &&
                             currentUserPersonnel?.assignedCity === cityName && (
                               <FormControlLabel
                                 label=""
@@ -498,14 +509,14 @@ const CityAssignmentsContainer: React.FC<CityAssignmentsContainerProps> = ({
       </Accordion>
       <AlertSnackbar
         open={openSnackbar}
-        message={errorMessage ?? ''}
+        message={errorMessage ?? ""}
         onClose={handleCloseSnackbar}
         severity="error"
         vertical="bottom"
         horizontal="center"
       />
     </Box>
-  )
-}
+  );
+};
 
-export default CityAssignmentsContainer
+export default CityAssignmentsContainer;

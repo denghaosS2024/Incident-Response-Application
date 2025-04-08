@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import IncidentList from '../components/AllocateResource/IncidentList';
-import { DragDropContext, DropResult } from 'react-beautiful-dnd';
-import IIncident, {IncidentPriority, IncidentType} from '../models/Incident';
+import type { Meta, StoryObj } from "@storybook/react";
+import IncidentList from "../components/AllocateResource/IncidentList";
+import { DragDropContext, DropResult } from "react-beautiful-dnd";
+import IIncident, { IncidentPriority, IncidentType } from "../models/Incident";
 
 // Mock for IncidentItem to avoid dependency issues in Storybook
 // jest.mock('./IncidentItem', () => {
@@ -28,25 +28,25 @@ const type: IncidentType = IncidentType.Fire;
 const priority: IncidentPriority = IncidentPriority.Urgent;
 
 const handleDragEnd = (result: DropResult) => {
-  console.log('Drag ended:', result)
-}
+  console.log("Drag ended:", result);
+};
 
 const meta: Meta<typeof IncidentList> = {
-  title: 'Resources/IncidentList',
+  title: "Resources/IncidentList",
   component: IncidentList,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
   decorators: [
     (Story) => (
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div style={{ width: '800px', padding: '20px' }}>
+        <div style={{ width: "800px", padding: "20px" }}>
           <Story />
         </div>
       </DragDropContext>
     ),
   ],
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -56,34 +56,36 @@ type Story = StoryObj<typeof IncidentList>;
 const createSampleIncident = (id: string, hasVehicles: boolean): IIncident => ({
   _id: `sample-id-${id}`,
   incidentId: `INC-${id}`,
-  openingDate: '2023-10-01T10:30:00Z',
+  openingDate: "2023-10-01T10:30:00Z",
   type: type,
   priority: priority,
-  incidentState: 'Active',
-  owner: 'Dispatcher1',
-  commander: 'Commander1',
-  caller: 'John Doe',
-  address: '123 Main St',
+  incidentState: "Active",
+  owner: "Dispatcher1",
+  commander: "Commander1",
+  caller: "John Doe",
+  address: "123 Main St",
   questions: null,
-  assignedVehicles: hasVehicles ? [
-    {
-      type: 'Car',
-      name: `Police Car ${id}A`,
-      usernames: ['Officer Smith', 'Officer Johnson'],
-    },
-    {
-      type: 'Truck',
-      name: `Fire Truck ${id}B`,
-      usernames: ['Firefighter Adams', 'Firefighter Brown'],
-    }
-  ] : [],
+  assignedVehicles: hasVehicles
+    ? [
+        {
+          type: "Car",
+          name: `Police Car ${id}A`,
+          usernames: ["Officer Smith", "Officer Johnson"],
+        },
+        {
+          type: "Truck",
+          name: `Fire Truck ${id}B`,
+          usernames: ["Firefighter Adams", "Firefighter Brown"],
+        },
+      ]
+    : [],
 });
 
 // Create sample data for different scenarios
 const multipleIncidents: IIncident[] = [
-  createSampleIncident('001', true),
-  createSampleIncident('002', false),
-  createSampleIncident('003', true),
+  createSampleIncident("001", true),
+  createSampleIncident("002", false),
+  createSampleIncident("003", true),
 ];
 
 export const WithMultipleIncidents: Story = {
@@ -94,7 +96,7 @@ export const WithMultipleIncidents: Story = {
 
 export const WithSingleIncident: Story = {
   args: {
-    incidents: [createSampleIncident('001', true)],
+    incidents: [createSampleIncident("001", true)],
   },
 };
 

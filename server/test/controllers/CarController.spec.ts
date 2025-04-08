@@ -1,16 +1,16 @@
-import CarController from '../../src/controllers/CarController'
-import Car from '../../src/models/Car'
-import * as TestDatabase from '../utils/TestDatabase'
-import Incident, { IIncident } from '../../src/models/Incident'
+import CarController from "../../src/controllers/CarController";
+import Car from "../../src/models/Car";
+import * as TestDatabase from "../utils/TestDatabase";
+import Incident, { IIncident } from "../../src/models/Incident";
 
-describe('CarController', () => {
+describe("CarController", () => {
   beforeAll(async () => {
-    await TestDatabase.connect()
-  })
+    await TestDatabase.connect();
+  });
 
   afterAll(async () => {
-    await TestDatabase.close()
-  })
+    await TestDatabase.close();
+  });
 
   beforeEach(async () => {
     // Clear the Car collection before each test
@@ -18,309 +18,331 @@ describe('CarController', () => {
   });
 
   const createTestIncident = async (username: string) => {
-          const rawIncident = new Incident({
-              incidentId: `I${username}`,
-              caller: username,
-              openingDate: new Date(),
-              incidentState: 'Waiting',
-              owner: 'System',
-              commander: 'System',
-              incidentCallGroup: null,
-              SarTasks: []
-          })
-  
-          return rawIncident.save()
-      }
+    const rawIncident = new Incident({
+      incidentId: `I${username}`,
+      caller: username,
+      openingDate: new Date(),
+      incidentState: "Waiting",
+      owner: "System",
+      commander: "System",
+      incidentCallGroup: null,
+      SarTasks: [],
+    });
 
-  it('should create a car with a valid name', async () => {
-    const car = await CarController.createCar('MyCar')
-    expect(car.name).toBe('MyCar')
-    expect(car._id).toBeDefined()
-  })
+    return rawIncident.save();
+  };
 
-  it('should not create a car with an empty name', async () => {
-    expect.assertions(1)
+  it("should create a car with a valid name", async () => {
+    const car = await CarController.createCar("MyCar");
+    expect(car.name).toBe("MyCar");
+    expect(car._id).toBeDefined();
+  });
+
+  it("should not create a car with an empty name", async () => {
+    expect.assertions(1);
     try {
-      await CarController.createCar('')
+      await CarController.createCar("");
     } catch (e) {
-      const error = e as Error
-      expect(error.message).toBe('Car name is required')
+      const error = e as Error;
+      expect(error.message).toBe("Car name is required");
     }
-  })
+  });
 
-  it('should retrieve all cars sorted by name', async () => {
+  it("should retrieve all cars sorted by name", async () => {
     // Create a couple of cars for testing
-    await CarController.createCar('ZCar')
-    await CarController.createCar('ACar')
+    await CarController.createCar("ZCar");
+    await CarController.createCar("ACar");
 
-    const cars = await CarController.getAllCars()
-    expect(cars.length).toBeGreaterThanOrEqual(2)
+    const cars = await CarController.getAllCars();
+    expect(cars.length).toBeGreaterThanOrEqual(2);
 
     // Check if the list is sorted by name
-    const names = cars.map((c) => c.name)
+    const names = cars.map((c) => c.name);
     for (let i = 0; i < names.length - 1; i++) {
-      expect(names[i].localeCompare(names[i + 1])).toBeLessThanOrEqual(0)
+      expect(names[i].localeCompare(names[i + 1])).toBeLessThanOrEqual(0);
     }
-  })
+  });
 
-  it('should remove a car by ID', async () => {
-    const newCar = await CarController.createCar('TempCar')
-    const id = newCar._id.toString()
+  it("should remove a car by ID", async () => {
+    const newCar = await CarController.createCar("TempCar");
+    const id = newCar._id.toString();
 
-    await CarController.removeCarById(id)
+    await CarController.removeCarById(id);
 
-    const found = await Car.findById(id)
-    expect(found).toBeNull()
-  })
+    const found = await Car.findById(id);
+    expect(found).toBeNull();
+  });
 
-  describe('getAvailableCarsWithResponder', () => {  
-    it('should return cars that are not assigned to incidents and have responders', async () => {
+  describe("getAvailableCarsWithResponder", () => {
+    it("should return cars that are not assigned to incidents and have responders", async () => {
       // Set up test data
       const testCars = [
         // Should be returned: no assigned incident and has responders
         {
-          name: 'Police Car 1',
-          usernames: ['Officer Smith', 'Officer Johnson'],
+          name: "Police Car 1",
+          usernames: ["Officer Smith", "Officer Johnson"],
           assignedIncident: null,
-          assignedCity: 'New York',
+          assignedCity: "New York",
         },
         // Should be returned: no assigned incident and has responders
         {
-          name: 'Police Car 2',
-          usernames: ['Officer Williams'],
+          name: "Police Car 2",
+          usernames: ["Officer Williams"],
           assignedIncident: null,
-          assignedCity: 'New York',
+          assignedCity: "New York",
         },
         // Should NOT be returned: has assigned incident
         {
-          name: 'Police Car 3',
-          usernames: ['Officer Brown', 'Officer Davis'],
-          assignedIncident: 'INC-001',
-          assignedCity: 'New York',
+          name: "Police Car 3",
+          usernames: ["Officer Brown", "Officer Davis"],
+          assignedIncident: "INC-001",
+          assignedCity: "New York",
         },
         // Should NOT be returned: no responders
         {
-          name: 'Police Car 4',
+          name: "Police Car 4",
           usernames: [],
           assignedIncident: null,
-          assignedCity: 'New York',
+          assignedCity: "New York",
         },
         // Should NOT be returned: empty username array
         {
-          name: 'Police Car 5',
+          name: "Police Car 5",
           usernames: [],
           assignedIncident: null,
-          assignedCity: 'New York',
-        }
+          assignedCity: "New York",
+        },
       ];
-  
+
       // Insert the test cars into the database
       await Car.insertMany(testCars);
-  
+
       // Call the method being tested
       const availableCars = await CarController.getAvailableCarsWithResponder();
-  
+
       // Assertions
       expect(availableCars).toBeDefined();
       expect(Array.isArray(availableCars)).toBe(true);
       expect(availableCars.length).toBe(2);
-  
+
       // Check that the returned cars are the expected ones
-      const carNames = availableCars.map(car => car.name).sort((a, b) => a.localeCompare(b));
-      expect(carNames).toEqual(['Police Car 1', 'Police Car 2'].sort((a, b) => a.localeCompare(b)));
-  
+      const carNames = availableCars
+        .map((car) => car.name)
+        .sort((a, b) => a.localeCompare(b));
+      expect(carNames).toEqual(
+        ["Police Car 1", "Police Car 2"].sort((a, b) => a.localeCompare(b)),
+      );
+
       // Check that the cars that should be excluded are not in the result
-      expect(carNames).not.toContain('Police Car 3');
-      expect(carNames).not.toContain('Police Car 4');
-      expect(carNames).not.toContain('Police Car 5');
-  
+      expect(carNames).not.toContain("Police Car 3");
+      expect(carNames).not.toContain("Police Car 4");
+      expect(carNames).not.toContain("Police Car 5");
+
       // Verify that results are sorted by name
-      expect(availableCars[0].name.localeCompare(availableCars[1].name)).toBeLessThanOrEqual(0);
+      expect(
+        availableCars[0].name.localeCompare(availableCars[1].name),
+      ).toBeLessThanOrEqual(0);
     });
 
-    it('should return an empty array when no cars match the criteria', async () => {
+    it("should return an empty array when no cars match the criteria", async () => {
       // Insert cars that don't match the criteria
       const testCars = [
         {
-          name: 'Police Car 1',
+          name: "Police Car 1",
           usernames: [],
           assignedIncident: null,
-          assignedCity: 'New York',
+          assignedCity: "New York",
         },
         {
-          name: 'Police Car 2',
-          usernames: ['Officer Williams'],
-          assignedIncident: 'INC-002',
-          assignedCity: 'New York',
+          name: "Police Car 2",
+          usernames: ["Officer Williams"],
+          assignedIncident: "INC-002",
+          assignedCity: "New York",
         },
       ];
-  
+
       await Car.insertMany(testCars);
-  
+
       // Call the method being tested
       const availableCars = await CarController.getAvailableCarsWithResponder();
-  
+
       // Assertions
       expect(availableCars).toBeDefined();
       expect(Array.isArray(availableCars)).toBe(true);
       expect(availableCars.length).toBe(0);
     });
 
-    it('should throw an error when database operation fails', async () => {
+    it("should throw an error when database operation fails", async () => {
       // Mock the Car.find method to throw an error
-      jest.spyOn(Car, 'find').mockImplementationOnce(() => {
-        throw new Error('Database error');
+      jest.spyOn(Car, "find").mockImplementationOnce(() => {
+        throw new Error("Database error");
       });
-  
+
       // Assertions
-      await expect(CarController.getAvailableCarsWithResponder()).rejects.toThrow('Database error');
+      await expect(
+        CarController.getAvailableCarsWithResponder(),
+      ).rejects.toThrow("Database error");
     });
 
-    it('should add the username to the car when a responder is added', async () => {
-      const testCar = 
-        {
-          name: 'Police Car 1',
-          usernames: [],
-          assignedIncident: null,
-          assignedCity: 'New York',
-        };
+    it("should add the username to the car when a responder is added", async () => {
+      const testCar = {
+        name: "Police Car 1",
+        usernames: [],
+        assignedIncident: null,
+        assignedCity: "New York",
+      };
       await Car.create(testCar);
-      const updatedCar = await CarController.addUsernameToCar('Police Car 1', 'Officer Smith', null);
+      const updatedCar = await CarController.addUsernameToCar(
+        "Police Car 1",
+        "Officer Smith",
+        null,
+      );
       expect(updatedCar).toBeDefined();
-      expect(updatedCar?.usernames).toContain('Officer Smith');
+      expect(updatedCar?.usernames).toContain("Officer Smith");
     });
 
-    it ('should add the username and assign the car to incident when a commander is added', async () => {
-      const testCar = 
-        {
-          name: 'Police Car 1',
-          usernames: [],
-          assignedIncident: null,
-          assignedCity: 'New York',
-        };
-      const commandingIncident = await Incident.create({ incidentId: 'IJohn', caller: 'John', openingDate: new Date(), incidentState: 'Assigned', owner: 'officer_john', 
-            commander: 'officer_john', address: "", type: "U", priority: "E", incidentCallGroup: null})
+    it("should add the username and assign the car to incident when a commander is added", async () => {
+      const testCar = {
+        name: "Police Car 1",
+        usernames: [],
+        assignedIncident: null,
+        assignedCity: "New York",
+      };
+      const commandingIncident = await Incident.create({
+        incidentId: "IJohn",
+        caller: "John",
+        openingDate: new Date(),
+        incidentState: "Assigned",
+        owner: "officer_john",
+        commander: "officer_john",
+        address: "",
+        type: "U",
+        priority: "E",
+        incidentCallGroup: null,
+      });
       await Car.create(testCar);
-      const updatedCar = await CarController.addUsernameToCar('Police Car 1', 'Officer Smith', commandingIncident);
+      const updatedCar = await CarController.addUsernameToCar(
+        "Police Car 1",
+        "Officer Smith",
+        commandingIncident,
+      );
       expect(updatedCar).toBeDefined();
-      expect(updatedCar?.usernames).toContain('Officer Smith');
-      expect(updatedCar?.assignedIncident).toBe('IJohn');
+      expect(updatedCar?.usernames).toContain("Officer Smith");
+      expect(updatedCar?.assignedIncident).toBe("IJohn");
     });
 
-    it('should be able to get car by name', async () => {
-      const testCar = 
-        {
-          name: 'Police Car 1',
-          usernames: [],
-          assignedIncident: null,
-          assignedCity: 'New York',
-        };
+    it("should be able to get car by name", async () => {
+      const testCar = {
+        name: "Police Car 1",
+        usernames: [],
+        assignedIncident: null,
+        assignedCity: "New York",
+      };
       await Car.create(testCar);
-      const car = await CarController.getCarByName('Police Car 1');
+      const car = await CarController.getCarByName("Police Car 1");
       expect(car).toBeDefined();
-      expect(car?.name).toBe('Police Car 1');
-      expect(car?.assignedCity).toBe('New York');
+      expect(car?.name).toBe("Police Car 1");
+      expect(car?.assignedCity).toBe("New York");
     });
 
-    it('should be able to update incident in a car', async () => {
-      const testCar = 
-        {
-          name: 'Police1',
-          usernames: [],
-          assignedIncident: '1234',
-          assignedCity: 'New York',
-        };
+    it("should be able to update incident in a car", async () => {
+      const testCar = {
+        name: "Police1",
+        usernames: [],
+        assignedIncident: "1234",
+        assignedCity: "New York",
+      };
       await Car.create(testCar);
-      const car = await CarController.updateIncident('Police1','5678');
+      const car = await CarController.updateIncident("Police1", "5678");
       expect(car).toBeDefined();
-      expect(car?.name).toBe('Police1');
-      expect(car?.assignedIncident).toBe('5678');
+      expect(car?.name).toBe("Police1");
+      expect(car?.assignedIncident).toBe("5678");
     });
   });
 
-  describe('CarController.addUsernameToCar', () => {
-    it('should add a username to a car without a commanding incident', async () => {
+  describe("CarController.addUsernameToCar", () => {
+    it("should add a username to a car without a commanding incident", async () => {
       // Create a test car
-      const carName = 'Test Car';
+      const carName = "Test Car";
       await Car.create({
         name: carName,
-        type: 'Car',
-        usernames: ['Existing User']
+        type: "Car",
+        usernames: ["Existing User"],
       });
-  
+
       // Call the controller method
-      const username = 'New User';
+      const username = "New User";
       const updatedCar = await CarController.addUsernameToCar(
         carName,
         username,
-        null
+        null,
       );
-  
+
       // Assertions
       expect(updatedCar).toBeDefined();
       expect(updatedCar!.name).toBe(carName);
-      expect(updatedCar!.usernames).toContain('Existing User');
+      expect(updatedCar!.usernames).toContain("Existing User");
       expect(updatedCar!.usernames).toContain(username);
     });
-  
-    it('should add a username to a car and assign it to an incident when commanding incident is provided', async () => {
+
+    it("should add a username to a car and assign it to an incident when commanding incident is provided", async () => {
       // Create a test car
-      const carName = 'Police Car';
+      const carName = "Police Car";
       await Car.create({
         name: carName,
-        type: 'Car',
-        usernames: []
+        type: "Car",
+        usernames: [],
       });
-  
+
       // Create a test incident
-      const incident = await createTestIncident('Officer Smith');
-  
+      const incident = await createTestIncident("Officer Smith");
+
       // Call the controller method
-      const username = 'Officer Smith';
+      const username = "Officer Smith";
       const updatedCar = await CarController.addUsernameToCar(
         carName,
         username,
-        incident.toObject() as IIncident
+        incident.toObject() as IIncident,
       );
-  
+
       // Assertions
       expect(updatedCar).toBeDefined();
       expect(updatedCar!.name).toBe(carName);
       expect(updatedCar!.usernames).toContain(username);
       expect(updatedCar!.assignedIncident).toBe(incident.incidentId); // Incident should be assigned
     });
-  
-    it('should throw an error when the car does not exist', async () => {
+
+    it("should throw an error when the car does not exist", async () => {
       // Try to add a username to a non-existent car
-      const nonExistentCarName = 'Non-Existent Car';
-      const username = 'Test User';
-  
+      const nonExistentCarName = "Non-Existent Car";
+      const username = "Test User";
+
       // Call the controller method and expect it to throw
       await expect(
-        CarController.addUsernameToCar(nonExistentCarName, username, null)
+        CarController.addUsernameToCar(nonExistentCarName, username, null),
       ).rejects.toThrow(`Car with name '${nonExistentCarName}' does not exist`);
     });
-  
-    it('should not add duplicate usernames in cars', async () => {
+
+    it("should not add duplicate usernames in cars", async () => {
       // Create a test car
-      const carName = 'Unique Users Car';
-      const username = 'Duplicate User';
+      const carName = "Unique Users Car";
+      const username = "Duplicate User";
       await Car.create({
         name: carName,
-        type: 'Car',
-        usernames: [username] // Username already exists
+        type: "Car",
+        usernames: [username], // Username already exists
       });
-  
+
       // Call the controller method with the same username
       const updatedCar = await CarController.addUsernameToCar(
         carName,
         username,
-        null
+        null,
       );
-  
+
       // Assertions
       expect(updatedCar).toBeDefined();
       expect(updatedCar!.usernames).toContain(username);
     });
   });
-})
+});

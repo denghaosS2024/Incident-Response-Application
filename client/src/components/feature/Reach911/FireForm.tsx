@@ -8,37 +8,36 @@ import {
   SelectChangeEvent,
   TextField,
   Typography,
-} from '@mui/material'
+} from "@mui/material";
 
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import IIncident from '../../../models/Incident'
-import { loadContacts } from '../../../redux/contactSlice'
-import { updateIncident } from '../../../redux/incidentSlice'
-import { AppDispatch, RootState } from '../../../redux/store'
-import { FireQuestions } from '../../../utils/types'
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import IIncident from "../../../models/Incident";
+import { loadContacts } from "../../../redux/contactSlice";
+import { updateIncident } from "../../../redux/incidentSlice";
+import { AppDispatch, RootState } from "../../../redux/store";
+import { FireQuestions } from "../../../utils/types";
 
 const FireForm: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>();
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
-  )
-  
-  const fireQuestions = (incident.questions as FireQuestions) ?? {}
+  );
 
-  const fireType = fireQuestions.fireType ?? ''
-  const hasSmoke = fireQuestions.hasSmoke ?? false
-  const hasFlames = fireQuestions.hasFlames ?? false
-  const hasHazards = fireQuestions.hasHazards ?? false
-  const numPeople = fireQuestions.numPeople ?? 0
-  const otherDetails = fireQuestions.otherDetails ?? ''
+  const fireQuestions = (incident.questions as FireQuestions) ?? {};
 
-  const [numPeopleError, setnumPeopleError] = useState<string>('')
+  const fireType = fireQuestions.fireType ?? "";
+  const hasSmoke = fireQuestions.hasSmoke ?? false;
+  const hasFlames = fireQuestions.hasFlames ?? false;
+  const hasHazards = fireQuestions.hasHazards ?? false;
+  const numPeople = fireQuestions.numPeople ?? 0;
+  const otherDetails = fireQuestions.otherDetails ?? "";
+
+  const [numPeopleError, setnumPeopleError] = useState<string>("");
 
   useEffect(() => {
-    dispatch(loadContacts())
-  }, [dispatch])
-
+    dispatch(loadContacts());
+  }, [dispatch]);
 
   // When any input changes, add the changes to the incident slice
   const onChange = (
@@ -47,7 +46,7 @@ const FireForm: React.FC = () => {
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
       | SelectChangeEvent<string>,
   ) => {
-    const { value } = e.target as HTMLInputElement
+    const { value } = e.target as HTMLInputElement;
 
     dispatch(
       updateIncident({
@@ -57,24 +56,24 @@ const FireForm: React.FC = () => {
           [field]: value,
         } as FireQuestions,
       }),
-    )
+    );
 
     // Validate only the changed field
-    validateField(field, value)
-  }
+    validateField(field, value);
+  };
 
   // Validates field to set certain error messages
   const validateField = (field: string, value: string) => {
-    if (field === 'numPeople') {
-      const parsedValue = Number(value)
+    if (field === "numPeople") {
+      const parsedValue = Number(value);
 
       if (parsedValue && parsedValue <= 0) {
-        setnumPeopleError('Enter a positive number')
+        setnumPeopleError("Enter a positive number");
       } else {
-        setnumPeopleError('')
+        setnumPeopleError("");
       }
     }
-  }
+  };
 
   return (
     <>
@@ -95,7 +94,7 @@ const FireForm: React.FC = () => {
               aria-labelledby="fireType-label"
               name="fireType-radio-buttons-group"
               value={fireType}
-              onChange={(e) => onChange('fireType', e)}
+              onChange={(e) => onChange("fireType", e)}
             >
               <FormControlLabel
                 value="structure fire"
@@ -120,7 +119,7 @@ const FireForm: React.FC = () => {
               aria-labelledby="hasSmoke-label"
               name="hasSmoke-radio-buttons-group"
               value={hasSmoke}
-              onChange={(e) => onChange('hasSmoke', e)}
+              onChange={(e) => onChange("hasSmoke", e)}
             >
               <FormControlLabel value="yes" control={<Radio />} label="Yes" />
               <FormControlLabel value="no" control={<Radio />} label="No" />
@@ -137,7 +136,7 @@ const FireForm: React.FC = () => {
               aria-labelledby="hasFlames-label"
               name="hasFlames-radio-buttons-group"
               value={hasFlames}
-              onChange={(e) => onChange('hasFlames', e)}
+              onChange={(e) => onChange("hasFlames", e)}
             >
               <FormControlLabel value="yes" control={<Radio />} label="Yes" />
               <FormControlLabel value="no" control={<Radio />} label="No" />
@@ -156,7 +155,7 @@ const FireForm: React.FC = () => {
               aria-labelledby="hasHazards-label"
               name="hasHazards-radio-buttons-group"
               value={hasHazards}
-              onChange={(e) => onChange('hasHazards', e)}
+              onChange={(e) => onChange("hasHazards", e)}
             >
               <FormControlLabel value="yes" control={<Radio />} label="Yes" />
               <FormControlLabel value="no" control={<Radio />} label="No" />
@@ -167,14 +166,13 @@ const FireForm: React.FC = () => {
         {/**Number of people in fire perimeter */}
         <Box
           sx={{
-            display: 'flex',
-            maxWidth: '500px',
-            width: '100%',
-            alignItems: 'start',
-            color: 'rgba(0, 0, 0, 0.6)',
+            display: "flex",
+            maxWidth: "500px",
+            width: "100%",
+            alignItems: "start",
+            color: "rgba(0, 0, 0, 0.6)",
           }}
         >
-          
           <Typography>
             What is the number of people within the fire perimeter?
           </Typography>
@@ -191,13 +189,13 @@ const FireForm: React.FC = () => {
             helperText={numPeopleError}
             InputProps={{
               inputProps: {
-                inputMode: 'numeric', // Forces numeric keyboard on iOS
-                pattern: '[0-9]*', // Ensures only numbers are entered
+                inputMode: "numeric", // Forces numeric keyboard on iOS
+                pattern: "[0-9]*", // Ensures only numbers are entered
                 max: 999,
                 min: 1,
               },
             }}
-            onChange={(e) => onChange('numPeople', e)}
+            onChange={(e) => onChange("numPeople", e)}
           />
         </Box>
 
@@ -209,12 +207,12 @@ const FireForm: React.FC = () => {
             fullWidth
             multiline
             value={otherDetails}
-            onChange={(e) => onChange('otherDetails', e)}
+            onChange={(e) => onChange("otherDetails", e)}
           />
         </Box>
       </Box>
     </>
-  )
-}
+  );
+};
 
-export default FireForm
+export default FireForm;

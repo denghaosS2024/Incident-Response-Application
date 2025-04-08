@@ -1,40 +1,40 @@
-import mongoose, { Document, InferSchemaType, Schema } from 'mongoose'
+import mongoose, { Document, InferSchemaType, Schema } from "mongoose";
 
 const EmegencyContactSchema: Schema = new Schema({
   name: { type: String, required: true },
   phone: { type: String, required: true },
   email: { type: String, required: true },
-})
+});
 
-type IEmergencyContact = InferSchemaType<typeof EmegencyContactSchema>
+type IEmergencyContact = InferSchemaType<typeof EmegencyContactSchema>;
 
 export interface IProfile extends Document {
-  userId: mongoose.Types.ObjectId
-  name: string
-  dob: Date
-  sex: 'Female' | 'Male' | 'Other'
-  address: string
-  phone: string
-  email: string
+  userId: mongoose.Types.ObjectId;
+  name: string;
+  dob: Date;
+  sex: "Female" | "Male" | "Other";
+  address: string;
+  phone: string;
+  email: string;
   medicalInfo: {
-    condition: string
-    drugs: string
-    allergies: string
-  }
-  emergencyContacts: IEmergencyContact[]
+    condition: string;
+    drugs: string;
+    allergies: string;
+  };
+  emergencyContacts: IEmergencyContact[];
 }
 
 const ProfileSchema = new Schema<IProfile>(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
       unique: true,
     },
     name: { type: String, required: true },
     dob: { type: Date, required: true },
-    sex: { type: String, enum: ['Female', 'Male', 'Other'], required: true },
+    sex: { type: String, enum: ["Female", "Male", "Other"], required: true },
     address: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String, required: true },
@@ -46,6 +46,6 @@ const ProfileSchema = new Schema<IProfile>(
     emergencyContacts: { type: [EmegencyContactSchema], required: false },
   },
   { timestamps: true },
-)
+);
 
-export default mongoose.model<IProfile>('Profile', ProfileSchema)
+export default mongoose.model<IProfile>("Profile", ProfileSchema);

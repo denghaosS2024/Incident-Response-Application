@@ -1,29 +1,28 @@
-import React from 'react'
-import { Box, Typography, Paper } from '@mui/material'
-
+import React from "react";
+import { Box, Typography, Paper } from "@mui/material";
 
 /**
  * Props for the FEMAMarker component
  */
 interface FEMAMarkerProps {
   /** Text for top side */
-  top?: string
+  top?: string;
   /** Text for right side */
-  right?: string
+  right?: string;
   /** Text for bottom side */
-  bottom?: string
+  bottom?: string;
   /** Text for left side */
-  left?: string
+  left?: string;
   /** Size of the marker in pixels */
-  size?: number
+  size?: number;
   /** Stroke width of the X in pixels */
-  strokeWidth?: number
+  strokeWidth?: number;
   /** Color of the X */
-  strokeColor?: string
+  strokeColor?: string;
   /** Color of the text */
-  textColor?: string
+  textColor?: string;
   /** Background color of the marker */
-  backgroundColor?: string
+  backgroundColor?: string;
 }
 
 /**
@@ -31,24 +30,24 @@ interface FEMAMarkerProps {
  * If only left is provided, only displays a diagonal line from top-left to bottom-right
  */
 const FEMAMarker: React.FC<FEMAMarkerProps> = ({
-     top = '',
-     right = '',
-     bottom = '',
-     left = '',
-     size = 200,
-     strokeWidth = 6,
-     strokeColor = '#FF0000',
-     textColor = '#000000',
-     backgroundColor = '#FFFFFF',
-   }) => {
+  top = "",
+  right = "",
+  bottom = "",
+  left = "",
+  size = 200,
+  strokeWidth = 6,
+  strokeColor = "#FF0000",
+  textColor = "#000000",
+  backgroundColor = "#FFFFFF",
+}) => {
   // Calculate padding based on size for consistent proportions
-  const padding = size * 0.1
+  const padding = size * 0.1;
 
   // Determine if we should only show a single diagonal line (only top has content)
-  const showOnlyDiagonal = left && !top && !right && !bottom
+  const showOnlyDiagonal = left && !top && !right && !bottom;
 
   // Font size based on marker size for responsive text
-  const fontSize = size * 0.06
+  const fontSize = size * 0.06;
 
   return (
     <Paper
@@ -57,31 +56,31 @@ const FEMAMarker: React.FC<FEMAMarkerProps> = ({
         width: size,
         height: size,
         backgroundColor,
-        position: 'relative',
+        position: "relative",
         padding: `${padding}px`,
-        boxSizing: 'border-box',
+        boxSizing: "border-box",
       }}
     >
       {/* Diagonal line from top-left to bottom-right */}
       <Box
         sx={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
           width: size,
           height: size,
-          overflow: 'visible',
-          '&::before': {
+          overflow: "visible",
+          "&::before": {
             content: '""',
-            position: 'absolute',
+            position: "absolute",
             width: Math.sqrt(2) * size, // Length for a full diagonal across the square
             height: strokeWidth,
             backgroundColor: strokeColor,
-            transformOrigin: 'top left',
-            transform: 'rotate(45deg)',
+            transformOrigin: "top left",
+            transform: "rotate(45deg)",
             top: 0,
             left: 0,
-          }
+          },
         }}
       />
 
@@ -89,23 +88,23 @@ const FEMAMarker: React.FC<FEMAMarkerProps> = ({
       {!showOnlyDiagonal && (
         <Box
           sx={{
-            position: 'absolute',
+            position: "absolute",
             top: 0,
             left: 0,
             width: size,
             height: size,
-            overflow: 'visible',
-            '&::before': {
+            overflow: "visible",
+            "&::before": {
               content: '""',
-              position: 'absolute',
+              position: "absolute",
               width: Math.sqrt(2) * size, // Length for a full diagonal across the square
               height: strokeWidth,
               backgroundColor: strokeColor,
-              transformOrigin: 'top right',
-              transform: 'rotate(-45deg)',
+              transformOrigin: "top right",
+              transform: "rotate(-45deg)",
               top: 0,
               right: 0,
-            }
+            },
           }}
         />
       )}
@@ -114,17 +113,17 @@ const FEMAMarker: React.FC<FEMAMarkerProps> = ({
       {!showOnlyDiagonal && top && (
         <Typography
           sx={{
-            position: 'absolute',
-            top: padding - (fontSize / 2),
-            left: '50%',
-            transform: 'translateX(-50%)',
+            position: "absolute",
+            top: padding - fontSize / 2,
+            left: "50%",
+            transform: "translateX(-50%)",
             color: textColor,
-            fontWeight: 'bold',
+            fontWeight: "bold",
             fontSize: fontSize,
-            padding: '0 8px',
+            padding: "0 8px",
             // backgroundColor,
             zIndex: 2,
-            textAlign: 'center',
+            textAlign: "center",
           }}
         >
           {top}
@@ -135,18 +134,18 @@ const FEMAMarker: React.FC<FEMAMarkerProps> = ({
       {!showOnlyDiagonal && right && (
         <Typography
           sx={{
-            position: 'absolute',
+            position: "absolute",
             right: padding,
-            left: '65%',
-            top: '50%',
-            transform: 'translateY(-50%)',
+            left: "65%",
+            top: "50%",
+            transform: "translateY(-50%)",
             color: textColor,
-            fontWeight: 'bold',
+            fontWeight: "bold",
             fontSize: fontSize,
             // padding: '0 8px',
             // backgroundColor,
             zIndex: 2,
-            textAlign: 'center',
+            textAlign: "center",
           }}
         >
           {right}
@@ -157,17 +156,17 @@ const FEMAMarker: React.FC<FEMAMarkerProps> = ({
       {!showOnlyDiagonal && bottom && (
         <Typography
           sx={{
-            position: 'absolute',
-            bottom: padding - (fontSize / 2),
-            left: '50%',
-            transform: 'translateX(-50%)',
+            position: "absolute",
+            bottom: padding - fontSize / 2,
+            left: "50%",
+            transform: "translateX(-50%)",
             color: textColor,
-            fontWeight: 'bold',
+            fontWeight: "bold",
             fontSize: fontSize,
-            padding: '0 8px',
+            padding: "0 8px",
             // backgroundColor,
             zIndex: 2,
-            textAlign: 'center',
+            textAlign: "center",
           }}
         >
           {bottom}
@@ -178,18 +177,18 @@ const FEMAMarker: React.FC<FEMAMarkerProps> = ({
       {left && (
         <Typography
           sx={{
-            position: 'absolute',
+            position: "absolute",
             // left: padding,
-            right: '65%',
-            top: '50%',
-            transform: 'translateY(-50%)',
+            right: "65%",
+            top: "50%",
+            transform: "translateY(-50%)",
             color: textColor,
-            fontWeight: 'bold',
+            fontWeight: "bold",
             fontSize: fontSize,
             // padding: '0 8px',
             // backgroundColor,
             zIndex: 2,
-            textAlign: 'center',
+            textAlign: "center",
           }}
         >
           {left}
@@ -199,4 +198,4 @@ const FEMAMarker: React.FC<FEMAMarkerProps> = ({
   );
 };
 
-export default FEMAMarker
+export default FEMAMarker;

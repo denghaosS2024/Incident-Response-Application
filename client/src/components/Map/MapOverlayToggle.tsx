@@ -1,13 +1,13 @@
-import LayersIcon from '@mui/icons-material/Layers'
-import LayersClearIcon from '@mui/icons-material/LayersClear'
-import IconButton from '@mui/material/IconButton'
+import LayersIcon from "@mui/icons-material/Layers";
+import LayersClearIcon from "@mui/icons-material/LayersClear";
+import IconButton from "@mui/material/IconButton";
 
 export default function MapOverlayToggle({
   isVisible,
   onToggle,
 }: {
-  isVisible: boolean
-  onToggle: () => void
+  isVisible: boolean;
+  onToggle: () => void;
 }) {
   return (
     <IconButton onClick={onToggle}>
@@ -17,5 +17,5 @@ export default function MapOverlayToggle({
         <LayersIcon fontSize="small" />
       )}
     </IconButton>
-  )
+  );
 }

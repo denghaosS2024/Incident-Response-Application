@@ -1,7 +1,7 @@
-import React from 'react';
-import { Card, CardContent, List } from '@mui/material';
-import IIncident from '../../models/Incident';
-import IncidentItem from './IncidentItem';
+import React from "react";
+import { Card, CardContent, List } from "@mui/material";
+import IIncident from "../../models/Incident";
+import IncidentItem from "./IncidentItem";
 
 interface IncidentListProps {
   incidents: IIncident[];
@@ -9,7 +9,7 @@ interface IncidentListProps {
 
 const IncidentList: React.FC<IncidentListProps> = ({ incidents }) => {
   const sortedIncidents = [...incidents].sort((a, b) =>
-    a.incidentId.localeCompare(b.incidentId)
+    a.incidentId.localeCompare(b.incidentId),
   );
 
   return (

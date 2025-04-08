@@ -6,16 +6,16 @@
  */
 
 export enum ROLES {
-  CITIZEN = 'Citizen',
-  DISPATCH = 'Dispatch',
-  POLICE = 'Police',
-  FIRE = 'Fire',
-  NURSE = 'Nurse',
-  ADMINISTRATOR = 'Administrator',
+  CITIZEN = "Citizen",
+  DISPATCH = "Dispatch",
+  POLICE = "Police",
+  FIRE = "Fire",
+  NURSE = "Nurse",
+  ADMINISTRATOR = "Administrator",
 }
 
 export const isValidRole = (role: string): role is ROLES => {
-  return Object.values(ROLES).includes(role as ROLES)
-}
+  return Object.values(ROLES).includes(role as ROLES);
+};
 
-export default ROLES
+export default ROLES;

@@ -1,10 +1,10 @@
 // ChannelRouter handles operations related to channels, such as creating, listing, and appending messages.
 // It interacts with the Channel and User models and manages user connections.
-import { Router } from 'express'
-import { Types } from 'mongoose'
+import { Router } from "express";
+import { Types } from "mongoose";
 
-import ChannelController from '../controllers/ChannelController'
-import Channel from '../models/Channel'
+import ChannelController from "../controllers/ChannelController";
+import Channel from "../models/Channel";
 
 export default Router()
   /**
@@ -46,18 +46,18 @@ export default Router()
    *                 message:
    *                   type: string
    */
-  .delete('/', async (request, response) => {
-    const { name } = request.body as { name: string }
+  .delete("/", async (request, response) => {
+    const { name } = request.body as { name: string };
     if (!name) {
-      return response.status(400).send({ message: 'Channel name is required' })
+      return response.status(400).send({ message: "Channel name is required" });
     }
 
     try {
-      await ChannelController.delete(name)
-      return response.send({ message: `Channel(${name}) deleted` })
+      await ChannelController.delete(name);
+      return response.send({ message: `Channel(${name}) deleted` });
     } catch (e) {
-      const error = e as Error
-      return response.status(400).send({ message: error.message })
+      const error = e as Error;
+      return response.status(400).send({ message: error.message });
     }
   })
 
@@ -102,17 +102,17 @@ export default Router()
    *                 message:
    *                   type: string
    */
-  .post('/911', async (request, response) => {
-    const { username, userId } = request.body
+  .post("/911", async (request, response) => {
+    const { username, userId } = request.body;
     try {
       const channel = await ChannelController.create911Channel(
         username,
         new Types.ObjectId(userId),
-      )
-      response.status(201).send(channel)
+      );
+      response.status(201).send(channel);
     } catch (e) {
-      const error = e as Error
-      response.status(400).send({ message: error.message })
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
     }
   })
 
@@ -145,14 +145,14 @@ export default Router()
    * @returns {Object} The created or existing channel object
    * @throws {400} If trying to create a channel with the public channel name
    */
-  .post('/', async (request, response) => {
+  .post("/", async (request, response) => {
     const { name, users, description, owner, closed } = request.body as {
-      name: string
-      users: string[]
-      description?: string
-      owner?: string
-      closed?: boolean
-    }
+      name: string;
+      users: string[];
+      description?: string;
+      owner?: string;
+      closed?: boolean;
+    };
     try {
       const channel = await ChannelController.create({
         name,
@@ -160,12 +160,12 @@ export default Router()
         description: description,
         ownerId: owner ? new Types.ObjectId(owner) : undefined,
         closed: closed,
-      })
-      response.send(channel)
+      });
+      response.send(channel);
     } catch (e) {
-      const error = e as Error
-      console.log(error)
-      response.status(400).send({ message: error.message })
+      const error = e as Error;
+      console.log(error);
+      response.status(400).send({ message: error.message });
     }
   })
 
@@ -198,19 +198,19 @@ export default Router()
    * @returns {Object} The created or existing channel object
    * @throws {400} If trying to create a channel with the public channel name
    */
-  .put('/', async (request, response) => {
+  .put("/", async (request, response) => {
     const { _id, name, users, description, owner, closed } = request.body as {
-      _id?: string
-      name: string
-      users: string[]
-      description?: string
-      owner?: string
-      closed?: boolean
-    }
+      _id?: string;
+      name: string;
+      users: string[];
+      description?: string;
+      owner?: string;
+      closed?: boolean;
+    };
 
     if (!_id) {
-      response.status(400).send({ message: 'Channel id is required' })
-      return
+      response.status(400).send({ message: "Channel id is required" });
+      return;
     }
 
     try {
@@ -221,11 +221,11 @@ export default Router()
         description,
         ownerId: owner ? new Types.ObjectId(owner) : undefined,
         closed,
-      })
-      response.status(200).send(channel)
+      });
+      response.status(200).send(channel);
     } catch (e) {
-      const error = e as Error
-      response.status(400).send({ message: error.message })
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
     }
   })
 
@@ -235,12 +235,12 @@ export default Router()
    * @param {string} [request.query.user] - Optional user ID to filter channels
    * @returns {Array} An array of channel objects, excluding their messages
    */
-  .get('/', async (request, response) => {
-    const user = request.query['user'] as string | undefined
+  .get("/", async (request, response) => {
+    const user = request.query["user"] as string | undefined;
     const channels = await ChannelController.list(
       user ? new Types.ObjectId(user) : undefined,
-    )
-    return response.send(channels)
+    );
+    return response.send(channels);
   })
 
   /**
@@ -269,13 +269,13 @@ export default Router()
    * @returns {Array} An array of closed group objects
    * @throws {500} If there is a server error
    */
-  .get('/groups/closed', async (_, response) => {
+  .get("/groups/closed", async (_, response) => {
     try {
-      const closedGroups = await ChannelController.getClosedGroups()
-      response.status(200).json(closedGroups)
+      const closedGroups = await ChannelController.getClosedGroups();
+      response.status(200).json(closedGroups);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -308,15 +308,15 @@ export default Router()
    * @throws {404} If the user is not found
    */
 
-  .get('/groups/:userId', async (request, response) => {
-    const userId = new Types.ObjectId(request.params.userId)
+  .get("/groups/:userId", async (request, response) => {
+    const userId = new Types.ObjectId(request.params.userId);
     try {
-      let groups = await ChannelController.getUserGroups(userId)
-      groups = groups.filter((group) => group.name !== 'PrivateContact')
-      response.status(200).json(groups)
+      let groups = await ChannelController.getUserGroups(userId);
+      groups = groups.filter((group) => group.name !== "PrivateContact");
+      response.status(200).json(groups);
     } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
     }
   })
 
@@ -331,9 +331,9 @@ export default Router()
    *       308:
    *         description: Redirect to public channel messages
    */
-  .get('/public/messages', async (_, response) => {
-    const publicChannel = await Channel.getPublicChannel()
-    return response.redirect(308, `/api/channels/${publicChannel.id}/messages`)
+  .get("/public/messages", async (_, response) => {
+    const publicChannel = await Channel.getPublicChannel();
+    return response.redirect(308, `/api/channels/${publicChannel.id}/messages`);
   })
   /**
    * @swagger
@@ -374,13 +374,13 @@ export default Router()
    *      404:
    *        description: Channel not found
    */
-  .post('/:id/messages', async (request, response) => {
+  .post("/:id/messages", async (request, response) => {
     const senderId = new Types.ObjectId(
-      request.headers['x-application-uid'] as string,
-    )
-    const { content, isAlert, responders } = request.body
+      request.headers["x-application-uid"] as string,
+    );
+    const { content, isAlert, responders } = request.body;
 
-    const channelId = new Types.ObjectId(request.params.id)
+    const channelId = new Types.ObjectId(request.params.id);
 
     try {
       const message = await ChannelController.appendMessage({
@@ -389,11 +389,11 @@ export default Router()
         channelId,
         isAlert,
         responders,
-      })
-      response.send(message)
+      });
+      response.send(message);
     } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
     }
   })
 
@@ -424,18 +424,17 @@ export default Router()
    *       404:
    *         description: Channel not found
    */
-  .get('/:id/messages', async (request, response) => {
-    const { id: channelId } = request.params
-    const channel = await ChannelController.get(new Types.ObjectId(channelId))
+  .get("/:id/messages", async (request, response) => {
+    const { id: channelId } = request.params;
+    const channel = await ChannelController.get(new Types.ObjectId(channelId));
 
     if (!channel) {
       return response
         .status(404)
-        .send({ message: `Channel(${channelId}) not found.` })
+        .send({ message: `Channel(${channelId}) not found.` });
     }
-    return response.send(channel.messages)
+    return response.send(channel.messages);
   })
-
 
   // GET channle by name
   /**
@@ -460,22 +459,21 @@ export default Router()
    *             schema:
    *               $ref: '#/components/schemas/Channel'
    */
-  .get('/name/:name', async (request, response) => {
-    const { name } = request.params
+  .get("/name/:name", async (request, response) => {
+    const { name } = request.params;
     try {
-      const channel = await ChannelController.getByName(name)
+      const channel = await ChannelController.getByName(name);
       if (channel === null || channel === undefined) {
         return response
           .status(404)
-          .send({ message: `Channel(${name}) not found.` })
+          .send({ message: `Channel(${name}) not found.` });
       }
-      return response.send(channel)
+      return response.send(channel);
     } catch (e) {
-      const error = e as Error
-      return response.status(404).send({ message: error.message })
+      const error = e as Error;
+      return response.status(404).send({ message: error.message });
     }
   })
-
 
   /**
    * Start a video conference in a channel
@@ -509,21 +507,21 @@ export default Router()
    *       404:
    *         description: Sender or channel not found.
    */
-  .post('/:id/video-conference', async (request, response) => {
+  .post("/:id/video-conference", async (request, response) => {
     const senderId = new Types.ObjectId(
-      request.headers['x-application-uid'] as string,
-    )
-    const channelId = new Types.ObjectId(request.params.id)
+      request.headers["x-application-uid"] as string,
+    );
+    const channelId = new Types.ObjectId(request.params.id);
 
     try {
       const message = await ChannelController.startVideoConference(
         channelId,
         senderId,
-      )
-      response.send(message)
+      );
+      response.send(message);
     } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
     }
   })
 
@@ -562,17 +560,17 @@ export default Router()
    *       404:
    *         description: Sender or channel not found.
    */
-  .post('/:id/phone-call', async (request, response) => {
+  .post("/:id/phone-call", async (request, response) => {
     const senderId = new Types.ObjectId(
-      request.headers['x-application-uid'] as string,
-    )
-    const channelId = new Types.ObjectId(request.params.id)
+      request.headers["x-application-uid"] as string,
+    );
+    const channelId = new Types.ObjectId(request.params.id);
     try {
-      const result = await ChannelController.makePhoneCall(channelId, senderId)
-      response.send(result)
+      const result = await ChannelController.makePhoneCall(channelId, senderId);
+      response.send(result);
     } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
     }
   })
   /**
@@ -613,15 +611,15 @@ export default Router()
    *       404:
    *         description: Sender or channel not found.
    */
-  .get('/:id/video-upload-url', async (request, response) => {
-    const channelId = new Types.ObjectId(request.params.id)
+  .get("/:id/video-upload-url", async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id);
 
     try {
-      const uploadUrl = await ChannelController.getVideoUploadUrl(channelId)
-      response.send(uploadUrl)
+      const uploadUrl = await ChannelController.getVideoUploadUrl(channelId);
+      response.send(uploadUrl);
     } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
     }
   })
 
@@ -663,15 +661,15 @@ export default Router()
    *       404:
    *         description: Sender or channel not found.
    */
-  .get('/:id/image-upload-url', async (request, response) => {
-    const channelId = new Types.ObjectId(request.params.id)
+  .get("/:id/image-upload-url", async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id);
 
     try {
-      const uploadUrl = await ChannelController.getImageUploadUrl(channelId)
-      response.send(uploadUrl)
+      const uploadUrl = await ChannelController.getImageUploadUrl(channelId);
+      response.send(uploadUrl);
     } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
     }
   })
 
@@ -738,22 +736,22 @@ export default Router()
    *       404:
    *         description: Sender or channel not found.
    */
-  .post('/:id/file-upload-url', async (request, response) => {
-    const channelId = new Types.ObjectId(request.params.id)
-    const fileName = request.body.fileName
-    const fileType = request.body.fileType
-    const fileExtension = request.body.fileExtension
+  .post("/:id/file-upload-url", async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id);
+    const fileName = request.body.fileName;
+    const fileType = request.body.fileType;
+    const fileExtension = request.body.fileExtension;
     try {
       const uploadUrl = await ChannelController.getFileUploadUrl(
         channelId,
         fileName,
         fileType,
         fileExtension,
-      )
-      response.send(uploadUrl)
+      );
+      response.send(uploadUrl);
     } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
     }
   })
 
@@ -807,18 +805,18 @@ export default Router()
    *       404:
    *         description: Sender or channel not found.
    */
-  .post('/:id/voice-upload-url', async (request, response) => {
-    const channelId = new Types.ObjectId(request.params.id)
-    const fileName = request.body.fileName
+  .post("/:id/voice-upload-url", async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id);
+    const fileName = request.body.fileName;
     try {
       const uploadUrl = await ChannelController.getVoiceUploadUrl(
         channelId,
         fileName,
-      )
-      response.send(uploadUrl)
+      );
+      response.send(uploadUrl);
     } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
     }
   })
   /**
@@ -866,9 +864,9 @@ export default Router()
    *       404:
    *         description: Sender, message, or channel not found.
    */
-  .patch('/:id/messages/acknowledge', async (request, response) => {
-    const channelId = new Types.ObjectId(request.params.id)
-    const { senderId, messageId, response: responseType } = request.body
+  .patch("/:id/messages/acknowledge", async (request, response) => {
+    const channelId = new Types.ObjectId(request.params.id);
+    const { senderId, messageId, response: responseType } = request.body;
     // const messageId = new Types.ObjectId(request.params.messageId)
     try {
       const updatedMessage = await ChannelController.acknowledgeMessage(
@@ -876,11 +874,11 @@ export default Router()
         senderId,
         channelId,
         responseType,
-      )
-      response.send(updatedMessage)
+      );
+      response.send(updatedMessage);
     } catch (e) {
-      const error = e as Error
-      response.status(404).send({ message: error.message })
+      const error = e as Error;
+      response.status(404).send({ message: error.message });
     }
   })
 
@@ -908,14 +906,14 @@ export default Router()
    *       404:
    *         description: Channel not found
    */
-  .get('/:id', async (request, response) => {
+  .get("/:id", async (request, response) => {
     try {
-      const channelId = new Types.ObjectId(request.params.id) // will throw error for invalid id
-      const channel = await ChannelController.getChannel(channelId)
-      response.json(channel)
+      const channelId = new Types.ObjectId(request.params.id); // will throw error for invalid id
+      const channel = await ChannelController.getChannel(channelId);
+      response.json(channel);
     } catch (e) {
-      const error = e as Error
-      response.status(404).json({ message: error.message })
+      const error = e as Error;
+      response.status(404).json({ message: error.message });
     }
   })
   /**
@@ -929,7 +927,7 @@ export default Router()
    *       308:
    *         description: Redirect to public channel messages
    */
-  .get('/public/messages', async (_, response) => {
-    const publicChannel = await Channel.getPublicChannel()
-    return response.redirect(`/api/channels/${publicChannel.id}/messages`)
-  })
+  .get("/public/messages", async (_, response) => {
+    const publicChannel = await Channel.getPublicChannel();
+    return response.redirect(`/api/channels/${publicChannel.id}/messages`);
+  });

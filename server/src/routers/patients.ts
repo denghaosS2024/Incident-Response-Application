@@ -1,7 +1,7 @@
-import { Router } from 'express'
+import { Router } from "express";
 
-import PatientController from '../controllers/PatientController'
-import HttpError from '../utils/HttpError'
+import PatientController from "../controllers/PatientController";
+import HttpError from "../utils/HttpError";
 
 export default Router()
   /**
@@ -44,19 +44,19 @@ export default Router()
    *       500:
    *         description: Internal server error
    */
-  .post('/', async (request, response) => {
+  .post("/", async (request, response) => {
     try {
       // Extract the caller's UID from the request headers
-      const callerUid = request.headers['x-application-uid'] as string
+      const callerUid = request.headers["x-application-uid"] as string;
       if (!callerUid) {
-        throw new HttpError('Caller UID is required', 400)
+        throw new HttpError("Caller UID is required", 400);
       }
-      const result = await PatientController.create(request.body, callerUid)
-      response.status(201).send(result)
+      const result = await PatientController.create(request.body, callerUid);
+      response.status(201).send(result);
     } catch (e) {
-      const error = e as HttpError
-      console.error('Error creating patient:', error.message)
-      response.status(error.statusCode || 500).send({ message: error.message })
+      const error = e as HttpError;
+      console.error("Error creating patient:", error.message);
+      response.status(error.statusCode || 500).send({ message: error.message });
     }
   })
 
@@ -79,31 +79,31 @@ export default Router()
    *               patientId:
    *                 type: string
    */
-  .put('/', async (request, response) => {
-    const { patientId } = request.body
+  .put("/", async (request, response) => {
+    const { patientId } = request.body;
 
     try {
-      const result = await PatientController.update(patientId, request.body)
+      const result = await PatientController.update(patientId, request.body);
       if (!result) {
-        response.status(404).json({ message: 'the update operation failed' })
-        return
+        response.status(404).json({ message: "the update operation failed" });
+        return;
       }
-      response.json(result)
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
-  .put('/priority', async (request, response) => {
-    const { patientId, priority } = request.body
+  .put("/priority", async (request, response) => {
+    const { patientId, priority } = request.body;
 
     try {
-      const result = await PatientController.setPriority(patientId, priority)
-      response.json(result)
+      const result = await PatientController.setPriority(patientId, priority);
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -134,15 +134,15 @@ export default Router()
    *       400:
    *         description: Bad request
    */
-  .put('/status', async (request, response) => {
-    const { patientId, status } = request.body
+  .put("/status", async (request, response) => {
+    const { patientId, status } = request.body;
 
     try {
-      const result = await PatientController.setStatus(patientId, status)
-      response.json(result)
+      const result = await PatientController.setStatus(patientId, status);
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -170,23 +170,23 @@ export default Router()
    *       400:
    *         description: Bad request
    */
-  .delete('/', async (request, response) => {
+  .delete("/", async (request, response) => {
     try {
-      const patientId = request.query['patientId']
+      const patientId = request.query["patientId"];
       if (patientId === undefined) {
-        response.status(400).json({ message: 'patientId is required' })
-        return
+        response.status(400).json({ message: "patientId is required" });
+        return;
       }
 
-      const result = await PatientController.delete(patientId.toString())
+      const result = await PatientController.delete(patientId.toString());
       if (!result) {
-        response.status(404).json({ message: 'Patient not found' })
-        return
+        response.status(404).json({ message: "Patient not found" });
+        return;
       }
-      response.json(result)
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(400).json({ message: error.message })
+      const error = e as Error;
+      response.status(400).json({ message: error.message });
     }
   })
 
@@ -219,15 +219,15 @@ export default Router()
    *       500:
    *         description: Internal server error
    */
-  .post('/nurse', async (request, response) => {
-    const { patientId, nurseId } = request.body
+  .post("/nurse", async (request, response) => {
+    const { patientId, nurseId } = request.body;
 
     try {
-      const result = await PatientController.setNurse(patientId, nurseId)
-      response.json(result)
+      const result = await PatientController.setNurse(patientId, nurseId);
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -247,15 +247,15 @@ export default Router()
    *             required:
    *               - patientId
    */
-  .post('/hospital', async (request, response) => {
-    const { patientId, hospitalId } = request.body
+  .post("/hospital", async (request, response) => {
+    const { patientId, hospitalId } = request.body;
 
     try {
-      const result = await PatientController.setHospital(patientId, hospitalId)
-      response.json(result)
+      const result = await PatientController.setHospital(patientId, hospitalId);
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -286,17 +286,17 @@ export default Router()
    *       500:
    *         description: Internal server error
    */
-  .get('/single', async (request, response) => {
-    const { patientId } = request.query
+  .get("/single", async (request, response) => {
+    const { patientId } = request.query;
 
     try {
       const result = await PatientController.getExpandedPatientInfo(
         patientId as string,
-      )
-      response.json(result)
+      );
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -332,29 +332,29 @@ export default Router()
    *         description: Internal server error.
    */
 
-  .get('/', async (request, response) => {
+  .get("/", async (request, response) => {
     try {
-      const { patientId, hospitalId } = request.query
+      const { patientId, hospitalId } = request.query;
       if (patientId) {
-        const result = await PatientController.findById(patientId as string)
-        response.json(result)
-        return
+        const result = await PatientController.findById(patientId as string);
+        response.json(result);
+        return;
       }
 
       if (hospitalId) {
         const result = await PatientController.findByHospitalId(
           hospitalId as string,
-        )
-        response.json(result)
-        return
+        );
+        response.json(result);
+        return;
       }
 
       // If no query params, return all patients
-      const result = await PatientController.getAllPatients()
-      response.json(result)
+      const result = await PatientController.getAllPatients();
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(400).json({ message: error.message })
+      const error = e as Error;
+      response.status(400).json({ message: error.message });
     }
   })
 
@@ -433,13 +433,13 @@ export default Router()
    *                   description: Error message
    *                   example: "Failed to fetch unassigned patients"
    */
-  .get('/unassigned', async (_, response) => {
+  .get("/unassigned", async (_, response) => {
     try {
-      const result = await PatientController.getUnassignedPatients()
-      response.json(result)
+      const result = await PatientController.getUnassignedPatients();
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(400).json({ message: error.message })
+      const error = e as Error;
+      response.status(400).json({ message: error.message });
     }
   })
 
@@ -557,24 +557,24 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
-  .post('/visitLogs', async (request, response) => {
+  .post("/visitLogs", async (request, response) => {
     try {
-      const { patientId, visitLog } = request.body
+      const { patientId, visitLog } = request.body;
       if (!patientId || !visitLog) {
         response
           .status(400)
-          .json({ message: 'patientId and visitLog are required' })
-        return
+          .json({ message: "patientId and visitLog are required" });
+        return;
       }
 
       const result = await PatientController.createUpdatePatientVisit(
         patientId as string,
         visitLog,
-      )
-      response.status(201).json(result)
+      );
+      response.status(201).json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -689,24 +689,24 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
-  .put('/visitLogs', async (request, response) => {
+  .put("/visitLogs", async (request, response) => {
     try {
-      const { patientId, updatedVisitData } = request.body
+      const { patientId, updatedVisitData } = request.body;
       if (!patientId || !updatedVisitData) {
         response
           .status(400)
-          .json({ message: 'patientId and updatedVisitData are required' })
-        return
+          .json({ message: "patientId and updatedVisitData are required" });
+        return;
       }
 
       const result = await PatientController.updatePatientVisit(
         patientId as string,
         updatedVisitData,
-      )
-      response.status(200).json(result)
+      );
+      response.status(200).json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -737,20 +737,20 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
-  .get('/location', async (request, response) => {
+  .get("/location", async (request, response) => {
     try {
-      const { location } = request.query
+      const { location } = request.query;
 
       if (!location) {
-        response.status(400).json({ message: 'Location is required' })
-        return
+        response.status(400).json({ message: "Location is required" });
+        return;
       }
 
-      const result = await PatientController.findByLocation(location as string)
-      response.json(result)
+      const result = await PatientController.findByLocation(location as string);
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -777,24 +777,24 @@ export default Router()
    *                 type: string
    *                 enum: [ER, Road]
    */
-  .put('/:patientId/location', async (request, response) => {
-    const { patientId } = request.params
+  .put("/:patientId/location", async (request, response) => {
+    const { patientId } = request.params;
     try {
       const result = await PatientController.updateLocation(
         patientId,
         request.body.location,
-      )
-      response.json(result)
+      );
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      if (error.message === 'Invalid location') {
-        response.status(400).json({ message: error.message })
+      const error = e as Error;
+      if (error.message === "Invalid location") {
+        response.status(400).json({ message: error.message });
       } else if (
         error.message === `Patient with ID ${patientId} does not exist`
       ) {
-        response.status(404).json({ message: error.message })
+        response.status(404).json({ message: error.message });
       } else {
-        response.status(500).json({ message: error.message })
+        response.status(500).json({ message: error.message });
       }
     }
   })
@@ -827,15 +827,15 @@ export default Router()
    *       400:
    *         description: Bad request
    */
-  .put('/erStatus', async (request, response) => {
-    const { patientId, erStatus } = request.body
+  .put("/erStatus", async (request, response) => {
+    const { patientId, erStatus } = request.body;
 
     try {
-      const result = await PatientController.setERStatus(patientId, erStatus)
-      response.json(result)
+      const result = await PatientController.setERStatus(patientId, erStatus);
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   })
 
@@ -859,14 +859,15 @@ export default Router()
    *       500:
    *         description: Internal server error
    */
-  .get('/hospital/:hospitalId/nurse-view', async (request, response) => {
-    const { hospitalId } = request.params
+  .get("/hospital/:hospitalId/nurse-view", async (request, response) => {
+    const { hospitalId } = request.params;
 
     try {
-      const result = await PatientController.getPatientsForNurseView(hospitalId)
-      response.json(result)
+      const result =
+        await PatientController.getPatientsForNurseView(hospitalId);
+      response.json(result);
     } catch (e) {
-      const error = e as Error
-      response.status(500).json({ message: error.message })
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
-  })
+  });

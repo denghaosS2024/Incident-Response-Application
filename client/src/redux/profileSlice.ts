@@ -17,26 +17,28 @@ export const fetchProfile = createAsyncThunk(
       return data;
     } catch (error) {
       console.error("Error fetching profile:", error);
-      return null; 
+      return null;
     }
-  }
+  },
 );
-
 
 export const upsertProfile = createAsyncThunk(
   "profile/upsertProfile",
   async ({ userId, profile }: { userId: string; profile: IProfile }) => {
     try {
-      const updatedProfile = await request<IProfile>(`/api/profiles/${userId}`, {
-        method: "PUT",
-        body: JSON.stringify(profile),
-      });
+      const updatedProfile = await request<IProfile>(
+        `/api/profiles/${userId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(profile),
+        },
+      );
       return updatedProfile;
     } catch (error) {
       console.error("Error updating profile:", error);
       throw error;
     }
-  }
+  },
 );
 
 /**
@@ -58,7 +60,10 @@ const profileSlice = createSlice({
 
     updateProfileField: (
       state,
-      action: PayloadAction<{ field: keyof IProfile; value: IProfile[keyof IProfile] }>
+      action: PayloadAction<{
+        field: keyof IProfile;
+        value: IProfile[keyof IProfile];
+      }>,
     ) => {
       if (!state.profile) return;
       const { field, value } = action.payload;

@@ -1,4 +1,4 @@
-import { Document, Schema, model } from 'mongoose';
+import { Document, Schema, model } from "mongoose";
 // import { IIncident } from './Incident'
 export interface IVictims {
   Immediate: string;
@@ -20,31 +20,31 @@ export interface IHazards {
 }
 
 export interface ITask extends Document {
-  address: string
-  status: string
-  incidentId: string
-  openingDate: Date
-  closingDate?: Date
+  address: string;
+  status: string;
+  incidentId: string;
+  openingDate: Date;
+  closingDate?: Date;
   victims?: IVictims[]; // Array of victim objects
   hazards?: IHazards[]; // Array of victim objects
 }
 
 const VictimSchema = new Schema<IVictims>({
-  Immediate: { type: String},
-  Urgent: { type: String},
-  CouldWait: { type: String},
-  Dismiss: { type: String},
-  Deceased: { type: String},
+  Immediate: { type: String },
+  Urgent: { type: String },
+  CouldWait: { type: String },
+  Dismiss: { type: String },
+  Deceased: { type: String },
 });
 const HazardsSchema = new Schema<IHazards>({
-  ActiveWire: { type: String},
-  Dogs: { type: String},
-  Explosives: { type: String},
-  Fire: { type: String},
-  Flood: { type: String},
-  Gas: { type: String},
-  Rats: { type: String},
-  Others: { type: String},
+  ActiveWire: { type: String },
+  Dogs: { type: String },
+  Explosives: { type: String },
+  Fire: { type: String },
+  Flood: { type: String },
+  Gas: { type: String },
+  Rats: { type: String },
+  Others: { type: String },
 });
 
 const SarTaskSchema = new Schema<ITask>({
@@ -52,10 +52,9 @@ const SarTaskSchema = new Schema<ITask>({
   status: { type: String, required: true },
   incidentId: { type: String, required: true },
   openingDate: { type: Date, required: true },
-  closingDate: { type: Date},
+  closingDate: { type: Date },
   victims: { type: [VictimSchema], default: [] }, // Array of victim objects
   hazards: { type: [HazardsSchema], default: [] }, // Array of victim objects
+});
 
-})
-
-export default model<ITask>('Task', SarTaskSchema)
+export default model<ITask>("Task", SarTaskSchema);

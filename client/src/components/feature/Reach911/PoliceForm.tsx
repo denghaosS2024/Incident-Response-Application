@@ -7,32 +7,32 @@ import {
   RadioGroup,
   SelectChangeEvent,
   TextField,
-} from '@mui/material'
+} from "@mui/material";
 
-import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import IIncident from '../../../models/Incident'
-import { loadContacts } from '../../../redux/contactSlice'
-import { updateIncident } from '../../../redux/incidentSlice'
-import { AppDispatch, RootState } from '../../../redux/store'
-import { PoliceQuestions } from '../../../utils/types'
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import IIncident from "../../../models/Incident";
+import { loadContacts } from "../../../redux/contactSlice";
+import { updateIncident } from "../../../redux/incidentSlice";
+import { AppDispatch, RootState } from "../../../redux/store";
+import { PoliceQuestions } from "../../../utils/types";
 
 const FireForm: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>();
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
-  )
-  const policeQuestions = (incident.questions as PoliceQuestions) ?? {}
+  );
+  const policeQuestions = (incident.questions as PoliceQuestions) ?? {};
 
-  const isSafe = policeQuestions.isSafe ?? ''
-  const hasWeapons = policeQuestions.hasWeapons ?? ''
-  const suspectDescription = policeQuestions.suspectDescription ?? ''
-  const crimeDetails = policeQuestions.crimeDetails ?? ''
+  const isSafe = policeQuestions.isSafe ?? "";
+  const hasWeapons = policeQuestions.hasWeapons ?? "";
+  const suspectDescription = policeQuestions.suspectDescription ?? "";
+  const crimeDetails = policeQuestions.crimeDetails ?? "";
 
   // Loads contacts upon page loading
   useEffect(() => {
-    dispatch(loadContacts())
-  }, [dispatch])
+    dispatch(loadContacts());
+  }, [dispatch]);
 
   // When any input changes, add the changes to the incident slice
   const onChange = (
@@ -41,7 +41,7 @@ const FireForm: React.FC = () => {
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
       | SelectChangeEvent<string>,
   ) => {
-    const { value } = e.target as HTMLInputElement
+    const { value } = e.target as HTMLInputElement;
 
     dispatch(
       updateIncident({
@@ -51,8 +51,8 @@ const FireForm: React.FC = () => {
           [field]: value,
         } as PoliceQuestions,
       }),
-    )
-  }
+    );
+  };
 
   return (
     <Box
@@ -70,7 +70,7 @@ const FireForm: React.FC = () => {
             aria-labelledby="isSafe-label"
             name="isSafe-radio-buttons-group"
             value={isSafe}
-            onChange={(e) => onChange('isSafe', e)}
+            onChange={(e) => onChange("isSafe", e)}
           >
             <FormControlLabel value="yes" control={<Radio />} label="Yes" />
             <FormControlLabel value="no" control={<Radio />} label="No" />
@@ -89,7 +89,7 @@ const FireForm: React.FC = () => {
             aria-labelledby="hasWeapons-label"
             name="hasWeapons-radio-buttons-group"
             value={hasWeapons}
-            onChange={(e) => onChange('hasWeapons', e)}
+            onChange={(e) => onChange("hasWeapons", e)}
           >
             <FormControlLabel value="yes" control={<Radio />} label="Yes" />
             <FormControlLabel value="no" control={<Radio />} label="No" />
@@ -105,7 +105,7 @@ const FireForm: React.FC = () => {
           fullWidth
           multiline
           value={suspectDescription}
-          onChange={(e) => onChange('suspectDescription', e)}
+          onChange={(e) => onChange("suspectDescription", e)}
         />
       </Box>
 
@@ -117,11 +117,11 @@ const FireForm: React.FC = () => {
           fullWidth
           multiline
           value={crimeDetails}
-          onChange={(e) => onChange('crimeDetails', e)}
+          onChange={(e) => onChange("crimeDetails", e)}
         />
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default FireForm
+export default FireForm;

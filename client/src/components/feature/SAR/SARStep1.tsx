@@ -1,92 +1,113 @@
-import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material'
-import styles from '../../../styles/Reach911Page.module.css'
-import Map from '../../Map/Mapbox'
+import {
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Typography,
+} from "@mui/material";
+import styles from "../../../styles/Reach911Page.module.css";
+import Map from "../../Map/Mapbox";
 
-import Socket from '@/utils/Socket'
-import { AddressAutofillRetrieveResponse } from '@mapbox/search-js-core'
-import { AddressAutofill } from '@mapbox/search-js-react'
-import AddIcon from '@mui/icons-material/Add'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import HomeIcon from '@mui/icons-material/Home'
-import LocationOnIcon from '@mui/icons-material/LocationOn'
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import IIncident from '../../../models/Incident'
-import { updateIncident } from '../../../redux/incidentSlice'
-import { AppDispatch, RootState } from '../../../redux/store'
-import eventEmitter from '../../../utils/eventEmitter'
-import Globals from '../../../utils/Globals'
-import request from '../../../utils/request'
-import AlertSnackbar from '../../common/AlertSnackbar'
+import Socket from "@/utils/Socket";
+import { AddressAutofillRetrieveResponse } from "@mapbox/search-js-core";
+import { AddressAutofill } from "@mapbox/search-js-react";
+import AddIcon from "@mui/icons-material/Add";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import HomeIcon from "@mui/icons-material/Home";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import IIncident from "../../../models/Incident";
+import { updateIncident } from "../../../redux/incidentSlice";
+import { AppDispatch, RootState } from "../../../redux/store";
+import eventEmitter from "../../../utils/eventEmitter";
+import Globals from "../../../utils/Globals";
+import request from "../../../utils/request";
+import AlertSnackbar from "../../common/AlertSnackbar";
 
 interface SARStep1Props {
-  autoPopulateData?: boolean
-  isCreatedByFirstResponder?: boolean
-  incidentId?: string
+  autoPopulateData?: boolean;
+  isCreatedByFirstResponder?: boolean;
+  incidentId?: string;
 }
 
 interface SARTaskForm {
-  name: string
-  description: string
-  status: 'todo' | 'in-progress' | 'done'
+  name: string;
+  description: string;
+  status: "todo" | "in-progress" | "done";
   location?: {
-    latitude: number
-    longitude: number
-  }
-  address?: string
+    latitude: number;
+    longitude: number;
+  };
+  address?: string;
 }
 
-const SARStep1: React.FC<SARStep1Props> = ({
-  autoPopulateData,
-}) => {
-  const dispatch = useDispatch<AppDispatch>()
+const SARStep1: React.FC<SARStep1Props> = ({ autoPopulateData }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
-  )
+  );
 
   // Local state for the input field
-  const [inputAddress, setInputAddress] = useState(incident.address || '')
-  const [inputLocation, setInputLocation] = useState<{ latitude: number; longitude: number } | null>(
-    incident.location ? { latitude: incident.location.latitude, longitude: incident.location.longitude } : null
-  )
-  
+  const [inputAddress, setInputAddress] = useState(incident.address || "");
+  const [inputLocation, setInputLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(
+    incident.location
+      ? {
+          latitude: incident.location.latitude,
+          longitude: incident.location.longitude,
+        }
+      : null,
+  );
+
   // State for the task creation dialog
-  const [openTaskDialog, setOpenTaskDialog] = useState(false)
+  const [openTaskDialog, setOpenTaskDialog] = useState(false);
   const [taskForm, setTaskForm] = useState<SARTaskForm>({
-    name: '',
-    description: '',
-    status: 'todo', // Always default to 'todo'
-    address: ''
-  })
-  const [taskInputAddress, setTaskInputAddress] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  
+    name: "",
+    description: "",
+    status: "todo", // Always default to 'todo'
+    address: "",
+  });
+  const [taskInputAddress, setTaskInputAddress] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   // State for alert snackbar
   const [snackbar, setSnackbar] = useState({
     open: false,
-    message: '',
-    severity: 'info' as 'error' | 'warning' | 'info' | 'success'
-  })
-  
+    message: "",
+    severity: "info" as "error" | "warning" | "info" | "success",
+  });
+
   // SAR task locations - will be fetched from the backend
-  const [sarLocations, setSarLocations] = useState<Array<{
-    id: string;
-    name: string;
-    description: string;
-    status: string;
-    address?: string;
-    location?: {
-      latitude: number;
-      longitude: number;
-    };
-  }>>([]);
+  const [sarLocations, setSarLocations] = useState<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      status: string;
+      address?: string;
+      location?: {
+        latitude: number;
+        longitude: number;
+      };
+    }>
+  >([]);
 
   // Function to update SAR task markers on the map
   const updateSARTaskMarkers = (tasks: any[]) => {
     // Emit an event to update the markers on the map
     // Include the incident ID so it can be used for task links
-    eventEmitter.emit('update_sar_tasks', { tasks, incidentId: incident.incidentId });
+    eventEmitter.emit("update_sar_tasks", {
+      tasks,
+      incidentId: incident.incidentId,
+    });
   };
 
   // Fetch SAR tasks when incident changes
@@ -101,37 +122,42 @@ const SARStep1: React.FC<SARStep1Props> = ({
     try {
       setIsLoading(true);
       const response = await request(`/api/incidents/${incidentId}/sar-task`, {
-        method: 'GET',
+        method: "GET",
       });
-      
-      console.log('SAR task response:', response);
-      
+
+      console.log("SAR task response:", response);
+
       if (response && Array.isArray(response)) {
         // Convert the tasks from the backend format to our frontend format
         const tasks = response.map((task: any) => ({
           id: task._id ?? `task-${Math.random().toString(36).substr(2, 9)}`,
-          name: task.name ?? 'Unnamed Task',
-          description: task.description ?? '',
-          status: task.state?.toLowerCase() === 'todo' ? 'todo' : 
-                 task.state?.toLowerCase() === 'inprogress' ? 'in-progress' : 
-                 task.state?.toLowerCase() === 'done' ? 'done' : 'todo',
-          address: task.location ?? '',
-          location: task.coordinates ?? null
+          name: task.name ?? "Unnamed Task",
+          description: task.description ?? "",
+          status:
+            task.state?.toLowerCase() === "todo"
+              ? "todo"
+              : task.state?.toLowerCase() === "inprogress"
+                ? "in-progress"
+                : task.state?.toLowerCase() === "done"
+                  ? "done"
+                  : "todo",
+          address: task.location ?? "",
+          location: task.coordinates ?? null,
         }));
-        
-        console.log('Processed SAR tasks:', tasks);
+
+        console.log("Processed SAR tasks:", tasks);
         setSarLocations(tasks);
         updateSARTaskMarkers(tasks); // Call the new function to update the markers
       } else {
-        console.log('No SAR tasks found or invalid response format');
+        console.log("No SAR tasks found or invalid response format");
         setSarLocations([]);
       }
     } catch (error) {
-      console.error('Error fetching SAR tasks:', error);
+      console.error("Error fetching SAR tasks:", error);
       setSnackbar({
         open: true,
-        message: 'Failed to fetch SAR tasks',
-        severity: 'error'
+        message: "Failed to fetch SAR tasks",
+        severity: "error",
       });
       setSarLocations([]);
     } finally {
@@ -143,7 +169,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
   useEffect(() => {
     const hasLocation =
       incident.location?.latitude && incident.location?.longitude;
-    const hasAddress = incident.address && incident.address.trim() !== '';
+    const hasAddress = incident.address && incident.address.trim() !== "";
 
     // If we have a location but no address, get the address from the location
     if (hasLocation && !hasAddress && incident.location) {
@@ -170,7 +196,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
           }
         })
         .catch((error) => {
-          console.error('Error geocoding location:', error);
+          console.error("Error geocoding location:", error);
         });
     }
   }, [incident.location, incident.address, dispatch]);
@@ -184,16 +210,16 @@ const SARStep1: React.FC<SARStep1Props> = ({
 
   // If a user clicks on a suggestion from the autofill dropdown, we update both input address and location
   function onRetrieve(res: AddressAutofillRetrieveResponse) {
-    const newAddress = res.features[0].properties.full_address ?? '';
+    const newAddress = res.features[0].properties.full_address ?? "";
     const newLocation = {
       longitude: res.features[0].geometry.coordinates[0],
       latitude: res.features[0].geometry.coordinates[1],
     };
-    
+
     // Update the input values
     setInputAddress(newAddress);
     setInputLocation(newLocation);
-    
+
     // Also update the incident in the store
     dispatch(
       updateIncident({
@@ -215,12 +241,12 @@ const SARStep1: React.FC<SARStep1Props> = ({
     if (incident.location) {
       setInputLocation({
         latitude: incident.location.latitude,
-        longitude: incident.location.longitude
+        longitude: incident.location.longitude,
       });
     }
   }, [incident.address, incident.location]);
 
-  Socket.on('sar-task-update', (data: any) => {
+  Socket.on("sar-task-update", (data: any) => {
     if (data.incidentId === incident.incidentId) {
       fetchSARTasks(incident.incidentId);
     }
@@ -230,16 +256,16 @@ const SARStep1: React.FC<SARStep1Props> = ({
   const handleOpenTaskDialog = () => {
     // Pre-populate the task form with the current incident address and location
     setTaskForm({
-      name: '',
-      description: '',
-      status: 'todo',
-      address: inputAddress || '',
-      location: inputLocation || undefined
+      name: "",
+      description: "",
+      status: "todo",
+      address: inputAddress || "",
+      location: inputLocation || undefined,
     });
-    
+
     // Set the address input field to match the incident address
-    setTaskInputAddress(inputAddress || '');
-    
+    setTaskInputAddress(inputAddress || "");
+
     setOpenTaskDialog(true);
   };
 
@@ -247,14 +273,16 @@ const SARStep1: React.FC<SARStep1Props> = ({
   const handleCloseTaskDialog = () => {
     setOpenTaskDialog(false);
   };
-  
+
   // Handle closing the snackbar
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
   // Handle text input changes for task form
-  const handleTaskTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleTaskTextChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setTaskForm({
       ...taskForm,
@@ -263,19 +291,21 @@ const SARStep1: React.FC<SARStep1Props> = ({
   };
 
   // Handle address input changes for task form
-  const handleTaskAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleTaskAddressChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { value } = e.target;
     setTaskInputAddress(value);
   };
 
   // Handle address selection from autofill for task form
   const onTaskAddressRetrieve = (res: AddressAutofillRetrieveResponse) => {
-    const newAddress = res.features[0].properties.full_address ?? '';
+    const newAddress = res.features[0].properties.full_address ?? "";
     const newLocation = {
       longitude: res.features[0].geometry.coordinates[0],
       latitude: res.features[0].geometry.coordinates[1],
     };
-    
+
     // Update both the task form and the input location
     setTaskForm({
       ...taskForm,
@@ -287,7 +317,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
 
   // When user clicks out of the input, revert to task address
   const onTaskAddressBlur = () => {
-    setTaskInputAddress(taskForm.address ?? '');
+    setTaskInputAddress(taskForm.address ?? "");
   };
 
   // Create new task
@@ -296,80 +326,86 @@ const SARStep1: React.FC<SARStep1Props> = ({
       if (!taskForm.name) {
         setSnackbar({
           open: true,
-          message: 'Task name is required',
-          severity: 'error'
+          message: "Task name is required",
+          severity: "error",
         });
         return;
       }
-      
+
       if (!inputLocation) {
         setSnackbar({
           open: true,
-          message: 'Task location is required. Please select a location on the map first.',
-          severity: 'error'
+          message:
+            "Task location is required. Please select a location on the map first.",
+          severity: "error",
         });
         return;
       }
-      
+
       if (!incident.incidentId) {
         setSnackbar({
           open: true,
-          message: 'No incident ID available',
-          severity: 'error'
+          message: "No incident ID available",
+          severity: "error",
         });
         return;
       }
-      
+
       setIsSubmitting(true);
-      
+
       // Prepare the data for the API
       const sarTaskData = {
-        state: 'Todo', // Always use 'Todo' status for new tasks
+        state: "Todo", // Always use 'Todo' status for new tasks
         location: inputAddress, // Use inputAddress as per memory requirement
-        coordinates: inputLocation ? {
-          latitude: inputLocation.latitude,
-          longitude: inputLocation.longitude
-        } : undefined,
+        coordinates: inputLocation
+          ? {
+              latitude: inputLocation.latitude,
+              longitude: inputLocation.longitude,
+            }
+          : undefined,
         startDate: new Date().toISOString(),
         name: taskForm.name,
-        description: taskForm.description || ''
+        description: taskForm.description || "",
       };
-      
+
       // Call the API to create the SAR task
-      const response = await request(`/api/incidents/${incident.incidentId}/sar-task`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sarTaskData)
-      });
-      
-      console.log('SAR task created successfully:', response);
-      
+      const response = await request(
+        `/api/incidents/${incident.incidentId}/sar-task`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sarTaskData),
+        },
+      );
+
+      console.log("SAR task created successfully:", response);
+
       // Add the new task to the local state
       const newTask = {
         id: `task${sarLocations.length + 1}`,
         name: taskForm.name,
-        status: 'todo',
+        status: "todo",
         address: taskForm.address,
-        description: taskForm.description || ''
+        description: taskForm.description || "",
       };
-      
+
       const updatedLocations = [...sarLocations, newTask];
       setSarLocations(updatedLocations);
       updateSARTaskMarkers(updatedLocations); // Call the new function to update the markers
-      
+
       // Close the dialog and show success message
       setOpenTaskDialog(false);
       setSnackbar({
         open: true,
-        message: 'SAR task created successfully',
-        severity: 'success'
+        message: "SAR task created successfully",
+        severity: "success",
       });
     } catch (err: any) {
-      console.error('Error creating task:', err);
+      console.error("Error creating task:", err);
       setSnackbar({
         open: true,
-        message: err.message ?? 'Failed to create task',
-        severity: 'error'
+        message: err.message ?? "Failed to create task",
+        severity: "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -379,30 +415,33 @@ const SARStep1: React.FC<SARStep1Props> = ({
   // Listen for map loaded event and update markers
   useEffect(() => {
     const handleMapLoaded = () => {
-      console.log('Map loaded, updating SAR task markers');
+      console.log("Map loaded, updating SAR task markers");
       if (sarLocations.length > 0) {
         updateSARTaskMarkers(sarLocations);
       }
     };
 
-    eventEmitter.on('map_loaded', handleMapLoaded);
+    eventEmitter.on("map_loaded", handleMapLoaded);
 
     return () => {
-      eventEmitter.removeListener('map_loaded', handleMapLoaded);
+      eventEmitter.removeListener("map_loaded", handleMapLoaded);
     };
   }, [sarLocations]);
 
   // Listen for map clicks to get the selected location
   useEffect(() => {
-    const handleMapClick = (location: { latitude: number; longitude: number }) => {
-      console.log('Map clicked at:', location);
-      
+    const handleMapClick = (location: {
+      latitude: number;
+      longitude: number;
+    }) => {
+      console.log("Map clicked at:", location);
+
       // Update the inputLocation directly
       setInputLocation({
         latitude: location.latitude,
-        longitude: location.longitude
+        longitude: location.longitude,
       });
-      
+
       // Get the address from the coordinates
       const accessToken = Globals.getMapboxToken();
       fetch(
@@ -417,19 +456,19 @@ const SARStep1: React.FC<SARStep1Props> = ({
           }
         })
         .catch((error) => {
-          console.error('Error geocoding location:', error);
+          console.error("Error geocoding location:", error);
           // Still update the inputLocation even if geocoding fails
           setInputLocation({
             latitude: location.latitude,
-            longitude: location.longitude
+            longitude: location.longitude,
           });
         });
     };
 
-    eventEmitter.on('map_clicked', handleMapClick);
+    eventEmitter.on("map_clicked", handleMapClick);
 
     return () => {
-      eventEmitter.removeListener('map_clicked', handleMapClick);
+      eventEmitter.removeListener("map_clicked", handleMapClick);
     };
   }, [incident, dispatch]);
 
@@ -439,9 +478,9 @@ const SARStep1: React.FC<SARStep1Props> = ({
       // Update the input location with the task's location
       setInputLocation({
         latitude: task.location.latitude,
-        longitude: task.location.longitude
+        longitude: task.location.longitude,
       });
-      
+
       // If the task has an address, update the input address
       if (task.address) {
         setInputAddress(task.address);
@@ -459,22 +498,22 @@ const SARStep1: React.FC<SARStep1Props> = ({
             }
           })
           .catch((error) => {
-            console.error('Error geocoding location:', error);
+            console.error("Error geocoding location:", error);
           });
       }
-      
+
       // Show a success message
       setSnackbar({
         open: true,
-        message: 'Location updated from selected task',
-        severity: 'success'
+        message: "Location updated from selected task",
+        severity: "success",
       });
     } else {
       // Show an error message if the task doesn't have location data
       setSnackbar({
         open: true,
-        message: 'No location data available for this task',
-        severity: 'warning'
+        message: "No location data available for this task",
+        severity: "warning",
       });
     }
   };
@@ -485,44 +524,44 @@ const SARStep1: React.FC<SARStep1Props> = ({
         <Typography variant="h5" align="center" gutterBottom>
           Search and Rescue (SAR) Incident
         </Typography>
-        
+
         {incident && (
-          <Typography 
-            variant="h6" 
-            align="center" 
-            sx={{ 
-              mb: 2, 
-              fontWeight: 'bold',
-              bgcolor: 'primary.light',
-              color: 'primary.contrastText',
+          <Typography
+            variant="h6"
+            align="center"
+            sx={{
+              mb: 2,
+              fontWeight: "bold",
+              bgcolor: "primary.light",
+              color: "primary.contrastText",
               py: 1,
               px: 2,
               borderRadius: 1,
-              display: 'inline-block'
+              display: "inline-block",
             }}
           >
             Incident ID: {incident.incidentId}
           </Typography>
         )}
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2 }}>
-          <Chip 
-            icon={<HomeIcon style={{ color: '#f44336' }} />} 
-            label="Todo" 
-            color="default" 
-            variant="outlined" 
+        <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 2 }}>
+          <Chip
+            icon={<HomeIcon style={{ color: "#f44336" }} />}
+            label="Todo"
+            color="default"
+            variant="outlined"
           />
-          <Chip 
-            icon={<HomeIcon style={{ color: '#2196f3' }} />} 
-            label="In Progress" 
-            color="primary" 
-            variant="outlined" 
+          <Chip
+            icon={<HomeIcon style={{ color: "#2196f3" }} />}
+            label="In Progress"
+            color="primary"
+            variant="outlined"
           />
-          <Chip 
-            icon={<CheckCircleIcon style={{ color: '#4caf50' }} />} 
-            label="Done" 
-            color="success" 
-            variant="outlined" 
+          <Chip
+            icon={<CheckCircleIcon style={{ color: "#4caf50" }} />}
+            label="Done"
+            color="success"
+            variant="outlined"
           />
         </Box>
 
@@ -534,9 +573,9 @@ const SARStep1: React.FC<SARStep1Props> = ({
         >
           SAR Operations Map - Current Tasks and Last Known Location:
         </Typography>
-        
+
         {/* Create Task Button - Available to all users */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
           <Button
             variant="contained"
             color="secondary"
@@ -546,12 +585,12 @@ const SARStep1: React.FC<SARStep1Props> = ({
             Create New Task
           </Button>
         </Box>
-        
+
         <div className={styles.flexCenter}>
           <Box
             sx={{
-              width: { xs: '90%', sm: '90%', md: '90%', lg: '90%' },
-              maxWidth: '900px',
+              width: { xs: "90%", sm: "90%", md: "90%", lg: "90%" },
+              maxWidth: "900px",
             }}
           >
             <form>
@@ -578,35 +617,35 @@ const SARStep1: React.FC<SARStep1Props> = ({
       <div className={styles.flexCenter}>
         <Box
           sx={{
-            width: '100%',
-            maxWidth: '800px',
-            height: { xs: '400px', sm: '500px', md: '500px' },
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            overflow: 'hidden',
+            width: "100%",
+            maxWidth: "800px",
+            height: { xs: "400px", sm: "500px", md: "500px" },
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            overflow: "hidden",
             mt: 2,
-            mx: 'auto',
+            mx: "auto",
             mb: 2,
-            position: 'relative',
-            border: '1px solid #e0e0e0',
-            borderRadius: '8px',
+            position: "relative",
+            border: "1px solid #e0e0e0",
+            borderRadius: "8px",
           }}
         >
           {isLoading && (
             <Box
               sx={{
-                position: 'absolute',
+                position: "absolute",
                 top: 0,
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                backgroundColor: "rgba(255, 255, 255, 0.7)",
                 zIndex: 20,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               <Typography variant="h6">Loading SAR tasks...</Typography>
@@ -614,16 +653,16 @@ const SARStep1: React.FC<SARStep1Props> = ({
           )}
           <Box
             sx={{
-              position: 'absolute',
+              position: "absolute",
               bottom: 0,
               left: 0,
               right: 0,
               zIndex: 10,
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              backgroundColor: "rgba(255, 255, 255, 0.8)",
               p: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               gap: 1,
             }}
           >
@@ -635,19 +674,19 @@ const SARStep1: React.FC<SARStep1Props> = ({
           <div
             className={styles.flexCenter}
             style={{
-              height: '100%',
-              width: '100%',
-              position: 'relative',
-              minHeight: '400px', // Ensure minimum height for the map
+              height: "100%",
+              width: "100%",
+              position: "relative",
+              minHeight: "400px", // Ensure minimum height for the map
             }}
           >
             <div
               style={{
-                height: '100%',
-                width: '100%',
-                maxWidth: '100%',
-                overflow: 'hidden',
-                position: 'relative',
+                height: "100%",
+                width: "100%",
+                maxWidth: "100%",
+                overflow: "hidden",
+                position: "relative",
                 margin: 0,
                 padding: 0,
               }}
@@ -663,7 +702,12 @@ const SARStep1: React.FC<SARStep1Props> = ({
       </div>
 
       {/* Task Creation Dialog */}
-      <Dialog open={openTaskDialog} onClose={handleCloseTaskDialog} maxWidth="md" fullWidth>
+      <Dialog
+        open={openTaskDialog}
+        onClose={handleCloseTaskDialog}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Create New SAR Task</DialogTitle>
         <DialogContent>
           <TextField
@@ -679,7 +723,7 @@ const SARStep1: React.FC<SARStep1Props> = ({
             required
             sx={{ mb: 2, mt: 1 }}
           />
-          
+
           <TextField
             margin="dense"
             name="description"
@@ -693,20 +737,30 @@ const SARStep1: React.FC<SARStep1Props> = ({
             rows={3}
             sx={{ mb: 2 }}
           />
-          
+
           <Typography variant="subtitle1" sx={{ mt: 1, mb: 1 }}>
             Task Location
           </Typography>
-          
+
           {inputLocation && (
-            <Box sx={{ mb: 2, p: 1, bgcolor: 'rgba(25, 118, 210, 0.1)', borderRadius: 1, display: 'flex', alignItems: 'center' }}>
+            <Box
+              sx={{
+                mb: 2,
+                p: 1,
+                bgcolor: "rgba(25, 118, 210, 0.1)",
+                borderRadius: 1,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
               <LocationOnIcon color="primary" sx={{ mr: 1 }} />
               <Typography variant="body2">
-                Location selected: {inputLocation.latitude.toFixed(6)}, {inputLocation.longitude.toFixed(6)}
+                Location selected: {inputLocation.latitude.toFixed(6)},{" "}
+                {inputLocation.longitude.toFixed(6)}
               </Typography>
             </Box>
           )}
-          
+
           <AddressAutofill
             onRetrieve={onTaskAddressRetrieve}
             options={{ streets: false }}
@@ -723,7 +777,11 @@ const SARStep1: React.FC<SARStep1Props> = ({
               required
               disabled={true} // Disable the field as per memory requirement
               sx={{ mb: 2 }}
-              helperText={inputLocation ? "Using input location" : "Please select a location first"}
+              helperText={
+                inputLocation
+                  ? "Using input location"
+                  : "Please select a location first"
+              }
             />
           </AddressAutofill>
         </DialogContent>
@@ -731,17 +789,17 @@ const SARStep1: React.FC<SARStep1Props> = ({
           <Button onClick={handleCloseTaskDialog} color="primary">
             Cancel
           </Button>
-          <Button 
-            onClick={handleCreateTask} 
-            color="primary" 
+          <Button
+            onClick={handleCreateTask}
+            color="primary"
             variant="contained"
             disabled={isSubmitting || !taskForm.name || !taskForm.address}
           >
-            {isSubmitting ? 'Creating...' : 'Create Task'}
+            {isSubmitting ? "Creating..." : "Create Task"}
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* Alert Snackbar */}
       <AlertSnackbar
         open={snackbar.open}
