@@ -34,11 +34,13 @@ interface PatientsByCategory {
 
 // Styled components
 const CategoryHeader = styled(Paper)(({ theme }) => ({
-  backgroundColor: "#c4ddff",
+  backgroundColor: theme.palette.primary.main,
   padding: theme.spacing(1.5),
   marginTop: theme.spacing(2),
   marginBottom: theme.spacing(1),
   width: "100%",
+  boxShadow: theme.shadows[1],
+  borderRadius: theme.shape.borderRadius,
 }));
 
 const PatientListItem = styled(ListItem)(({ theme }) => ({
@@ -247,7 +249,7 @@ const FirstResponderPatientsPage: React.FC = () => {
 
       {/* To Take To ER */}
       <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography variant="subtitle1" fontWeight="bold" color="white">
           To Take To ER
         </Typography>
       </CategoryHeader>
@@ -276,7 +278,7 @@ const FirstResponderPatientsPage: React.FC = () => {
 
       {/* At ER */}
       <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography variant="subtitle1" fontWeight="bold" color="white">
           At ER
         </Typography>
       </CategoryHeader>
@@ -305,7 +307,7 @@ const FirstResponderPatientsPage: React.FC = () => {
 
       {/* Others */}
       <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography variant="subtitle1" fontWeight="bold" color="white">
           Others
         </Typography>
       </CategoryHeader>

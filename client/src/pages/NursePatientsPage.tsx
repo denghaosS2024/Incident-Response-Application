@@ -43,11 +43,13 @@ interface PatientsByCategory {
 
 // Styled components
 const CategoryHeader = styled(Paper)(({ theme }) => ({
-  backgroundColor: "#c4ddff",
+  backgroundColor: theme.palette.primary.main,
   padding: theme.spacing(1.5),
   marginTop: theme.spacing(2),
   marginBottom: theme.spacing(1),
   width: "100%",
+  boxShadow: theme.shadows[1],
+  borderRadius: theme.shape.borderRadius,
 }));
 
 const PatientListItem = styled(ListItem)(({ theme }) => ({
@@ -299,7 +301,7 @@ const NursePatientsPage: React.FC = () => {
 
       {/* Requesting an ER Bed */}
       <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography variant="subtitle1" fontWeight="bold" color="white">
           Requesting an ER Bed
         </Typography>
       </CategoryHeader>
@@ -335,7 +337,7 @@ const NursePatientsPage: React.FC = () => {
 
       {/* With an ER Bed Ready */}
       <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography variant="subtitle1" fontWeight="bold" color="white">
           With an ER Bed Ready
         </Typography>
       </CategoryHeader>
@@ -371,7 +373,7 @@ const NursePatientsPage: React.FC = () => {
 
       {/* In an ER Bed */}
       <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography variant="subtitle1" fontWeight="bold" color="white">
           In an ER Bed
         </Typography>
       </CategoryHeader>
@@ -407,7 +409,7 @@ const NursePatientsPage: React.FC = () => {
 
       {/* Discharged from ER */}
       <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography variant="subtitle1" fontWeight="bold" color="white">
           Discharged from ER
         </Typography>
       </CategoryHeader>
