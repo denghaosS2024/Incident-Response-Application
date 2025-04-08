@@ -18,6 +18,8 @@ jobs:
                   slack-message: |
                       🚨 *Build Failed!*  
                       🕒 *Started:* ${{ github.event.workflow_run.run_started_at }}  
+                      👤 *Commit Author:* `${{ github.event.workflow_run.head_commit.author.name }}`  
+                      💬 *Commit Message:* `${{ github.event.workflow_run.head_commit.message }}`  
                       🔗 <${{ github.event.workflow_run.html_url }}|View build logs>  
                       📘 *Workflow:* `${{ github.event.workflow_run.name }}`  
                       🛠️ *Repo:* `${{ github.repository }}`  
