@@ -46,21 +46,21 @@ The SEM Incident Response App is a Mobile Web Application designed to facilitate
 
 The project is brownfield development, which means you will be developing on top of existing codebase. The features implemented are
 
--   User login and registration
--   Real time messaging using Socket.IO
--   Channel based messaging
--   Integration with Redux for state management
--   Storybook for UI component development and documentation
+- User login and registration
+- Real time messaging using Socket.IO
+- Channel based messaging
+- Integration with Redux for state management
+- Storybook for UI component development and documentation
 
 ## Tools and Technologies Used
 
--   **Frontend**: React, Redux, Material-UI, TypeScript
--   **Backend**: Node.js, Express, MongoDB, Mongoose
--   **Real-time Communication**: Socket.IO
--   **Testing**: Jest, React Testing Library
--   **Development Tools**: Storybook, ESLint, Prettier
--   **Version Control**: Git, GitHub
--   **Containerization**: Docker, Docker Compose
+- **Frontend**: React, Redux, Material-UI, TypeScript
+- **Backend**: Node.js, Express, MongoDB, Mongoose
+- **Real-time Communication**: Socket.IO
+- **Testing**: Jest, React Testing Library
+- **Development Tools**: Storybook, ESLint, Prettier
+- **Version Control**: Git, GitHub
+- **Containerization**: Docker, Docker Compose
 
 Check for package.json in `/client` and `/server` to check additional libraries used
 
@@ -73,21 +73,21 @@ Check for package.json in `/client` and `/server` to check additional libraries 
 
 ### Docker Commands for Daily Use
 
--   `docker compose up --build` - Build and start all containers (use for first time setup or after changes)
--   `docker compose up` - Start existing containers without rebuilding (daily development)
--   `docker compose down` - Stop and remove all containers
--   `docker compose logs -f` - Watch logs from all containers (add service name to watch specific service)
--   `docker compose ps` - List running containers and their status
+- `docker compose up --build` - Build and start all containers (use for first time setup or after changes)
+- `docker compose up` - Start existing containers without rebuilding (daily development)
+- `docker compose down` - Stop and remove all containers
+- `docker compose logs -f` - Watch logs from all containers (add service name to watch specific service)
+- `docker compose ps` - List running containers and their status
 
 ### Docker Tips
 
--   Use Docker Desktop to:
-    -   Monitor container status
-    -   View container logs
-    -   Manage containers and images
--   First time setup might take a few minutes to download and build images
--   Changes to your code will automatically reflect in the running containers
--   If you add new dependencies, you'll need to rebuild using `docker compose up --build`
+- Use Docker Desktop to:
+    - Monitor container status
+    - View container logs
+    - Manage containers and images
+- First time setup might take a few minutes to download and build images
+- Changes to your code will automatically reflect in the running containers
+- If you add new dependencies, you'll need to rebuild using `docker compose up --build`
 
 ### When to Use Each Command
 
@@ -100,10 +100,10 @@ docker compose up --build
 
 Use this when:
 
--   Setting up the project for the first time
--   After changing Dockerfiles or docker-compose.yml
--   After adding/updating dependencies
--   If you're experiencing strange issues
+- Setting up the project for the first time
+- After changing Dockerfiles or docker-compose.yml
+- After adding/updating dependencies
+- If you're experiencing strange issues
 
 #### Daily Development
 
@@ -117,8 +117,8 @@ docker compose up -d
 
 Use this when:
 
--   Starting your work day
--   No configuration changes were made
+- Starting your work day
+- No configuration changes were made
 
 #### Stopping Work
 
@@ -202,7 +202,7 @@ docker compose logs -f server
 
 2. **Install dependencies**:
 
--   You can install client and server dependencies from the root folder itself.
+- You can install client and server dependencies from the root folder itself.
     ```bash
     npm install
     ```
@@ -239,19 +239,19 @@ Storybook will be running on `http://localhost:6006`
 
 6. **Run Tests**:
 
--   All test suits
+- All test suits
     ```
     npm run test
     ```
--   Individual test suit, eg `channel.spec.ts`
+- Individual test suit, eg `channel.spec.ts`
     ```
     npx jest server/test/routers/channel.spec.ts
     ```
 
 ## Notes:
 
--   When installing packages for `client` or `server` without Docker, make sure you are using correct node version and in the correct directory
+- When installing packages for `client` or `server` without Docker, make sure you are using correct node version and in the correct directory
 
 ## Attribution
 
-Codebase by Ojas Suhas Kapre, CMU MS-SE Class of Spring 2024.
+Codebase by Ojas Suhas Kapre, CMU MS-SE Class of Spring 2024
