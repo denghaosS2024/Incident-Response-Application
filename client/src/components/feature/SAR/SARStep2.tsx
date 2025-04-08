@@ -38,7 +38,7 @@ const SARStep2: React.FC<TaskStatsProps> = () => {
 
       if (response && Array.isArray(response)) {
         const filtered = response
-          .map((task: any, index: number) => ({
+          .map((task: ISarTask, index: number) => ({
             ...task,
             taskIndex: index,
           }))

@@ -11,8 +11,7 @@ interface ColumnProps {
   subtitle?: string
   tasks: IUser[]
   id: string
-  //TODO: Find out what's actually "any" in this case
-  groups?: any[]
+  groups?: string[]
   onGroupClick?: (groupId: string) => void
   selectedGroupId?: string | null
   canDrag?: boolean

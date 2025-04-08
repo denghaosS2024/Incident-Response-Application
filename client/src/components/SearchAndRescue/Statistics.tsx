@@ -1,3 +1,4 @@
+import { ISarTask } from '@/models/Incident';
 import { Box, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Cell, Legend, Pie, PieChart, Tooltip } from 'recharts';
@@ -22,14 +23,14 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
   });
   const [hazardStats, setHazardStats] = useState({
     totalHazards: 0,
-    ActiveWire: 0,
+    "Active Electric Wire": 0, // Match exact naming
     Dogs: 0,
     Explosives: 0,
     Fire: 0,
     Flood: 0,
     Gas: 0,
     Rats: 0,
-    Others: 0,
+    Other: 0, // Rename "Others" to "Other" to match the logic in fetchHazardStats
   });
   const fetchTaskCounts = async () => {
     try {
@@ -52,9 +53,9 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
       // Calculate total time spent and average time
       let totalHoursSpent = 0;
 
-      doneTasks.forEach((task: any) => {
-        const openingDate = new Date(task.openingDate);
-        const closingDate = new Date(task.closingDate);
+      doneTasks.forEach((task: ISarTask) => {
+        const openingDate = new Date(task.startDate ?? Date.now());
+        const closingDate = new Date(task.endDate ?? Date.now());
         totalHoursSpent += (closingDate.getTime() - openingDate.getTime()) / (1000 * 60 * 60); // Convert ms to hours
         console.log("total hours spent: ", totalHoursSpent);
       });
@@ -75,23 +76,18 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
       let totalVictims = 0;
       const counts = { Immediate: 0, Urgent: 0, CouldWait: 0, Dismiss: 0, Deceased: 0 };
       
-      tasks.forEach((task: any) => {
-        if (task.victims) {
-          task.victims.forEach((victim: any) => {
-            counts.Immediate += parseInt(victim.Immediate) || 0;
-            counts.Urgent += parseInt(victim.Urgent) || 0;
-            counts.CouldWait += parseInt(victim.CouldWait) || 0;
-            counts.Dismiss += parseInt(victim.Dismiss) || 0;
-            counts.Deceased += parseInt(victim.Deceased) || 0;
-            totalVictims += parseInt(victim.Immediate) || 0;
-            totalVictims += parseInt(victim.Urgent) || 0;
-            totalVictims += parseInt(victim.CouldWait) || 0;
-            totalVictims += parseInt(victim.Dismiss) || 0;
-            totalVictims += parseInt(victim.Deceased) || 0;
-          });
+      tasks.forEach((task: ISarTask) => {
+        const v = task.victims;
+        if (Array.isArray(v) && v.length === 5) {
+          counts.Immediate += v[0] || 0;
+          counts.Urgent += v[1] || 0;
+          counts.CouldWait += v[0] || 0;
+          counts.Dismiss += v[3] || 0;
+          counts.Deceased += v[4] || 0;
+          totalVictims += v.reduce((sum, val) => sum + (val || 0), 0);
         }
       });
-      
+  
       setVictimStats({ totalVictims, ...counts });
     } catch (error) {
       console.error('Error fetching victim stats:', error);
@@ -107,42 +103,33 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
         body: JSON.stringify({ incidentId }),
       }).catch(() => []);
   
-      let totalHazards = 0;
-      const hazardCounts = {
-        ActiveWire: 0,
-        Dogs: 0,
-        Explosives: 0,
-        Fire: 0,
-        Flood: 0,
-        Gas: 0,
-        Rats: 0,
-        Others: 0,
-      };
-  
-      tasks.forEach((task: any) => {
-        if (task.hazards) {
-          task.hazards.forEach((hazard: any) => {
-            // Directly updating counts
-            hazardCounts.ActiveWire += parseInt(hazard.ActiveWire) || 0;
-            hazardCounts.Dogs += parseInt(hazard.Dogs) || 0;
-            hazardCounts.Explosives += parseInt(hazard.Explosives) || 0;
-            hazardCounts.Fire += parseInt(hazard.Fire) || 0;
-            hazardCounts.Flood += parseInt(hazard.Flood) || 0;
-            hazardCounts.Gas += parseInt(hazard.Gas) || 0;
-            hazardCounts.Rats += parseInt(hazard.Rats) || 0;
-            hazardCounts.Others += parseInt(hazard.Others) || 0;
-  
-            totalHazards += parseInt(hazard.ActiveWire) || 0;
-            totalHazards += parseInt(hazard.Dogs) || 0;
-            totalHazards += parseInt(hazard.Explosives) || 0;
-            totalHazards += parseInt(hazard.Fire) || 0;
-            totalHazards += parseInt(hazard.Flood) || 0;
-            totalHazards += parseInt(hazard.Gas) || 0;
-            totalHazards += parseInt(hazard.Rats) || 0;
-            totalHazards += parseInt(hazard.Others) || 0;
-          });
-        }
-      });
+    let totalHazards = 0;
+    const hazardCounts: { [key in HazardType]: number } = {
+      "Active Electric Wire": 0,
+      Dogs: 0,
+      Explosives: 0,
+      Fire: 0,
+      Flood: 0,
+      Gas: 0,
+      Rats: 0,
+      Other: 0,
+    };
+
+    type HazardType = "Active Electric Wire" | "Dogs" | "Explosives" | "Fire" | "Flood" | "Gas" | "Rats" | "Other";
+
+    tasks.forEach((task: ISarTask) => {
+      if (task.hazards) {
+        task.hazards.forEach((hazard: string) => {
+          // Use a type assertion to safely index into hazardCounts
+          if (hazardCounts[hazard as HazardType] !== undefined) {
+            hazardCounts[hazard as HazardType] += 1;
+          } else {
+            hazardCounts["Other"] += 1; // For unrecognized hazards
+          }
+          totalHazards += 1;
+        });
+      }
+    });
   
       setHazardStats({ totalHazards, ...hazardCounts });
     } catch (error) {
@@ -247,14 +234,14 @@ const TaskStats: React.FC<TaskStatsProps> = ({ incidentId }) => {
       <Typography variant="h6" sx={{ backgroundColor: 'lightgrey' }}>
         Total Hazards: {hazardStats.totalHazards}
       </Typography>
-      <Typography>ActiveWire: {hazardStats.ActiveWire}</Typography>
+      <Typography>ActiveWire: {hazardStats['Active Electric Wire']}</Typography>
       <Typography>Dogs: {hazardStats.Dogs}</Typography>
       <Typography>Explosives: {hazardStats.Explosives}</Typography>
       <Typography>Fire: {hazardStats.Fire}</Typography>
       <Typography>Flood: {hazardStats.Flood}</Typography>
       <Typography>Gas: {hazardStats.Gas}</Typography>
       <Typography>Rats: {hazardStats.Rats}</Typography>
-      <Typography>Others: {hazardStats.Others}</Typography>
+      <Typography>Others: {hazardStats.Other}</Typography>
     </Box>
 
     </Box>

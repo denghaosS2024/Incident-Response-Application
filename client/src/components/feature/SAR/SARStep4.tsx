@@ -132,7 +132,7 @@ const fetchHazardStats = async () => {
 
     type HazardType = "Active Electric Wire" | "Dogs" | "Explosives" | "Fire" | "Flood" | "Gas" | "Rats" | "Other";
 
-    tasks.forEach((task: any) => {
+    tasks.forEach((task: ISarTask) => {
       if (task.hazards) {
         task.hazards.forEach((hazard: string) => {
           // Use a type assertion to safely index into hazardCounts
