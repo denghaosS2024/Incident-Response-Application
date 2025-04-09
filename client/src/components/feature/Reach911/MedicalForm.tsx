@@ -360,50 +360,52 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
           />
         </Box>
 
-        <Box width="100%" maxWidth="500px" my={2}>
-          <Box display="flex" justifyContent="center">
-            <button
-              style={{
-                width: "50%",
-                padding: "10px",
-                backgroundColor: "#1976d2",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-              onClick={() => {
-                if (
-                  userRole !== "Fire" &&
-                  userRole !== "Police" &&
-                  userRole !== "Nurse" &&
-                  userRole !== "Dispatch"
-                ) {
-                  alert(
-                    "You do not have permission to treat this patient. Only First Responders or Nurses can perform this action.",
-                  );
-                  return;
-                }
+                {userRole !== 'Citizen' && (
+                    <Box width="100%" maxWidth="500px" my={2}>
+                        <Box display="flex" justifyContent="center">
+                            <button
+                                style={{
+                                    width: '50%',
+                                    padding: '10px',
+                                    backgroundColor: '#1976d2',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '16px',
+                                }}
+                                onClick={() => {
+                                    if (
+                                        userRole !== 'Fire' &&
+                                        userRole !== 'Police' &&
+                                        userRole !== 'Nurse' &&
+                                        userRole !== 'Dispatch'
+                                    ) {
+                                        alert(
+                                            'You do not have permission to treat this patient. Only First Responders or Nurses can perform this action.',
+                                        )
+                                        return
+                                    }
 
-                const selectedUsername = isPatient
-                  ? currentUser?.username || ""
-                  : username || "";
+                                    const selectedUsername = isPatient
+                                        ? currentUser?.username || ''
+                                        : username || ''
 
-                const targetUrl = selectedUsername
-                  ? `/patients/admit?username=${encodeURIComponent(selectedUsername)}`
-                  : "/patients/admit";
+                                    const targetUrl = selectedUsername
+                                        ? `/patients/admit?username=${encodeURIComponent(selectedUsername)}`
+                                        : '/patients/admit'
 
-                window.location.href = targetUrl;
-              }}
-            >
-              Treat Patient
-            </button>
-          </Box>
-        </Box>
-      </Box>
-    </>
-  );
-};
+                                    window.location.href = targetUrl
+                                }}
+                            >
+                                Treat Patient
+                            </button>
+                        </Box>
+                    </Box>
+                )}
+            </Box>
+        </>
+    )
+}
 
 export default MedicalForm;
