@@ -88,7 +88,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
   const patientQuestion = questionsArray.find(
     (question: any) => question.username === currentUsername,
   );
-  const sex = patientQuestion?.sex ?? patient.sex ?? "";
+  const sex = patient.sex ?? "";
 
   // Loads contacts upon page loading
 
@@ -108,23 +108,25 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
 
     if (field === "username") {
       if (value === "create-one") {
+        console.log("Creating temp user");
         try {
           const response = await request("/api/users/createTemp", {
             method: "POST",
           });
 
           if (response && response.userId && response.username) {
-            patient = {
-              _id: "",
-              username: response.username,
-              name: "",
-              sex: propSex ?? "",
-              dob: "",
-            };
-            dispatch(addPatient(patient));
+            dispatch(
+              setPatient({
+                _id: response.patientId,
+                username: response.username,
+                name: "",
+                sex: propSex ?? "",
+                dob: "",
+              }),
+            );
 
             setcurrentUsername(response.username);
-
+            setIsPatientAdded(true);
             // const newContact: IUser = {
             //     _id: response.userId,
             //     username: response.username,
@@ -161,15 +163,15 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
 
       patient = patients.find((p) => p.username === value) ?? ({} as IPatient);
       if (Object.keys(patient).length === 0) {
-        patient = {
-          _id: "",
+        const newPatient = {
           username: value,
           name: "",
           sex: propSex ?? "",
           dob: "",
         };
-        dispatch(addPatient(patient));
+        dispatch(addPatient(newPatient as IPatient));
       }
+
       setcurrentUsername(value);
       console.log("Current username set to:", value);
       searchParams.set("username", value);
@@ -267,13 +269,15 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
                 onChange={(e) => onChange("username", e)}
                 fullWidth
               >
-                {[
-                  {
-                    _id: "create-one",
-                    username: "Create one",
-                  } as IUser,
-                  ...contacts,
-                ].map((user: IUser) => (
+                <MenuItem value="">
+                  <em>Select one</em>
+                </MenuItem>
+
+                <MenuItem key="create-one" value="create-one">
+                  Create one
+                </MenuItem>
+
+                {contacts.map((user: IUser) => (
                   <MenuItem key={user._id} value={user.username}>
                     {user.username}
                   </MenuItem>

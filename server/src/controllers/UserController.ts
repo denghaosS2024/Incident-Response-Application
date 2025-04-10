@@ -7,8 +7,8 @@ import ROLES from "../utils/Roles";
 import SystemGroupConfigs from "../utils/SystemDefinedGroups";
 import * as Token from "../utils/Token";
 import UserConnections from "../utils/UserConnections";
-import IncidentController from "./IncidentController";
 import CarController from "./CarController";
+import IncidentController from "./IncidentController";
 import TruckController from "./TruckController";
 
 class UserController {
@@ -552,38 +552,57 @@ class UserController {
    * @throws Error if the account creation fails.
    */
   async createTempUserForPatient() {
-    try {
-      const tempUsers = await User.find({
-        username: { $regex: /^temp\d+$/ },
-      })
-        .sort({ username: -1 })
-        .exec();
+    let retries = 3;
+    let attempt = 0;
 
-      let newTempNumber = 1;
-      if (tempUsers.length > 0) {
-        const lastTempUser = tempUsers[0];
-        const num = parseInt(lastTempUser.username.replace("temp", ""), 10);
-        newTempNumber = num + 1;
+    while (attempt < retries) {
+      try {
+        const newTempUsername = `temp${Date.now()}`;
+
+        const newUser = new User({
+          username: newTempUsername,
+          password: "1234",
+          role: ROLES.CITIZEN,
+          assignedCity: null,
+          assignedCar: null,
+          assignedTruck: null,
+          assignedVehicleTimestamp: null,
+        });
+
+        await newUser.save();
+
+        const Patient = (await import("../models/Patient")).default;
+        const newPatient = await Patient.create({
+          patientId: newUser._id.toString(),
+          username: newTempUsername,
+          name: "",
+          sex: "",
+          dob: "",
+        });
+
+        return {
+          message: "A new user account has been created for the Patient.",
+          userId: newUser._id,
+          username: newTempUsername,
+          patientId: newPatient._id,
+        };
+      } catch (error: any) {
+        if (
+          error.code === 11000 &&
+          error.keyPattern?.username &&
+          error.keyValue?.username?.startsWith("temp")
+        ) {
+          // duplicate key, retry
+          attempt += 1;
+          console.warn("Duplicate temp username, retrying...", attempt);
+          continue;
+        }
+        console.error("Error creating temporary patient user:", error);
+        throw new Error("Failed to create temporary patient user.");
       }
-      const newTempUsername = `temp${newTempNumber}`;
-
-      const newUser = new User({
-        username: newTempUsername,
-        password: "1234",
-        role: ROLES.CITIZEN,
-      });
-
-      await newUser.save();
-
-      return {
-        message: "A new user account has been created for the Patient.",
-        userId: newUser._id,
-        username: newTempUsername,
-      };
-    } catch (error) {
-      console.error("Error creating temporary patient user:", error);
-      throw new Error("Failed to create temporary patient user.");
     }
+
+    throw new Error("Failed to create temporary patient user after retries.");
   }
 
   /**
