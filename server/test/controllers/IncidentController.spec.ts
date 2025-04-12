@@ -13,13 +13,16 @@ import ROLES from "../../src/utils/Roles";
 import * as TestDatabase from "../utils/TestDatabase";
 
 describe("Incident Controller", () => {
-  beforeAll(TestDatabase.connect);
+  beforeAll(async () => {
+    await TestDatabase.connect();
+  });
+
   beforeEach(() => jest.clearAllMocks());
   afterEach(async () => {
     jest.restoreAllMocks();
     await Incident.deleteMany({});
   });
-  afterAll(TestDatabase.close);
+  afterAll(async () => await TestDatabase.close());
 
   const createTestIncident = async (username: string) => {
     const rawIncident = new Incident({

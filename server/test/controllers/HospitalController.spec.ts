@@ -5,7 +5,7 @@ import HospitalController from "../../src/controllers/HospitalController";
 import * as TestDatabase from "../utils/TestDatabase";
 
 describe("Hospital Controller", () => {
-  beforeAll(TestDatabase.connect);
+  beforeAll(async () => await TestDatabase.connect());
 
   beforeEach(() => {
     jest.spyOn(console, "error").mockImplementation(() => {});
@@ -15,7 +15,8 @@ describe("Hospital Controller", () => {
     await Hospital.deleteMany({});
     jest.restoreAllMocks();
   });
-  afterAll(TestDatabase.close);
+
+  afterAll(async () => await TestDatabase.close());
 
   const createTestHospital = async (hospitalId: string) => {
     const newHospital = new Hospital({
