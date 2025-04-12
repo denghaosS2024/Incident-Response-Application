@@ -552,7 +552,7 @@ class UserController {
    * @throws Error if the account creation fails.
    */
   async createTempUserForPatient() {
-    let retries = 3;
+    const retries = 3;
     let attempt = 0;
 
     while (attempt < retries) {
@@ -586,18 +586,24 @@ class UserController {
           username: newTempUsername,
           patientId: newPatient._id,
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const typedError = error as {
+          code?: number;
+          keyPattern?: { username?: string };
+          keyValue?: { username?: string };
+        };
+
         if (
-          error.code === 11000 &&
-          error.keyPattern?.username &&
-          error.keyValue?.username?.startsWith("temp")
+          typedError.code === 11000 &&
+          typedError.keyPattern?.username &&
+          typedError.keyValue?.username?.startsWith("temp")
         ) {
           // duplicate key, retry
           attempt += 1;
           console.warn("Duplicate temp username, retrying...", attempt);
           continue;
         }
-        console.error("Error creating temporary patient user:", error);
+        console.error("Error creating temporary patient user:", error); 
         throw new Error("Failed to create temporary patient user.");
       }
     }
