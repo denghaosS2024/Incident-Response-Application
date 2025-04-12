@@ -7,10 +7,10 @@ import AlertPanel from "../components/AlertPanel";
 const mockStore = configureStore({
   reducer: {
     messageState: (state = { messages: {} }, action) => {
-      if (action.type === "message/addMessage") {
-        // Simple mock implementation
-        return state;
-      }
+      // if (action.type === "message/addMessage") {
+      //   // Simple mock implementation
+      //   return state;
+      // }
       return state;
     },
     // Add any other reducers your component might need
