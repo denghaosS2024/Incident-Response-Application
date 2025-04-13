@@ -1,6 +1,7 @@
 import Car from "../models/Car";
 import Channel from "../models/Channel";
 import Incident from "../models/Incident";
+import { IPatientBase } from "../models/Patient";
 import Truck from "../models/Truck";
 import User, { IUser } from "../models/User";
 import ROLES from "../utils/Roles";
@@ -9,6 +10,7 @@ import * as Token from "../utils/Token";
 import UserConnections from "../utils/UserConnections";
 import CarController from "./CarController";
 import IncidentController from "./IncidentController";
+import PatientController from "./PatientController";
 import TruckController from "./TruckController";
 
 class UserController {
@@ -551,7 +553,7 @@ class UserController {
    * @returns An object containing a message, the newly created user object, and userId.
    * @throws Error if the account creation fails.
    */
-  async createTempUserForPatient() {
+  async createTempUserForPatient(callerUid: string) {
     const retries = 3;
     let attempt = 0;
 
@@ -571,14 +573,25 @@ class UserController {
 
         await newUser.save();
 
-        const Patient = (await import("../models/Patient")).default;
-        const newPatient = await Patient.create({
+        // const Patient = (await import("../models/Patient")).default;
+        // const newPatient = await Patient.create({
+        //   patientId: newUser._id.toString(),
+        //   username: newTempUsername,
+        //   name: "",
+        //   sex: "",
+        //   dob: "",
+        // });
+
+        let newPatientSchema: IPatientBase = {
           patientId: newUser._id.toString(),
           username: newTempUsername,
           name: "",
           sex: "",
           dob: "",
-        });
+        }
+
+        let newPatient = await PatientController.create(newPatientSchema, callerUid);
+
 
         return {
           message: "A new user account has been created for the Patient.",

@@ -14,9 +14,13 @@ router
    * @returns {Object} An object containing a message and the new temporary username
    * @throws {400} If the user creation fails
    */
-  .post("/createTemp", async (_request, response) => {
+  .post("/createTemp", async (request, response) => {
     try {
-      const result = await UserController.createTempUserForPatient();
+      const callerUid = request.headers["x-application-uid"] as string;
+      if (!callerUid) {
+        throw new HttpError("Caller UID is required", 400);
+      }
+      const result = await UserController.createTempUserForPatient(callerUid);
       response.status(201).send(result);
     } catch (e) {
       const error = e as Error;

@@ -60,6 +60,7 @@ export interface IPatientBase {
   erStatus?: ERStatusType;
   visitLog?: IVisitLog[] | undefined;
   master?: Schema.Types.ObjectId; // The first responder of this patient
+  location?: string;
 }
 
 // Document interface for Mongoose
@@ -198,6 +199,11 @@ export const PatientSchema = new Schema({
    * Master (first responder) of the patient
    */
   master: { type: Schema.Types.ObjectId, ref: "User" },
+
+  location: {
+    type: String,
+    enum: ["ER", "Road"] satisfies ReadonlyArray<LocationType>
+  },
 });
 
 export default mongoose.model<IPatient>("Patient", PatientSchema);

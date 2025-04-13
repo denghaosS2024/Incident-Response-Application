@@ -131,10 +131,15 @@ class PatientController {
    * @param callerUid - The UID of the caller (first responder)
    * @returns The created patient
    */
-  async create(patientData, callerId?: string) {
+  async create(patientData, callerId: string) {
     try {
       if (!callerId) {
         throw new HttpError("Caller UID is required", 400);
+      }
+      
+      // Set default values for location if not provided
+      if (!patientData.location){
+        patientData.location = "Road";
       }
 
       const payload = {
