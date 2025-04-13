@@ -12,6 +12,7 @@ import app from "./app";
 import Socket from "./socket";
 import * as Database from "./utils/Database";
 import Env from "./utils/Env";
+import * as TestDatabase from "../test/utils/TestDatabase";
 
 // Set the port for the server to listen on
 const PORT = parseInt(Env.getParam("PORT", "3001"));
@@ -36,7 +37,11 @@ async function main() {
   const server = await getHttpServer();
 
   // Setup Socket.IO and connect to the database at the same time
-  await Promise.all([setupSocketIo(server), Database.connect()]);
+  if (process.env.NODE_ENV !== "test") {
+    await Promise.all([setupSocketIo(server), Database.connect()]);
+  } else {
+    await Promise.all([setupSocketIo(server), TestDatabase.connect()]);
+  }
 
   // Start the server
   server.listen(PORT, () => console.log(`Server listening on port ${PORT}!`));

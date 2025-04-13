@@ -17,7 +17,9 @@
         "format": "cd client && npm run format && cd .. && cd server && npm run format && cd ..",
         "commit": "node pre-commit.mjs && git-cz",
         "commit-cz": "git-cz",
-        "cypress:open": "cypress open"
+        "cypress:open": "cypress open",
+        "cypress:run": "cypress run",
+        "e2e": "NODE_ENV=test npm run dev && npm run cypress:run"
     },
     "devDependencies": {
         "@types/jest": "^29.5.14",
