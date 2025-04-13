@@ -50,6 +50,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     condition: "",
     drugs: "",
     allergies: "",
+    hospitalId: ""
   });
 
   const navigate = useNavigate();
@@ -206,6 +207,10 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
   useEffect(() => {
     console.log("Updated currentHospital:", currentHospital);
+     setFormData((prev) => ({
+       ...prev,
+       hospitalId: currentHospital.hospitalId
+     }));
   }, [currentHospital]);
 
   console.log("Current patient ID:", getCurrentPatientId());

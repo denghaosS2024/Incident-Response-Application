@@ -8,4 +8,5 @@ export interface IVisitLogForm {
   condition: string;
   drugs: string;
   allergies: string;
+  hospitalId: string;
 }

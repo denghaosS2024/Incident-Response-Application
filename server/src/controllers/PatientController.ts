@@ -396,6 +396,7 @@ class PatientController {
       condition,
       drugs,
       allergies,
+      hospitalId
     } = patientVisitData;
 
     // A helper function to generate a new IVisitLog object
@@ -413,6 +414,7 @@ class PatientController {
         drugs: drugs ?? null,
         allergies: allergies ?? null,
         active: true,
+        hospitalId: hospitalId ?? null
       };
     };
 
