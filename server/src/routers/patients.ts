@@ -580,6 +580,68 @@ export default Router()
 
   /**
    * @swagger
+   * /api/patients/visitLogs/default:
+   *   post:
+   *     summary: Create a default visit log for a patient
+   *     description: >
+   *       Adds a new visit log entry to the specified patient based on their previous visit (if available).
+   *       If the patient has any existing active visit logs, they will be marked as inactive.
+   *       The new visit log will be created using the most recent one as a template, updating the date and location according to the specified role.
+   *     tags: [Patient]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - patientId
+   *               - role
+   *             properties:
+   *               patientId:
+   *                 type: string
+   *                 description: ID of the patient to create a visit log for.
+   *                 example: "P12345"
+   *               role:
+   *                 type: string
+   *                 enum: [POLICE, FIRE, NURSE]
+   *                 description: Role of the requester, used to determine the visit location (Road or ER).
+   *                 example: "NURSE"
+   *     responses:
+   *       201:
+   *         description: Default visit log created successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Patient'
+   *       400:
+   *         description: Missing or invalid patientId or role.
+   *       404:
+   *         description: Patient not found.
+   *       500:
+   *         description: Internal server error.
+   */
+  .post("/visitLogs/default", async (request, response) => {
+    try {
+      const { patientId, role } = request.body;
+      if (!patientId || !role) {
+        response.status(400).json({ message: "patientId and role is required" });
+        return;
+      }
+
+      const result = await PatientController.createDefaultPatientVisit(
+        patientId as string,
+        role,
+      );
+      response.status(201).json(result);
+    } catch (e) {
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
+    }
+  })
+      
+  /**
+   * @swagger
    * /api/patients/visitLogs:
    *   put:
    *     summary: Update the active visit log of a patient

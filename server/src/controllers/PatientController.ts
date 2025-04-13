@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { IHospital } from "../models/Hospital";
 import Patient, {
   IPatientBase,
@@ -5,13 +6,11 @@ import Patient, {
   PatientSchema,
 } from "../models/Patient";
 import { IUser } from "../models/User";
+import HttpError from "../utils/HttpError";
 import ROLES from "../utils/Roles";
 import HospitalController from "./HospitalController";
 import IncidentController from "./IncidentController";
 import UserController from "./UserController";
-
-import mongoose from "mongoose";
-import HttpError from "../utils/HttpError";
 
 export interface IExpandedPatientInfo extends IPatientBase {
   nurse?: IUser;
@@ -367,7 +366,8 @@ class PatientController {
    * Creates or updates a visit log for a patient and sets the erStatus appropriately
    *
    * - If the patient has no visit logs, a new entry is created.
-   * - If the patient has visit logs, all active ones are set to inactive and a new log entry is created.
+   * - If the patient has visit logs, all active ones are set to inactive and 
+   *   a new log entry is created with the latest visit log data.
    * - Updates the erStatus based on the location and priority
    *
    * @param patientId - The unique ID of the patient
@@ -451,6 +451,74 @@ class PatientController {
     // Save the updated patient record
     await patient.save();
 
+    return patient;
+  }
+
+  async createDefaultPatientVisit(patientId: string, role: string) {
+    const patient = await Patient.findOne({ patientId });
+
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`);
+    }
+  
+    // Mark all previous visit logs as inactive
+    if (patient.visitLog && patient.visitLog.length > 0) {
+      patient.visitLog.forEach((visit) => {
+        visit.active = false;
+      });
+    }
+  
+    if (!patient.visitLog) {
+      patient.visitLog = [];
+    }
+  
+
+    const lastVisit = patient.visitLog[patient.visitLog.length - 1];
+    const defaultVisitLog: IVisitLog = lastVisit
+      ? {
+          dateTime: new Date(),
+          incidentId: lastVisit.incidentId || "",
+          priority: lastVisit.priority || "E",
+          location: lastVisit.location || "Road",
+          age: lastVisit.age ?? null,
+          conscious: lastVisit.conscious ?? null,
+          breathing: lastVisit.breathing ?? null,
+          chiefComplaint: lastVisit.chiefComplaint ?? null,
+          condition: lastVisit.condition ?? null,
+          drugs: lastVisit.drugs ? [...lastVisit.drugs] : null,
+          allergies: lastVisit.allergies ? [...lastVisit.allergies] : null,
+          active: true,
+        }
+      : {
+          dateTime: new Date(),
+          incidentId: "",
+          priority: "E",
+          location: "Road",
+          active: true,
+        };
+  
+    // Override location based on role
+    if (role === ROLES.POLICE || role === ROLES.FIRE) {
+      defaultVisitLog.location = "Road";
+    } else if (role === ROLES.NURSE) {
+      defaultVisitLog.location = "ER";
+    }
+  
+    // Update ER status logic
+    if (defaultVisitLog.location === "ER") {
+      if (defaultVisitLog.priority === "E" || defaultVisitLog.priority === "1") {
+        patient.set("erStatus", patient.get("erStatus") || "requesting");
+      } else {
+        patient.set("erStatus", undefined);
+      }
+    } else {
+      patient.set("erStatus", undefined);
+    }
+  
+    patient.visitLog.push(defaultVisitLog);
+  
+    await patient.save();
+  
     return patient;
   }
 
