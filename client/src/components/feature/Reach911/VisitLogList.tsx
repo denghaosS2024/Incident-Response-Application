@@ -1,3 +1,4 @@
+import request from "@/utils/request";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Fab, Typography } from "@mui/material";
 import Paper from "@mui/material/Paper";
@@ -7,16 +8,12 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { RootState } from "../../../redux/store";
-import request from "../../../utils/request";
 
-const rows = [
-  // { Date: '11.22.20-08:00', Location: 'ER El Camino', Link: '>' },
-  // { Date: '10.20.20-09:00', Location: 'ER Sequoia', Link: '>' },
-  // { Date: '09.13.20-13:00', Location: 'Road', Link: '>' }
-];
+// { Date: '11.22.20-08:00', Location: 'ER El Camino', Link: '>' },
 
 const VisitLogList: React.FC<{ username?: string }> = ({
   username: propUsername,
@@ -24,6 +21,7 @@ const VisitLogList: React.FC<{ username?: string }> = ({
   console.log("VisitLogList propUsername:", propUsername);
   const navigate = useNavigate();
   const { patients } = useSelector((state: RootState) => state.patientState);
+  const [visitLogs, setVisistLogs] = useState([]);
 
   const getCurrentPatientId = () => {
     if (!patients || patients.length === 0 || !propUsername) {
@@ -32,8 +30,79 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     const patient = patients.find((p) => p.username === propUsername);
     return patient ? patient.patientId : "";
   };
-
+  
   console.log("Current Patient ID:", getCurrentPatientId());
+  
+  const getCurrentPatient = () => {
+    if (!patients || patients.length === 0 || !propUsername) {
+      return null;
+    }
+    const patient = patients.find((p) => p.username === propUsername);
+    return patient ? patient : null;
+  };
+  
+  const getCurrentPatientVisitLogs = () => {
+    const patient = getCurrentPatient();
+    if (!patient || !patient.visitLog) {
+      return [];
+    }
+    return patient.visitLog;
+  }
+
+  const navigate2SpecificVisitLog = (incidentId: string) => {
+    navigate(`/patient-visit/${incidentId}`);
+    // if (propUsername) {
+    //   navigate(`/patient-visit/${incidentId}?username=${encodeURIComponent(propUsername)}`);
+    // }
+    // else {
+    //   navigate(`/patient-visit/${incidentId}`);
+    // }
+  }
+  
+  const handleLinkClick = (incidentId: string) => {
+    // console.log("Link clicked for incidentId:", incidentId);
+    navigate2SpecificVisitLog(incidentId);
+  };
+
+  const formatDateForVisitLog = (date: Date): string => {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${month}.${day}.${year}-${hours}:${minutes}`;
+  };
+
+useEffect(
+  () => {
+    const visitLogs = getCurrentPatientVisitLogs();
+    const formattedVisitLogs = visitLogs.map((log) => {
+      const date = new Date(log.dateTime);
+      const formattedDate = formatDateForVisitLog(date);
+      
+      return {
+        Date: formattedDate,
+        Location: log.location,
+        Link: (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleLinkClick(log.incidentId);
+            }}
+            style={{
+              textDecoration: "none",
+            }}
+          >
+            {">"}
+          </a>
+        ),
+      };
+    });
+    setVisistLogs(formattedVisitLogs);
+  },
+  [patients, propUsername]
+);
 
 
   const handleAddPatient = async () => {
@@ -108,7 +177,7 @@ const VisitLogList: React.FC<{ username?: string }> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((row, index) => (
+              {visitLogs.map((row, index) => (
                 <TableRow
                   key={row.Date}
                   sx={{
