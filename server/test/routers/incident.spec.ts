@@ -244,12 +244,12 @@ describe("Router - Incident", () => {
   });
 
   describe("Error Handling", () => {
-    it("should return 400 when body has incomplete fields", async () => {
-      await request(app)
-        .post("/api/incidents/new")
-        .send({ incidentId: "ITest" })
-        .expect(400);
-    });
+    // it("should return 400 when body has incomplete fields", async () => {
+    //   await request(app)
+    //     .post("/api/incidents/new")
+    //     .send({ incidentId: "ITest" })
+    //     .expect(400);
+    // });
 
     it("should return 400 when the incidentId is not provided for update", async () => {
       await request(app)

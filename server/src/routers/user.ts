@@ -17,10 +17,12 @@ router
   .post("/createTemp", async (request, response) => {
     try {
       const callerUid = request.headers["x-application-uid"] as string;
+      // hospitalId of the nurse that created the patient/empty if created by a First Responder
+      const hospitalId = request.body.hospitalId;
       if (!callerUid) {
         throw new HttpError("Caller UID is required", 400);
       }
-      const result = await UserController.createTempUserForPatient(callerUid);
+      const result = await UserController.createTempUserForPatient(hospitalId, callerUid);
       response.status(201).send(result);
     } catch (e) {
       const error = e as Error;

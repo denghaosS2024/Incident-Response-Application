@@ -553,7 +553,7 @@ class UserController {
    * @returns An object containing a message, the newly created user object, and userId.
    * @throws Error if the account creation fails.
    */
-  async createTempUserForPatient(callerUid: string) {
+  async createTempUserForPatient(hospitalId, callerUid: string) {
     const retries = 3;
     let attempt = 0;
 
@@ -588,6 +588,7 @@ class UserController {
           name: "",
           sex: "",
           dob: "",
+          hospitalId: hospitalId
         }
 
         const newPatient = await PatientController.create(newPatientSchema, callerUid);

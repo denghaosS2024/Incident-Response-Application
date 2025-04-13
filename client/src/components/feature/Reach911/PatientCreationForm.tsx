@@ -7,6 +7,7 @@ import {
   updatePatient,
 } from "@/redux/patientSlice";
 import { setSnackbar, SnackbarType } from "@/redux/snackbarSlice";
+import ROLES from "@/utils/Roles";
 import {
   FormControl,
   FormControlLabel,
@@ -52,6 +53,33 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
   }, [dispatch]);
   const [isPatientAdded, setIsPatientAdded] = useState(false);
 
+
+  // hopitalId of the currently logged in nurse 
+  const [hospitalId, setHospitalId] = useState<string>("");
+ 
+  useEffect(() => {
+    const nurseId = localStorage.getItem("uid");
+    const role = localStorage.getItem("role");
+  
+    if (!nurseId || role !== ROLES.NURSE) return;
+  
+    const fetchNurseHospital = async () => {
+      try {
+        const response = await request(`/api/users/${nurseId}`, {
+          method: "GET",
+        });
+        console.log("Fetched nurse details:", response);
+        if (response?.hospitalId) {
+          setHospitalId(response.hospitalId);
+        }
+      } catch (error) {
+        console.error("Error fetching nurse hospital ID:", error);
+      }
+    };
+  
+    fetchNurseHospital();
+  }, []);
+
   let patient: IPatient =
     patients.find((p) => p.username === currentUsername) ?? ({} as IPatient);
 
@@ -68,6 +96,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
       name: "",
       sex: propSex ?? "",
       dob: "",
+      hospitalId: hospitalId,
     };
     dispatch(addPatient(patient));
     setIsPatientAdded(true);
@@ -77,7 +106,6 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
   const username = patient.username ?? null;
   const name = patient.name ?? "";
   const dob = patient.dob ?? "";
-  const userId = localStorage.getItem("uid") ?? "";
   const [usernameError, setUserNameError] = useState<string>("");
   const incident = useSelector(
     (state: RootState) => state.incidentState.incident,
@@ -112,6 +140,10 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
         try {
           const response = await request("/api/users/createTemp", {
             method: "POST",
+            headers: {
+              "Content-Type": "application/json", 
+            },
+            body: JSON.stringify({ hospitalId }),
           });
 
           if (response && response.userId && response.username) {
@@ -122,6 +154,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
                 name: "",
                 sex: propSex ?? "",
                 dob: "",
+                hospitalId: hospitalId, 
               }),
             );
 
@@ -168,7 +201,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
           name: "",
           sex: propSex ?? "",
           dob: "",
-        };
+          hospitalId: hospitalId,         };
         dispatch(addPatient(newPatient as IPatient));
       }
 
