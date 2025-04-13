@@ -457,11 +457,31 @@ class PatientController {
 
   async createDefaultPatientVisit(patientId: string, role: string) {
     const patient = await Patient.findOne({ patientId });
-
+  
     if (!patient) {
       throw new Error(`Patient with ID ${patientId} does not exist`);
     }
   
+    if (!patient.visitLog) {
+      patient.visitLog = [];
+    }
+  
+    // Identify the last visit (if any)
+    const lastVisit = patient.visitLog[patient.visitLog.length - 1];
+
+    console.log("Last visit:", lastVisit);
+    console.log("Patient ER status:", patient.erStatus);
+  
+    // If there's a last visit and it is active,
+    // ensure that we only allow new visits if priority is "3" or erStatus is "discharged".
+    if (lastVisit && lastVisit.active) {
+      if (lastVisit.priority !== "3" && patient.erStatus !== "discharged") {
+        throw new Error(
+          `Cannot create a new visit. The last active visit must have priority "3" or the patient must be "discharged" from ER.`
+        );
+      }
+    }
+
     // Mark all previous visit logs as inactive
     if (patient.visitLog && patient.visitLog.length > 0) {
       patient.visitLog.forEach((visit) => {
@@ -469,12 +489,14 @@ class PatientController {
       });
     }
   
-    if (!patient.visitLog) {
-      patient.visitLog = [];
+    // Mark all previous visits as inactive
+    if (patient.visitLog.length > 0) {
+      patient.visitLog.forEach((visit) => {
+        visit.active = false;
+      });
     }
   
-
-    const lastVisit = patient.visitLog[patient.visitLog.length - 1];
+    // Build the new default visit log based on the last visit (if present)
     const defaultVisitLog: IVisitLog = lastVisit
       ? {
           dateTime: new Date(),
@@ -523,6 +545,7 @@ class PatientController {
   
     return patient;
   }
+  
 
   /**
    * Update the active visit log entry of a patient.
@@ -546,7 +569,7 @@ class PatientController {
 
     // Update only the provided fields
     Object.entries(updatedVisitData).forEach(([key, value]) => {
-      if (value !== undefined && key !== "active") {
+      if (value !== undefined) {
         activeVisit[key] = value;
       }
     });

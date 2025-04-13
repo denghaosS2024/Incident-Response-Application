@@ -47,12 +47,13 @@ const VisitLogList: React.FC<{ username?: string }> = ({
           method: "POST",
           body: JSON.stringify(body),
         });
-      } catch {
-        console.error("Error adding patient visit log");
-        alert("Error adding patient visit log");
-        return
+
+        navigate(`/patient-visit?username=${encodeURIComponent(propUsername)}`);
+      } catch (error) {
+        const err = error as Error;
+        console.error("Error adding patient visit log:", err);
+        alert(err.message || "Error adding patient visit log");
       }
-      navigate(`/patient-visit?username=${encodeURIComponent(propUsername)}`);
     } else {
       navigate("/patient-visit");
     }
