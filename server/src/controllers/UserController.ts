@@ -582,7 +582,7 @@ class UserController {
         //   dob: "",
         // });
 
-        let newPatientSchema: IPatientBase = {
+        const newPatientSchema: IPatientBase = {
           patientId: newUser._id.toString(),
           username: newTempUsername,
           name: "",
@@ -590,7 +590,7 @@ class UserController {
           dob: "",
         }
 
-        let newPatient = await PatientController.create(newPatientSchema, callerUid);
+        const newPatient = await PatientController.create(newPatientSchema, callerUid);
 
 
         return {
