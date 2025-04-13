@@ -7,7 +7,10 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
+import { RootState } from "../../../redux/store";
+import request from "../../../utils/request";
 
 const rows = [
   // { Date: '11.22.20-08:00', Location: 'ER El Camino', Link: '>' },
@@ -20,9 +23,35 @@ const VisitLogList: React.FC<{ username?: string }> = ({
 }) => {
   console.log("VisitLogList propUsername:", propUsername);
   const navigate = useNavigate();
+  const { patients } = useSelector((state: RootState) => state.patientState);
 
-  const handleAddPatient = () => {
+  const getCurrentPatientId = () => {
+    if (!patients || patients.length === 0 || !propUsername) {
+      return "";
+    }
+    const patient = patients.find((p) => p.username === propUsername);
+    return patient ? patient.patientId : "";
+  };
+
+  console.log("Current Patient ID:", getCurrentPatientId());
+
+
+  const handleAddPatient = async () => {
     if (propUsername) {
+      const body = {
+        patientId: getCurrentPatientId(),
+        role: localStorage.getItem("role"),
+      }
+      try {
+        await request("/api/patients/visitLogs/default", {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+      } catch {
+        console.error("Error adding patient visit log");
+        alert("Error adding patient visit log");
+        return
+      }
       navigate(`/patient-visit?username=${encodeURIComponent(propUsername)}`);
     } else {
       navigate("/patient-visit");

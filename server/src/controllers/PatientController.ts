@@ -9,7 +9,6 @@ import { IUser } from "../models/User";
 import HttpError from "../utils/HttpError";
 import ROLES from "../utils/Roles";
 import HospitalController from "./HospitalController";
-import IncidentController from "./IncidentController";
 import UserController from "./UserController";
 
 export interface IExpandedPatientInfo extends IPatientBase {
@@ -532,6 +531,7 @@ class PatientController {
    */
   async updatePatientVisit(patientId: string, updatedVisitData: IVisitLog) {
     const patient = await Patient.findOne({ patientId });
+
     if (!patient) {
       throw new Error(`Patient with ID ${patientId} does not exist`);
     }
@@ -548,31 +548,18 @@ class PatientController {
       }
     });
 
-    await patient.save();
-    const updatedPatient = await Patient.findOne({ patientId });
-    if (
-      updatedPatient &&
-      updatedPatient.visitLog &&
-      updatedPatient.visitLog.length > 0
-    ) {
-      const incidentId = activeVisit.incidentId;
-      const incidents =
-        await IncidentController.getIncidentByIncidentId(incidentId);
-      const incident = incidents[0];
-      if (incident && updatedPatient) {
-        if (!Array.isArray(incident.patients)) {
-          incident.patients = [];
-        }
-
-        incident.patients.push({
-          username: updatedPatient.username,
-          status: updatedPatient.status,
-          dateTime: new Date().toISOString(),
-        });
-        await IncidentController.updateIncident(incident);
+    if (updatedVisitData.location === "ER") {
+      if (updatedVisitData.priority === "E" || updatedVisitData.priority === "1") {
+        patient.set("erStatus", patient.get("erStatus") || "requesting");
+      } else {
+        patient.set("erStatus", undefined);
       }
+    } else {
+      patient.set("erStatus", undefined);
     }
-    return updatedPatient;
+
+    await patient.save();
+    return patient;
   }
 
   async findByLocation(location: string) {

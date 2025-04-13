@@ -27,10 +27,10 @@ export default class VisitLogHelper {
       },
     ]);
     const message = await request("/api/patients/visitLogs", {
-      method: "POST",
+      method: "PUT",
       body: JSON.stringify({
         patientId: patientId,
-        visitLog: {
+        updatedVisitData: {
           ...formData,
           incidentId: incidentId,
           dateTime: visitTime,
