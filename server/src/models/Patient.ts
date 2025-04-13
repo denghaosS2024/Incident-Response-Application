@@ -43,7 +43,7 @@ export interface IVisitLog {
   drugs?: string[] | null;
   allergies?: string[] | null;
   active: boolean;
-  hospitalId: string;
+  hospitalId?: string | null;
 }
 
 // Base interface without Document extension

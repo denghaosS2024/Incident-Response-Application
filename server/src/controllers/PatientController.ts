@@ -488,6 +488,7 @@ class PatientController {
           condition: lastVisit.condition ?? null,
           drugs: lastVisit.drugs ? [...lastVisit.drugs] : null,
           allergies: lastVisit.allergies ? [...lastVisit.allergies] : null,
+          hospitalId: lastVisit.hospitalId ?? null,
           active: true,
         }
       : {
