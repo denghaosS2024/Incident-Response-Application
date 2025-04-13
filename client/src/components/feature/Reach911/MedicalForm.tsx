@@ -217,12 +217,14 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
 
   const returnCallerOrPatientUsername = () => {
 
-    if (!isCreatedByFirstResponder ){
+    if (!isCreatedByFirstResponder) {
       if (isPatient) {
         return incident.caller ?? "";
       } else {
         return username ?? "";
       }
+    } else {
+      return username ?? "";
     }
       
   };
@@ -266,8 +268,9 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                 <Checkbox
                   checked={isPatient}
                   onChange={(e) => {
-                    onUsernameChange(incident.caller ?? '')
+                    
                     onChange("isPatient", e);
+                    //onUsernameChange(incident.caller ?? "");
                   }}
                 />
               }

@@ -150,6 +150,8 @@ class PatientController {
         master: callerId, // Set the master field to the caller's UID
       };
 
+      delete payload._id
+
       // Ensure the nameLower field is set for searching
       if (payload.name) {
         payload.nameLower = payload.name.trim().toLowerCase();
