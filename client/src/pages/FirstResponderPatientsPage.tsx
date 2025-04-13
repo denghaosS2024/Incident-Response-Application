@@ -206,8 +206,17 @@ const FirstResponderPatientsPage: React.FC = () => {
   }, [username]);
 
   // Navigate to patient detail page
-  const handlePatientClick = (patientId: string) => {
-    navigate(`/profile/${patientId}`);
+  const handlePatientClick = async (patientId: string) => {
+    // Fetch patient data to get username
+    const patients = await request("/api/patients", {
+      method: "GET",
+    });
+
+    // Find the patient with matching patientId
+    const patient = patients.find((p: Patient) => p.patientId === patientId);
+
+    // Navigate using username
+    navigate(`/patients/admit?username=${patient.username}`);
   };
 
   // Navigate to patient admission page
