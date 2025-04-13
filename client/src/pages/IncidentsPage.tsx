@@ -191,7 +191,7 @@ function IncidentsPage() {
       const newIncident: IIncident = {
         _id: "",
         incidentId,
-        caller: username,
+        caller: "",
         openingDate: new Date().toISOString(),
         incidentState: "Assigned",
         owner: username,
@@ -351,14 +351,30 @@ function IncidentsPage() {
         },
       });
     } else {
-      // Navigate to the regular Reach911 page for other incident types
-      navigate("/reach911", {
-        state: {
-          incidentId: incident.incidentId,
-          readOnly,
-          autoPopulateData,
-        },
-      });
+
+      console.log(incident.caller)
+
+      if (!incident.caller) {
+        navigate("/reach911", {
+          state: {
+            incidentId: incident.incidentId,
+            readOnly,
+            autoPopulateData,
+            isCreatedByFirstResponder: true
+          },
+        });
+      } else {
+        // Navigate to the regular Reach911 page for other incident types
+        navigate("/reach911", {
+          state: {
+            incidentId: incident.incidentId,
+            readOnly,
+            autoPopulateData,
+            isCreatedByFirstResponder: false
+          },
+        });
+      }
+        
     }
   };
 

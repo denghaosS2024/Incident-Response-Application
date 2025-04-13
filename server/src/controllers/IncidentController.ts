@@ -166,7 +166,13 @@ class IncidentController {
         );
       };
 
-      await notifyDispatchers(incident.incidentId, incident.caller);
+      if (incident.caller){
+        await notifyDispatchers(incident.incidentId, incident.caller);
+      }
+      else{
+        await notifyDispatchers(incident.incidentId, incident.owner);
+      }
+        
       return incident;
     }
   }

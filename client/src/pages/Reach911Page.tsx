@@ -72,7 +72,7 @@ const Reach911Page: React.FC = () => {
               },
               body: JSON.stringify({
                 caller: username,
-                owner: username,
+                owner: "System",
                 incidentState: "Waiting",
                 openingDate: new Date().toISOString(),
                 commander: "System",
@@ -179,7 +179,7 @@ const Reach911Page: React.FC = () => {
     incident?.commander !== username;
 
   const updateIncidentCall = async () => {
-    const { __v, ...safeIncident } = incident;
+    const {  ...safeIncident } = incident;
     try {
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
@@ -201,9 +201,11 @@ const Reach911Page: React.FC = () => {
           ...safeIncident,
           incidentState: incident.incidentState || "Waiting",
           openingDate: incident.openingDate || new Date().toISOString(),
-          owner: incident.owner || localStorage.getItem("username"),
+          owner: incident.owner || "System",
           commander: incident.commander || "System",
-          caller: incident.caller || localStorage.getItem("username"),
+          caller: isCreatedByFirstResponder
+            ? ""
+            : incident.caller ?? localStorage.getItem("username"),
         }),
       });
 

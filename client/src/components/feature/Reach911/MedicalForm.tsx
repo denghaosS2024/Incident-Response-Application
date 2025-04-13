@@ -34,6 +34,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
   isCreatedByFirstResponder,
   formIndex,
 }) => {
+
+  console.log(isCreatedByFirstResponder);
   const dispatch = useDispatch<AppDispatch>();
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
@@ -115,6 +117,15 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     // Validate only the changed field
   };
 
+  // useEffect(()=> {
+  //    dispatch(
+  //      updateIncident({
+  //        ...incident,
+  //        questions: updatedQuestionsModified,
+  //      }),
+  //    );
+  // }, [isPatient])
+
   // Validates field to set certain error messages
   const validateField = async (
     field: string,
@@ -153,18 +164,18 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
         },
       );
       console.log("response: ", response);
-      if (response.ok) {
-        const responseData = await response.json();
-        if (
-          responseData.incidentId &&
-          responseData.incidentId !== incident._id
-        ) {
-          setUserNameError(
-            "This username is already associated with another active incident",
-          );
-          isValid = false;
-        }
-      }
+      // if (response.ok) {
+      //   const responseData = await response.json();
+      //   if (
+      //     responseData.incidentId &&
+      //     responseData.incidentId !== incident._id
+      //   ) {
+      //     setUserNameError(
+      //       "This username is already associated with another active incident",
+      //     );
+      //     isValid = false;
+      //   }
+      // }
     }
 
     // Checks that the age is between 1 and 110
@@ -196,10 +207,47 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
         isValid = false;
         alert('Another form already has "I am the patient" selected.');
       }
+      
+      
+
     }
 
     return isValid;
   };
+
+  const returnCallerOrPatientUsername = () => {
+
+    if (!isCreatedByFirstResponder ){
+      if (isPatient) {
+        return incident.caller ?? "";
+      } else {
+        return username ?? "";
+      }
+    }
+      
+  };
+
+  
+  const onUsernameChange = (value: string) => {
+    const updatedQuestions = Array.isArray(incident.questions)
+      ? [...incident.questions]
+      : [];
+
+    updatedQuestions[formIndex] = {
+      ...(updatedQuestions[formIndex] ?? {}),
+      username: value,
+    } as MedicalQuestions;
+
+    dispatch(
+      updateIncident({
+        ...incident,
+        questions: updatedQuestions,
+      }),
+    );
+
+    // validateField("username", value);
+  };
+
 
   if (loading) return <Loading />;
   return (
@@ -217,7 +265,10 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
               control={
                 <Checkbox
                   checked={isPatient}
-                  onChange={(e) => onChange("isPatient", e)}
+                  onChange={(e) => {
+                    onUsernameChange(incident.caller ?? '')
+                    onChange("isPatient", e);
+                  }}
                 />
               }
               label={
@@ -248,10 +299,15 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
           <FormControl fullWidth error={!!usernameError}>
             <InputLabel id="username-label">Select One</InputLabel>
             <Select
+              id="username-select"
               labelId="username-label"
               label="Username"
-              value={username}
-              onChange={(e) => onChange("username", e)}
+              value={returnCallerOrPatientUsername()}
+              onChange={(e) => {
+                if (!isPatient) {
+                  onChange("username", e);
+                }
+              }}
               fullWidth
             >
               <MenuItem key="unknown" value="unknown">
@@ -360,52 +416,52 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
           />
         </Box>
 
-                {userRole !== 'Citizen' && (
-                    <Box width="100%" maxWidth="500px" my={2}>
-                        <Box display="flex" justifyContent="center">
-                            <button
-                                style={{
-                                    width: '50%',
-                                    padding: '10px',
-                                    backgroundColor: '#1976d2',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '16px',
-                                }}
-                                onClick={() => {
-                                    if (
-                                        userRole !== 'Fire' &&
-                                        userRole !== 'Police' &&
-                                        userRole !== 'Nurse' &&
-                                        userRole !== 'Dispatch'
-                                    ) {
-                                        alert(
-                                            'You do not have permission to treat this patient.  Only First Responders or Nurses can perform this action.',
-                                        )
-                                        return
-                                    }
+        {userRole !== "Citizen" && (
+          <Box width="100%" maxWidth="500px" my={2}>
+            <Box display="flex" justifyContent="center">
+              <button
+                style={{
+                  width: "50%",
+                  padding: "10px",
+                  backgroundColor: "#1976d2",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                }}
+                onClick={() => {
+                  if (
+                    userRole !== "Fire" &&
+                    userRole !== "Police" &&
+                    userRole !== "Nurse" &&
+                    userRole !== "Dispatch"
+                  ) {
+                    alert(
+                      "You do not have permission to treat this patient.  Only First Responders or Nurses can perform this action.",
+                    );
+                    return;
+                  }
 
-                                    const selectedUsername = isPatient
-                                        ? currentUser?.username || ''
-                                        : username || ''
+                  const selectedUsername = isPatient
+                    ? currentUser?.username || ""
+                    : username || "";
 
-                                    const targetUrl = selectedUsername
-                                        ? `/patients/admit?username=${encodeURIComponent(selectedUsername)}`
-                                        : '/patients/admit'
+                  const targetUrl = selectedUsername
+                    ? `/patients/admit?username=${encodeURIComponent(selectedUsername)}`
+                    : "/patients/admit";
 
-                                    window.location.href = targetUrl
-                                }}
-                            >
-                                Treat Patient
-                            </button>
-                        </Box>
-                    </Box>
-                )}
+                  window.location.href = targetUrl;
+                }}
+              >
+                Treat Patient
+              </button>
             </Box>
-        </>
-    )
+          </Box>
+        )}
+      </Box>
+    </>
+  );
 }
 
 export default MedicalForm;

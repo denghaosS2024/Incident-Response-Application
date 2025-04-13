@@ -54,7 +54,7 @@ export interface ISarTask {
 
 export interface IIncident extends Document {
   incidentId: string;
-  caller: string;
+  caller?: string;
   openingDate: Date;
   closingDate?: Date;
   incidentState: IncidentState;
@@ -106,7 +106,7 @@ const IncidentSchema = new Schema({
   },
   caller: {
     type: String,
-    required: true,
+    required: false,
   },
   openingDate: {
     type: Date,
