@@ -211,7 +211,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
      setFormData((prev) => ({
        ...prev,
        hospitalId: currentHospital.hospitalId,
-       hostnameName: currentHospital.hospitalName
+       hospitalName: currentHospital.hospitalName
      }));
   }, [currentHospital]);
 
