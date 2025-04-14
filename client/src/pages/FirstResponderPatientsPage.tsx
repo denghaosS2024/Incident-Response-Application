@@ -12,10 +12,11 @@ import {
   styled,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import request from "../utils/request";
 import ROLES from "../utils/Roles";
+import SocketClient from "../utils/Socket";
 
 // Define patient types based on categories
 interface Patient {
@@ -64,6 +65,7 @@ const FirstResponderPatientsPage: React.FC = () => {
   const [hasAssignedIncidents, setHasAssignedIncidents] =
     useState<boolean>(false);
   const navigate = useNavigate();
+  const socketRef = useRef(SocketClient);
 
   // Get user information from localStorage
   const userRole = localStorage.getItem("role");
@@ -92,133 +94,270 @@ const FirstResponderPatientsPage: React.FC = () => {
     fetchAssignedIncidents();
   }, [username]);
 
-  // Fetch patients data for the responder's incidents
-  useEffect(() => {
-    const fetchPatientsData = async () => {
-      if (!username) {
-        setError("User not logged in");
+  const fetchPatientsData = useCallback(async () => {
+    if (!username) {
+      setError("User not logged in");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // First get incidents that the responder is associated with
+      const incidents = await request(
+        `/api/incidents?commander=${username}`,
+        {
+          method: "GET",
+        },
+      );
+
+      // // Set hasAssignedIncidents based on whether there are any incidents
+      // setHasAssignedIncidents(incidents && incidents.length > 0);
+
+      if (!incidents || incidents.length === 0) {
         setLoading(false);
         return;
       }
 
-      try {
-        // First get incidents that the responder is associated with
-        const incidents = await request(
-          `/api/incidents?commander=${username}`,
-          {
-            method: "GET",
-          },
-        );
+      // Get all patients
+      const allPatients = await request("/api/patients", {
+        method: "GET",
+      });
 
-        // // Set hasAssignedIncidents based on whether there are any incidents
-        // setHasAssignedIncidents(incidents && incidents.length > 0);
-
-        if (!incidents || incidents.length === 0) {
-          setLoading(false);
-          return;
-        }
-
-        // Get all patients
-        const allPatients = await request("/api/patients", {
-          method: "GET",
-        });
-
-        if (!allPatients || allPatients.length === 0) {
-          setLoading(false);
-          return;
-        }
-
-        // Filter patients related to the responder's incidents
-        const incidentIds = incidents.map(
-          (incident: any) => incident.incidentId,
-        );
-
-        const responderPatients = allPatients.filter((patient: any) => {
-          if (!patient.visitLog || patient.visitLog.length === 0) return false;
-
-          // Check if any visit log entry is associated with one of the responder's incidents
-          return patient.visitLog.some((log: any) =>
-            incidentIds.includes(log.incidentId),
-          );
-        });
-
-        // Sort and categorize patients
-        const categorizedPatients: PatientsByCategory = {
-          toTakeToER: [],
-          atER: [],
-          others: [],
-        };
-
-        responderPatients.forEach((patient: any) => {
-          // Get the most recent visit log for categorization by sorting by dateTime
-          const recentLog = [...patient.visitLog].sort(
-            (a: any, b: any) =>
-              new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
-          )[0];
-
-          if (!recentLog) return; // Skip if no visit log
-
-          const patientItem: Patient = {
-            patientId: patient.patientId,
-            name: patient.name ?? "Unknown",
-            priority: recentLog.priority ?? "4",
-            location: recentLog.location ?? "Unknown",
-            incidentId: recentLog.incidentId,
-          };
-
-          // Categorize based on priority and location from the latest visitLog
-          if (
-            (patientItem.priority === "E" || patientItem.priority === "1") &&
-            patientItem.location === "Road"
-          ) {
-            categorizedPatients.toTakeToER.push(patientItem);
-          } else if (
-            (patientItem.priority === "E" || patientItem.priority === "1") &&
-            patientItem.location === "ER"
-          ) {
-            categorizedPatients.atER.push(patientItem);
-          } else {
-            // Patients with priority 2, 3, or 4 go to 'Others'
-            categorizedPatients.others.push(patientItem);
-          }
-        });
-
-        // Sort patients by priority in each category
-        const priorityOrder: Record<string, number> = {
-          E: 0,
-          "1": 1,
-          "2": 2,
-          "3": 3,
-          "4": 4,
-        };
-
-        const sortByPriority = (a: Patient, b: Patient) => {
-          const priorityA = priorityOrder[a.priority] || 999;
-          const priorityB = priorityOrder[b.priority] || 999;
-
-          if (priorityA !== priorityB) {
-            return priorityA - priorityB;
-          }
-
-          // If priority is the same, sort alphabetically by name
-          return (a.name || "").localeCompare(b.name || "");
-        };
-
-        categorizedPatients.toTakeToER.sort(sortByPriority);
-        categorizedPatients.atER.sort(sortByPriority);
-        categorizedPatients.others.sort(sortByPriority);
-
-        setPatients(categorizedPatients);
+      if (!allPatients || allPatients.length === 0) {
         setLoading(false);
-      } catch (err) {
-        console.error("Error fetching patients:", err);
-        setError("Failed to load patients data");
-        setLoading(false);
+        return;
       }
-    };
+
+      // Filter patients related to the responder's incidents
+      const incidentIds = incidents.map(
+        (incident: any) => incident.incidentId,
+      );
+
+      const responderPatients = allPatients.filter((patient: any) => {
+        if (!patient.visitLog || patient.visitLog.length === 0) return false;
+
+        // Check if any visit log entry is associated with one of the responder's incidents
+        return patient.visitLog.some((log: any) =>
+          incidentIds.includes(log.incidentId),
+        );
+      });
+
+      // Sort and categorize patients
+      const categorizedPatients: PatientsByCategory = {
+        toTakeToER: [],
+        atER: [],
+        others: [],
+      };
+
+      responderPatients.forEach((patient: any) => {
+        // Get the most recent visit log for categorization by sorting by dateTime
+        const recentLog = [...patient.visitLog].sort(
+          (a: any, b: any) =>
+            new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
+        )[0];
+
+        if (!recentLog) return; // Skip if no visit log
+
+        const patientItem: Patient = {
+          patientId: patient.patientId,
+          name: patient.name ?? "Unknown",
+          priority: recentLog.priority ?? "4",
+          location: recentLog.location ?? "Unknown",
+          incidentId: recentLog.incidentId,
+        };
+
+        // Categorize based on priority and location from the latest visitLog
+        if (
+          (patientItem.priority === "E" || patientItem.priority === "1") &&
+          patientItem.location === "Road"
+        ) {
+          categorizedPatients.toTakeToER.push(patientItem);
+        } else if (
+          (patientItem.priority === "E" || patientItem.priority === "1") &&
+          patientItem.location === "ER"
+        ) {
+          categorizedPatients.atER.push(patientItem);
+        } else {
+          // Patients with priority 2, 3, or 4 go to 'Others'
+          categorizedPatients.others.push(patientItem);
+        }
+      });
+
+      // Sort patients by priority in each category
+      const priorityOrder: Record<string, number> = {
+        E: 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+      };
+
+      const sortByPriority = (a: Patient, b: Patient) => {
+        const priorityA = priorityOrder[a.priority] || 999;
+        const priorityB = priorityOrder[b.priority] || 999;
+
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+
+        // If priority is the same, sort alphabetically by name
+        return (a.name || "").localeCompare(b.name || "");
+      };
+
+      categorizedPatients.toTakeToER.sort(sortByPriority);
+      categorizedPatients.atER.sort(sortByPriority);
+      categorizedPatients.others.sort(sortByPriority);
+
+      setPatients(categorizedPatients);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+      setError("Failed to load patients data");
+      setLoading(false);
+    }
+  }, [username]);
+
+
+  // Fetch patients data for the responder's incidents
+  useEffect(() => {
+    // const fetchPatientsData = async () => {
+    //   if (!username) {
+    //     setError("User not logged in");
+    //     setLoading(false);
+    //     return;
+    //   }
+
+    //   try {
+    //     // First get incidents that the responder is associated with
+    //     const incidents = await request(
+    //       `/api/incidents?commander=${username}`,
+    //       {
+    //         method: "GET",
+    //       },
+    //     );
+
+    //     // // Set hasAssignedIncidents based on whether there are any incidents
+    //     // setHasAssignedIncidents(incidents && incidents.length > 0);
+
+    //     if (!incidents || incidents.length === 0) {
+    //       setLoading(false);
+    //       return;
+    //     }
+
+    //     // Get all patients
+    //     const allPatients = await request("/api/patients", {
+    //       method: "GET",
+    //     });
+
+    //     if (!allPatients || allPatients.length === 0) {
+    //       setLoading(false);
+    //       return;
+    //     }
+
+    //     // Filter patients related to the responder's incidents
+    //     const incidentIds = incidents.map(
+    //       (incident: any) => incident.incidentId,
+    //     );
+
+    //     const responderPatients = allPatients.filter((patient: any) => {
+    //       if (!patient.visitLog || patient.visitLog.length === 0) return false;
+
+    //       // Check if any visit log entry is associated with one of the responder's incidents
+    //       return patient.visitLog.some((log: any) =>
+    //         incidentIds.includes(log.incidentId),
+    //       );
+    //     });
+
+    //     // Sort and categorize patients
+    //     const categorizedPatients: PatientsByCategory = {
+    //       toTakeToER: [],
+    //       atER: [],
+    //       others: [],
+    //     };
+
+    //     responderPatients.forEach((patient: any) => {
+    //       // Get the most recent visit log for categorization by sorting by dateTime
+    //       const recentLog = [...patient.visitLog].sort(
+    //         (a: any, b: any) =>
+    //           new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
+    //       )[0];
+
+    //       if (!recentLog) return; // Skip if no visit log
+
+    //       const patientItem: Patient = {
+    //         patientId: patient.patientId,
+    //         name: patient.name ?? "Unknown",
+    //         priority: recentLog.priority ?? "4",
+    //         location: recentLog.location ?? "Unknown",
+    //         incidentId: recentLog.incidentId,
+    //       };
+
+    //       // Categorize based on priority and location from the latest visitLog
+    //       if (
+    //         (patientItem.priority === "E" || patientItem.priority === "1") &&
+    //         patientItem.location === "Road"
+    //       ) {
+    //         categorizedPatients.toTakeToER.push(patientItem);
+    //       } else if (
+    //         (patientItem.priority === "E" || patientItem.priority === "1") &&
+    //         patientItem.location === "ER"
+    //       ) {
+    //         categorizedPatients.atER.push(patientItem);
+    //       } else {
+    //         // Patients with priority 2, 3, or 4 go to 'Others'
+    //         categorizedPatients.others.push(patientItem);
+    //       }
+    //     });
+
+    //     // Sort patients by priority in each category
+    //     const priorityOrder: Record<string, number> = {
+    //       E: 0,
+    //       "1": 1,
+    //       "2": 2,
+    //       "3": 3,
+    //       "4": 4,
+    //     };
+
+    //     const sortByPriority = (a: Patient, b: Patient) => {
+    //       const priorityA = priorityOrder[a.priority] || 999;
+    //       const priorityB = priorityOrder[b.priority] || 999;
+
+    //       if (priorityA !== priorityB) {
+    //         return priorityA - priorityB;
+    //       }
+
+    //       // If priority is the same, sort alphabetically by name
+    //       return (a.name || "").localeCompare(b.name || "");
+    //     };
+
+    //     categorizedPatients.toTakeToER.sort(sortByPriority);
+    //     categorizedPatients.atER.sort(sortByPriority);
+    //     categorizedPatients.others.sort(sortByPriority);
+
+    //     setPatients(categorizedPatients);
+    //     setLoading(false);
+    //   } catch (err) {
+    //     console.error("Error fetching patients:", err);
+    //     setError("Failed to load patients data");
+    //     setLoading(false);
+    //   }
+    // };
 
     fetchPatientsData();
-  }, [username]);
+  }, [fetchPatientsData]);
+
+  useEffect(() => {
+    const socket = SocketClient.connect();
+
+    SocketClient.on("patientUpdated", (payload) => {
+      console.log("Received patientUpdated from server:", payload);
+      fetchPatientsData();
+    });
+
+    return () => {
+      SocketClient.off("patientUpdated");
+    };
+  })
 
   // Navigate to patient detail page
   const handlePatientClick = async (patientId: string) => {
