@@ -335,47 +335,51 @@ function IncidentsPage() {
 
     // Update sate in redux with updated incident
     console.log("Updated incident:", updatedIncident);
-    // dispatch(resetIncident())
-    // dispatch(updateIncident(updatedIncident))
 
-    const autoPopulateData = true;
+    // Wait for a second just to let backend do its thing 
+    setTimeout(()=>{
+      // dispatch(resetIncident())
+      // dispatch(updateIncident(updatedIncident))
 
-    // Check if this is a SAR incident (type 'S')
-    if (incident.type === "S") {
-      // Navigate to the SAR incident page
-      navigate("/sar-incident", {
-        state: {
-          incidentId: incident.incidentId,
-          readOnly,
-          autoPopulateData,
-        },
-      });
-    } else {
+      const autoPopulateData = true;
 
-      console.log(incident.caller)
-
-      if (!incident.caller) {
-        navigate("/reach911", {
+      // Check if this is a SAR incident (type 'S')
+      if (incident.type === "S") {
+        // Navigate to the SAR incident page
+        navigate("/sar-incident", {
           state: {
             incidentId: incident.incidentId,
             readOnly,
             autoPopulateData,
-            isCreatedByFirstResponder: true
           },
         });
       } else {
-        // Navigate to the regular Reach911 page for other incident types
-        navigate("/reach911", {
-          state: {
-            incidentId: incident.incidentId,
-            readOnly,
-            autoPopulateData,
-            isCreatedByFirstResponder: false
-          },
-        });
+
+        console.log(incident.caller)
+
+        if (!incident.caller) {
+          navigate("/reach911", {
+            state: {
+              incidentId: incident.incidentId,
+              readOnly,
+              autoPopulateData,
+              isCreatedByFirstResponder: true
+            },
+          });
+        } else {
+          // Navigate to the regular Reach911 page for other incident types
+          navigate("/reach911", {
+            state: {
+              incidentId: incident.incidentId,
+              readOnly,
+              autoPopulateData,
+              isCreatedByFirstResponder: false
+            },
+          });
+        }
+          
       }
-        
-    }
+    }, 250);
   };
 
   // const handleCloseCurrentIncident = async () => {

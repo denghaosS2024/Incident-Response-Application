@@ -117,7 +117,7 @@ const Reach911Page: React.FC = () => {
 
   useEffect(() => {
     if (!incident._id || activeStep == STEP_CHAT) return;
-
+    console.log("CULPRIT3")
     const timer = setTimeout(() => {
       updateIncidentCall();
     }, 3000); // Increased debounce time
