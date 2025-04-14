@@ -481,8 +481,8 @@ class PatientController {
     // Identify the last visit (if any)
     const lastVisit = patient.visitLog[patient.visitLog.length - 1];
 
-    console.log("Last visit:", lastVisit);
-    console.log("Patient ER status:", patient.erStatus);
+    // console.log("Last visit:", lastVisit);
+    // console.log("Patient ER status:", patient.erStatus);
   
     // If there's a last visit and it is active,
     // ensure that we only allow new visits if priority is "3" or erStatus is "discharged".
@@ -585,9 +585,9 @@ class PatientController {
     // Set patient's location to whatever this updated visit log is
     patient.set("location", updatedVisitData.location);
 
-    UserConnections.broadcast("patientUpdated", patient.patientId);
-
     await patient.save();
+
+    UserConnections.broadcast("patientUpdated", patient.patientId);
     
     return patient;
   }
