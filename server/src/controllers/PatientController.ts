@@ -499,29 +499,13 @@ class PatientController {
     }
   
     // Build the new default visit log based on the last visit (if present)
-    const defaultVisitLog: IVisitLog = lastVisit
-      ? {
-          dateTime: new Date(),
-          incidentId: lastVisit.incidentId || "",
-          priority: lastVisit.priority || "E",
-          location: lastVisit.location || "Road",
-          age: lastVisit.age ?? null,
-          conscious: lastVisit.conscious ?? null,
-          breathing: lastVisit.breathing ?? null,
-          chiefComplaint: lastVisit.chiefComplaint ?? null,
-          condition: lastVisit.condition ?? null,
-          drugs: lastVisit.drugs ? [...lastVisit.drugs] : null,
-          allergies: lastVisit.allergies ? [...lastVisit.allergies] : null,
-          hospitalId: lastVisit.hospitalId ?? null,
-          active: true,
-        }
-      : {
-          dateTime: new Date(),
-          incidentId: "",
-          priority: "E",
-          location: "Road",
-          active: true,
-        };
+    const defaultVisitLog: IVisitLog =  {
+      dateTime: new Date(),
+      incidentId: "",
+      priority: "E",
+      location: "Road",
+      active: true,
+    };
   
     // Override location based on role
     if (role === ROLES.POLICE || role === ROLES.FIRE) {
