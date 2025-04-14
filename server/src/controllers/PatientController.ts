@@ -243,6 +243,12 @@ class PatientController {
       { new: true },
     );
 
+    // if erStatus is "inUse", change patient location to ER as well
+    if (erStatus === "inUse"){
+      const location = "ER";
+      await Patient.findOneAndUpdate({patientId}, {location});
+    }
+
     if (res === null) {
       throw new Error(`Patient "${patientId}" does not exist`);
     }
@@ -451,6 +457,7 @@ class PatientController {
     // Add the new visit log entry
     const newVisitLog = createVisitLog();
     patient.visitLog.push(newVisitLog);
+    patient.set('location', newVisitLog.location);
 
     // Save the updated patient record
     await patient.save();
@@ -522,6 +529,8 @@ class PatientController {
       } else {
         patient.set("erStatus", undefined);
       }
+      // Change patient location to ER
+      patient.set("location", defaultVisitLog.location);
     } else {
       patient.set("erStatus", undefined);
     }
@@ -570,6 +579,8 @@ class PatientController {
     } else {
       patient.set("erStatus", undefined);
     }
+    // Set patient's location to whatever this updated visit log is
+    patient.set("location", updatedVisitData.location);
 
     UserConnections.broadcast("patientUpdated", patient.patientId);
 
