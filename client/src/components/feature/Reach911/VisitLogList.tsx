@@ -49,8 +49,13 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     return patient.visitLog;
   }
 
-  const navigate2SpecificVisitLog = (incidentId: string) => {
-    navigate(`/patient-visit/${incidentId}`);
+  // const navigate2SpecificVisitLog = (incidentId: string) => {
+  const navigate2SpecificVisitLog = () => {
+    if(!propUsername) {
+      return;
+    }
+    navigate(`/patient-visit?username=${encodeURIComponent(propUsername)}`);
+    // navigate(`/patient-visit/${incidentId}`);
     // if (propUsername) {
     //   navigate(`/patient-visit/${incidentId}?username=${encodeURIComponent(propUsername)}`);
     // }
@@ -59,9 +64,11 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     // }
   }
   
-  const handleLinkClick = (incidentId: string) => {
+  // const handleLinkClick = (incidentId: string) => {
+  const handleLinkClick = () => {
     // console.log("Link clicked for incidentId:", incidentId);
-    navigate2SpecificVisitLog(incidentId);
+    // navigate2SpecificVisitLog(incidentId);
+    navigate2SpecificVisitLog();
   };
 
   // Function to format date for visit log
@@ -111,7 +118,7 @@ const VisitLogList: React.FC<{ username?: string }> = ({
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              handleLinkClick(log.incidentId);
+              handleLinkClick();
             }}
             style={{
               textDecoration: "none",
@@ -210,9 +217,9 @@ const VisitLogList: React.FC<{ username?: string }> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {visitLogs.map((row, index) => (
+              {visitLogs.map((log, index) => (
                 <TableRow
-                  key={row.Date}
+                  key={log.Date}
                   sx={{
                     backgroundColor: index % 2 === 0 ? "#f5f5f5" : "#fafafa",
                     "&:last-child td": { borderBottom: 0 },
@@ -220,16 +227,16 @@ const VisitLogList: React.FC<{ username?: string }> = ({
                   }}
                 >
                   <TableCell sx={{ padding: "12px 16px", color: "#424242" }}>
-                    {row.Date}
+                    {log.Date}
                   </TableCell>
                   <TableCell sx={{ padding: "12px 16px", color: "#424242" }}>
-                    {row.Location}
+                    {log.Location}
                   </TableCell>
                   <TableCell
                     sx={{ padding: "12px 16px", color: "#424242" }}
                     align="right"
                   >
-                    {row.Link}
+                    {log.Link}
                   </TableCell>
                 </TableRow>
               ))}
