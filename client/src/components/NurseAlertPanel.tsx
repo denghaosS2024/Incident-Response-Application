@@ -28,6 +28,7 @@ interface NurseAlertPanelProps {
 interface Patient {
   id: string;
   name: string;
+  username: string;
 }
 
 const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
@@ -85,6 +86,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
             patientsList = patientsData.map((patient: IPatient) => ({
               id: patient.patientId,
               name: patient.name ?? "Unknown Patient",
+              username: patient.username
             })) as Patient[];
           } else {
             // Fallback to mock data if API returns empty array
@@ -296,7 +298,7 @@ const NurseAlertPanel: React.FC<NurseAlertPanelProps> = ({
         >
           {patients.map((patient) => (
             <MenuItem key={patient.id} value={patient.id}>
-              {patient.name}
+              {patient.username}
             </MenuItem>
           ))}
         </Select>
