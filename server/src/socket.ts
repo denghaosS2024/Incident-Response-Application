@@ -87,6 +87,12 @@ class Socket {
         socket.broadcast.emit("map-area-delete", data);
       });
 
+      socket.on("patientUpdated", (data) => {
+        console.log("Patient updated", data);
+        socket.broadcast.emit("patientUpdated", data);
+
+      });
+
       // Handle user disconnection
       socket.on("disconnect", () => {
         const uid = UserConnections.getConnectedUsers().find(

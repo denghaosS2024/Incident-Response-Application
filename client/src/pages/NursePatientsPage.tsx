@@ -13,10 +13,11 @@ import {
   styled,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import request from "../utils/request";
 import ROLES from "../utils/Roles";
+import SocketClient from "../utils/Socket";
 
 // Define hospital interface
 interface Hospital {
@@ -85,6 +86,7 @@ const NursePatientsPage: React.FC = () => {
     null,
   );
   const [dragCategory, setDragCategory] = useState<string | null>(null);
+  const socketRef = useRef(SocketClient);
 
   const navigate = useNavigate();
 
@@ -135,35 +137,41 @@ const NursePatientsPage: React.FC = () => {
     fetchHospitalInfo();
   }, [userId]);
 
-  // Fetch patients data for the hospital where the nurse works
+  const fetchPatientsData = useCallback(async () => {
+    try {
+      if (!hospitalId) return;
+      setLoading(true);
+      const response = await request(`/api/patients/hospital/${hospitalId}/nurse-view`, {
+        method: "GET",
+      });
+
+      setPatients(response);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+      setError("Failed to load patients data");
+      setLoading(false);
+    }
+  }, [hospitalId]);
+
   useEffect(() => {
-    const fetchPatientsData = async () => {
-      if (!hospitalId) {
-        return; // Wait until we have the hospitalId
-      }
-
-      try {
-        // Use the new endpoint for nurse view
-        const response = await request(
-          `/api/patients/hospital/${hospitalId}/nurse-view`,
-          {
-            method: "GET",
-          },
-        );
-
-        setPatients(response);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching patients:", err);
-        setError("Failed to load patients data");
-        setLoading(false);
-      }
-    };
-
     if (hospitalId) {
       fetchPatientsData();
     }
-  }, [hospitalId]);
+  }, [hospitalId, fetchPatientsData]);
+
+  useEffect(() => {
+    const socket = SocketClient.connect();
+
+    SocketClient.on("patientUpdated", (payload) => {
+      console.log("Received patientUpdated from server:", payload);
+      fetchPatientsData();
+    });
+
+    return () => {
+      SocketClient.off("patientUpdated");
+    };
+  }, []);
 
   // Navigate to patient detail page
   const handlePatientClick = async (patientId: string) => {
@@ -214,58 +222,58 @@ const NursePatientsPage: React.FC = () => {
   // Handle drop on a category
   const handleDrop =
     (targetCategory: "requesting" | "ready" | "inUse" | "discharged") =>
-    async (e: React.DragEvent) => {
-      e.preventDefault();
+      async (e: React.DragEvent) => {
+        e.preventDefault();
 
-      const data = e.dataTransfer.getData("text/plain");
-      if (!data) return;
+        const data = e.dataTransfer.getData("text/plain");
+        if (!data) return;
 
-      try {
-        const { patientId, fromCategory } = JSON.parse(data);
+        try {
+          const { patientId, fromCategory } = JSON.parse(data);
 
-        // Skip if dropping in the same category
-        if (fromCategory === targetCategory) return;
+          // Skip if dropping in the same category
+          if (fromCategory === targetCategory) return;
 
-        // Update the erStatus in the database
-        await request("/api/patients/erStatus", {
-          method: "PUT",
-          body: JSON.stringify({
-            patientId,
-            erStatus: targetCategory,
-          }),
-        });
+          // Update the erStatus in the database
+          await request("/api/patients/erStatus", {
+            method: "PUT",
+            body: JSON.stringify({
+              patientId,
+              erStatus: targetCategory,
+            }),
+          });
 
-        // Update the local state
-        setPatients((prev) => {
-          // Find the patient to move
-          const patientToMove = prev[
-            fromCategory as keyof PatientsByCategory
-          ].find((p) => p.patientId === patientId);
+          // Update the local state
+          setPatients((prev) => {
+            // Find the patient to move
+            const patientToMove = prev[
+              fromCategory as keyof PatientsByCategory
+            ].find((p) => p.patientId === patientId);
 
-          if (!patientToMove) return prev;
+            if (!patientToMove) return prev;
 
-          // Create a new state object
-          const newState = { ...prev };
+            // Create a new state object
+            const newState = { ...prev };
 
-          // Remove from old category
-          newState[fromCategory as keyof PatientsByCategory] = prev[
-            fromCategory as keyof PatientsByCategory
-          ].filter((p) => p.patientId !== patientId);
+            // Remove from old category
+            newState[fromCategory as keyof PatientsByCategory] = prev[
+              fromCategory as keyof PatientsByCategory
+            ].filter((p) => p.patientId !== patientId);
 
-          // Add to new category
-          newState[targetCategory] = [...prev[targetCategory], patientToMove];
+            // Add to new category
+            newState[targetCategory] = [...prev[targetCategory], patientToMove];
 
-          return newState;
-        });
+            return newState;
+          });
 
-        setNotification(
-          `Patient moved to ${targetCategory.replace(/([A-Z])/g, " $1").toLowerCase()}`,
-        );
-      } catch (err) {
-        console.error("Error moving patient:", err);
-        setNotification("Failed to move patient");
-      }
-    };
+          setNotification(
+            `Patient moved to ${targetCategory.replace(/([A-Z])/g, " $1").toLowerCase()}`,
+          );
+        } catch (err) {
+          console.error("Error moving patient:", err);
+          setNotification("Failed to move patient");
+        }
+      };
 
   // Handle dragover event
   const handleDragOver = (e: React.DragEvent) => {

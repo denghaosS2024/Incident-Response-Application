@@ -8,6 +8,7 @@ import Patient, {
 import { IUser } from "../models/User";
 import HttpError from "../utils/HttpError";
 import ROLES from "../utils/Roles";
+import UserConnections from "../utils/UserConnections";
 import HospitalController from "./HospitalController";
 import UserController from "./UserController";
 
@@ -570,7 +571,10 @@ class PatientController {
       patient.set("erStatus", undefined);
     }
 
+    UserConnections.broadcast("patientUpdated", patient.patientId);
+
     await patient.save();
+    
     return patient;
   }
 
