@@ -38,82 +38,90 @@ export default class MapBoxHelper {
     map: mapboxgl.Map | null,
     lng: number,
     lat: number,
-    stopLoading: () => void, // ✅ Pass function instead of state setter
-  ) {
+    stopLoading: () => void
+  ): Promise<string[] | null> {
     if (!map) {
       console.error("Map instance is not available.");
-      stopLoading(); // ✅ Ensure loading is stopped if there's an error
-      return;
+      stopLoading();
+      return null;
     }
-
+  
     console.log("Loading started");
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const userLng = position.coords.longitude;
-        const userLat = position.coords.latitude;
-
-        const accessToken = Globals.getMapboxToken();
-
-        const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${lng},${lat}?alternatives=true&geometries=geojson&language=en&overview=full&steps=true&access_token=${accessToken}`;
-        try {
-          const query = await fetch(
-            routeUrl,
-
-            { method: "GET" },
-          );
-
-          const json = await query.json();
-          const data = json.routes[0];
-          const route = data.geometry;
-
-          if (map.getSource("route")) {
-            map.removeLayer("route");
-            map.removeSource("route");
+  
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const userLng = position.coords.longitude;
+          const userLat = position.coords.latitude;
+  
+          const accessToken = Globals.getMapboxToken();
+  
+          const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${userLng},${userLat};${lng},${lat}?alternatives=true&geometries=geojson&language=en&overview=full&steps=true&access_token=${accessToken}`;
+  
+          try {
+            const query = await fetch(routeUrl, { method: "GET" });
+            const json = await query.json();
+            const data = json.routes[0];
+            const route = data.geometry;
+            const steps = data.legs?.[0]?.steps ?? [];
+  
+            if (map.getSource("route")) {
+              map.removeLayer("route");
+              map.removeSource("route");
+            }
+  
+            map.addSource("route", {
+              type: "geojson",
+              data: {
+                type: "Feature",
+                properties: {},
+                geometry: route,
+              },
+            });
+  
+            map.addLayer({
+              id: "route",
+              type: "line",
+              source: "route",
+              layout: {
+                "line-join": "round",
+                "line-cap": "round",
+              },
+              paint: {
+                "line-color": "#007aff",
+                "line-width": 4,
+              },
+            });
+  
+            const bounds = new mapboxgl.LngLatBounds();
+            route.coordinates.forEach((coord: [number, number]) =>
+              bounds.extend(coord),
+            );
+  
+            map.fitBounds(bounds, { padding: 50 });
+  
+            const instructions = steps.map(
+              (step: any) => step.maneuver.instruction,
+            );
+  
+            resolve(instructions);
+          } catch (error) {
+            console.error("Error fetching directions:", error);
+            resolve(null);
+          } finally {
+            console.log("Loading stopped");
+            stopLoading();
           }
-
-          map.addSource("route", {
-            type: "geojson",
-            data: {
-              type: "Feature",
-              properties: {},
-              geometry: route,
-            },
-          });
-
-          map.addLayer({
-            id: "route",
-            type: "line",
-            source: "route",
-            layout: {
-              "line-join": "round",
-              "line-cap": "round",
-            },
-            paint: {
-              "line-color": "#007aff",
-              "line-width": 4,
-            },
-          });
-
-          const bounds = new mapboxgl.LngLatBounds();
-          route.coordinates.forEach((coord: [number, number]) =>
-            bounds.extend(coord),
-          );
-
-          map.fitBounds(bounds, { padding: 50 });
-        } catch (error) {
-          console.error("Error fetching directions:", error);
-        } finally {
-          console.log("Loading stopped");
-          stopLoading(); // ✅ Ensure loading stops after fetching
-        }
-      },
-      (error) => {
-        console.error("Error getting user location:", error);
-        stopLoading();
-      },
-    );
+        },
+        (error) => {
+          console.error("Error getting user location:", error);
+          stopLoading();
+          resolve(null);
+        },
+      );
+    });
   }
+  
 
   static async fetchAQIData(lng: number, lat: number): Promise<AQIData> {
     try {

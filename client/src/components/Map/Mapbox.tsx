@@ -447,15 +447,21 @@ const Mapbox: React.FC<MapboxProps> = ({
             await handleRemovePin(_id, type);
           });
 
-          navigateButton.addEventListener("click", () => {
+          navigateButton.addEventListener("click", async () => {
             if (mapRef.current) {
               setIsNaviLoaded(true);
-              MapBoxHelper.navigateToMarker(
+              const steps = await MapBoxHelper.navigateToMarker(
                 mapRef.current,
-                item.longitude,
-                item.latitude,
-                () => setIsNaviLoaded(false),
+                marker.getLngLat().lng,
+                marker.getLngLat().lat,
+                () => setIsNaviLoaded(false)
               );
+
+              if (steps) {
+                alert("Driving Instructions:\n\n" + steps.join("\n"));
+              } else {
+                alert("Failed to retrieve directions.");
+              }
             } else {
               console.error("Map reference is not available.");
             }
@@ -828,15 +834,21 @@ const Mapbox: React.FC<MapboxProps> = ({
                   "click",
                   async () => await handleRemovePin(id, type),
                 );
-                navigateButton.addEventListener("click", () => {
+                navigateButton.addEventListener("click", async () => {
                   if (mapRef.current) {
                     setIsNaviLoaded(true);
-                    MapBoxHelper.navigateToMarker(
+                    const steps = await MapBoxHelper.navigateToMarker(
                       mapRef.current,
                       marker.getLngLat().lng,
                       marker.getLngLat().lat,
-                      () => setIsNaviLoaded(false),
+                      () => setIsNaviLoaded(false)
                     );
+
+                    if (steps) {
+                      alert("Driving Instructions:\n\n" + steps.join("\n"));
+                    } else {
+                      alert("Failed to retrieve directions.");
+                    }
                   } else {
                     console.error("Map reference is not available.");
                   }
@@ -900,15 +912,21 @@ const Mapbox: React.FC<MapboxProps> = ({
                 "click",
                 async () => await handleRemovePin(id, type),
               );
-              navigateButton.addEventListener("click", () => {
+              navigateButton.addEventListener("click", async () => {
                 if (mapRef.current) {
                   setIsNaviLoaded(true);
-                  MapBoxHelper.navigateToMarker(
+                  const steps = await MapBoxHelper.navigateToMarker(
                     mapRef.current,
                     marker.getLngLat().lng,
                     marker.getLngLat().lat,
-                    () => setIsNaviLoaded(false),
+                    () => setIsNaviLoaded(false)
                   );
+
+                  if (steps) {
+                    alert("Driving Instructions:\n\n" + steps.join("\n"));
+                  } else {
+                    alert("Failed to retrieve directions.");
+                  }
                 } else {
                   console.error("Map reference is not available.");
                 }
@@ -1986,15 +2004,21 @@ const Mapbox: React.FC<MapboxProps> = ({
           async () => await handleRemovePin(locationId, "airQuality"),
         );
 
-        navigateButton.addEventListener("click", () => {
+        navigateButton.addEventListener("click", async () => {
           if (mapRef.current) {
             setIsNaviLoaded(true);
-            MapBoxHelper.navigateToMarker(
+            const steps = await MapBoxHelper.navigateToMarker(
               mapRef.current,
               marker.getLngLat().lng,
               marker.getLngLat().lat,
               () => setIsNaviLoaded(false),
             );
+
+            if (steps) {
+              alert("Driving Instructions:\n\n" + steps.join("\n"));
+            } else {
+              alert("Failed to retrieve directions.");
+            }
           }
         });
       }
