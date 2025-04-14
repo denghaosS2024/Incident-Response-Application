@@ -703,6 +703,36 @@ class PatientController {
       throw new Error("Failed to fetch patients for nurse view");
     }
   }
+  
+  /**
+   * Get patients by incident ID and Location=Road and Priority E or 1 
+   * @param {string} incident ID - The ID of the hospital to filter patients by.
+   * @returns an object with filtered patients: 
+   */
+  async getPatientsByIncidentId(incidentId: string) {
+  try {
+    const patientsIncidentId = await Patient.find({
+      "visitLog.incidentId": incidentId,
+    })
+
+    const filteredPatients =  patientsIncidentId.filter((patient) => {
+      const latestVisit = patient.visitLog?.[patient.visitLog.length - 1];
+
+      return (
+        latestVisit &&
+        latestVisit.incidentId === incidentId &&
+        latestVisit.location === "Road" &&
+        (latestVisit.priority === "E" || latestVisit.priority === "1")
+      );
+    });
+
+
+    return filteredPatients;
+  } catch (error) {
+    console.error("Error fetching patients for incident id:", error);
+    throw new Error("Failed to fetch patients for incident id");
+  }
+}
 }
 
 export default new PatientController();

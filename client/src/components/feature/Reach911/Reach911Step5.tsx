@@ -42,6 +42,8 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
   );
   const [showCommanderSelect, setShowCommanderSelect] = useState(false);
   const [newCommander, setNewCommander] = useState<string | null>(null);
+  // SEM-2591
+  const [canCloseIncident, setCanCloseIncident] =  useState(false);
 
   // Two-way mapping between UI and backend values for priority.
   const displayToBackend: Record<string, IncidentPriority> = {
@@ -122,6 +124,20 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     };
     fetchPersonnel();
   }, [incidentData]);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      const patients = await request(`/api/patients/${incidentId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const canClose = amICommander && patients.length === 0;
+      setCanCloseIncident(canClose);
+    };
+    fetchPatients();
+  },[amICommander, incidentId]);
+
 
   // Fetch incident details and update Redux state
   useEffect(() => {
@@ -258,7 +274,7 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
     if (!incidentData) return;
 
     if (newCommander === "You") {
-      newCommander(currentUsername);
+      setNewCommander(currentUsername);
       setAmICommander(true);
       if (incidentData?.commander === currentUsername) {
         return;
@@ -545,10 +561,18 @@ const Reach911Step5: React.FC<Reach911Step5Props> = ({ incidentId }) => {
             variant="contained"
             color="error"
             fullWidth
+            disabled={!canCloseIncident}
             onClick={handleCloseIncidentClick}
           >
             Close Incident
           </Button>
+          
+          {!canCloseIncident && (
+          <Typography className="self-center">
+            An Incident can only be closed once all Priority E or 1 Patients are taken care of at the ER.
+          </Typography>
+
+        )}
         </Box>
       )}
 
