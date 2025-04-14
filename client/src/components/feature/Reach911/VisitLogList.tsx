@@ -64,6 +64,7 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     navigate2SpecificVisitLog(incidentId);
   };
 
+  // Function to format date for visit log
   const formatDateForVisitLog = (date: Date): string => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -73,10 +74,16 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     return `${month}.${day}.${year}-${hours}:${minutes}`;
   };
 
-useEffect(
-  () => {
-    const visitLogs = getCurrentPatientVisitLogs();
-    const formattedVisitLogs = visitLogs.map((log) => {
+  // Function to sort visit logs from newest to oldest (latest is active; others are inactive)
+  const sortVisitLogsByDateDesc = (visitLogs) => {
+    return [...visitLogs].sort((a, b) => {
+      return new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime();
+    });
+  };
+
+  // Function to format visit logs for display
+  const formatVisitLogs = (visitLogs) => {
+    return visitLogs.map((log) => {
       const date = new Date(log.dateTime);
       const formattedDate = formatDateForVisitLog(date);
       
@@ -99,10 +106,19 @@ useEffect(
         ),
       };
     });
-    setVisistLogs(formattedVisitLogs);
-  },
-  [patients, propUsername]
-);
+  };
+
+  useEffect(
+    () => {
+      const visitLogs = getCurrentPatientVisitLogs();
+      // Sort the logs from newest to oldest
+      const sortedVisitLogs = sortVisitLogsByDateDesc(visitLogs);
+      // Format the logs for display
+      const formattedVisitLogs = formatVisitLogs(sortedVisitLogs);
+      setVisistLogs(formattedVisitLogs);
+    },
+    [patients, propUsername]
+  );
 
 
   const handleAddPatient = async () => {
