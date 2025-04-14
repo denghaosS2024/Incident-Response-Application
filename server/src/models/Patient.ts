@@ -44,6 +44,7 @@ export interface IVisitLog {
   allergies?: string[] | null;
   active: boolean;
   hospitalId?: string | null;
+  hospitalName?: string | null;
 }
 
 // Base interface without Document extension
@@ -115,6 +116,7 @@ const VisitLogSchema = new Schema<IVisitLog>(
     allergies: { type: [String], default: undefined },
     active: { type: Boolean, default: true },
     hospitalId: { type: String, default: undefined },
+    hospitalName: { type: String, default: undefined },
   },
   { _id: false },
 );

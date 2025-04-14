@@ -18,6 +18,8 @@ export default interface IPatient {
 export interface IVisitLog {
   dateTime: Date;
   incidentId: string;
+  hospitalId?: string;
+  hospitalName?: string;
   priority: "E" | "1" | "2" | "3" | "4";
   location: "Road" | "ER";
   age?: number | null;

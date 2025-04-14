@@ -81,6 +81,21 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     });
   };
 
+  // Function to get full location
+  // Road, keep as is
+  // ER, add hospital name
+  const getFullLocation = (location, hospitalName) => {
+    if (location === "Road") {
+      return "Road";
+    } else if (location === "ER") {
+      if (hospitalName) {
+        return `ER ${hospitalName}`;
+      }
+      return "ER";
+    }
+    return location;
+  };
+
   // Function to format visit logs for display
   const formatVisitLogs = (visitLogs) => {
     return visitLogs.map((log) => {
@@ -89,7 +104,8 @@ const VisitLogList: React.FC<{ username?: string }> = ({
       
       return {
         Date: formattedDate,
-        Location: log.location,
+        // Location: log.location,
+        Location: getFullLocation(log.location, log.hospitalName),
         Link: (
           <a
             href="#"
@@ -111,6 +127,7 @@ const VisitLogList: React.FC<{ username?: string }> = ({
   useEffect(
     () => {
       const visitLogs = getCurrentPatientVisitLogs();
+      console.log("Visit logs:", visitLogs);
       // Sort the logs from newest to oldest
       const sortedVisitLogs = sortVisitLogsByDateDesc(visitLogs);
       // Format the logs for display
