@@ -31,6 +31,7 @@ export type MedicalCondition =
   | null;
 
 export interface IVisitLog {
+  _id: string,
   dateTime: Date;
   incidentId: string;
   priority: VisitLogPriority;
@@ -70,6 +71,7 @@ export interface IPatient extends IPatientBase, Document {}
 
 const VisitLogSchema = new Schema<IVisitLog>(
   {
+    _id: { type: String, required: true },
     dateTime: { type: Date, required: true },
     incidentId: { type: String },
     priority: {

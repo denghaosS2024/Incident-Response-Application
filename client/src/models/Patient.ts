@@ -16,6 +16,7 @@ export default interface IPatient {
 }
 
 export interface IVisitLog {
+  _id: string,
   dateTime: Date;
   incidentId: string;
   hospitalId?: string;

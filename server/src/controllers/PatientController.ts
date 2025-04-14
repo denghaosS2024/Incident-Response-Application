@@ -11,6 +11,7 @@ import ROLES from "../utils/Roles";
 import UserConnections from "../utils/UserConnections";
 import HospitalController from "./HospitalController";
 import UserController from "./UserController";
+import { v4 as uuidv4 } from "uuid";
 
 export interface IExpandedPatientInfo extends IPatientBase {
   nurse?: IUser;
@@ -410,6 +411,7 @@ class PatientController {
     // A helper function to generate a new IVisitLog object
     const createVisitLog = (): IVisitLog => {
       return {
+        _id: uuidv4(),
         dateTime: dateTime ? new Date(dateTime) : new Date(),
         incidentId,
         location,
@@ -508,6 +510,7 @@ class PatientController {
   
     // Build the new default visit log based on the last visit (if present)
     const defaultVisitLog: IVisitLog =  {
+      _id: uuidv4(),
       dateTime: new Date(),
       incidentId: "",
       priority: "E",
