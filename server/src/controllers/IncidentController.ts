@@ -166,13 +166,12 @@ class IncidentController {
         );
       };
 
-      if (incident.caller){
+      if (incident.caller) {
         await notifyDispatchers(incident.incidentId, incident.caller);
-      }
-      else{
+      } else {
         await notifyDispatchers(incident.incidentId, incident.owner);
       }
-        
+
       return incident;
     }
   }
@@ -719,6 +718,20 @@ class IncidentController {
     try {
       return await Incident.find({
         owner: owner,
+        type: "S",
+      })
+        .sort({ openingDate: -1 })
+        .exec();
+    } catch (error) {
+      console.error("Error fetching SAR incidents:", error);
+      throw new Error(`Failed to retrieve SAR incidents: ${error}`);
+    }
+  }
+
+  async getSARIncidentsByCommander(commander: string): Promise<IIncident[]> {
+    try {
+      return await Incident.find({
+        commander: commander,
         type: "S",
       })
         .sort({ openingDate: -1 })

@@ -344,23 +344,41 @@ export default Router()
    */
   .get("/sar", async (request, response) => {
     try {
-      const { owner } = request.query;
+      const { commander, owner } = request.query;
 
-      if (!owner) {
-        return response.status(400).json({
-          message: "Owner parameter is required",
-        });
+      if (commander && !owner) {
+        const result = await IncidentController.getSARIncidentsByCommander(
+          commander as string,
+        );
+
+        if (!result || result.length === 0) {
+          return response
+            .status(204)
+            .json({ message: "No SAR incidents found" });
+        }
+
+        return response.json(result);
       }
 
-      const result = await IncidentController.getSARIncidentsByOwner(
-        owner as string,
-      );
+      else if (owner) {
+       const result = await IncidentController.getSARIncidentsByOwner(
+         owner as string,
+       );
 
-      if (!result || result.length === 0) {
-        return response.status(204).json({ message: "No SAR incidents found" });
+       if (!result || result.length === 0) {
+         return response
+           .status(204)
+           .json({ message: "No SAR incidents found" });
+       }
+
+       return response.json(result);
       }
 
-      return response.json(result);
+      else {
+        return response.status(400).json({ message: "No query param provided" });
+      }
+
+      
     } catch (e) {
       const error = e as Error;
       return response.status(500).json({ message: error.message });

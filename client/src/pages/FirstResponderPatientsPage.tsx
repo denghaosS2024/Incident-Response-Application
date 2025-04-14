@@ -77,6 +77,21 @@ const FirstResponderPatientsPage: React.FC = () => {
     }
   }, [userRole, navigate]);
 
+  useEffect(() => {
+    const fetchAssignedIncidents = async () => {
+      const sarIncidents = await request(`/api/incidents/sar?commander=${username}`, {
+        method: "GET",
+      });
+
+      if (sarIncidents) {
+        console.log("sometion")
+        setHasAssignedIncidents(true);
+      }
+    };
+
+    fetchAssignedIncidents();
+  }, [username]);
+
   // Fetch patients data for the responder's incidents
   useEffect(() => {
     const fetchPatientsData = async () => {
@@ -95,8 +110,8 @@ const FirstResponderPatientsPage: React.FC = () => {
           },
         );
 
-        // Set hasAssignedIncidents based on whether there are any incidents
-        setHasAssignedIncidents(incidents && incidents.length > 0);
+        // // Set hasAssignedIncidents based on whether there are any incidents
+        // setHasAssignedIncidents(incidents && incidents.length > 0);
 
         if (!incidents || incidents.length === 0) {
           setLoading(false);
