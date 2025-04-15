@@ -22,6 +22,7 @@ import alertQueueRouter from "./alertQueue";
 import carRouter from "./car";
 import cityRouter from "./city";
 import dashboard from "./dashboard";
+import HospitalResourceRouter from "./hospitalResource";
 import incidentReportRouter from "./incidentReport";
 import patientRouter from "./patients";
 import personnelRouter from "./personnel";
@@ -65,4 +66,5 @@ export default Router()
   .use("/sartasks", taskRouter)
   .use("/sartasksdone", taskRouter)
   .use(",sartasksstatistics", taskRouter)
-  .use("/alertQueue", alertQueueRouter);
+  .use("/alertQueue", alertQueueRouter)
+  .use("/hospital-resource", HospitalResourceRouter);

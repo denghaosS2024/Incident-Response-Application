@@ -1,13 +1,11 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-/**
- * Interface for the Resource document
- */
-export interface IResource extends Document {
-  resourceId: string; // Unique identifier for the resource, use ObjectId.toString() to make it consist to our whole system
-  resourceName: string; // Name of the resource
-  // Extendable fields (e.g., description, category, etc.)
-}
+export interface IResourceBase {
+    resourceId: string; // Unique identifier for the resource
+    resourceName: string; // Name of the resource
+  }
+
+export interface IResource extends IResourceBase, Document {}
 
 /**
  * Resource Schema

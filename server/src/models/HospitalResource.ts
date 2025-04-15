@@ -1,14 +1,13 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-/**
- * Interface for the HospitalResource document
- */
-export interface IHospitalResource extends Document {
+export interface IHospitalResourceBase {
   resourceId: string; // Foreign key to Resource entity
   hospitalId: string; // Foreign key to Hospital entity
   inStockQuantity: number; // Quantity in stock
   inStockAlertThreshold?: number; // Optional alert threshold
 }
+
+export interface IHospitalResource extends IHospitalResourceBase, Document {}
 
 /**
  * HospitalResource Schema
