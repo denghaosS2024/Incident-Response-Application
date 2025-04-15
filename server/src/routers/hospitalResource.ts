@@ -198,6 +198,32 @@ export default Router()
    *       500:
    *         description: Server error
    */
-  // .get("/:resourceName", async (__, ___) => {
-  //   // TODO: Implement the logic to fetch all hospitals with a specific resource
-  // });
+  .get("/:resourceName", async (request, response) => {
+    try {
+      const { resourceName } = request.params;
+  
+      // Validate the resourceName parameter
+      if (!resourceName) {
+        throw new HttpError("resourceName parameter is required.", 400);
+      }
+  
+      // Fetch all hospitals with the specified resourceName
+      const hospitals = await HospitalResourceController.getHospitalsByResourceName(resourceName);
+  
+      // Transform the result to match the front-end format
+      const result = hospitals.map((hospitalResource) => ({
+        hospitalId: hospitalResource.hospitalId,
+        resourceName,
+        inStockQuantity: hospitalResource.inStockQuantity,
+        inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
+      }));
+  
+      return response.status(200).send(result);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  });

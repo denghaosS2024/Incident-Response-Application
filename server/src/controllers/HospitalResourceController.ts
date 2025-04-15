@@ -81,6 +81,55 @@ class HospitalResourceController {
   }
 
   /**
+   * Fetch a resource by its name
+   * @param resourceName The name of the resource
+   * @returns The resource object as IResourceBase
+   * @throws HttpError if the resource is not found
+   */
+  async getResourceByName(resourceName: string): Promise<IResourceBase> {
+    try {
+      const resource = await Resource.findOne({ resourceName }).exec();
+
+      if (!resource) {
+        throw new HttpError(`Resource with name "${resourceName}" not found.`, 404);
+      }
+
+      return resource.toObject();
+    } catch (error) {
+      console.error("Error fetching resource by name:", error);
+      throw new HttpError("Failed to fetch resource by name", 500);
+    }
+  }
+
+  /**
+   * Fetch all hospitals that have a specific resource by resourceName
+   * @param resourceName The name of the resource
+   * @returns An array of hospital resource objects
+   * @throws HttpError if no hospitals are found
+   */
+  async getHospitalsByResourceName(resourceName: string): Promise<IHospitalResourceBase[]> {
+    try {
+      // Step 1: Get the resource by name
+      const resource = await this.getResourceByName(resourceName);
+
+      // Step 2: Fetch all hospital resources with the resourceId
+      const hospitalResources = await HospitalResource.find({ resourceId: resource.resourceId })
+        .populate("hospitalId")
+        .exec();
+
+      if (!hospitalResources || hospitalResources.length === 0) {
+        throw new HttpError(`No hospitals found with resource "${resourceName}".`, 404);
+      }
+
+      // Step 3: Return the hospital resources as plain objects
+      return hospitalResources.map((hospitalResource) => hospitalResource.toObject());
+    } catch (error) {
+      console.error("Error fetching hospitals by resource name:", error);
+      throw new HttpError("Failed to fetch hospitals by resource name", 500);
+    }
+  }
+
+  /**
    * Fetch all hospital resources
    * @returns An array of hospital resource objects
    */
