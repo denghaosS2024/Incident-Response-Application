@@ -8,6 +8,9 @@ const roles = [
   "Police",
   "Fire",
   "Nurse",
+  "City Director",
+  "Police Chief",
+  "Fire Chief",
   "Administrator",
 ];
 

@@ -135,6 +135,9 @@ const RegisterForm: React.FC<IProps> = (props: IProps) => {
               "Police",
               "Fire",
               "Nurse",
+              "City Director",
+              "Police Chief",
+              "Fire Chief",
               "Administrator",
             ].map((r) => (
               <Button
