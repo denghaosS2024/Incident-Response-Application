@@ -14,6 +14,7 @@ import incident from "./incident";
 import login from "./login";
 import logout from "./logout";
 import map from "./map";
+import missingPersonRouter from "./missingPerson";
 import user from "./user";
 
 // This router does not exist in this codebase
@@ -62,6 +63,7 @@ export default Router()
   .use("/wildfire", wildfireAreaRouter)
   .use("/hospital", HospitalRouter)
   .use("/charts", dashboard)
+  .use("/missingPerson", missingPersonRouter)
 
   .use("/sartasks", taskRouter)
   .use("/sartasksdone", taskRouter)
