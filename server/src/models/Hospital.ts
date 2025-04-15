@@ -19,7 +19,7 @@ const HospitalSchema = new Schema({
     type: String,
     required: true,
     unique: true,
-    default: uuidv4,
+    default: uuidv4,  // should change if got time
   },
   hospitalName: {
     type: String,
