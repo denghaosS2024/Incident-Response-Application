@@ -11,6 +11,9 @@ export enum ROLES {
   POLICE = "Police",
   FIRE = "Fire",
   NURSE = "Nurse",
+  CITY_DIRECTOR = "City Director",
+  POLICE_CHIEF = "Police Chief",
+  FIRE_CHIEF = "Fire Chief",
   ADMINISTRATOR = "Administrator",
 }
 

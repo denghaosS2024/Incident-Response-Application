@@ -9,8 +9,7 @@ print_banner() {
 
 run_prettier() {
     # Only format files that have changed
-
-    FILE_TO_FMT=$(cat $CHANGED_FILES | grep -E "\\.(js|ts|tsx|json|md)$");     
+    FILE_TO_FMT=$(echo $CHANGED_FILES | grep -E "\\.(js|ts|tsx|json|md)$");     
 
     if [ -z "$FILE_TO_FMT" ]; then
         echo "No files to format, skipping prettier"
