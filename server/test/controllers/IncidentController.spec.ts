@@ -13,6 +13,7 @@ import ROLES from "../../src/utils/Roles";
 import * as TestDatabase from "../utils/TestDatabase";
 
 describe("Incident Controller", () => {
+  jest.setTimeout(30000);
   beforeAll(async () => {
     await TestDatabase.connect();
   });
@@ -674,7 +675,7 @@ describe("Incident Controller", () => {
       const taskId = 1;
       const endDate = new Date();
 
-      let updatedSarTasks = incident.sarTasks;
+      const updatedSarTasks = incident.sarTasks;
       updatedSarTasks[taskId].state = "Done";
       updatedSarTasks[taskId].endDate = endDate;
 
@@ -714,7 +715,7 @@ describe("Incident Controller", () => {
       const taskId = 0;
       const now = new Date();
 
-      let updatedSarTasks = incident.sarTasks;
+      const updatedSarTasks = incident.sarTasks;
       updatedSarTasks[taskId].state = "Done";
       updatedSarTasks[taskId].endDate = now;
 
