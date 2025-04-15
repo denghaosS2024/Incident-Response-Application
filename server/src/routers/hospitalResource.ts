@@ -64,7 +64,7 @@ export default Router()
   
         const result = await HospitalResourceController.createHospitalResource(hospitalResourceData);
         
-        let returnHospitalResource: HospitalResourceRequest = {
+        const returnHospitalResource: HospitalResourceRequest = {
           hospitalId: result.hospitalId,
           resourceName: resource.resourceName,
           inStockQuantity: result.inStockQuantity,
@@ -142,7 +142,7 @@ export default Router()
       }
 
       // Step 3: Return the updated resource in the front-end friendly format
-      let returnHospitalResource: HospitalResourceRequest = {
+      const returnHospitalResource: HospitalResourceRequest = {
         hospitalId: updatedResource.hospitalId,
         resourceName: hospitalResource.resourceName,
         inStockQuantity: updatedResource.inStockQuantity,
@@ -198,6 +198,6 @@ export default Router()
    *       500:
    *         description: Server error
    */
-  .get("/:resourceName", async (__, ___) => {
-    // TODO: Implement the logic to fetch all hospitals with a specific resource
-  });
+  // .get("/:resourceName", async (__, ___) => {
+  //   // TODO: Implement the logic to fetch all hospitals with a specific resource
+  // });
