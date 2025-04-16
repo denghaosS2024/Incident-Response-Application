@@ -1,6 +1,8 @@
 import { StyledEngineProvider } from "@mui/material/styles";
 import { useFlags } from "launchdarkly-react-client-sdk";
 import { Route, BrowserRouter as Router, Routes } from "react-router";
+
+// Pages
 import ChatRoomPage from "./pages/ChatRoomPage";
 import Contacts from "./pages/Contacts";
 import CreatechartPage from "./pages/CreatechartPage.tsx";
@@ -16,6 +18,9 @@ import IncidentsPage from "./pages/IncidentsPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import Messages from "./pages/Messages";
+import MissingPersonDirectoryPage from "./pages/MissingPersonDirectoryPage";
+import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualReportPage";
+import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
 import Organization from "./pages/Organization";
 import PatientAdmitPage from "./pages/PatientAdmitPage.tsx";
@@ -32,7 +37,9 @@ import TodoTasksPage from "./pages/SarTasks";
 import DoneTasksPage from "./pages/SarTasksDone";
 import StatisticsPage from "./pages/SarTasksStatistics";
 import ViewOrganization from "./pages/ViewOrganization";
+
 import RoutedHome from "./routing/RoutedHome";
+
 import "./styles/globals.css";
 import "./styles/tailwind.css";
 
@@ -110,6 +117,19 @@ export default function App() {
             <Route
               path="/sartasksstatistics/:incidentId"
               element={<StatisticsPage />}
+            />
+
+            <Route
+              path="/missing-person/directory"
+              element={<MissingPersonDirectoryPage />}
+            />
+            <Route
+              path="/missing-person/report/:reportId"
+              element={<MissingPersonIndividualReportPage />}
+            />
+            <Route
+              path="/missing-person/register"
+              element={<MissingPersonRegisterPage />}
             />
           </Route>
 
