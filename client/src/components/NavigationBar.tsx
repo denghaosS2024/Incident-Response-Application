@@ -119,6 +119,14 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = roleTitles[role] || "IR Citizen";
   }
 
+  if (pathname.startsWith("/missing-person/report/")) {
+    title = name ? `${name} Missing Report Overview` : "Missing Report Overview";
+  }
+
+  if (pathname.startsWith("/missing-person/followUp/")) {
+    title = name ? `${name} Follow-Up Information` : "Follow-Up Information";
+  }
+
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true);
     setMenuAnchor(anchor);
