@@ -1,8 +1,8 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IHospitalResourceBase {
-  resourceId: string; // Foreign key to Resource entity
-  hospitalId: string; // Foreign key to Hospital entity
+  resourceId: Types.ObjectId; // Reference to Resource's _id
+  hospitalId: Types.ObjectId; // Reference to Hospital's _id
   inStockQuantity: number; // Quantity in stock
   inStockAlertThreshold?: number; // Optional alert threshold
 }
@@ -14,12 +14,12 @@ export interface IHospitalResource extends IHospitalResourceBase, Document {}
  */
 const HospitalResourceSchema = new Schema<IHospitalResource>({
   resourceId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Resource", // Reference to Resource entity
     required: true,
   },
   hospitalId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Hospital", // Reference to Hospital entity
     required: true,
   },
@@ -36,6 +36,5 @@ const HospitalResourceSchema = new Schema<IHospitalResource>({
 
 export default mongoose.model<IHospitalResource>(
   "HospitalResource",
-  HospitalResourceSchema
+  HospitalResourceSchema,
 );
-

@@ -1,21 +1,17 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IResourceBase {
-    resourceId: string; // Unique identifier for the resource
     resourceName: string; // Name of the resource
-  }
+}
 
 export interface IResource extends IResourceBase, Document {}
+
+// using mongo _id instead of our own id
 
 /**
  * Resource Schema
  */
 const ResourceSchema = new Schema<IResource>({
-  resourceId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
   resourceName: {
     type: String,
     required: true,

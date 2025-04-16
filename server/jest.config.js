@@ -1,5 +1,5 @@
 module.exports = {
-  silent: true,
+  silent: false,
   testEnvironment: "node",
   roots: ["<rootDir>/test"],
   testMatch: [

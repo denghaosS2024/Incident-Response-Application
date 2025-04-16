@@ -1,37 +1,38 @@
-import mongoose, { LeanDocument } from "mongoose";
-import HospitalResource, { IHospitalResource, IHospitalResourceBase } from "../models/HospitalResource";
+import { LeanDocument } from "mongoose";
+import HospitalResource, {
+  IHospitalResource,
+  IHospitalResourceBase,
+} from "../models/HospitalResource";
 import Resource, { IResource, IResourceBase } from "../models/Resource";
 import HttpError from "../utils/HttpError";
 
-export interface HospitalResourceRequest {
+export interface HospitalResourceClient {
   hospitalId: string;
   resourceName: string;
   inStockQuantity?: number;
   inStockAlertThreshold?: number;
 }
 class HospitalResourceController {
-
   /**
    * Create a new Resource
    * @param resource An object containing the resourceName and optionally resourceId
    * @returns The newly created or existing resource object
    * @throws HttpError if the resource creation fails
    */
-  async createResource(resource: Partial<IResourceBase>) : Promise<IResourceBase>{
+  async createResource(
+    resource: Partial<IResourceBase>,
+  ): Promise<LeanDocument<IResource>> {
     try {
-
       // check if resource is already exist
-      const existingResource = await Resource.findOne({ resourceName: resource.resourceName }).exec();
-      
+      const existingResource = await Resource.findOne({
+        resourceName: resource.resourceName,
+      }).exec();
+
       if (existingResource) {
         return existingResource.toObject();
       }
 
-      // Ignore resourceId even it passed in, generate a new one
-      const resourceId = new mongoose.Types.ObjectId().toString();
-
       const newResource = new Resource({
-        resourceId,
         resourceName: resource.resourceName,
       });
 
@@ -39,7 +40,6 @@ class HospitalResourceController {
       await newResource.save();
 
       return newResource.toObject();
-
     } catch (error) {
       console.error("Error creating resource:", error);
       throw new HttpError("Failed to create resource", 500);
@@ -51,7 +51,9 @@ class HospitalResourceController {
    * @param hospitalResource An object of IHospitalResource
    * @returns The new hospital resource object which was created
    */
-  async createHospitalResource(hospitalResource: IHospitalResourceBase) : Promise<IHospitalResourceBase>{
+  async createHospitalResource(
+    hospitalResource: IHospitalResourceBase,
+  ): Promise<LeanDocument<IHospitalResource>> {
     try {
       const newHospitalResource = new HospitalResource({
         resourceId: hospitalResource.resourceId,
@@ -62,7 +64,6 @@ class HospitalResourceController {
       await newHospitalResource.save();
 
       return newHospitalResource.toObject();
-
     } catch (error) {
       console.error("Error creating hospital resource:", error);
       throw new HttpError("Failed to create hospital resource", 500);
@@ -73,14 +74,12 @@ class HospitalResourceController {
    * Fetch all resources
    * @returns An array of resource objects
    */
-  async getAllResources() : Promise<IResourceBase[]>{
+  async getAllResources(): Promise<LeanDocument<IResource>[]> {
     try {
       const resources = await Resource.find().sort({ resourceName: 1 });
 
       return resources.map((resource) => resource.toObject());
-
     } catch (error) {
-
       console.error("Error fetching resources:", error);
       throw new HttpError("Failed to fetch resources", 500);
     }
@@ -92,12 +91,17 @@ class HospitalResourceController {
    * @returns The resource object as IResourceBase
    * @throws HttpError if the resource is not found
    */
-  async getResourceByName(resourceName: string): Promise<IResourceBase> {
+  async getResourceByName(
+    resourceName: string,
+  ): Promise<LeanDocument<IResource>> {
     try {
       const resource = await Resource.findOne({ resourceName }).exec();
 
       if (!resource) {
-        throw new HttpError(`Resource with name "${resourceName}" not found.`, 404);
+        throw new HttpError(
+          `Resource with name "${resourceName}" not found.`,
+          404,
+        );
       }
 
       return resource.toObject();
@@ -113,22 +117,31 @@ class HospitalResourceController {
    * @returns An array of hospital resource objects
    * @throws HttpError if no hospitals are found
    */
-  async getHospitalsByResourceName(resourceName: string): Promise<IHospitalResourceBase[]> {
+  async getHospitalsByResourceName(
+    resourceName: string,
+  ): Promise<LeanDocument<IHospitalResource>[]> {
     try {
       // Step 1: Get the resource by name
       const resource = await this.getResourceByName(resourceName);
 
       // Step 2: Fetch all hospital resources with the resourceId
-      const hospitalResources = await HospitalResource.find({ resourceId: resource.resourceId })
+      const hospitalResources = await HospitalResource.find({
+        resourceId: resource._id,
+      })
         .populate("hospitalId")
         .exec();
 
       if (!hospitalResources || hospitalResources.length === 0) {
-        throw new HttpError(`No hospitals found with resource "${resourceName}".`, 404);
+        throw new HttpError(
+          `No hospitals found with resource "${resourceName}".`,
+          404,
+        );
       }
 
       // Step 3: Return the hospital resources as plain objects
-      return hospitalResources.map((hospitalResource) => hospitalResource.toObject());
+      return hospitalResources.map((hospitalResource) =>
+        hospitalResource.toObject(),
+      );
     } catch (error) {
       console.error("Error fetching hospitals by resource name:", error);
       throw new HttpError("Failed to fetch hospitals by resource name", 500);
@@ -139,15 +152,13 @@ class HospitalResourceController {
    * Fetch all hospital resources
    * @returns An array of hospital resource objects
    */
-  async getAllHospitalResources(): Promise<IHospitalResourceBase[]> {
+  async getAllHospitalResources(): Promise<LeanDocument<IHospitalResource>[]> {
     try {
-
       const hospitalResources = await HospitalResource.find()
         .populate("resourceId")
         .populate("hospitalId");
-      
-      return hospitalResources.map((resource) => resource.toObject());
 
+      return hospitalResources.map((resource) => resource.toObject());
     } catch (error) {
       console.error("Error fetching hospital resources:", error);
       throw new HttpError("Failed to fetch hospital resources", 500);
@@ -159,13 +170,20 @@ class HospitalResourceController {
    * @param resourceId The ID of the resource
    * @returns An array of hospital resource objects
    */
-  async getHospitalResourcesByResourceId(resourceId: string): Promise<IHospitalResourceBase[]> {
+  async getHospitalResourcesByResourceId(
+    resourceId: string,
+  ): Promise<LeanDocument<IHospitalResource>[]> {
     try {
-      const hospitalResources = await HospitalResource.find({ resourceId }).populate("hospitalId");
+      const hospitalResources = await HospitalResource.find({
+        resourceId,
+      }).populate("hospitalId");
       return hospitalResources.map((resource) => resource.toObject());
     } catch (error) {
       console.error("Error fetching hospital resources by resourceId:", error);
-      throw new HttpError("Failed to fetch hospital resources by resourceId", 500);
+      throw new HttpError(
+        "Failed to fetch hospital resources by resourceId",
+        500,
+      );
     }
   }
 
@@ -173,7 +191,9 @@ class HospitalResourceController {
    * Fetch all HospitalResources and group them by resourceName
    * @returns An object where keys are resourceNames and values are arrays of HospitalResourceRequest
    */
-  async getAllHospitalResourcesGroupedByResource(): Promise<Record<string, HospitalResourceRequest[]>> {
+  async getAllHospitalResourcesGroupedByResource(): Promise<
+    Record<string, HospitalResourceClient[]>
+  > {
     try {
       // Fetch all hospital resources and populate resourceId
       const hospitalResources = await HospitalResource.find()
@@ -181,13 +201,17 @@ class HospitalResourceController {
         .exec();
 
       // Group resources by resourceName
-      const groupedResources: Record<string, HospitalResourceRequest[]> = {};
+      const groupedResources: Record<string, HospitalResourceClient[]> = {};
 
       hospitalResources.forEach((hospitalResource) => {
+        console.log("Processing hospital resource:", hospitalResource);
         // Ensure resourceId is populated and has a resourceName
         const resource = hospitalResource.resourceId as LeanDocument<IResource>;
         if (!resource || !resource.resourceName) {
-          throw new HttpError("Resource data is incomplete or not populated.", 500);
+          throw new HttpError(
+            `Resource data is incomplete or not populated. ${hospitalResources}`,
+            500,
+          );
         }
 
         const resourceName = resource.resourceName;
@@ -197,7 +221,7 @@ class HospitalResourceController {
         }
 
         groupedResources[resourceName].push({
-          hospitalId: hospitalResource.hospitalId,
+          hospitalId: hospitalResource.hospitalId.toString(),
           resourceName,
           inStockQuantity: hospitalResource.inStockQuantity,
           inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
@@ -207,7 +231,10 @@ class HospitalResourceController {
       return groupedResources;
     } catch (error) {
       console.error("Error fetching and grouping hospital resources:", error);
-      throw new HttpError("Failed to fetch and group hospital resources", 500);
+      throw new HttpError(
+        `Failed to fetch and group hospital resources, ${error}`,
+        500,
+      );
     }
   }
 
@@ -216,7 +243,9 @@ class HospitalResourceController {
    * @param hospitalResource Partial hospital resource object with updated fields
    * @returns The updated hospital resource object
    */
-  async updateHospitalResource(hospitalResource: Partial<IHospitalResource>): Promise<IHospitalResourceBase | null>{
+  async updateHospitalResource(
+    hospitalResource: Partial<IHospitalResource>,
+  ): Promise<LeanDocument<IHospitalResource> | null> {
     if (!hospitalResource.resourceId || !hospitalResource.hospitalId) {
       throw new HttpError("Invalid hospital resource data", 400);
     }
@@ -228,13 +257,70 @@ class HospitalResourceController {
           hospitalId: hospitalResource.hospitalId,
         },
         { $set: hospitalResource },
-        { new: true }
+        { new: true },
       ).exec();
 
-      return updatedHospitalResource ? updatedHospitalResource.toObject() : null;
+      return updatedHospitalResource
+        ? updatedHospitalResource.toObject()
+        : null;
     } catch (error) {
       console.error("Error updating hospital resource:", error);
       throw new HttpError("Failed to update hospital resource", 500);
+    }
+  }
+
+  /**
+   * Delete a HospitalResource
+   * @param resourceId The ID of the resource
+   * @param hospitalId The ID of the hospital
+   * @returns The deleted hospital resource object, or null if not found
+   */
+  async deleteHospitalResource(
+    resourceId: string,
+    hospitalId: string,
+  ): Promise<LeanDocument<IHospitalResource> | null> {
+    try {
+      const deletedHospitalResource = await HospitalResource.findOneAndDelete({
+        resourceId,
+        hospitalId,
+      }).exec();
+
+      if (!deletedHospitalResource) {
+        throw new HttpError("HospitalResource not found.", 404);
+      }
+
+      return deletedHospitalResource.toObject();
+    } catch (error) {
+      console.error("Error deleting hospital resource:", error);
+      throw new HttpError("Failed to delete hospital resource", 500);
+    }
+  }
+
+  /**
+   * Delete all HospitalResources
+   * @returns The number of deleted hospital resources
+   */
+  async deleteAllHospitalResources(): Promise<number> {
+    try {
+      const result = await HospitalResource.deleteMany({});
+      return result.deletedCount || 0;
+    } catch (error) {
+      console.error("Error deleting all hospital resources:", error);
+      throw new HttpError("Failed to delete all hospital resources", 500);
+    }
+  }
+
+  /**
+   * Delete all Resources
+   * @returns The number of deleted resources
+   */
+  async deleteAllResources(): Promise<number> {
+    try {
+      const result = await Resource.deleteMany({});
+      return result.deletedCount || 0;
+    } catch (error) {
+      console.error("Error deleting all resources:", error);
+      throw new HttpError("Failed to delete all resources", 500);
     }
   }
 }

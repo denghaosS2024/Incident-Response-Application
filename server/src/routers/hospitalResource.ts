@@ -1,10 +1,13 @@
 import { Router } from "express";
-import HospitalResourceController, { HospitalResourceRequest } from "../controllers/HospitalResourceController";
+import { Types } from "mongoose";
+import HospitalResourceController, {
+  HospitalResourceClient,
+} from "../controllers/HospitalResourceController";
+import { IHospitalResourceBase } from "../models/HospitalResource";
 import HttpError from "../utils/HttpError";
 
-
 export default Router()
-    /**
+  /**
    * @swagger
    * /api/hospital-resource:
    *   post:
@@ -34,49 +37,62 @@ export default Router()
    *       500:
    *         description: Server error
    */
-    .post("/", async (request, response) => {
-      try {
-        const hospitalResource: HospitalResourceRequest = request.body;
-  
-        // Validate required fields
-        const { hospitalId, resourceName, inStockQuantity, inStockAlertThreshold } = hospitalResource;
-  
-        if (!hospitalId || !resourceName || inStockQuantity === undefined) {
-          throw new HttpError("hospitalId, resourceName, and inStockQuantity are mandatory fields.", 400);
-        }
-  
-        // Step 1: Call the controller to check or create the resource
-        const resource = await HospitalResourceController.createResource({ resourceName });
-  
-        // Step 2: Use the resourceId to create the HospitalResource
-        const hospitalResourceData = {
-          resourceId: resource.resourceId,
-          hospitalId,
-          inStockQuantity,
-          inStockAlertThreshold,
-        };
-  
-        const result = await HospitalResourceController.createHospitalResource(hospitalResourceData);
-        
-        const returnHospitalResource: HospitalResourceRequest = {
-          hospitalId: result.hospitalId,
-          resourceName: resource.resourceName,
-          inStockQuantity: result.inStockQuantity,
-          inStockAlertThreshold: result.inStockAlertThreshold,
-        }
+  .post("/", async (request, response) => {
+    try {
+      const hospitalResource: HospitalResourceClient = request.body;
 
-        // Step 3: Return the result in the front-end friendly format
-        return response.status(201).send(returnHospitalResource);
-      } catch (e) {
-        if (e instanceof HttpError) {
-          return response.status(e.statusCode).send({ message: e.message });
-        }
-        const error = e as Error;
-        return response.status(500).send({ message: error.message });
+      // Validate required fields
+      const {
+        hospitalId,
+        resourceName,
+        inStockQuantity,
+        inStockAlertThreshold,
+      } = hospitalResource;
+
+      if (!hospitalId || !resourceName || inStockQuantity === undefined) {
+        throw new HttpError(
+          "hospitalId, resourceName, and inStockQuantity are mandatory fields.",
+          400,
+        );
       }
-    })
-  
-    /**
+
+      // Step 1: Call the controller to check or create the resource
+      const resource = await HospitalResourceController.createResource({
+        resourceName,
+      });
+
+      // Step 2: Use the resourceId to create the HospitalResource
+      const hospitalResourceData: IHospitalResourceBase = {
+        resourceId: resource._id,
+        hospitalId: new Types.ObjectId(hospitalId),
+        inStockQuantity,
+        inStockAlertThreshold,
+      };
+
+      const result =
+        await HospitalResourceController.createHospitalResource(
+          hospitalResourceData,
+        );
+
+      const returnHospitalResource: HospitalResourceClient = {
+        hospitalId: result.hospitalId.toString(),
+        resourceName: resource.resourceName,
+        inStockQuantity: result.inStockQuantity,
+        inStockAlertThreshold: result.inStockAlertThreshold,
+      };
+
+      // Step 3: Return the result in the front-end friendly format
+      return response.status(201).send(returnHospitalResource);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
+
+  /**
    * @swagger
    * /api/hospital-resource:
    *   put:
@@ -112,38 +128,43 @@ export default Router()
    */
   .put("/", async (request, response) => {
     try {
-      const hospitalResource: HospitalResourceRequest = request.body;
+      const hospitalResource: HospitalResourceClient = request.body;
 
-      if (!hospitalResource.hospitalId || (!hospitalResource.resourceName)) {
-        throw new HttpError("hospitalId and either resourceId or resourceName are mandatory fields.", 400);
+      if (!hospitalResource.hospitalId || !hospitalResource.resourceName) {
+        throw new HttpError(
+          "hospitalId and either resourceId or resourceName are mandatory fields.",
+          400,
+        );
       }
 
       // Step 1: Resolve resourceId if only resourceName is provided
 
-      const resource = await HospitalResourceController.createResource({ resourceName: hospitalResource.resourceName });
-      const resourceId = resource.resourceId;
+      const resource = await HospitalResourceController.createResource({
+        resourceName: hospitalResource.resourceName,
+      });
+      const resourceId = resource._id;
 
       // Step 2: Update the hospital resource
-      const updatedResource = await HospitalResourceController.updateHospitalResource({
-        hospitalId: hospitalResource.hospitalId,
-        resourceId,
-        inStockQuantity: hospitalResource.inStockQuantity,
-        inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
-      });
+      const updatedResource =
+        await HospitalResourceController.updateHospitalResource({
+          hospitalId: new Types.ObjectId(hospitalResource.hospitalId),
+          resourceId,
+          inStockQuantity: hospitalResource.inStockQuantity,
+          inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
+        });
 
       if (!updatedResource) {
         throw new HttpError("HospitalResource not found.", 404);
       }
 
       // Step 3: Return the updated resource in the front-end friendly format
-      const returnHospitalResource: HospitalResourceRequest = {
-        hospitalId: updatedResource.hospitalId,
+      const returnHospitalResource: HospitalResourceClient = {
+        hospitalId: updatedResource.hospitalId.toString(),
         resourceName: hospitalResource.resourceName,
         inStockQuantity: updatedResource.inStockQuantity,
         inStockAlertThreshold: updatedResource.inStockAlertThreshold,
-      }
+      };
       return response.status(200).send(returnHospitalResource);
-
     } catch (e) {
       if (e instanceof HttpError) {
         return response.status(e.statusCode).send({ message: e.message });
@@ -195,23 +216,28 @@ export default Router()
   .get("/:resourceName", async (request, response) => {
     try {
       const { resourceName } = request.params;
-  
+
       // Validate the resourceName parameter
       if (!resourceName) {
         throw new HttpError("resourceName parameter is required.", 400);
       }
-  
+
       // Fetch all hospitals with the specified resourceName
-      const hospitals = await HospitalResourceController.getHospitalsByResourceName(resourceName);
-  
+      const hospitals =
+        await HospitalResourceController.getHospitalsByResourceName(
+          resourceName,
+        );
+
       // Transform the result to match the front-end format
-      const result:HospitalResourceRequest[] = hospitals.map((hospitalResource) => ({
-        hospitalId: hospitalResource.hospitalId,
-        resourceName,
-        inStockQuantity: hospitalResource.inStockQuantity,
-        inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
-      }));
-  
+      const result: HospitalResourceClient[] = hospitals.map(
+        (hospitalResource) => ({
+          hospitalId: hospitalResource.hospitalId.toString(),
+          resourceName,
+          inStockQuantity: hospitalResource.inStockQuantity,
+          inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
+        }),
+      );
+
       return response.status(200).send(result);
     } catch (e) {
       if (e instanceof HttpError) {
@@ -255,7 +281,8 @@ export default Router()
   .get("/", async (__request, response) => {
     try {
       // Fetch all hospital resources grouped by resourceName
-      const groupedResources = await HospitalResourceController.getAllHospitalResourcesGroupedByResource();
+      const groupedResources =
+        await HospitalResourceController.getAllHospitalResourcesGroupedByResource();
 
       return response.status(200).send(groupedResources);
     } catch (e) {
