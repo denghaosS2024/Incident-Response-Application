@@ -1,14 +1,29 @@
+import { Box } from "@mui/material";
 import React from "react";
+import { useNavigate } from "react-router";
+import { MissingPersonForm } from "../components/feature/MissingPerson/missingPersonForm";
+import IMissingPerson from "../models/MissingPersonReport";
 
 const MissingPersonRegisterPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleSubmit = (data: IMissingPerson) => {
+    console.log("POST /missing-person/register", data);
+    // TODO: await api.post("/missing-person/register", data);
+    navigate("/missing-person/directory");
+  };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
   return (
-    <div>
-      <h1>Register Missing Person</h1>
-      <p>
-        This page will contain the form to register a new missing person report.
-      </p>
-      {/* Add your registration form here */}
-    </div>
+    <Box>
+      <MissingPersonForm
+        onSubmit={handleSubmit}
+        onCancel={handleCancel} // omit this line if you don't want Cancel
+      />
+    </Box>
   );
 };
 
