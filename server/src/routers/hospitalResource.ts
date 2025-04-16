@@ -1,13 +1,7 @@
 import { Router } from "express";
-import HospitalResourceController from "../controllers/HospitalResourceController";
+import HospitalResourceController, { HospitalResourceRequest } from "../controllers/HospitalResourceController";
 import HttpError from "../utils/HttpError";
 
-interface HospitalResourceRequest {
-    hospitalId: string;
-    resourceName: string;
-    inStockQuantity?: number;
-    inStockAlertThreshold?: number;
-}
 
 export default Router()
     /**
@@ -211,7 +205,7 @@ export default Router()
       const hospitals = await HospitalResourceController.getHospitalsByResourceName(resourceName);
   
       // Transform the result to match the front-end format
-      const result = hospitals.map((hospitalResource) => ({
+      const result:HospitalResourceRequest[] = hospitals.map((hospitalResource) => ({
         hospitalId: hospitalResource.hospitalId,
         resourceName,
         inStockQuantity: hospitalResource.inStockQuantity,
@@ -219,6 +213,51 @@ export default Router()
       }));
   
       return response.status(200).send(result);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/hospital-resource:
+   *   get:
+   *     summary: Get all HospitalResources grouped by resourceName
+   *     description: Fetch all HospitalResources and group them by resourceName for easier front-end rendering.
+   *     tags: [HospitalResource]
+   *     responses:
+   *       200:
+   *         description: HospitalResources grouped by resourceName retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               additionalProperties:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     hospitalId:
+   *                       type: string
+   *                     resourceName:
+   *                       type: string
+   *                     inStockQuantity:
+   *                       type: number
+   *                     inStockAlertThreshold:
+   *                       type: number
+   *       500:
+   *         description: Server error
+   */
+  .get("/", async (__request, response) => {
+    try {
+      // Fetch all hospital resources grouped by resourceName
+      const groupedResources = await HospitalResourceController.getAllHospitalResourcesGroupedByResource();
+
+      return response.status(200).send(groupedResources);
     } catch (e) {
       if (e instanceof HttpError) {
         return response.status(e.statusCode).send({ message: e.message });

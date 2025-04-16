@@ -1,8 +1,14 @@
-import mongoose from "mongoose";
+import mongoose, { LeanDocument } from "mongoose";
 import HospitalResource, { IHospitalResource, IHospitalResourceBase } from "../models/HospitalResource";
-import Resource, { IResourceBase } from "../models/Resource";
+import Resource, { IResource, IResourceBase } from "../models/Resource";
 import HttpError from "../utils/HttpError";
 
+export interface HospitalResourceRequest {
+  hospitalId: string;
+  resourceName: string;
+  inStockQuantity?: number;
+  inStockAlertThreshold?: number;
+}
 class HospitalResourceController {
 
   /**
@@ -160,6 +166,48 @@ class HospitalResourceController {
     } catch (error) {
       console.error("Error fetching hospital resources by resourceId:", error);
       throw new HttpError("Failed to fetch hospital resources by resourceId", 500);
+    }
+  }
+
+  /**
+   * Fetch all HospitalResources and group them by resourceName
+   * @returns An object where keys are resourceNames and values are arrays of HospitalResourceRequest
+   */
+  async getAllHospitalResourcesGroupedByResource(): Promise<Record<string, HospitalResourceRequest[]>> {
+    try {
+      // Fetch all hospital resources and populate resourceId
+      const hospitalResources = await HospitalResource.find()
+        .populate<{ resourceId: IResource }>("resourceId") // Populate resourceId with IResource type
+        .exec();
+
+      // Group resources by resourceName
+      const groupedResources: Record<string, HospitalResourceRequest[]> = {};
+
+      hospitalResources.forEach((hospitalResource) => {
+        // Ensure resourceId is populated and has a resourceName
+        const resource = hospitalResource.resourceId as LeanDocument<IResource>;
+        if (!resource || !resource.resourceName) {
+          throw new HttpError("Resource data is incomplete or not populated.", 500);
+        }
+
+        const resourceName = resource.resourceName;
+
+        if (!groupedResources[resourceName]) {
+          groupedResources[resourceName] = [];
+        }
+
+        groupedResources[resourceName].push({
+          hospitalId: hospitalResource.hospitalId,
+          resourceName,
+          inStockQuantity: hospitalResource.inStockQuantity,
+          inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
+        });
+      });
+
+      return groupedResources;
+    } catch (error) {
+      console.error("Error fetching and grouping hospital resources:", error);
+      throw new HttpError("Failed to fetch and group hospital resources", 500);
     }
   }
 
