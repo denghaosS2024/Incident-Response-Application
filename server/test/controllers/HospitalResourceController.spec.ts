@@ -58,7 +58,9 @@ describe("HospitalResourceController", () => {
 
     // Assert
     expect(hospitalResource).toBeDefined();
-    expect(hospitalResource.hospitalId).toBe(newHospitalId.toString());
+    expect(hospitalResource.hospitalId.toString()).toBe(
+      newHospitalId.toString(),
+    );
     expect(hospitalResource.inStockQuantity).toBe(10);
     expect(hospitalResource.inStockAlertThreshold).toBe(5);
   });
