@@ -40,6 +40,7 @@ import ViewOrganization from "./pages/ViewOrganization";
 
 import RoutedHome from "./routing/RoutedHome";
 
+import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
 
@@ -130,6 +131,11 @@ export default function App() {
             <Route
               path="/missing-person/register"
               element={<MissingPersonRegisterPage />}
+            />
+
+            <Route 
+              path="missing-person/followUp/:reportId"
+              element={<MissingPersonFollowUpPage />}
             />
           </Route>
 
