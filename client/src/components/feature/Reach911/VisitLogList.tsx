@@ -30,9 +30,9 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     const patient = patients.find((p) => p.username === propUsername);
     return patient ? patient.patientId : "";
   };
-  
+
   console.log("Current Patient ID:", getCurrentPatientId());
-  
+
   const getCurrentPatient = () => {
     if (!patients || patients.length === 0 || !propUsername) {
       return null;
@@ -40,44 +40,39 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     const patient = patients.find((p) => p.username === propUsername);
     return patient ? patient : null;
   };
-  
+
   const getCurrentPatientVisitLogs = () => {
     const patient = getCurrentPatient();
     if (!patient || !patient.visitLog) {
       return [];
     }
     return patient.visitLog;
-  }
+  };
 
   // const navigate2SpecificVisitLog = (incidentId: string) => {
-  const navigate2SpecificVisitLog = () => {
-    if(!propUsername) {
+  const navigate2SpecificVisitLog = (visitLogId: string, active: boolean) => {
+    if (!propUsername) {
       return;
     }
-    navigate(`/patient-visit?username=${encodeURIComponent(propUsername)}`);
-    // navigate(`/patient-visit/${incidentId}`);
-    // if (propUsername) {
-    //   navigate(`/patient-visit/${incidentId}?username=${encodeURIComponent(propUsername)}`);
-    // }
-    // else {
-    //   navigate(`/patient-visit/${incidentId}`);
-    // }
-  }
-  
+    navigate(
+      `/patient-visit?username=${encodeURIComponent(
+        propUsername,
+      )}&visitLogId=${encodeURIComponent(visitLogId)}&active=${active}`,
+    );
+  };
+
   // const handleLinkClick = (incidentId: string) => {
-  const handleLinkClick = () => {
-    // console.log("Link clicked for incidentId:", incidentId);
-    // navigate2SpecificVisitLog(incidentId);
-    navigate2SpecificVisitLog();
+  const handleLinkClick = (visitLogId: string, active: boolean) => {
+    navigate2SpecificVisitLog(visitLogId, active);
   };
 
   // Function to format date for visit log
   const formatDateForVisitLog = (date: Date): string => {
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     const year = String(date.getFullYear()).slice(-2);
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
     return `${month}.${day}.${year}-${hours}:${minutes}`;
   };
 
@@ -108,8 +103,10 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     return visitLogs.map((log) => {
       const date = new Date(log.dateTime);
       const formattedDate = formatDateForVisitLog(date);
-      
+
       return {
+        _id: log._id,
+        active: log.active,
         Date: formattedDate,
         // Location: log.location,
         Location: getFullLocation(log.location, log.hospitalName),
@@ -118,7 +115,7 @@ const VisitLogList: React.FC<{ username?: string }> = ({
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              handleLinkClick();
+              handleLinkClick(log._id, log.active);
             }}
             style={{
               textDecoration: "none",
@@ -131,33 +128,33 @@ const VisitLogList: React.FC<{ username?: string }> = ({
     });
   };
 
-  useEffect(
-    () => {
-      const visitLogs = getCurrentPatientVisitLogs();
-      console.log("Visit logs:", visitLogs);
-      // Sort the logs from newest to oldest
-      const sortedVisitLogs = sortVisitLogsByDateDesc(visitLogs);
-      // Format the logs for display
-      const formattedVisitLogs = formatVisitLogs(sortedVisitLogs);
-      setVisistLogs(formattedVisitLogs);
-    },
-    [patients, propUsername]
-  );
-
+  useEffect(() => {
+    const visitLogs = getCurrentPatientVisitLogs();
+    console.log("Visit logs:", visitLogs);
+    // Sort the logs from newest to oldest
+    const sortedVisitLogs = sortVisitLogsByDateDesc(visitLogs);
+    // Format the logs for display
+    const formattedVisitLogs = formatVisitLogs(sortedVisitLogs);
+    setVisistLogs(formattedVisitLogs);
+  }, [patients, propUsername]);
 
   const handleAddPatient = async () => {
     if (propUsername) {
       const body = {
         patientId: getCurrentPatientId(),
         role: localStorage.getItem("role"),
-      }
+      };
       try {
-        await request("/api/patients/visitLogs/default", {
+        const response = await request("/api/patients/visitLogs/default", {
           method: "POST",
           body: JSON.stringify(body),
         });
 
-        navigate(`/patient-visit?username=${encodeURIComponent(propUsername)}`);
+        console.log("POST response:", response);
+
+        navigate(
+          `/patient-visit?username=${encodeURIComponent(propUsername)}&visitLogId=${encodeURIComponent(response._id)}&active=${encodeURIComponent(response.active)}`,
+        );
       } catch (error) {
         const err = error as Error;
         console.error("Error adding patient visit log:", err);

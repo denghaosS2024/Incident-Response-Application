@@ -545,7 +545,7 @@ class PatientController {
 
     await patient.save();
 
-    return patient;
+    return defaultVisitLog;
   }
 
   /**

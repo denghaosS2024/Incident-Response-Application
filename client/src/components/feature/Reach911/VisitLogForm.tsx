@@ -37,9 +37,11 @@ const getCurrentDateTime = () => {
   return formattedDate;
 };
 
-const VisitLogForm: React.FC<{ username?: string }> = ({
-  username: propUsername,
-}) => {
+const VisitLogForm: React.FC<{
+  username?: string;
+  visitLogId?: string;
+  active?: boolean;
+}> = ({ username: propUsername, visitLogId, active }) => {
   const [formData, setFormData] = useState<IVisitLogForm>({
     priority: "E", // Default value, { value: 'E', label: 'E' },
     location: "",
@@ -51,8 +53,12 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
     drugs: "",
     allergies: "",
     hospitalId: "",
-    hospitalName: ""
+    hospitalName: "",
   });
+
+  console.log("visitLogId:", visitLogId);
+  console.log("active:", active);
+  const isReadOnly = active === false;
 
   const navigate = useNavigate();
 
@@ -208,12 +214,66 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
   useEffect(() => {
     console.log("Updated currentHospital:", currentHospital);
-     setFormData((prev) => ({
-       ...prev,
-       hospitalId: currentHospital.hospitalId,
-       hospitalName: currentHospital.hospitalName
-     }));
+    setFormData((prev) => ({
+      ...prev,
+      hospitalId: currentHospital.hospitalId,
+      hospitalName: currentHospital.hospitalName,
+    }));
   }, [currentHospital]);
+
+  useEffect(() => {
+    const fetchVisitLog = async () => {
+      try {
+        const patientId = getCurrentPatientId();
+        if (!patientId || !visitLogId) return;
+
+        const result = await request(
+          `/api/patients/visitLogs?patientId=${patientId}&visitLogId=${visitLogId}`,
+        );
+
+        if (result) {
+          const {
+            dateTime,
+            incidentId,
+            priority,
+            location,
+            age,
+            conscious,
+            breathing,
+            chiefComplaint,
+            condition,
+            drugs,
+            allergies,
+            hospitalId,
+            hospitalName,
+          } = result;
+
+          setVisitTime(dateTime ?? getCurrentDateTime());
+          setIncidentId(incidentId ?? "");
+
+          setFormData((prev) => ({
+            ...prev,
+            ...(priority && { priority }),
+            ...(location && { location }),
+            ...(age != null ? { age: age.toString() } : {}),
+            ...(conscious && { conscious }),
+            ...(breathing && { breathing }),
+            ...(chiefComplaint && { chiefComplaint }),
+            ...(condition && { condition }),
+            ...(drugs ? { drugs: drugs.join(", ") } : {}),
+            ...(allergies ? { allergies: allergies.join(", ") } : {}),
+            ...(hospitalId && { hospitalId }),
+            ...(hospitalName && { hospitalName }),
+          }));
+        }
+      } catch (e) {
+        const error = e as IRequestError;
+        console.error("Error fetching visit log:", error.message);
+      }
+    };
+
+    fetchVisitLog();
+  }, [visitLogId, patients]);
 
   console.log("Current patient ID:", getCurrentPatientId());
 
@@ -237,6 +297,13 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
 
   return (
     <div className="flex flex-col gap-4 p-4 items-center">
+      {isReadOnly && (
+        <Box className="w-full mb-4 bg-yellow-100 border border-yellow-300 p-3 rounded">
+          <Typography variant="body1" color="textSecondary">
+            This visit log is read-only.
+          </Typography>
+        </Box>
+      )}
       <div className="flex flex-col gap-2 items-start w-full">
         <p className="text-2xl font-bold text-start">Visit: {visitTime}</p>
         <p className="text-2xl font-bold text-start">
@@ -252,6 +319,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             name="priority"
             value={formData.priority}
             onChange={handleChange}
+            disabled={isReadOnly}
             sx={{
               width: 200,
               height: 40,
@@ -284,9 +352,9 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
               <FormControlLabel
                 key={location.value}
                 value={location.value}
-                control={<Radio />}
                 label={location.label}
                 sx={{ marginRight: 3 }}
+                control={<Radio disabled={isReadOnly} />}
               />
             ))}
           </RadioGroup>
@@ -322,6 +390,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
               inputProps={{ min: 0 }}
               sx={{ width: 100, mx: 1 }}
               size="small"
+              InputProps={{ readOnly: isReadOnly }}
             />
             <IconButton
               onClick={() => {
@@ -353,11 +422,15 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
           >
             <FormControlLabel
               value="Yes"
-              control={<Radio />}
               label="Yes"
               sx={{ marginRight: 3 }}
+              control={<Radio disabled={isReadOnly} />}
             />
-            <FormControlLabel value="No" control={<Radio />} label="No" />
+            <FormControlLabel
+              value="No"
+              control={<Radio disabled={isReadOnly} />}
+              label="No"
+            />
           </RadioGroup>
         </Box>
       </FormControl>
@@ -375,11 +448,15 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
           >
             <FormControlLabel
               value="Yes"
-              control={<Radio />}
               label="Yes"
               sx={{ marginRight: 3 }}
+              control={<Radio disabled={isReadOnly} />}
             />
-            <FormControlLabel value="No" control={<Radio />} label="No" />
+            <FormControlLabel
+              value="No"
+              control={<Radio disabled={isReadOnly} />}
+              label="No"
+            />
           </RadioGroup>
         </Box>
       </FormControl>
@@ -397,6 +474,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             onChange={handleChange}
             fullWidth
             size="small"
+            InputProps={{ readOnly: isReadOnly }}
           />
         </Box>
       </FormControl>
@@ -416,6 +494,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
                 padding: "8px 14px",
               },
             }}
+            disabled={isReadOnly}
           >
             {VisitLogHelper.conditions.map((condition) => (
               <MenuItem key={condition.value} value={condition.value}>
@@ -437,6 +516,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             onChange={handleChange}
             fullWidth
             size="small"
+            InputProps={{ readOnly: isReadOnly }}
           />
         </Box>
       </FormControl>
@@ -453,6 +533,7 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
             onChange={handleChange}
             fullWidth
             size="small"
+            InputProps={{ readOnly: isReadOnly }}
           />
         </Box>
       </FormControl>
@@ -505,29 +586,31 @@ const VisitLogForm: React.FC<{ username?: string }> = ({
         </FormControl>
       )}
 
-      <Box display="flex" justifyContent="center" mt={4}>
-        <button
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#1976d2",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "16px",
-          }}
-          onClick={() => {
-            VisitLogHelper.saveFormData(
-              formData,
-              incidentId,
-              visitTime,
-              getCurrentPatientId() ?? "",
-            );
-          }}
-        >
-          Save
-        </button>
-      </Box>
+      {!isReadOnly && (
+        <Box display="flex" justifyContent="center" mt={4}>
+          <button
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#1976d2",
+              color: "#fff",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+            onClick={() => {
+              VisitLogHelper.saveFormData(
+                formData,
+                incidentId,
+                visitTime,
+                getCurrentPatientId() ?? "",
+              );
+            }}
+          >
+            Save
+          </button>
+        </Box>
+      )}
     </div>
   );
 };
