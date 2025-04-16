@@ -38,6 +38,7 @@ import DoneTasksPage from "./pages/SarTasksDone";
 import StatisticsPage from "./pages/SarTasksStatistics";
 import ViewOrganization from "./pages/ViewOrganization";
 
+import HospitalResourceForm from "./components/feature/HospitalResources/HospitalResourceForm.tsx";
 import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
 import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
@@ -119,9 +120,14 @@ export default function App() {
               path="/sartasksstatistics/:incidentId"
               element={<StatisticsPage />}
             />
-              <Route
+
+            <Route
               path="/register-hospital/:hospitalId/resources"
               element={<HospitalResourcesPage />}
+            />
+            <Route
+              path="/register-hospital/:hospitalId/resources/newResource"
+              element={<HospitalResourceForm/>}
             />
 
             <Route

@@ -6,12 +6,13 @@ import {
 } from "@mui/icons-material";
 import { Box, IconButton } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import request from "../utils/request";
 const HospitalResourcesPage: React.FC = () => {
     const [hospitalResourcesList, setHospitalResourcesList] = useState<IHospitalResource[]>([]);
     const [hospitalName, setHospitalName] = useState<string>("")
     const { hospitalId } = useParams<{ hospitalId?: string }>();
+    const navigate = useNavigate()
 
 
     useEffect(() => {
@@ -56,6 +57,12 @@ const HospitalResourcesPage: React.FC = () => {
     //     }
     //     fetchHospitalResources()
     // },[hospitalId])
+
+// Handle redirection to add a new resource
+  const redirectToHospitalResource= () => {
+    navigate("newResource");
+  };
+
  
   return (
     <Box sx={{ padding: 2 }}>
@@ -103,7 +110,7 @@ const HospitalResourcesPage: React.FC = () => {
         width: 56,
         height: 56,
       }}
-    //   onClick={}
+      onClick={redirectToHospitalResource}
     >
       <Add fontSize="large" />
     </IconButton>

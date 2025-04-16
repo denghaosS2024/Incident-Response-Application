@@ -304,7 +304,7 @@ export default Router()
    *     summary: Get all HospitalResources for a specific hospital
    *     description: Fetch all HospitalResources for a specific hospital
    *     tags: [HospitalResource]
-   *      parameters:
+   *     parameters:
    *       - in: path
    *         name: resourceName
    *         description: Name of the resource
