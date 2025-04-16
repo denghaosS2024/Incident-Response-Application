@@ -61,7 +61,15 @@ class PersonnelController {
   async getAllAvailablePersonnel() {
     try {
       const unassignedUsers = await User.find({
-        role: { $in: [ROLES.POLICE, ROLES.FIRE] },
+        role: {
+          $in: [
+            ROLES.POLICE,
+            ROLES.FIRE,
+            ROLES.CITY_DIRECTOR,
+            ROLES.FIRE_CHIEF,
+            ROLES.POLICE_CHIEF,
+          ],
+        },
         assignedCity: null,
       })
         .sort({ username: 1 })
@@ -93,7 +101,11 @@ class PersonnelController {
       const personnel = await User.findOne({ username });
       if (
         !personnel ||
-        (personnel.role !== ROLES.POLICE && personnel.role !== ROLES.FIRE)
+        (personnel.role !== ROLES.POLICE &&
+          personnel.role !== ROLES.FIRE &&
+          personnel.role !== ROLES.CITY_DIRECTOR &&
+          personnel.role !== ROLES.FIRE_CHIEF &&
+          personnel.role !== ROLES.POLICE_CHIEF)
       ) {
         throw new Error(`Personnel with username '${username}' does not exist`);
       }

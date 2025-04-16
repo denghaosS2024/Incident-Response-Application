@@ -75,6 +75,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
     Police: "IR Police",
     Fire: "IR Fire",
     Nurse: "IR Nurse",
+    "City Director": "IR City Director",
+    "Police Chief": "IR Police Chief",
+    "Fire Chief": "IR Fire Chief",
   };
 
   let title = pageTitles[pathname] || "Incident Response";
@@ -114,6 +117,14 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   if (pathname === "/") {
     title = roleTitles[role] || "IR Citizen";
+  }
+
+  if (pathname.startsWith("/missing-person/report/")) {
+    title = name ? `${name} Missing Report Overview` : "Missing Report Overview";
+  }
+
+  if (pathname.startsWith("/missing-person/followUp/")) {
+    title = name ? `${name} Follow-Up Information` : "Follow-Up Information";
   }
 
   const openMenuHandler = (anchor: HTMLElement) => {

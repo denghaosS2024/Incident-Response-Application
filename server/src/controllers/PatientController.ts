@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 import { IHospital } from "../models/Hospital";
 import Patient, {
   IPatientBase,
@@ -11,7 +12,6 @@ import ROLES from "../utils/Roles";
 import UserConnections from "../utils/UserConnections";
 import HospitalController from "./HospitalController";
 import UserController from "./UserController";
-import { v4 as uuidv4 } from "uuid";
 
 export interface IExpandedPatientInfo extends IPatientBase {
   nurse?: IUser;
@@ -136,9 +136,9 @@ class PatientController {
       if (!callerId) {
         throw new HttpError("Caller UID is required", 400);
       }
-      
+
       // Set default values for location if not provided
-      if (!patientData.location){
+      if (!patientData.location) {
         patientData.location = "Road";
       }
 
@@ -150,7 +150,7 @@ class PatientController {
         master: callerId, // Set the master field to the caller's UID
       };
 
-      delete payload._id
+      delete payload._id;
 
       // Ensure the nameLower field is set for searching
       if (payload.name) {
@@ -245,9 +245,9 @@ class PatientController {
     );
 
     // if erStatus is "inUse", change patient location to ER as well
-    if (erStatus === "inUse"){
+    if (erStatus === "inUse") {
       const location = "ER";
-      await Patient.findOneAndUpdate({patientId}, {location});
+      await Patient.findOneAndUpdate({ patientId }, { location });
     }
 
     if (res === null) {
@@ -373,7 +373,7 @@ class PatientController {
    * Creates or updates a visit log for a patient and sets the erStatus appropriately
    *
    * - If the patient has no visit logs, a new entry is created.
-   * - If the patient has visit logs, all active ones are set to inactive and 
+   * - If the patient has visit logs, all active ones are set to inactive and
    *   a new log entry is created with the latest visit log data.
    * - Updates the erStatus based on the location and priority
    *
@@ -405,7 +405,7 @@ class PatientController {
       drugs,
       allergies,
       hospitalId,
-      hospitalName
+      hospitalName,
     } = patientVisitData;
 
     // A helper function to generate a new IVisitLog object
@@ -425,7 +425,7 @@ class PatientController {
         allergies: allergies ?? null,
         active: true,
         hospitalId: hospitalId ?? null,
-        hospitalName: hospitalName ?? null
+        hospitalName: hospitalName ?? null,
       };
     };
 
@@ -459,7 +459,7 @@ class PatientController {
     // Add the new visit log entry
     const newVisitLog = createVisitLog();
     patient.visitLog.push(newVisitLog);
-    patient.set('location', newVisitLog.location);
+    patient.set("location", newVisitLog.location);
 
     // Save the updated patient record
     await patient.save();
@@ -469,27 +469,27 @@ class PatientController {
 
   async createDefaultPatientVisit(patientId: string, role: string) {
     const patient = await Patient.findOne({ patientId });
-  
+
     if (!patient) {
       throw new Error(`Patient with ID ${patientId} does not exist`);
     }
-  
+
     if (!patient.visitLog) {
       patient.visitLog = [];
     }
-  
+
     // Identify the last visit (if any)
     const lastVisit = patient.visitLog[patient.visitLog.length - 1];
 
-    console.log("Last visit:", lastVisit);
-    console.log("Patient ER status:", patient.erStatus);
-  
+    // console.log("Last visit:", lastVisit);
+    // console.log("Patient ER status:", patient.erStatus);
+
     // If there's a last visit and it is active,
     // ensure that we only allow new visits if priority is "3" or erStatus is "discharged".
     if (lastVisit && lastVisit.active) {
       if (lastVisit.priority !== "3" && patient.erStatus !== "discharged") {
         throw new Error(
-          `Cannot create a new visit. The last active visit must have priority "3" or the patient must be "discharged" from ER.`
+          `Cannot create a new visit. The last active visit must have priority "3" or the patient must be "discharged" from ER.`,
         );
       }
     }
@@ -500,16 +500,16 @@ class PatientController {
         visit.active = false;
       });
     }
-  
+
     // Mark all previous visits as inactive
     if (patient.visitLog.length > 0) {
       patient.visitLog.forEach((visit) => {
         visit.active = false;
       });
     }
-  
+
     // Build the new default visit log based on the last visit (if present)
-    const defaultVisitLog: IVisitLog =  {
+    const defaultVisitLog: IVisitLog = {
       _id: uuidv4(),
       dateTime: new Date(),
       incidentId: "",
@@ -517,17 +517,20 @@ class PatientController {
       location: "Road",
       active: true,
     };
-  
+
     // Override location based on role
     if (role === ROLES.POLICE || role === ROLES.FIRE) {
       defaultVisitLog.location = "Road";
     } else if (role === ROLES.NURSE) {
       defaultVisitLog.location = "ER";
     }
-  
+
     // Update ER status logic
     if (defaultVisitLog.location === "ER") {
-      if (defaultVisitLog.priority === "E" || defaultVisitLog.priority === "1") {
+      if (
+        defaultVisitLog.priority === "E" ||
+        defaultVisitLog.priority === "1"
+      ) {
         patient.set("erStatus", patient.get("erStatus") || "requesting");
       } else {
         patient.set("erStatus", undefined);
@@ -537,14 +540,13 @@ class PatientController {
     } else {
       patient.set("erStatus", undefined);
     }
-  
+
     patient.visitLog.push(defaultVisitLog);
-  
+
     await patient.save();
-  
-    return patient;
+
+    return defaultVisitLog;
   }
-  
 
   /**
    * Update the active visit log entry of a patient.
@@ -574,7 +576,10 @@ class PatientController {
     });
 
     if (updatedVisitData.location === "ER") {
-      if (updatedVisitData.priority === "E" || updatedVisitData.priority === "1") {
+      if (
+        updatedVisitData.priority === "E" ||
+        updatedVisitData.priority === "1"
+      ) {
         patient.set("erStatus", patient.get("erStatus") || "requesting");
       } else {
         patient.set("erStatus", undefined);
@@ -585,11 +590,28 @@ class PatientController {
     // Set patient's location to whatever this updated visit log is
     patient.set("location", updatedVisitData.location);
 
+    await patient.save();
+
     UserConnections.broadcast("patientUpdated", patient.patientId);
 
-    await patient.save();
-    
     return patient;
+  }
+
+  async getPatientVisitLog(patientId: string, visitLogId: string) {
+    const patient = await Patient.findOne({ patientId });
+
+    if (!patient) {
+      throw new Error(`Patient with ID ${patientId} does not exist`);
+    }
+
+    const visitLog = patient.visitLog?.find(
+      (visit) => visit._id === visitLogId,
+    );
+    if (!visitLog) {
+      throw new Error(`Visit log with ID ${visitLogId} does not exist`);
+    }
+
+    return visitLog;
   }
 
   async findByLocation(location: string) {
@@ -706,36 +728,35 @@ class PatientController {
       throw new Error("Failed to fetch patients for nurse view");
     }
   }
-  
+
   /**
-   * Get patients by incident ID and Location=Road and Priority E or 1 
+   * Get patients by incident ID and Location=Road and Priority E or 1
    * @param {string} incident ID - The ID of the hospital to filter patients by.
-   * @returns an object with filtered patients: 
+   * @returns an object with filtered patients:
    */
   async getPatientsByIncidentId(incidentId: string) {
-  try {
-    const patientsIncidentId = await Patient.find({
-      "visitLog.incidentId": incidentId,
-    })
+    try {
+      const patientsIncidentId = await Patient.find({
+        "visitLog.incidentId": incidentId,
+      });
 
-    const filteredPatients =  patientsIncidentId.filter((patient) => {
-      const latestVisit = patient.visitLog?.[patient.visitLog.length - 1];
+      const filteredPatients = patientsIncidentId.filter((patient) => {
+        const latestVisit = patient.visitLog?.[patient.visitLog.length - 1];
 
-      return (
-        latestVisit &&
-        latestVisit.incidentId === incidentId &&
-        latestVisit.location === "Road" &&
-        (latestVisit.priority === "E" || latestVisit.priority === "1")
-      );
-    });
+        return (
+          latestVisit &&
+          latestVisit.incidentId === incidentId &&
+          latestVisit.location === "Road" &&
+          (latestVisit.priority === "E" || latestVisit.priority === "1")
+        );
+      });
 
-
-    return filteredPatients;
-  } catch (error) {
-    console.error("Error fetching patients for incident id:", error);
-    throw new Error("Failed to fetch patients for incident id");
+      return filteredPatients;
+    } catch (error) {
+      console.error("Error fetching patients for incident id:", error);
+      throw new Error("Failed to fetch patients for incident id");
+    }
   }
-}
 }
 
 export default new PatientController();

@@ -54,7 +54,12 @@ interface Personnel {
   assignedCity: string;
   _id: string;
   name: string;
-  role: ROLES.FIRE | ROLES.POLICE;
+  role:
+    | ROLES.FIRE
+    | ROLES.POLICE
+    | ROLES.CITY_DIRECTOR
+    | ROLES.POLICE_CHIEF
+    | ROLES.FIRE_CHIEF;
 }
 
 const Organization: React.FC = () => {

@@ -139,12 +139,10 @@ const NursePatientsPage: React.FC = () => {
 
   const fetchPatientsData = useCallback(async () => {
     try {
-      if (!hospitalId) return;
       setLoading(true);
       const response = await request(`/api/patients/hospital/${hospitalId}/nurse-view`, {
         method: "GET",
       });
-
       setPatients(response);
       setLoading(false);
     } catch (err) {
@@ -158,7 +156,7 @@ const NursePatientsPage: React.FC = () => {
     if (hospitalId) {
       fetchPatientsData();
     }
-  }, [hospitalId, fetchPatientsData]);
+  }, [fetchPatientsData]);
 
   useEffect(() => {
     const socket = SocketClient.connect();
@@ -171,7 +169,7 @@ const NursePatientsPage: React.FC = () => {
     return () => {
       SocketClient.off("patientUpdated");
     };
-  }, []);
+  }, [hospitalId]);
 
   // Navigate to patient detail page
   const handlePatientClick = async (patientId: string) => {

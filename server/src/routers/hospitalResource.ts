@@ -295,4 +295,63 @@ export default Router()
       const error = e as Error;
       return response.status(500).send({ message: error.message });
     }
+  })
+
+  /**
+   * @swagger
+   * /api/hospital-resource/allResources/{hospitalId}:
+   *   get:
+   *     summary: Get all HospitalResources for a specific hospital
+   *     description: Fetch all HospitalResources for a specific hospital
+   *     tags: [HospitalResource]
+   *     parameters:
+   *       - in: path
+   *         name: resourceName
+   *         description: Name of the resource
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: HospitalResources for a specific hospital retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               additionalProperties:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     hospitalId:
+   *                       type: string
+   *                     resourceName:
+   *                       type: string
+   *                     inStockQuantity:
+   *                       type: number
+   *                     inStockAlertThreshold:
+   *                       type: number
+   *       500:
+   *         description: Server error
+   */
+   .get("/allResources/:hospitalId", async (request, response) => {
+    try {
+      const {hospitalId} = request.params;
+
+      // Validate the resourceName parameter
+      if (!hospitalId) {
+        throw new HttpError("hospitalId parameter is required.", 400);
+      }
+      // Fetch all hospital resources for a specific hospital
+      const hospitalResources =
+        await HospitalResourceController.getAllHospitalResourcesByHospitalId(hospitalId);
+
+      return response.status(200).send(hospitalResources);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
   });

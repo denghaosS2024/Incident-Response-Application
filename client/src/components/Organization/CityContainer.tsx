@@ -82,6 +82,12 @@ const CityContainer: React.FC<CityContainerProps> = ({
               icon = getRoleIcon(ROLES.FIRE);
             } else if (person.role === ROLES.POLICE) {
               icon = getRoleIcon(ROLES.POLICE);
+            } else if (person.role == ROLES.CITY_DIRECTOR) {
+              icon = getRoleIcon(ROLES.CITY_DIRECTOR);
+            } else if (person.role == ROLES.FIRE_CHIEF) {
+              icon = getRoleIcon(ROLES.FIRE_CHIEF);
+            } else if (person.role == ROLES.POLICE_CHIEF) {
+              icon = getRoleIcon(ROLES.POLICE_CHIEF);
             }
           }
 

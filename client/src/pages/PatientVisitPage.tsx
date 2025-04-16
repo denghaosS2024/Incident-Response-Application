@@ -5,13 +5,18 @@ import { useSearchParams } from "react-router";
 const PatientVisitPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const username = searchParams.get("username") ?? undefined;
-
-  console.log("PatientVisitPage username:", username);
+  const visitLogId = searchParams.get("visitLogId") ?? undefined;
+  const active = searchParams.get("active") ?? undefined;
+  const isActive = active === "true";
 
   return (
     <div style={{ overflowY: "auto" }}>
       <PatientCreationForm username={username} />
-      <VisitLogForm username={username} />
+      <VisitLogForm
+        username={username}
+        visitLogId={visitLogId}
+        active={isActive}
+      />
     </div>
   );
 };

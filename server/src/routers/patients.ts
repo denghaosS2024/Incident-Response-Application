@@ -625,7 +625,9 @@ export default Router()
     try {
       const { patientId, role } = request.body;
       if (!patientId || !role) {
-        response.status(400).json({ message: "patientId and role is required" });
+        response
+          .status(400)
+          .json({ message: "patientId and role is required" });
         return;
       }
 
@@ -639,7 +641,7 @@ export default Router()
       response.status(500).json({ message: error.message });
     }
   })
-      
+
   /**
    * @swagger
    * /api/patients/visitLogs:
@@ -764,6 +766,74 @@ export default Router()
       const result = await PatientController.updatePatientVisit(
         patientId as string,
         updatedVisitData,
+      );
+      response.status(200).json(result);
+    } catch (e) {
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/visitLogs:
+   *   get:
+   *     summary: Get a specific visit log for a patient
+   *     description: Retrieve a specific visit log entry using patientId and visitLogId.
+   *     tags: [Patient]
+   *     parameters:
+   *       - in: query
+   *         name: patientId
+   *         required: true
+   *         description: The ID of the patient.
+   *         schema:
+   *           type: string
+   *       - in: query
+   *         name: visitLogId
+   *         required: true
+   *         description: The ID of the visit log to retrieve.
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Visit log retrieved successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/VisitLog'
+   *       400:
+   *         description: Missing or invalid patientId or visitLogId.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: patientId and visitLogId is required
+   *       500:
+   *         description: Internal server error.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   */
+
+  .get("/visitLogs", async (request, response) => {
+    try {
+      const { patientId, visitLogId } = request.query;
+      if (!patientId || !visitLogId) {
+        response
+          .status(400)
+          .json({ message: "patientId and visitLogId is required" });
+        return;
+      }
+      const result = await PatientController.getPatientVisitLog(
+        patientId as string,
+        visitLogId as string,
       );
       response.status(200).json(result);
     } catch (e) {
