@@ -180,9 +180,11 @@ class HospitalResourceController {
    * Fetch hospital resources for a specific hospital
    * @returns An array of hospital resource objects for a specific hospital
    */
-  async getAllHospitalResourcesByHospitalId(hospitalId: string){
+  async getAllHospitalResourcesByHospitalId(_id: string){
     try {
-      const hospitalResources = await HospitalResource.find({ hospitalId });
+      const hospitalResources = await HospitalResource.find({
+        "hospitalId": _id
+        }).populate("resourceId");
       console.log("res", hospitalResources)
       return hospitalResources;
       } catch (error) {

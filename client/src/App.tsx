@@ -131,6 +131,11 @@ export default function App() {
             />
 
             <Route
+              path="/register-hospital/:hospitalId/resources/newResource/:resourceId"
+              element={<HospitalResourceForm/>}
+            />
+
+            <Route
               path="/missing-person/directory"
               element={<MissingPersonDirectoryPage />}
             />
