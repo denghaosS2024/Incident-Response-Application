@@ -11,6 +11,7 @@ import {
   LocalHospital as NurseIcon,
   PermContactCalendar,
   LocalPolice as PoliceIcon,
+  AccountBalance as CityDirectorIcon,
 } from "@mui/icons-material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import Groups2Icon from "@mui/icons-material/Groups2";
@@ -51,6 +52,7 @@ export default function ManagedTabBar() {
     Police: { prefix: "/", key: "home", icon: <PoliceIcon />, to: "/" },
     Fire: { prefix: "/", key: "home", icon: <FirefighterIcon />, to: "/" },
     Nurse: { prefix: "/", key: "home", icon: <NurseIcon />, to: "/" },
+    "City Director": { prefix: "/", key: "home", icon: <CityDirectorIcon />, to: "/" },
   };
 
   const homeTab = {

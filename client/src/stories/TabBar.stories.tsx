@@ -5,6 +5,7 @@ import {
   LocalPolice,
   Message,
   PermContactCalendar,
+  AccountBalance as CityDirectorIcon,
 } from "@mui/icons-material";
 import Groups2Icon from "@mui/icons-material/Groups2";
 import { Badge } from "@mui/material";
@@ -29,6 +30,7 @@ const roleHomeTabs: Record<string, Link> = {
   Police: { prefix: "/", key: "police", icon: <LocalPolice />, to: "#" },
   Fire: { prefix: "/", key: "fire", icon: <LocalFireDepartment />, to: "#" },
   Nurse: { prefix: "/", key: "nurse", icon: <LocalHospital />, to: "#" },
+  "City Director": { prefix: "/", key: "city_director", icon: <CityDirectorIcon />, to: "#" },
 };
 
 const commonLinks: Link[] = [
@@ -80,6 +82,10 @@ export const PoliceView = {
 };
 export const FireView = { ...RoleBasedTabBar, parameters: { role: "Fire" } };
 export const NurseView = { ...RoleBasedTabBar, parameters: { role: "Nurse" } };
+export const CityDirectorView = {
+  ...RoleBasedTabBar,
+  parameters: { role: "City Director" },
+};
 
 export const CitizenUnreadMessageView: Story = {
   parameters: { role: "Citizen" },

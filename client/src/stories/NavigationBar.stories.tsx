@@ -8,6 +8,7 @@ const roleTitles: Record<string, string> = {
   Police: "IR Police",
   Fire: "IR Fire",
   Nurse: "IR Nurse",
+  "City Director": "IR City Director",
 };
 
 const meta = {
@@ -51,3 +52,4 @@ export const DispatchView = generateRoleStory("Dispatch");
 export const PoliceView = generateRoleStory("Police");
 export const FireView = generateRoleStory("Fire");
 export const NurseView = generateRoleStory("Nurse");
+export const CityDirectorView = generateRoleStory("City Director");
