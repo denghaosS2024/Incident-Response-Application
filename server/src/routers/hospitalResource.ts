@@ -137,11 +137,13 @@ export default Router()
         );
       }
 
-      // Step 1: Resolve resourceId if only resourceName is provided
+      // Step 1: Resolve resourceId resourceName is provided
 
       const resource = await HospitalResourceController.createResource({
         resourceName: hospitalResource.resourceName,
       });
+
+      console.log("Resource fetched or created:", resource);
       const resourceId = resource._id;
 
       // Step 2: Update the hospital resource
@@ -152,7 +154,7 @@ export default Router()
           inStockQuantity: hospitalResource.inStockQuantity,
           inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
         });
-
+      console.log("Updated resource:", updatedResource);
       if (!updatedResource) {
         throw new HttpError("HospitalResource not found.", 404);
       }
@@ -227,6 +229,7 @@ export default Router()
         await HospitalResourceController.getHospitalsByResourceName(
           resourceName,
         );
+      console.log("Hospitals fetched:", hospitals);
 
       // Transform the result to match the front-end format
       const result: HospitalResourceClient[] = hospitals.map(

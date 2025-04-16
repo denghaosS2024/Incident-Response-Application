@@ -96,7 +96,7 @@ class HospitalResourceController {
   ): Promise<LeanDocument<IResource>> {
     try {
       const resource = await Resource.findOne({ resourceName }).exec();
-
+      console.log("Resource fetched by name:", resourceName, resource);
       if (!resource) {
         throw new HttpError(
           `Resource with name "${resourceName}" not found.`,
@@ -107,6 +107,10 @@ class HospitalResourceController {
       return resource.toObject();
     } catch (error) {
       console.error("Error fetching resource by name:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
+
       throw new HttpError("Failed to fetch resource by name", 500);
     }
   }
@@ -127,9 +131,7 @@ class HospitalResourceController {
       // Step 2: Fetch all hospital resources with the resourceId
       const hospitalResources = await HospitalResource.find({
         resourceId: resource._id,
-      })
-        .populate("hospitalId")
-        .exec();
+      }).exec();
 
       if (!hospitalResources || hospitalResources.length === 0) {
         throw new HttpError(
@@ -144,7 +146,14 @@ class HospitalResourceController {
       );
     } catch (error) {
       console.error("Error fetching hospitals by resource name:", error);
-      throw new HttpError("Failed to fetch hospitals by resource name", 500);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
+
+      throw new HttpError(
+        `Failed to fetch hospitals by resource name ${error}`,
+        500,
+      );
     }
   }
 
@@ -154,13 +163,15 @@ class HospitalResourceController {
    */
   async getAllHospitalResources(): Promise<LeanDocument<IHospitalResource>[]> {
     try {
-      const hospitalResources = await HospitalResource.find()
-        .populate("resourceId")
-        .populate("hospitalId");
+      const hospitalResources =
+        await HospitalResource.find().populate("resourceId");
 
       return hospitalResources.map((resource) => resource.toObject());
     } catch (error) {
       console.error("Error fetching hospital resources:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
       throw new HttpError("Failed to fetch hospital resources", 500);
     }
   }
@@ -176,10 +187,13 @@ class HospitalResourceController {
     try {
       const hospitalResources = await HospitalResource.find({
         resourceId,
-      }).populate("hospitalId");
+      });
       return hospitalResources.map((resource) => resource.toObject());
     } catch (error) {
       console.error("Error fetching hospital resources by resourceId:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
       throw new HttpError(
         "Failed to fetch hospital resources by resourceId",
         500,
@@ -204,7 +218,6 @@ class HospitalResourceController {
       const groupedResources: Record<string, HospitalResourceClient[]> = {};
 
       hospitalResources.forEach((hospitalResource) => {
-        console.log("Processing hospital resource:", hospitalResource);
         // Ensure resourceId is populated and has a resourceName
         const resource = hospitalResource.resourceId as LeanDocument<IResource>;
         if (!resource || !resource.resourceName) {
@@ -231,6 +244,9 @@ class HospitalResourceController {
       return groupedResources;
     } catch (error) {
       console.error("Error fetching and grouping hospital resources:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
       throw new HttpError(
         `Failed to fetch and group hospital resources, ${error}`,
         500,
@@ -265,6 +281,9 @@ class HospitalResourceController {
         : null;
     } catch (error) {
       console.error("Error updating hospital resource:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
       throw new HttpError("Failed to update hospital resource", 500);
     }
   }
@@ -292,6 +311,9 @@ class HospitalResourceController {
       return deletedHospitalResource.toObject();
     } catch (error) {
       console.error("Error deleting hospital resource:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
       throw new HttpError("Failed to delete hospital resource", 500);
     }
   }
