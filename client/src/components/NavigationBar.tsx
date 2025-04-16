@@ -76,6 +76,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     Fire: "IR Fire",
     Nurse: "IR Nurse",
     "City Director": "IR City Director",
+    "Police Chief": "IR Police Chief",
+    "Fire Chief": "IR Fire Chief",
   };
 
   let title = pageTitles[pathname] || "Incident Response";

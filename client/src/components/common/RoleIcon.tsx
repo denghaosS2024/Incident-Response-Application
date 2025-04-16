@@ -1,8 +1,10 @@
 import {
+  AccountBalance as CityDirectorIcon,
+  Whatshot as FireChiefIcon,
   LocalFireDepartment as FireIcon,
   LocalHospital as NurseIcon,
+  Security as PoliceChiefIcon,
   LocalPolice as PoliceIcon,
-  AccountBalance as CityDirectorIcon,
 } from "@mui/icons-material";
 
 export const getRoleIcon = (role: string): JSX.Element | null => {
@@ -23,6 +25,10 @@ export const getRoleIcon = (role: string): JSX.Element | null => {
       return <NurseIcon sx={{ color: "red" }} />;
     case "City Director":
       return <CityDirectorIcon sx={{ color: "red" }} />;
+    case "Police Chief":
+      return <PoliceChiefIcon sx={{ color: "red" }} />;
+    case "Fire Chief":
+      return <FireChiefIcon sx={{ color: "red" }} />;
     default:
       return null;
   }

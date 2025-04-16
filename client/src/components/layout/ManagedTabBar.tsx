@@ -4,14 +4,16 @@ import {
 } from "@/redux/notifySlice";
 import {
   Hotel as BedIcon,
+  AccountBalance as CityDirectorIcon,
+  Whatshot as FireChiefIcon,
   LocalFireDepartment as FirefighterIcon,
   Home,
   LocationOn,
   Message,
   LocalHospital as NurseIcon,
   PermContactCalendar,
+  Security as PoliceChiefIcon,
   LocalPolice as PoliceIcon,
-  AccountBalance as CityDirectorIcon,
 } from "@mui/icons-material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import Groups2Icon from "@mui/icons-material/Groups2";
@@ -52,7 +54,24 @@ export default function ManagedTabBar() {
     Police: { prefix: "/", key: "home", icon: <PoliceIcon />, to: "/" },
     Fire: { prefix: "/", key: "home", icon: <FirefighterIcon />, to: "/" },
     Nurse: { prefix: "/", key: "home", icon: <NurseIcon />, to: "/" },
-    "City Director": { prefix: "/", key: "home", icon: <CityDirectorIcon />, to: "/" },
+    "City Director": {
+      prefix: "/",
+      key: "home",
+      icon: <CityDirectorIcon />,
+      to: "/",
+    },
+    "Police Chief": {
+      prefix: "/",
+      key: "home",
+      icon: <PoliceChiefIcon />,
+      to: "/",
+    },
+    "Fire Chief": {
+      prefix: "/",
+      key: "home",
+      icon: <FireChiefIcon />,
+      to: "/",
+    },
   };
 
   const homeTab = {

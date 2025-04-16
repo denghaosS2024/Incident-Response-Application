@@ -1,11 +1,13 @@
 import {
+  AccountBalance as CityDirectorIcon,
+  Whatshot as FireChiefIcon,
   Home,
   LocalFireDepartment,
   LocalHospital,
   LocalPolice,
   Message,
   PermContactCalendar,
-  AccountBalance as CityDirectorIcon,
+  Security as PoliceChiefIcon,
 } from "@mui/icons-material";
 import Groups2Icon from "@mui/icons-material/Groups2";
 import { Badge } from "@mui/material";
@@ -30,7 +32,24 @@ const roleHomeTabs: Record<string, Link> = {
   Police: { prefix: "/", key: "police", icon: <LocalPolice />, to: "#" },
   Fire: { prefix: "/", key: "fire", icon: <LocalFireDepartment />, to: "#" },
   Nurse: { prefix: "/", key: "nurse", icon: <LocalHospital />, to: "#" },
-  "City Director": { prefix: "/", key: "city_director", icon: <CityDirectorIcon />, to: "#" },
+  "City Director": {
+    prefix: "/",
+    key: "city_director",
+    icon: <CityDirectorIcon />,
+    to: "#",
+  },
+  "Police Chief": {
+    prefix: "/",
+    key: "police_chief",
+    icon: <PoliceChiefIcon />,
+    to: "#",
+  },
+  "Fire Chief": {
+    prefix: "/",
+    key: "fire_chief",
+    icon: <FireChiefIcon />,
+    to: "#",
+  },
 };
 
 const commonLinks: Link[] = [
@@ -85,6 +104,14 @@ export const NurseView = { ...RoleBasedTabBar, parameters: { role: "Nurse" } };
 export const CityDirectorView = {
   ...RoleBasedTabBar,
   parameters: { role: "City Director" },
+};
+export const PoliceChiefView = {
+  ...RoleBasedTabBar,
+  parameters: { role: "Police Chief" },
+};
+export const FireChiefView = {
+  ...RoleBasedTabBar,
+  parameters: { role: "Fire Chief" },
 };
 
 export const CitizenUnreadMessageView: Story = {
