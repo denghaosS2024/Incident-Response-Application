@@ -177,6 +177,24 @@ class HospitalResourceController {
   }
 
   /**
+   * Fetch hospital resources for a specific hospital
+   * @returns An array of hospital resource objects for a specific hospital
+   */
+  async getAllHospitalResourcesByHospitalId(hospitalId: string){
+    try {
+      const hospitalResources = await HospitalResource.find({ hospitalId });
+      console.log("res", hospitalResources)
+      return hospitalResources;
+      } catch (error) {
+      console.error("Error fetching hospital resources for a specific hospital:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
+      throw new HttpError("Failed to fetch hospital resources for a specific hospital", 500);
+    }
+  }
+
+  /**
    * Fetch hospital resources by resourceId
    * @param resourceId The ID of the resource
    * @returns An array of hospital resource objects

@@ -1,4 +1,4 @@
-export interface HospitalResourceRequest {
+export default interface HospitalResource {
   hospitalId: string;
   resourceName: string;
   inStockQuantity: number;

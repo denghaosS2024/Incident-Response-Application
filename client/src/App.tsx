@@ -38,9 +38,9 @@ import DoneTasksPage from "./pages/SarTasksDone";
 import StatisticsPage from "./pages/SarTasksStatistics";
 import ViewOrganization from "./pages/ViewOrganization";
 
-import RoutedHome from "./routing/RoutedHome";
-
+import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
 import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
+import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
 
@@ -118,6 +118,10 @@ export default function App() {
             <Route
               path="/sartasksstatistics/:incidentId"
               element={<StatisticsPage />}
+            />
+              <Route
+              path="/register-hospital/:hospitalId/resources"
+              element={<HospitalResourcesPage />}
             />
 
             <Route
