@@ -2,7 +2,7 @@ import BlockIcon from "@mui/icons-material/Block";
 import CloudIcon from "@mui/icons-material/Cloud";
 import FireHydrantAltIcon from "@mui/icons-material/FireHydrantAlt";
 import PushPinIcon from "@mui/icons-material/PushPin";
-import SearchIcon from "@mui/icons-material/Search";
+import HomeIcon from "@mui/icons-material/Home";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import Paper from "@mui/material/Paper";
@@ -85,7 +85,7 @@ const MapDrop: React.FC<MapDropProps> = ({
 
         {/* Always show SAR Task */}
         <BottomNavigationAction
-          icon={<SearchIcon />}
+          icon={<HomeIcon />}
           onClick={onDropSARTask}
           sx={{ alignItems: "center", justifyContent: "center" }}
         />
