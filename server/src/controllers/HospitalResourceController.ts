@@ -23,9 +23,10 @@ class HospitalResourceController {
     resource: Partial<IResourceBase>,
   ): Promise<LeanDocument<IResource>> {
     try {
+      const {resourceName} = resource;
       // check if resource is already exist
       const existingResource = await Resource.findOne({
-        resourceName: resource.resourceName,
+        resourceName: resourceName,
       }).exec();
 
       if (existingResource) {
@@ -33,7 +34,7 @@ class HospitalResourceController {
       }
 
       const newResource = new Resource({
-        resourceName: resource.resourceName,
+        resourceName: resourceName,
       });
 
       // Save the resource to the database
@@ -156,6 +157,35 @@ class HospitalResourceController {
       );
     }
   }
+
+    /**
+   * Fetch hospital resource by mongodb _id
+   * @param _id mongodb id
+   * @returns A hospital resource object
+   * @throws HttpError if no resource is found
+   */
+     async getHospitalResourceById(
+      _id: Types.ObjectId,
+    ){
+      try {
+        const hospitalResource = await HospitalResource.find({
+          _id: _id,
+        }).populate("resourceId");
+        return hospitalResource;
+      } catch (error) {
+        console.error(
+          "Error fetching a specific hospital resource",
+          error,
+        );
+        if (error instanceof HttpError) {
+          throw error; // Re-throw if it's already an HttpError
+        }
+        throw new HttpError(
+          "Failed to fetch a specific hospital resources",
+          500,
+        );
+      }
+    }
 
   /**
    * Fetch all hospital resources

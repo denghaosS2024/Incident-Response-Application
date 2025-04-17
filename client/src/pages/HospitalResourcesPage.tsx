@@ -2,8 +2,8 @@ import GenericItemizeContainer from "@/components/GenericItemizeContainer";
 import IHospital from "@/models/Hospital";
 import HospitalResource from "@/models/HospitalResource";
 import {
-    Add,
-    NavigateNext as Arrow
+  Add,
+  NavigateNext as Arrow
 } from "@mui/icons-material";
 import { Box, IconButton } from "@mui/material";
 import React, { useEffect, useState } from "react";
@@ -69,11 +69,7 @@ const HospitalResourcesPage: React.FC = () => {
 
     // Handle redirection to see details of an exisiting resource
     const redirectToHospitalResourceDetails= (hospitalResource: HospitalResource) => {
-        navigate(`newResource/${hospitalResource.resourceId._id}`,{
-            state: {
-              hospitalResource: hospitalResource,
-            },
-          });
+        navigate(`newResource/${hospitalResource._id}`);
     };
  
   return (
@@ -87,7 +83,7 @@ const HospitalResourcesPage: React.FC = () => {
       emptyMessage="No resources available"
       columns={[
         {
-          key: "resourceName",
+          key: "resourceId",
           align: "center",
           label: "Resource Name",
           render: (hospitalResource: HospitalResource): string => hospitalResource.resourceId.resourceName,
@@ -99,7 +95,7 @@ const HospitalResourcesPage: React.FC = () => {
           render: (hospitalResource: HospitalResource): string => `Quantity: ${hospitalResource.inStockQuantity}`,
         },
         {
-          key: "resourceId",
+          key: "_id",
           align: "center",
           label: "",
           render: (hospitalResource) => (
