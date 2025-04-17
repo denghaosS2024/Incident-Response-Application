@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import IIncident from "../../../models/Incident";
@@ -484,7 +484,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
         </Box>
         <Box>
           {isCreatedByFirstResponder && (
-            <DeleteForeverOutlinedIcon
+            <DeleteIcon
               sx={{ cursor: "pointer" }}
               onClick={handleRemoveClick}
             />
