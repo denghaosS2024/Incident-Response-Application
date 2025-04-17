@@ -53,7 +53,15 @@ const meta: Meta<typeof VehicleItem> = {
 export default meta;
 type Story = StoryObj<typeof VehicleItem>;
 
-export const Default: Story = {
+export const Truck: Story = {
+  args: {
+    name: "Vehicle 1",
+    usernames: ["Officer Smith", "Officer Johnson"],
+    type: "Truck",
+  },
+};
+
+export const PoliceCar: Story = {
   args: {
     name: "Vehicle 1",
     usernames: ["Officer Smith", "Officer Johnson"],

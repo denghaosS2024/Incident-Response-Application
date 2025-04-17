@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 
+import DeleteIcon from "@mui/icons-material/Delete";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import IIncident from "../../../models/Incident";
@@ -24,17 +25,17 @@ import { updateIncident } from "../../../redux/incidentSlice";
 import { AppDispatch, RootState } from "../../../redux/store";
 import { MedicalQuestions } from "../../../utils/types";
 import Loading from "../../common/Loading";
-
 interface MedicalFormProps {
   isCreatedByFirstResponder?: boolean;
   formIndex: number;
+  onRemove?: (Index: number) => void;
 }
 
 const MedicalForm: React.FC<MedicalFormProps> = ({
   isCreatedByFirstResponder,
   formIndex,
+  onRemove,
 }) => {
-
   console.log(isCreatedByFirstResponder);
   const dispatch = useDispatch<AppDispatch>();
   const incident: IIncident = useSelector(
@@ -207,16 +208,12 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
         isValid = false;
         alert('Another form already has "I am the patient" selected.');
       }
-      
-      
-
     }
 
     return isValid;
   };
 
   const returnCallerOrPatientUsername = () => {
-
     if (!isCreatedByFirstResponder) {
       if (isPatient) {
         return incident.caller ?? "";
@@ -226,10 +223,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     } else {
       return username ?? "";
     }
-      
   };
 
-  
   const onUsernameChange = (value: string) => {
     const updatedQuestions = Array.isArray(incident.questions)
       ? [...incident.questions]
@@ -250,221 +245,254 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     // validateField("username", value);
   };
 
+  const handleRemoveClick = () => {
+    // Check if patient has been treated (you may need to update this logic)
+    const hasBeenTreated = false; // Replace with actual logic if available
+
+    if (hasBeenTreated) {
+      alert("Cannot remove a patient that has already been treated");
+      return;
+    }
+
+    // Call the onRemove prop function passed from the parent, providing the index of this form
+    if (onRemove) {
+      // --- TODO: Add check for "treated" status before calling onRemove ---
+      // Example (assuming a 'treated' flag exists in medicalQuestions):
+      // if (medicalQuestions.treated) {
+      //   alert("This patient has already been marked as treated and cannot be removed.");
+      //   return;
+      // }
+      onRemove(formIndex);
+    }
+  };
 
   if (loading) return <Loading />;
   return (
     <>
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        paddingX="32px"
-      >
-        {/**If not created by a first responder then show a checkbox asking if they are the patient */}
-        {!isCreatedByFirstResponder && (
+      <Box display="flex" justifyContent="center" paddingTop={2}>
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          paddingX="32px"
+        >
+          {/**If not created by a first responder then show a checkbox asking if they are the patient */}
+          {!isCreatedByFirstResponder && (
+            <Box width="100%" maxWidth="500px" my={2}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isPatient}
+                    onChange={(e) => {
+                      onChange("isPatient", e);
+                      //onUsernameChange(incident.caller ?? "");
+                    }}
+                  />
+                }
+                label={
+                  incident.incidentState === "Assigned" ||
+                  incident.incidentState === "Triage"
+                    ? "Caller is the patient"
+                    : "I am the patient"
+                }
+              />
+            </Box>
+          )}
+
+          <Box
+            sx={{
+              display: "flex",
+              maxWidth: "500px",
+              width: "100%",
+              alignItems: "start",
+              color: "rgba(0, 0, 0, 0.6)",
+            }}
+          >
+            {/**TODO: Add colors to style guide */}
+            <Typography>Username:</Typography>
+          </Box>
+
+          {/**Asks the user for a username */}
           <Box width="100%" maxWidth="500px" my={2}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={isPatient}
-                  onChange={(e) => {
-                    
-                    onChange("isPatient", e);
-                    //onUsernameChange(incident.caller ?? "");
-                  }}
-                />
-              }
-              label={
-                incident.incidentState === "Assigned" ||
-                incident.incidentState === "Triage"
-                  ? "Caller is the patient"
-                  : "I am the patient"
-              }
+            <FormControl fullWidth error={!!usernameError}>
+              <InputLabel id="username-label">Select One</InputLabel>
+              <Select
+                id="username-select"
+                labelId="username-label"
+                label="Username"
+                value={returnCallerOrPatientUsername()}
+                onChange={(e) => {
+                  if (!isPatient) {
+                    onChange("username", e);
+                  }
+                }}
+                fullWidth
+              >
+                <MenuItem key="unknown" value="unknown">
+                  Unknown
+                </MenuItem>
+                {contacts.map((user: IUser) => (
+                  <MenuItem key={user._id} value={user.username}>
+                    {user.username}
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>{usernameError}</FormHelperText>
+            </FormControl>
+          </Box>
+
+          {/**Asks the user their age */}
+          <Box width="100%" maxWidth="500px" my={2}>
+            <TextField
+              variant="outlined"
+              label="Age"
+              fullWidth
+              value={age}
+              error={!!ageError}
+              helperText={ageError}
+              InputProps={{
+                inputProps: {
+                  inputMode: "numeric", // Forces numeric keyboard on iOS
+                  pattern: "[0-9]*", // Ensures only numbers are entered
+                  max: 110,
+                  min: 1,
+                },
+              }}
+              onChange={(e) => onChange("age", e)}
             />
           </Box>
-        )}
 
-        <Box
-          sx={{
-            display: "flex",
-            maxWidth: "500px",
-            width: "100%",
-            alignItems: "start",
-            color: "rgba(0, 0, 0, 0.6)",
-          }}
-        >
-          {/**TODO: Add colors to style guide */}
-          <Typography>Username:</Typography>
-        </Box>
-
-        {/**Asks the user for a username */}
-        <Box width="100%" maxWidth="500px" my={2}>
-          <FormControl fullWidth error={!!usernameError}>
-            <InputLabel id="username-label">Select One</InputLabel>
-            <Select
-              id="username-select"
-              labelId="username-label"
-              label="Username"
-              value={returnCallerOrPatientUsername()}
-              onChange={(e) => {
-                if (!isPatient) {
-                  onChange("username", e);
-                }
-              }}
-              fullWidth
-            >
-              <MenuItem key="unknown" value="unknown">
-                Unknown
-              </MenuItem>
-              {contacts.map((user: IUser) => (
-                <MenuItem key={user._id} value={user.username}>
-                  {user.username}
-                </MenuItem>
-              ))}
-            </Select>
-            <FormHelperText>{usernameError}</FormHelperText>
-          </FormControl>
-        </Box>
-
-        {/**Asks the user their age */}
-        <Box width="100%" maxWidth="500px" my={2}>
-          <TextField
-            variant="outlined"
-            label="Age"
-            fullWidth
-            value={age}
-            error={!!ageError}
-            helperText={ageError}
-            InputProps={{
-              inputProps: {
-                inputMode: "numeric", // Forces numeric keyboard on iOS
-                pattern: "[0-9]*", // Ensures only numbers are entered
-                max: 110,
-                min: 1,
-              },
-            }}
-            onChange={(e) => onChange("age", e)}
-          />
-        </Box>
-
-        {/**Asks the user their sex */}
-        <Box width="100%" maxWidth="500px" my={2}>
-          <FormControl>
-            <FormLabel id="sex-label">Sex:</FormLabel>
-            <RadioGroup
-              row
-              aria-labelledby="sex-label"
-              name="sex-radio-buttons-group"
-              value={sex}
-              onChange={(e) => onChange("sex", e)}
-            >
-              <FormControlLabel
-                value="female"
-                control={<Radio />}
-                label="Female"
-              />
-              <FormControlLabel value="male" control={<Radio />} label="Male" />
-              <FormControlLabel
-                value="other"
-                control={<Radio />}
-                label="Other"
-              />
-            </RadioGroup>
-          </FormControl>
-        </Box>
-
-        {/**Asks the user if the patient is conscious */}
-        <Box width="100%" maxWidth="500px" my={2}>
-          <FormControl>
-            <FormLabel id="conscious-label">Conscious:</FormLabel>
-            <RadioGroup
-              row
-              aria-labelledby="conscious-label"
-              name="conscious-radio-buttons-group"
-              value={conscious}
-              onChange={(e) => onChange("conscious", e)}
-            >
-              <FormControlLabel value="Yes" control={<Radio />} label="Yes" />
-              <FormControlLabel value="No" control={<Radio />} label="No" />
-            </RadioGroup>
-          </FormControl>
-        </Box>
-
-        {/**Asks the user what the chief complaint is */}
-        <Box width="100%" maxWidth="500px" my={2}>
-          <FormControl>
-            <FormLabel id="breathing-label">Breathing:</FormLabel>
-            <RadioGroup
-              row
-              aria-labelledby="breathing-label"
-              name="breathing-radio-buttons-group"
-              value={breathing}
-              onChange={(e) => onChange("breathing", e)}
-            >
-              <FormControlLabel value="Yes" control={<Radio />} label="Yes" />
-              <FormControlLabel value="No" control={<Radio />} label="No" />
-            </RadioGroup>
-          </FormControl>
-        </Box>
-
-        {/**Chief complaint question*/}
-        <Box width="100%" maxWidth="500px" my={2}>
-          <TextField
-            variant="outlined"
-            label="Chief Complaint"
-            fullWidth
-            multiline
-            value={chiefComplaint}
-            onChange={(e) => onChange("chiefComplaint", e)}
-          />
-        </Box>
-
-        {userRole !== "Citizen" && (
+          {/**Asks the user their sex */}
           <Box width="100%" maxWidth="500px" my={2}>
-            <Box display="flex" justifyContent="center">
-              <button
-                style={{
-                  width: "50%",
-                  padding: "10px",
-                  backgroundColor: "#1976d2",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  fontSize: "16px",
-                }}
-                onClick={() => {
-                  if (
-                    userRole !== "Fire" &&
-                    userRole !== "Police" &&
-                    userRole !== "Nurse" &&
-                    userRole !== "Dispatch"
-                  ) {
-                    alert(
-                      "You do not have permission to treat this patient.  Only First Responders or Nurses can perform this action.",
-                    );
-                    return;
-                  }
-
-                  const selectedUsername = isPatient
-                    ? currentUser?.username || ""
-                    : username || "";
-
-                  const targetUrl = selectedUsername
-                    ? `/patients/admit?username=${encodeURIComponent(selectedUsername)}`
-                    : "/patients/admit";
-
-                  window.location.href = targetUrl;
-                }}
+            <FormControl>
+              <FormLabel id="sex-label">Sex:</FormLabel>
+              <RadioGroup
+                row
+                aria-labelledby="sex-label"
+                name="sex-radio-buttons-group"
+                value={sex}
+                onChange={(e) => onChange("sex", e)}
               >
-                Treat Patient
-              </button>
-            </Box>
+                <FormControlLabel
+                  value="female"
+                  control={<Radio />}
+                  label="Female"
+                />
+                <FormControlLabel
+                  value="male"
+                  control={<Radio />}
+                  label="Male"
+                />
+                <FormControlLabel
+                  value="other"
+                  control={<Radio />}
+                  label="Other"
+                />
+              </RadioGroup>
+            </FormControl>
           </Box>
-        )}
+
+          {/**Asks the user if the patient is conscious */}
+          <Box width="100%" maxWidth="500px" my={2}>
+            <FormControl>
+              <FormLabel id="conscious-label">Conscious:</FormLabel>
+              <RadioGroup
+                row
+                aria-labelledby="conscious-label"
+                name="conscious-radio-buttons-group"
+                value={conscious}
+                onChange={(e) => onChange("conscious", e)}
+              >
+                <FormControlLabel value="Yes" control={<Radio />} label="Yes" />
+                <FormControlLabel value="No" control={<Radio />} label="No" />
+              </RadioGroup>
+            </FormControl>
+          </Box>
+
+          {/**Asks the user what the chief complaint is */}
+          <Box width="100%" maxWidth="500px" my={2}>
+            <FormControl>
+              <FormLabel id="breathing-label">Breathing:</FormLabel>
+              <RadioGroup
+                row
+                aria-labelledby="breathing-label"
+                name="breathing-radio-buttons-group"
+                value={breathing}
+                onChange={(e) => onChange("breathing", e)}
+              >
+                <FormControlLabel value="Yes" control={<Radio />} label="Yes" />
+                <FormControlLabel value="No" control={<Radio />} label="No" />
+              </RadioGroup>
+            </FormControl>
+          </Box>
+
+          {/**Chief complaint question*/}
+          <Box width="100%" maxWidth="500px" my={2}>
+            <TextField
+              variant="outlined"
+              label="Chief Complaint"
+              fullWidth
+              multiline
+              value={chiefComplaint}
+              onChange={(e) => onChange("chiefComplaint", e)}
+            />
+          </Box>
+
+          {userRole !== "Citizen" && (
+            <Box width="100%" maxWidth="500px" my={2}>
+              <Box display="flex" justifyContent="center">
+                <button
+                  style={{
+                    width: "50%",
+                    padding: "10px",
+                    backgroundColor: "#1976d2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "16px",
+                  }}
+                  onClick={() => {
+                    if (
+                      userRole !== "Fire" &&
+                      userRole !== "Police" &&
+                      userRole !== "Nurse" &&
+                      userRole !== "Dispatch"
+                    ) {
+                      alert(
+                        "You do not have permission to treat this patient.  Only First Responders or Nurses can perform this action.",
+                      );
+                      return;
+                    }
+
+                    const selectedUsername = isPatient
+                      ? currentUser?.username || ""
+                      : username || "";
+
+                    const targetUrl = selectedUsername
+                      ? `/patients/admit?username=${encodeURIComponent(selectedUsername)}`
+                      : "/patients/admit";
+
+                    window.location.href = targetUrl;
+                  }}
+                >
+                  Treat Patient
+                </button>
+              </Box>
+            </Box>
+          )}
+        </Box>
+        <Box>
+          {isCreatedByFirstResponder && (
+            <DeleteIcon
+              sx={{ cursor: "pointer" }}
+              onClick={handleRemoveClick}
+            />
+          )}
+        </Box>
       </Box>
     </>
   );
-}
+};
 
 export default MedicalForm;

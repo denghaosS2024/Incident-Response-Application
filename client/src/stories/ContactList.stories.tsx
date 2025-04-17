@@ -31,6 +31,9 @@ const roleContactMap: Record<string, string[]> = {
     "Citizen",
     "Administrator",
   ],
+  "City Director": ["City Director", "Dispatch"],
+  "Police Chief": ["Police Chief", "City Director"],
+  "Fire Chief": ["Fire Chief", "City Director", "Police Chief"],
 };
 
 const allUsers = [
@@ -51,6 +54,24 @@ const allUsers = [
   },
   { _id: "id-F", username: "Nurse (Offline)", role: "Nurse", online: false },
   { _id: "id-G", username: "Nurse (Online)", role: "Nurse", online: true },
+  {
+    _id: "id-H",
+    username: "City Director (Offline)",
+    role: "City Director",
+    online: false,
+  },
+  {
+    _id: "id-I",
+    username: "Police Chief (Online)",
+    role: "Police Chief",
+    online: true,
+  },
+  {
+    _id: "id-J",
+    username: "Fire Chief (Offline)",
+    role: "Fire Chief",
+    online: false,
+  },
 ];
 
 const getFilteredUsers = (currentRole: string) => {
@@ -87,6 +108,30 @@ export const AdminView: Story = {
 export const NurseView: Story = {
   args: {
     users: getFilteredUsers("Nurse"),
+    onClick: action("chat with"),
+    loading: false,
+  },
+};
+
+export const FireChiefView: Story = {
+  args: {
+    users: getFilteredUsers("Fire Chief"),
+    onClick: action("chat with"),
+    loading: false,
+  },
+};
+
+export const PoliceChiefView: Story = {
+  args: {
+    users: getFilteredUsers("Police Chief"),
+    onClick: action("chat with"),
+    loading: false,
+  },
+};
+
+export const CityDirectorView: Story = {
+  args: {
+    users: getFilteredUsers("City Director"),
     onClick: action("chat with"),
     loading: false,
   },

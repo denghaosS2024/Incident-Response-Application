@@ -1,13 +1,18 @@
-import MissingPersonFollowUpForm from "@/components/feature/MissinPerson/MissingPersonFollowUpForm";
+import MissingPersonFollowUpForm from "@/components/feature/MissingPerson/MissingPersonFollowUpForm";
+import { MissingPersonForm } from "@/components/feature/MissingPerson/MissingPersonForm";
 import { Container } from "@mui/material";
 import React from "react";
 
 const MissingPersonFollowUpPage: React.FC = () => {
-  
+    
+    const onSubmit = () => {
+        console.log("Just Submit");
+    }
     return (
 
         <Container>
-            <MissingPersonFollowUpForm />
+            <MissingPersonForm onSubmit={onSubmit} readonly={true}/>
+            <MissingPersonFollowUpForm reportId="placeholder" />
         </Container>
       
     );

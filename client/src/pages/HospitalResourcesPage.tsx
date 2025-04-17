@@ -1,5 +1,6 @@
 import GenericItemizeContainer from "@/components/GenericItemizeContainer";
-import IHospitalResource from "@/models/HospitalResource";
+import IHospital from "@/models/Hospital";
+import HospitalResource from "@/models/HospitalResource";
 import {
     Add,
     NavigateNext as Arrow
@@ -9,11 +10,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import request from "../utils/request";
 const HospitalResourcesPage: React.FC = () => {
-    const [hospitalResourcesList, setHospitalResourcesList] = useState<IHospitalResource[]>([]);
+    const [hospitalResourcesList, setHospitalResourcesList] = useState<HospitalResource[]>([]);
     const [hospitalName, setHospitalName] = useState<string>("")
+    const [hospitalData, setHospitalData] = useState<IHospital>();
     const { hospitalId } = useParams<{ hospitalId?: string }>();
     const navigate = useNavigate()
-
 
     useEffect(() => {
         const getHospital = async () => {
@@ -21,11 +22,16 @@ const HospitalResourcesPage: React.FC = () => {
             const data = await fetchHospitalDetails(hospitalId);
             if (data) {
             setHospitalName(data.hospitalName); 
+            setHospitalData(data)
+            const resources = await fetchHospitalResources(data._id)
+                if (resources){
+                    setHospitalResourcesList(resources)
+                }
             }
         }};
         getHospital();
     }, [hospitalId]);
-
+    
     const fetchHospitalDetails = async (hospitalId: string) => {
         console.log("Calling API to fetch hospital details based on hospitalId");
         try {
@@ -40,36 +46,42 @@ const HospitalResourcesPage: React.FC = () => {
         }
     };
 
-    // After we figure out the hospitalId format
-    // useEffect(() => {
-    //     const fetchHospitalResources = async (): Promise<void> => {
-    //         try {
-    //         const resources = await request(`/api/hospital-resource/allResources/${hospitalId}`)
-    //         setHospitalResourcesList(resources)
-    //         console.log(resources)
-    //         } catch (err) {
-    //             const errorMessage =
-    //             err instanceof Error ? err.message : "Failed to fetch hospitals";
-    //             // setError(errorMessage);
-    //         } finally {
-    //             // setLoading(false);
-    //         }
-    //     }
-    //     fetchHospitalResources()
-    // },[hospitalId])
+    const fetchHospitalResources = async (hospitalId: string) => {
+        try {
+        const resources = await request(`/api/hospital-resource/allResources/${hospitalId}`, {
+            method: "GET",
+        });
+        console.log(hospitalData?._id)
+        setHospitalResourcesList(resources)
+        console.log("resources", resources)
+        return resources;
+        } catch (error) {
+          console.error("Error fetching hospital details:", error);
+           return null;
+        }
+    }
 
-// Handle redirection to add a new resource
-  const redirectToHospitalResource= () => {
-    navigate("newResource");
-  };
 
+    // Handle redirection to add a new resource
+    const redirectToHospitalResource= () => {
+        navigate("newResource");
+    };
+
+    // Handle redirection to see details of an exisiting resource
+    const redirectToHospitalResourceDetails= (hospitalResource: HospitalResource) => {
+        navigate(`newResource/${hospitalResource.resourceId._id}`,{
+            state: {
+              hospitalResource: hospitalResource,
+            },
+          });
+    };
  
   return (
     <Box sx={{ padding: 2 }}>
-    <GenericItemizeContainer<IHospitalResource>
+    <GenericItemizeContainer
       items={hospitalResourcesList}
       key="My Resources"
-      getKey={(hospitalResource: IHospitalResource): string => hospitalResource.hospitalId}
+      getKey={(hospitalResource: HospitalResource): string => hospitalResource.hospitalId}
       showHeader={false}
       title= {`${hospitalName} Resources`}
       emptyMessage="No resources available"
@@ -78,23 +90,23 @@ const HospitalResourcesPage: React.FC = () => {
           key: "resourceName",
           align: "center",
           label: "Resource Name",
-          render: (hospitalResource: IHospitalResource): string => hospitalResource.resourceName,
+          render: (hospitalResource: HospitalResource): string => hospitalResource.resourceId.resourceName,
         },
         {
           key: "inStockQuantity",
           align: "center",
           label: "Quanitity",
-          render: (hospitalResource:  IHospitalResource): number => hospitalResource.inStockQuantity,
+          render: (hospitalResource: HospitalResource): string => `Quantity: ${hospitalResource.inStockQuantity}`,
         },
         {
-          key: "inStockQuantity",
+          key: "resourceId",
           align: "center",
           label: "",
-          render: (hospital) => (
+          render: (hospitalResource) => (
             <IconButton
               edge="end"
               size="large"
-            //   onClick={() => }
+              onClick={() => redirectToHospitalResourceDetails(hospitalResource) }
             >
               <Arrow />
             </IconButton>

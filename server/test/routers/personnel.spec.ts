@@ -53,6 +53,42 @@ describe("Personnel Routes", () => {
       expect(response.body.length).toBe(1);
       expect(response.body[0].name).toBe("PoliceNoCity");
     });
+
+    it("should get all available personnel (role Police/Fire Chief & City Director) with no assigned city", async () => {
+      await User.create({
+        username: "PoliceChiefNoCity",
+        password: "secret",
+        role: ROLES.POLICE_CHIEF,
+        assignedCity: null,
+      });
+      await User.create({
+        username: "FireChiefWithCity",
+        password: "secret",
+        role: ROLES.FIRE_CHIEF,
+        assignedCity: "SomeCity",
+      });
+      await User.create({
+        username: "CityDirectorNoCity",
+        password: "secret",
+        role: ROLES.CITY_DIRECTOR,
+        assignedCity: null,
+      });
+      await User.create({
+        username: "CityDirectorWithCity",
+        password: "secret",
+        role: ROLES.CITY_DIRECTOR,
+        assignedCity: "SomeCity",
+      });
+
+      const response = await request(app).get("/api/personnel").expect(200);
+      console.log(response.body);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(3);
+      expect(response.body[0].name).toBe("CityDirectorNoCity");
+      expect(response.body[1].name).toBe("PoliceChiefNoCity");
+      expect(response.body[2].name).toBe("PoliceNoCity");
+    });
   });
 
   describe("PUT /api/personnel/cities", () => {

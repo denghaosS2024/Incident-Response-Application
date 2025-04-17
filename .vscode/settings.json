@@ -5,6 +5,6 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit"
   },
-  "files.autoSave": "off",
+  "files.autoSave": "afterDelay",
   "files.autoSaveDelay": 1000
 }

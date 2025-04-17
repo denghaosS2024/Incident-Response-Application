@@ -1,15 +1,19 @@
 import PersonnelController from "../../src/controllers/PersonnelController";
 import Car, { ICar } from "../../src/models/Car";
 import City, { ICity } from "../../src/models/City";
+import Incident, { IIncident } from "../../src/models/Incident";
 import Truck, { ITruck } from "../../src/models/Truck";
 import User, { IUser } from "../../src/models/User";
 import { ROLES } from "../../src/utils/Roles";
 import * as TestDatabase from "../utils/TestDatabase";
-import Incident, { IIncident } from "../../src/models/Incident";
 
 describe("PersonnelController", () => {
   let policeUser: IUser;
   let fireUser: IUser;
+  let cityDirectorUser1: IUser;
+  let cityDirectorUser2: IUser;
+  let fireChiefUser: IUser;
+  let policeChiefUser: IUser;
   let city: ICity;
   let car: ICar;
   let truck: ITruck;
@@ -24,9 +28,34 @@ describe("PersonnelController", () => {
       role: ROLES.POLICE,
       password: "dummy-password",
     });
+
     fireUser = await User.create({
       username: "fireman_sam",
       role: ROLES.FIRE,
+      password: "dummy-password",
+    });
+
+    cityDirectorUser1 = await User.create({
+      username: "city_director_cecile",
+      role: ROLES.CITY_DIRECTOR,
+      password: "dummy-password",
+    });
+
+    cityDirectorUser2 = await User.create({
+      username: "city_director_bob",
+      role: ROLES.CITY_DIRECTOR,
+      password: "dummy-password",
+    });
+
+    fireChiefUser = await User.create({
+      username: "fire_chief_jane",
+      role: ROLES.FIRE_CHIEF,
+      password: "dummy-password",
+    });
+
+    policeChiefUser = await User.create({
+      username: "police_chief_sarah",
+      role: ROLES.POLICE_CHIEF,
       password: "dummy-password",
     });
 
@@ -62,6 +91,26 @@ describe("PersonnelController", () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.some((u) => u.name === policeUser.username)).toBe(true);
       expect(result.some((u) => u.name === fireUser.username)).toBe(true);
+    });
+
+    it("should return unassigned city directors sorted by username", async () => {
+      const result = await PersonnelController.getAllAvailablePersonnel();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.some((u) => u.name === cityDirectorUser1.username)).toBe(
+        true,
+      );
+      expect(result.some((u) => u.name === cityDirectorUser2.username)).toBe(
+        true,
+      );
+    });
+
+    it("should return unassigned police and fire chiefs sorted by username", async () => {
+      const result = await PersonnelController.getAllAvailablePersonnel();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.some((u) => u.name === policeChiefUser.username)).toBe(
+        true,
+      );
+      expect(result.some((u) => u.name === fireChiefUser.username)).toBe(true);
     });
   });
 

@@ -64,6 +64,7 @@ const RegisterHospital: React.FC = () => {
     hospitalData.hospitalAddress ?? "",
   );
 
+
   /* ------------------------------ USE EFFECTS ------------------------------ */
 
   useEffect(() => {
@@ -341,6 +342,14 @@ const RegisterHospital: React.FC = () => {
     setHospitalData({ ...hospitalFromSlice });
   };
 
+  const navigateToResources = () => {
+    navigate('resources');
+  }
+
+  const navigateToRequests = () => {
+    navigate("requests");
+  };
+
   /* Handle deletion of existing hospital (SEM-2565) */
   const handleDelete = async () => {
     // Check if there are existing patients
@@ -389,170 +398,198 @@ const RegisterHospital: React.FC = () => {
 
   /* ------------------------------ RENDER PAGE ------------------------------ */
   return (
-    <Paper elevation={3} sx={{ p: 3, maxWidth: 400, mx: "auto", mt: 4 }}>
-      {/* Hospital Name */}
-      <TextField
-        label="Name"
-        fullWidth
-        margin="normal"
-        value={hospitalData.hospitalName}
-        onChange={(e) => {
-          setHospitalData({
-            ...hospitalData,
-            hospitalName: e.target.value,
-          });
-        }}
-        error={errors.hospitalName}
-        helperText={errors.hospitalName ? "Hospital name is required" : ""}
-        sx={{
-          "& .MuiOutlinedInput-input": {
-            padding: "25px",
-          },
-        }}
-      />
+    <>
+      <Paper elevation={3} sx={{ p: 3, maxWidth: 400, mx: "auto", mt: 4 }}>
+        {/* Hospital Name */}
+        <TextField
+          label="Name"
+          fullWidth
+          margin="normal"
+          value={hospitalData.hospitalName}
+          onChange={(e) => {
+            setHospitalData({
+              ...hospitalData,
+              hospitalName: e.target.value,
+            });
+          }}
+          error={errors.hospitalName}
+          helperText={errors.hospitalName ? "Hospital name is required" : ""}
+          sx={{
+            "& .MuiOutlinedInput-input": {
+              padding: "25px",
+            },
+          }}
+        />
 
-      {/* Hospital Address */}
-      <form>
-        <AddressAutofill
-          onRetrieve={onRetrieve}
-          options={{ streets: false }}
-          accessToken={Globals.getMapboxToken()}
-        >
-          <TextField
-            label="Address"
-            fullWidth
-            margin="normal"
-            value={inputAddress}
-            onChange={(e) => {
-              setInputAddress(e.target.value);
-            }}
-            onBlur={onBlur}
-            error={errors.hospitalAddress}
-            helperText={errors.hospitalAddress ? "Address is required" : ""}
-            sx={{
-              "& .MuiOutlinedInput-input": {
-                padding: "25px",
-              },
-            }}
-          />
-        </AddressAutofill>
-      </form>
+        {/* Hospital Address */}
+        <form>
+          <AddressAutofill
+            onRetrieve={onRetrieve}
+            options={{ streets: false }}
+            accessToken={Globals.getMapboxToken()}
+          >
+            <TextField
+              label="Address"
+              fullWidth
+              margin="normal"
+              value={inputAddress}
+              onChange={(e) => {
+                setInputAddress(e.target.value);
+              }}
+              onBlur={onBlur}
+              error={errors.hospitalAddress}
+              helperText={errors.hospitalAddress ? "Address is required" : ""}
+              sx={{
+                "& .MuiOutlinedInput-input": {
+                  padding: "25px",
+                },
+              }}
+            />
+          </AddressAutofill>
+        </form>
 
-      {/* Hospital Description */}
-      <TextField
-        label="Description"
-        fullWidth
-        multiline
-        rows={3}
-        margin="normal"
-        value={hospitalData.hospitalDescription}
-        onChange={(e) =>
-          setHospitalData({
-            ...hospitalData,
-            hospitalDescription: e.target.value,
-          })
-        }
-      />
+        {/* Hospital Description */}
+        <TextField
+          label="Description"
+          fullWidth
+          multiline
+          rows={3}
+          margin="normal"
+          value={hospitalData.hospitalDescription}
+          onChange={(e) =>
+            setHospitalData({
+              ...hospitalData,
+              hospitalDescription: e.target.value,
+            })
+          }
+        />
 
-      {/* Total ER Beds */}
-      <TextField
-        label="Total number ER beds"
-        fullWidth
-        type="number"
-        margin="normal"
-        value={hospitalData.totalNumberERBeds}
-        onChange={(e) =>
-          setHospitalData({
-            ...hospitalData,
-            totalNumberERBeds: Number(e.target.value),
-          })
-        }
-        InputProps={{
-          startAdornment: <InputAdornment position="start">🛏️</InputAdornment>,
-          inputProps: {
-            inputMode: "numeric", // Forces numeric keyboard on iOS
-            pattern: "[0-9]*", // Ensures only numbers are entered
-            max: 110,
-            min: 1,
-          },
-        }}
-      />
+        {/* Total ER Beds */}
+        <TextField
+          label="Total number ER beds"
+          fullWidth
+          type="number"
+          margin="normal"
+          value={hospitalData.totalNumberERBeds}
+          onChange={(e) =>
+            setHospitalData({
+              ...hospitalData,
+              totalNumberERBeds: Number(e.target.value),
+            })
+          }
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">🛏️</InputAdornment>
+            ),
+            inputProps: {
+              inputMode: "numeric", // Forces numeric keyboard on iOS
+              pattern: "[0-9]*", // Ensures only numbers are entered
+              max: 110,
+              min: 1,
+            },
+          }}
+        />
 
-      {/* Total Nurses */}
-      <Typography variant="body1" sx={{ mt: 2 }}>
-        Nurses:{" "}
-        {hospitalData.nurses && hospitalData.nurses.length > 0
-          ? hospitalData.nurses.map((nurse: any) => nurse.username).join(", ")
-          : "None Listed"}
-      </Typography>
+        {/* Total Nurses */}
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          Nurses:{" "}
+          {hospitalData.nurses && hospitalData.nurses.length > 0
+            ? hospitalData.nurses.map((nurse: any) => nurse.username).join(", ")
+            : "None Listed"}
+        </Typography>
 
-      {/* Show checkbox only if role is 'Nurse' and the nurse is not registered in any hospital */}
-      {role === "Nurse" &&
-        (nurseAlreadyRegistered ? (
-          <Typography variant="body2" color="textSecondary">
-            You are already registered in a hospital.
-          </Typography>
-        ) : (
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={userId ? hospitalData.nurses.includes(userId) : false}
-                onChange={(e) => {
-                  if (e.target.checked && userId) {
-                    // Add nurse only if not already present
-                    if (!hospitalData.nurses.includes(userId)) {
+        {/* Show checkbox only if role is 'Nurse' and the nurse is not registered in any hospital */}
+        {role === "Nurse" &&
+          (nurseAlreadyRegistered ? (
+            <Typography variant="body2" color="textSecondary">
+              You are already registered in a hospital.
+            </Typography>
+          ) : (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={
+                    userId ? hospitalData.nurses.includes(userId) : false
+                  }
+                  onChange={(e) => {
+                    if (e.target.checked && userId) {
+                      // Add nurse only if not already present
+                      if (!hospitalData.nurses.includes(userId)) {
+                        setHospitalData((prev) => ({
+                          ...prev,
+                          nurses: [...prev.nurses, userId],
+                        }));
+                      }
+                    } else if (!e.target.checked && userId) {
+                      // Remove the nurse on uncheck
                       setHospitalData((prev) => ({
                         ...prev,
-                        nurses: [...prev.nurses, userId],
+                        nurses: prev.nurses.filter(
+                          (nurseId) => nurseId !== userId,
+                        ),
                       }));
                     }
-                  } else if (!e.target.checked && userId) {
-                    // Remove the nurse on uncheck
-                    setHospitalData((prev) => ({
-                      ...prev,
-                      nurses: prev.nurses.filter(
-                        (nurseId) => nurseId !== userId,
-                      ),
-                    }));
-                  }
-                }}
-                color="primary"
-              />
-            }
-            label="I work at this hospital's ER"
-          />
-        ))}
+                  }}
+                  color="primary"
+                />
+              }
+              label="I work at this hospital's ER"
+            />
+          ))}
 
-      {/* Buttons to submit, cancel or delete */}
-      <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
-          Submit
-        </Button>
-        <Button variant="contained" color="primary" onClick={handleCancel}>
-          Cancel
-        </Button>
-        {hospitalId && (
-          <Button variant="contained" color="primary" onClick={handleDelete}>
-            Delete
+        {/* Buttons to submit, cancel or delete */}
+        <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
+          <Button variant="contained" color="primary" onClick={handleSubmit}>
+            Submit
           </Button>
-        )}
-      </Box>
+          <Button variant="contained" color="primary" onClick={handleCancel}>
+            Cancel
+          </Button>
+          {hospitalId && (
+            <Button variant="contained" color="primary" onClick={handleDelete}>
+              Delete
+            </Button>
+          )}
+        </Box>
 
-      {/* For Alerts pertaining to hospital registration or updation*/}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
+        {/* For Alerts pertaining to hospital registration or updation*/}
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={3000}
           onClose={() => setOpenSnackbar(false)}
-          severity={snackbarSeverity}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-    </Paper>
+          <Alert
+            onClose={() => setOpenSnackbar(false)}
+            severity={snackbarSeverity}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+      </Paper>
+
+      {role === "Nurse" && nurseAlreadyRegistered && (
+        <Box className="grid w-96 flex-column m-2 justify-center hey">
+          <Button
+            className="m-2"
+            variant="contained"
+            color="primary"
+            onClick={navigateToRequests}
+          >
+            Manage Requests
+          </Button>
+
+          <Button
+            className="m-2"
+            variant="contained"
+            color="primary"
+            onClick={navigateToResources}
+          >
+            Manage Resources
+          </Button>
+        </Box>
+      )}
+    </>
   );
 };
 

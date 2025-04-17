@@ -299,7 +299,7 @@ export default Router()
 
   /**
    * @swagger
-   * /api/hospital-resource/allResources/{hospitalId}:
+   * /api/hospital-resource/allResources/{_id}:
    *   get:
    *     summary: Get all HospitalResources for a specific hospital
    *     description: Fetch all HospitalResources for a specific hospital
@@ -334,17 +334,19 @@ export default Router()
    *       500:
    *         description: Server error
    */
-   .get("/allResources/:hospitalId", async (request, response) => {
+  .get("/allResources/:_id", async (request, response) => {
     try {
-      const {hospitalId} = request.params;
+      const { _id } = request.params;
 
       // Validate the resourceName parameter
-      if (!hospitalId) {
+      if (!_id) {
         throw new HttpError("hospitalId parameter is required.", 400);
       }
       // Fetch all hospital resources for a specific hospital
       const hospitalResources =
-        await HospitalResourceController.getAllHospitalResourcesByHospitalId(hospitalId);
+        await HospitalResourceController.getAllHospitalResourcesByHospitalId(
+          new Types.ObjectId(_id),
+        );
 
       return response.status(200).send(hospitalResources);
     } catch (e) {
