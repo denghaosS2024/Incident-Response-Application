@@ -80,7 +80,6 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     if (initialData) {
       setFormData({ ...initialFormState });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
   return (
