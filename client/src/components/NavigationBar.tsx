@@ -67,6 +67,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/resources": "Resources",
     "/find-hospital": "Find Hospital",
     "/dashboard": "Dashboard",
+    "/defaulttruckinventory": "Default Truck Inventory",
+    "/defaulttruckadditem": "Add Truck Item",
   };
 
   const roleTitles: Record<string, string> = {
@@ -120,7 +122,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
   }
 
   if (pathname.startsWith("/missing-person/report/")) {
-    title = name ? `${name} Missing Report Overview` : "Missing Report Overview";
+    title = name
+      ? `${name} Missing Report Overview`
+      : "Missing Report Overview";
   }
 
   if (pathname.startsWith("/missing-person/followUp/")) {

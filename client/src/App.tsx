@@ -3,15 +3,19 @@ import { useFlags } from "launchdarkly-react-client-sdk";
 import { Route, BrowserRouter as Router, Routes } from "react-router";
 
 // Pages
+import HospitalResourceForm from "./components/feature/HospitalResources/HospitalResourceForm.tsx";
 import ChatRoomPage from "./pages/ChatRoomPage";
 import Contacts from "./pages/Contacts";
 import CreatechartPage from "./pages/CreatechartPage.tsx";
 import DashboardPage from "./pages/DashboardPage";
+import DefaultTruckAddItem from "./pages/DefaultTruckAddItem.tsx";
+import DefaultTruckInventory from "./pages/DefaultTruckInventory.tsx";
 import FindHospital from "./pages/FindHospital";
 import FirstResponderPatientsPage from "./pages/FirstResponderPatientsPage";
 import GroupInformationPage from "./pages/GroupInformationPage";
 import GroupsPage from "./pages/GroupsPage";
 import HomePage from "./pages/HomePage";
+import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
 import HospitalsDirectory from "./pages/HospitalsDirectory";
 import IncidentReportPage from "./pages/IncidentReportPage.tsx";
 import IncidentsPage from "./pages/IncidentsPage";
@@ -19,6 +23,7 @@ import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import Messages from "./pages/Messages";
 import MissingPersonDirectoryPage from "./pages/MissingPersonDirectoryPage";
+import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
 import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualReportPage";
 import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
@@ -37,10 +42,6 @@ import TodoTasksPage from "./pages/SarTasks";
 import DoneTasksPage from "./pages/SarTasksDone";
 import StatisticsPage from "./pages/SarTasksStatistics";
 import ViewOrganization from "./pages/ViewOrganization";
-
-import HospitalResourceForm from "./components/feature/HospitalResources/HospitalResourceForm.tsx";
-import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
-import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
@@ -127,12 +128,12 @@ export default function App() {
             />
             <Route
               path="/register-hospital/:hospitalId/resources/newResource"
-              element={<HospitalResourceForm/>}
+              element={<HospitalResourceForm />}
             />
 
             <Route
               path="/register-hospital/:hospitalId/resources/newResource/:resourceId"
-              element={<HospitalResourceForm/>}
+              element={<HospitalResourceForm />}
             />
 
             <Route
@@ -148,9 +149,18 @@ export default function App() {
               element={<MissingPersonRegisterPage />}
             />
 
-            <Route 
+            <Route
               path="missing-person/followUp/:reportId"
               element={<MissingPersonFollowUpPage />}
+            />
+
+            <Route
+              path="/defaulttruckinventory"
+              element={<DefaultTruckInventory />}
+            />
+            <Route
+              path="/defaulttruckadditem"
+              element={<DefaultTruckAddItem />}
             />
           </Route>
 
