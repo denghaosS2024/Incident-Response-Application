@@ -60,7 +60,7 @@ const HospitalResourceForm: React.FC = () => {
               hospitalId: data._id,
             })    
           }
-        };
+        }
      }
      getHospital();
   }, [hospitalId]);
