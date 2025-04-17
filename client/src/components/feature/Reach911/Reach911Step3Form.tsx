@@ -1,8 +1,9 @@
 import AddIcon from "@mui/icons-material/Add";
 import React, { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { IncidentType } from "../../../models/Incident";
-import { RootState } from "../../../redux/store";
+import { updateIncident } from "../../../redux/incidentSlice";
+import { AppDispatch, RootState } from "../../../redux/store";
 import FireForm from "./FireForm";
 import MedicalForm from "./MedicalForm";
 import PoliceForm from "./PoliceForm";
@@ -14,12 +15,18 @@ interface Reach911Step3Props {
 const Step3Form: React.FC<Reach911Step3Props> = ({
   isCreatedByFirstResponder,
 }) => {
-  const type = useSelector(
-    (state: RootState) => state.incidentState.incident.type,
+  const dispatch = useDispatch<AppDispatch>();
+  const incident = useSelector(
+    (state: RootState) => state.incidentState.incident,
   );
-  const questions = useSelector(
-    (state: RootState) => state.incidentState.incident.questions,
-  );
+  const type = incident.type;
+  const questions = incident.questions;
+  // const type = useSelector(
+  //   (state: RootState) => state.incidentState.incident.type,
+  // );
+  // const questions = useSelector(
+  //   (state: RootState) => state.incidentState.incident.questions,
+  // );
   const qLen = Array.isArray(questions) ? questions.length : 1;
   // setAdditionalForms()
   const [additionalForms, setAdditionalForms] = React.useState<number[]>(
@@ -30,6 +37,28 @@ const Step3Form: React.FC<Reach911Step3Props> = ({
 
   const addMedicalForm = () => {
     setAdditionalForms([...additionalForms, additionalForms.length]);
+  };
+
+  const removeMedicalForm = (formIndex: number) => {
+    // 1. Remove the form from the UI
+    const updatedForms = additionalForms.filter((index) => index !== formIndex);
+
+    // 2. Adjust indices to be sequential
+    const reindexedForms = updatedForms.map((_, index) => index);
+    setAdditionalForms(reindexedForms);
+
+    // 3. Update the incident state by removing the corresponding question
+    if (Array.isArray(incident.questions)) {
+      const updatedQuestions = [...incident.questions];
+      updatedQuestions.splice(formIndex, 1);
+
+      dispatch(
+        updateIncident({
+          ...incident,
+          questions: updatedQuestions,
+        }),
+      );
+    }
   };
 
   // useEffect(() => {
@@ -54,6 +83,7 @@ const Step3Form: React.FC<Reach911Step3Props> = ({
                 <MedicalForm
                   formIndex={formId}
                   isCreatedByFirstResponder={isCreatedByFirstResponder}
+                  onRemove={removeMedicalForm}
                 />
                 <hr
                   style={{

@@ -28,11 +28,13 @@ import Loading from "../../common/Loading";
 interface MedicalFormProps {
   isCreatedByFirstResponder?: boolean;
   formIndex: number;
+  onRemove?: (Index: number) => void;
 }
 
 const MedicalForm: React.FC<MedicalFormProps> = ({
   isCreatedByFirstResponder,
   formIndex,
+  onRemove,
 }) => {
   console.log(isCreatedByFirstResponder);
   const dispatch = useDispatch<AppDispatch>();
@@ -241,6 +243,27 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
     );
 
     // validateField("username", value);
+  };
+
+  const handleRemoveClick = () => {
+    // Check if patient has been treated (you may need to update this logic)
+    const hasBeenTreated = false; // Replace with actual logic if available
+
+    if (hasBeenTreated) {
+      alert("Cannot remove a patient that has already been treated");
+      return;
+    }
+
+    // Call the onRemove prop function passed from the parent, providing the index of this form
+    if (onRemove) {
+      // --- TODO: Add check for "treated" status before calling onRemove ---
+      // Example (assuming a 'treated' flag exists in medicalQuestions):
+      // if (medicalQuestions.treated) {
+      //   alert("This patient has already been marked as treated and cannot be removed.");
+      //   return;
+      // }
+      onRemove(formIndex);
+    }
   };
 
   if (loading) return <Loading />;
@@ -459,7 +482,14 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
             </Box>
           )}
         </Box>
-        <Box>{isCreatedByFirstResponder && <DeleteForeverOutlinedIcon />}</Box>
+        <Box>
+          {isCreatedByFirstResponder && (
+            <DeleteForeverOutlinedIcon
+              sx={{ cursor: "pointer" }}
+              onClick={handleRemoveClick}
+            />
+          )}
+        </Box>
       </Box>
     </>
   );
