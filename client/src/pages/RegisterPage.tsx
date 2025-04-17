@@ -62,6 +62,7 @@ const RegisterPage: React.FC = () => {
         vertical="bottom"
         horizontal="center"
       />
+
     </Box>
   );
 };
