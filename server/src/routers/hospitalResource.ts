@@ -334,9 +334,9 @@ export default Router()
    *       500:
    *         description: Server error
    */
-   .get("/allResources/:_id", async (request, response) => {
+  .get("/allResources/:_id", async (request, response) => {
     try {
-      const {_id} = request.params;
+      const { _id } = request.params;
 
       // Validate the resourceName parameter
       if (!_id) {
@@ -344,7 +344,9 @@ export default Router()
       }
       // Fetch all hospital resources for a specific hospital
       const hospitalResources =
-        await HospitalResourceController.getAllHospitalResourcesByHospitalId(_id);
+        await HospitalResourceController.getAllHospitalResourcesByHospitalId(
+          new Types.ObjectId(_id),
+        );
 
       return response.status(200).send(hospitalResources);
     } catch (e) {
