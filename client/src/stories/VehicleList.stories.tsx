@@ -48,33 +48,50 @@ const meta: Meta<typeof VehicleList> = {
 export default meta;
 type Story = StoryObj<typeof VehicleList>;
 
-export const Default: Story = {
+export const Cars: Story = {
   args: {
-    title: "Vehicles",
+    title: "Cars",
     vehicles: [
       {
-        _id: "vehicle1",
-        name: "Vehicle 1",
+        _id: "car1",
+        name: "Car 1",
         usernames: ["Officer Smith", "Officer Johnson"],
         assignedCity: "New York",
         assignedIncident: "",
       },
       {
-        _id: "vehicle2",
-        name: "Vehicle 2",
+        _id: "car2",
+        name: "Car 2",
         usernames: [],
-        assignedCity: "New York",
-        assignedIncident: "",
-      },
-      {
-        _id: "vehicle3",
-        name: "Vehicle 3",
-        usernames: ["Officer Williams"],
         assignedCity: "New York",
         assignedIncident: "",
       },
     ],
     droppableId: "cars",
     vehicleType: "Car",
+  },
+};
+
+export const Trucks: Story = {
+  args: {
+    title: "Trucks",
+    vehicles: [
+      {
+        _id: "truck1",
+        name: "Truck 1",
+        usernames: ["Officer Williams"],
+        assignedCity: "New York",
+        assignedIncident: "",
+      },
+      {
+        _id: "truck2",
+        name: "Truck 2",
+        usernames: [],
+        assignedCity: "New York",
+        assignedIncident: "",
+      },
+    ],
+    droppableId: "trucks",
+    vehicleType: "Truck",
   },
 };
