@@ -12,7 +12,7 @@ const MissingPersonFollowUpPage: React.FC = () => {
 
         <Container>
             <MissingPersonForm onSubmit={onSubmit} readonly={true}/>
-            <MissingPersonFollowUpForm />
+            <MissingPersonFollowUpForm reportId="placeholder" />
         </Container>
       
     );

@@ -4,9 +4,10 @@ import { Box, Button, Checkbox, Container, Dialog, FormControlLabel, IconButton,
 import React, { useState } from 'react';
 
 interface FollowUpFormProps {
+  reportId: string
 }
 
-const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = () => {
+const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = (reportId) => {
   const [physicallySeen, setPhysicallySeen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openCamera, setOpenCamera] = useState(false);
