@@ -55,7 +55,13 @@ const UserSchema = new Schema<IUser>({
       validator: function (this: IUser, val: string | null) {
         // If role is Police or Fire, assignedCity can be any string (including null).
         // Otherwise, assignedCity must be null.
-        if (this.role === ROLES.POLICE || this.role === ROLES.FIRE) {
+        if (
+          this.role === ROLES.POLICE ||
+          this.role === ROLES.FIRE ||
+          this.role === ROLES.CITY_DIRECTOR ||
+          this.role === ROLES.FIRE_CHIEF ||
+          this.role === ROLES.POLICE_CHIEF
+        ) {
           return true;
         }
         return val === null;
