@@ -1,4 +1,4 @@
-import { LeanDocument } from "mongoose";
+import { LeanDocument, Types } from "mongoose";
 import HospitalResource, {
   IHospitalResource,
   IHospitalResourceBase,
@@ -180,19 +180,25 @@ class HospitalResourceController {
    * Fetch hospital resources for a specific hospital
    * @returns An array of hospital resource objects for a specific hospital
    */
-  async getAllHospitalResourcesByHospitalId(_id: string){
+  async getAllHospitalResourcesByHospitalId(_id: Types.ObjectId) {
     try {
       const hospitalResources = await HospitalResource.find({
-        "hospitalId": _id
-        }).populate("resourceId");
-      console.log("res", hospitalResources)
+        hospitalId: _id,
+      }).populate("resourceId");
+      console.log("res", hospitalResources);
       return hospitalResources;
-      } catch (error) {
-      console.error("Error fetching hospital resources for a specific hospital:", error);
+    } catch (error) {
+      console.error(
+        "Error fetching hospital resources for a specific hospital:",
+        error,
+      );
       if (error instanceof HttpError) {
         throw error; // Re-throw if it's already an HttpError
       }
-      throw new HttpError("Failed to fetch hospital resources for a specific hospital", 500);
+      throw new HttpError(
+        "Failed to fetch hospital resources for a specific hospital",
+        500,
+      );
     }
   }
 
@@ -202,7 +208,7 @@ class HospitalResourceController {
    * @returns An array of hospital resource objects
    */
   async getHospitalResourcesByResourceId(
-    resourceId: string,
+    resourceId: Types.ObjectId,
   ): Promise<LeanDocument<IHospitalResource>[]> {
     try {
       const hospitalResources = await HospitalResource.find({
@@ -315,8 +321,8 @@ class HospitalResourceController {
    * @returns The deleted hospital resource object, or null if not found
    */
   async deleteHospitalResource(
-    resourceId: string,
-    hospitalId: string,
+    resourceId: Types.ObjectId,
+    hospitalId: Types.ObjectId,
   ): Promise<LeanDocument<IHospitalResource> | null> {
     try {
       const deletedHospitalResource = await HospitalResource.findOneAndDelete({
