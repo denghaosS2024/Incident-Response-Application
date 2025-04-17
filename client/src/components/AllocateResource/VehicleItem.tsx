@@ -9,6 +9,8 @@ import {
 } from "@mui/material";
 import { Draggable } from "react-beautiful-dnd";
 import getRoleIcon from "../../components/common/RoleIcon";
+import { FireTruck as FireTruckIcon } from "@mui/icons-material";
+import EditIcon from "@mui/icons-material/Edit";
 
 interface VehicleItemProps {
   name: string;
@@ -50,12 +52,62 @@ const VehicleItem: React.FC<VehicleItemProps> = ({
             boxShadow: 1,
           }}
         >
-          <ListItemText
-            primary={name}
-            primaryTypographyProps={{
-              variant: "body2",
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              width: "100%",
             }}
-          />
+          >
+            {type === "Truck" ? (
+              <ListItemAvatar>
+                <Avatar
+                  sx={{
+                    bgcolor: "transparent",
+                    color: "red",
+                    width: 28,
+                    height: 28,
+                  }}
+                >
+                  <FireTruckIcon />
+                </Avatar>
+              </ListItemAvatar>
+            ) : null}
+            <ListItemText
+              primary={name}
+              primaryTypographyProps={{
+                variant: "body2",
+              }}
+              sx={{ flexGrow: 1 }}
+            />
+            {type === "Truck" ? (
+              <ListItemAvatar>
+                <Avatar
+                  sx={{
+                  bgcolor: "transparent",
+                  color: "red",
+                  width: 28,
+                  height: 28,
+                  cursor: "pointer", // Makes the hover icon a finger
+                  }}
+                >
+                  <EditIcon
+                  sx={{
+                    fontSize: 16,
+                    color: "red",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.location.href = "/defaulttruckadditem";
+                  }}
+                  />
+                </Avatar>
+              </ListItemAvatar>
+            ) : null}
+          </Box>
           <Box
             sx={{
               display: "flex",

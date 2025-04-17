@@ -48,21 +48,6 @@ import "./styles/tailwind.css";
 import HospitalResourceRequestsPage from "./pages/HospitalResourceRequestsPage.tsx";
 
 export default function App() {
-  // const dispatcher = useDispatch()
-
-  // // This is an example to display a snackbar
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     console.log('setting snackbar')
-  //     dispatcher(
-  //       setSnackbar({
-  //         type: SnackbarType.INFO,
-  //         message: 'Hello there!',
-  //         durationMs: 1000,
-  //       }),
-  //     )
-  //   }, 3000)
-  // })
 
   //Feature toggling: show the hospitals directory page only when the flag is enabled
   const { ["hospitalsDirectory"]: hospitalsDirectory } = useFlags();
