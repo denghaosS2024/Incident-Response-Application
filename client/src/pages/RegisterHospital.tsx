@@ -343,11 +343,11 @@ const RegisterHospital: React.FC = () => {
   };
 
   const navigateToResources = () => {
-    navigate('resources')
+    navigate('resources');
   }
 
   const navigateToRequests = () => {
-    navigate("resources");
+    navigate("requests");
   };
 
   /* Handle deletion of existing hospital (SEM-2565) */
@@ -574,7 +574,7 @@ const RegisterHospital: React.FC = () => {
             className="m-2"
             variant="contained"
             color="primary"
-            onClick={navigateToResources}
+            onClick={navigateToRequests}
           >
             Manage Requests
           </Button>

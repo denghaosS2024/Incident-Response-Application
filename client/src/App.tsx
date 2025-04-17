@@ -45,6 +45,7 @@ import ViewOrganization from "./pages/ViewOrganization";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
+import HospitalResourceRequestsPage from "./pages/HospitalResourceRequestsPage.tsx";
 
 export default function App() {
   // const dispatcher = useDispatch()
@@ -128,12 +129,17 @@ export default function App() {
             />
             <Route
               path="/register-hospital/:hospitalId/resources/newResource"
-              element={<HospitalResourceForm />}
+              element={<HospitalResourceForm/>}
             />
 
             <Route
               path="/register-hospital/:hospitalId/resources/newResource/:resourceId"
               element={<HospitalResourceForm />}
+            />
+
+            <Route
+              path="/register-hospital/:hospitalId/requests"
+              element={<HospitalResourceRequestsPage />}
             />
 
             <Route
