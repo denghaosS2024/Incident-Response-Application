@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import React from "react";
 import { useNavigate } from "react-router";
-import { MissingPersonForm } from "../components/feature/MissingPerson/missingPersonForm";
+import { MissingPersonForm } from "../components/feature/MissingPerson/MissingPersonForm";
 import IMissingPerson from "../models/MissingPersonReport";
 
 const MissingPersonRegisterPage: React.FC = () => {
@@ -22,6 +22,7 @@ const MissingPersonRegisterPage: React.FC = () => {
       <MissingPersonForm
         onSubmit={handleSubmit}
         onCancel={handleCancel} // omit this line if you don't want Cancel
+        readonly={false}
       />
     </Box>
   );

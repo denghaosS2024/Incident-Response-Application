@@ -24,12 +24,14 @@ export interface MissingPersonFormProps {
   onSubmit: (data: IMissingPerson) => void;
   /** Called when the form is cancelled/reset (optional) */
   onCancel?: () => void;
+  readonly: boolean;
 }
 
 export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
   initialData,
   onSubmit,
   onCancel,
+  readonly
 }) => {
   const initialFormState: IMissingPerson = {
     _id: undefined,
@@ -84,7 +86,11 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
       <Typography variant="h5" gutterBottom>
-        {initialData ? "Edit Missing Person" : "Register Missing Person"}
+      {readonly
+        ? "Original Report"
+        : initialData
+          ? "Edit Missing Person"
+          : "Register Missing Person"}
       </Typography>
 
       <Box
@@ -105,6 +111,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               fullWidth
               value={formData.name}
               onChange={handleInputChange}
+              disabled={readonly}
             />
           </Grid>
 
@@ -118,6 +125,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               fullWidth
               value={formData.age}
               onChange={handleInputChange}
+              disabled={readonly}
             />
           </Grid>
 
@@ -130,6 +138,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               fullWidth
               value={formData.weight ?? ""}
               onChange={handleInputChange}
+              disabled={readonly}
             />
           </Grid>
 
@@ -142,12 +151,13 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               fullWidth
               value={formData.height ?? ""}
               onChange={handleInputChange}
+              disabled={readonly}
             />
           </Grid>
 
           {/* Race */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
+            <FormControl fullWidth disabled={readonly}>
               <InputLabel id="race-label">Race</InputLabel>
               <Select
                 required
@@ -156,6 +166,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
                 value={formData.race}
                 label="Race"
                 onChange={handleSelectChange}
+                disabled={readonly}
               >
                 {Object.values(Race).map((r) => (
                   <MenuItem key={r} value={r}>
@@ -174,12 +185,13 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               fullWidth
               value={formData.eyeColor}
               onChange={handleInputChange}
+              disabled={readonly}
             />
           </Grid>
 
           {/* Gender */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
+            <FormControl fullWidth disabled={readonly}>
               <InputLabel id="gender-label">Gender</InputLabel>
               <Select
                 required
@@ -188,6 +200,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
                 value={formData.gender}
                 label="Gender"
                 onChange={handleSelectChange}
+                disabled={readonly}
               >
                 {Object.values(Gender).map((g) => (
                   <MenuItem key={g} value={g}>
@@ -208,6 +221,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               fullWidth
               value={formData.description}
               onChange={handleInputChange}
+              disabled={readonly}
             />
           </Grid>
 
@@ -222,6 +236,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               InputLabelProps={{ shrink: true }}
               value={formData.dateLastSeen.toISOString().split("T")[0]}
               onChange={handleInputChange}
+              disabled={readonly}
             />
           </Grid>
 
@@ -233,6 +248,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               fullWidth
               value={formData.locationLastSeen}
               onChange={handleInputChange}
+              disabled={readonly}
             />
           </Grid>
 
@@ -245,11 +261,13 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
                 </Button>
               </Grid>
             )}
-            <Grid item>
-              <Button variant="contained" type="submit">
-                Submit
-              </Button>
-            </Grid>
+            {!readonly && (
+              <Grid item>
+                <Button variant="contained" type="submit">
+                  Submit
+                </Button>
+              </Grid>
+            )}
           </Grid>
         </Grid>
       </Box>
