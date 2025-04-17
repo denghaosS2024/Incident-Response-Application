@@ -1,4 +1,6 @@
 import CameraCapture from '@/components/CameraCapture';
+import AlertSnackbar from "@/components/common/AlertSnackbar";
+import IFollowUpInfo from '@/models/FollowUpInfo';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { Box, Button, Checkbox, Container, Dialog, FormControlLabel, IconButton, Menu, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
@@ -7,13 +9,21 @@ interface FollowUpFormProps {
   reportId: string
 }
 
-const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = (reportId) => {
+const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
   const [physicallySeen, setPhysicallySeen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openCamera, setOpenCamera] = useState(false);
   const [openFileUpload, setOpenFileUpload] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
+    "success",
+  );
+  const [location, setLocation] = useState("");
+  const [dateTime, setDateTime] = useState("");
+  const [additionalComment, setAdditionalComment] = useState("");
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files && event.target.files[0];
@@ -42,6 +52,36 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = (reportId) => {
   const handleOpenFileUpload = () => setOpenFileUpload(true);
   const handleCloseFileUpload = () => setOpenFileUpload(false);
 
+  const handleSubmit = () => {
+    if (physicallySeen && !location.trim() ) {
+      setSnackbarMessage("Please fill out Location Spotted");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      return;
+    } else if (!dateTime.trim()) {
+      console.log(location);
+      setSnackbarMessage("Please fill out Date & Time Spotted.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      return;
+    } else {
+      const followUpInfo: IFollowUpInfo = {
+        reportId: reportId,
+        isSpotted: physicallySeen ,
+        location: location,
+        dateTimeSpotted: new Date(dateTime),
+        additionalComment: additionalComment
+      }
+      console.log(followUpInfo);
+      console.log(JSON.stringify(followUpInfo));
+    setSnackbarMessage("Follow-up submitted!");
+    setSnackbarSeverity("success");
+    setSnackbarOpen(true);
+    return;
+    }
+  };
+  
+
   
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
@@ -68,6 +108,7 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = (reportId) => {
           InputLabelProps={{
             shrink: true,
           }}
+          onChange={(e) => setLocation(e.target.value)}
         />
       )}
       <TextField
@@ -80,7 +121,7 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = (reportId) => {
         InputLabelProps={{
             shrink: true,
           }}
-        onChange={(event) => console.log(event.target.value)}
+        onChange={(event) => setDateTime(event.target.value)}
       />
       <TextField
         label="Additional Comments"
@@ -89,6 +130,7 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = (reportId) => {
         multiline
         minRows={3}
         // placeholder="Enter Any Additional Comment You May Have"
+        onChange={(event)=> setAdditionalComment(event.target.value)}
       />
       
       <Box display="flex" alignItems="center" flexDirection="row" marginY={2} gap={1}>
@@ -139,11 +181,19 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = (reportId) => {
       
         <Box display="flex" alignItems="center" flexDirection="column" marginY={2} gap={2}>
             
-            <Button variant="contained" color="primary" size="medium">
+            <Button variant="contained" color="primary" size="medium" onClick={handleSubmit}>
             Submit
             </Button>
         </Box>
     </Stack>
+    <AlertSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={() => setSnackbarOpen(false)}
+        vertical="bottom"
+        horizontal="center"
+      />
     </Container>
   );
 
