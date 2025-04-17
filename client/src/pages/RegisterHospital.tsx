@@ -568,25 +568,27 @@ const RegisterHospital: React.FC = () => {
         </Snackbar>
       </Paper>
 
-      <Box className="grid w-96 flex-column m-2 justify-center hey">
-        <Button
-          className="m-2"
-          variant="contained"
-          color="primary"
-          onClick={navigateToResources}
-        >
-          Manage Requests
-        </Button>
+      {role === "Nurse" && nurseAlreadyRegistered && (
+        <Box className="grid w-96 flex-column m-2 justify-center hey">
+          <Button
+            className="m-2"
+            variant="contained"
+            color="primary"
+            onClick={navigateToResources}
+          >
+            Manage Requests
+          </Button>
 
-        <Button
-          className="m-2"
-          variant="contained"
-          color="primary"
-          onClick={navigateToResources}
-        >
-          Manage Resources
-        </Button>
-      </Box>
+          <Button
+            className="m-2"
+            variant="contained"
+            color="primary"
+            onClick={navigateToResources}
+          >
+            Manage Resources
+          </Button>
+        </Box>
+      )}
     </>
   );
 };
