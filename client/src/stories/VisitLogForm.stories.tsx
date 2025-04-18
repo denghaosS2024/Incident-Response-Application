@@ -44,7 +44,7 @@ Object.defineProperty(window, "localStorage", {
 });
 
 const meta = {
-  title: "VisitLogForm",
+  title: "FindHospital/VisitLogForm",
   component: VisitLogForm,
   tags: ["autodocs"],
   decorators: [
