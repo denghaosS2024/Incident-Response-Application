@@ -1,0 +1,73 @@
+import { Router } from "express";
+import { Types } from "mongoose";
+import HospitalResourceRequestController from "../controllers/HospitalResourceRequestController";
+
+import HttpError from "../utils/HttpError";
+
+import { HospitalResourceRequestClient } from "../controllers/HospitalResourceRequestController";
+import HospitalResourceController from "../controllers/HospitalResourceController";
+import { IResourceRequestBase } from "../models/HospitalResourceRequest";
+
+export default Router().post("/", async (request, response) => {
+  try {
+    const hospitalResourceRequest: HospitalResourceRequestClient = request.body;
+
+    const {
+      senderHospitalId,
+      receiverHospitalId,
+      hospitalResourceId,
+      resourceName,
+      requestedQuantity,
+    } = hospitalResourceRequest;
+
+    if (
+      !senderHospitalId ||
+      !resourceName ||
+      !hospitalResourceId ||
+      receiverHospitalId === undefined
+    ) {
+      throw new HttpError(
+        "senderHospitalId, resourceName, receiverHospitalId, and hospitalResourceId are mandatory fields.",
+        400,
+      );
+    }
+
+    if (requestedQuantity <= 0) {
+      throw new HttpError(
+        "The requested quantity should be greater than 0.",
+        400,
+      );
+    }
+
+    // Step 1: Call the controller to get the resource that belongs to the receiver
+    const resource = await HospitalResourceController.createResource({
+      resourceName,
+    });
+
+    const hospitalResource =
+      await HospitalResourceController.getHospitalResourceByIds(
+        resource._id,
+        new Types.ObjectId(receiverHospitalId),
+      );
+
+    const payload: IResourceRequestBase = {
+      receiverHospitalId: new Types.ObjectId(receiverHospitalId),
+      senderHospitalId: new Types.ObjectId(senderHospitalId),
+      hospitalResourceId: hospitalResource._id,
+      resourceId: resource._id,
+      requestedQuantity: requestedQuantity,
+      status: "Pending",
+    };
+
+    const newRequest =
+      await HospitalResourceRequestController.createResourceRequest(payload);
+
+    return response.status(201).send(newRequest);
+  } catch (e) {
+    if (e instanceof HttpError) {
+      return response.status(e.statusCode).send({ message: e.message });
+    }
+    const error = e as Error;
+    return response.status(500).send({ message: error.message });
+  }
+});
