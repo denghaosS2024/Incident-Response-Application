@@ -10,6 +10,7 @@ import IIncident from "../models/Incident";
 import IMessage from "../models/Message";
 import { IProfile } from "../models/Profile";
 import IUser from "../models/User";
+import { IHospitalResourceRequest } from "@/models/HospitalResourceRequest";
 
 /**
  * Interface representing the state of hospitals in the application
@@ -105,6 +106,13 @@ export interface WildfireArea {
  */
 export interface PatientState {
   patients: IPatient[];
+  loading: boolean;
+  error: string | null;
+}
+
+export interface HospitalResourceRequestState {
+  incomingRequests: IHospitalResourceRequest[];
+  outgoingRequests: IHospitalResourceRequest[];
   loading: boolean;
   error: string | null;
 }

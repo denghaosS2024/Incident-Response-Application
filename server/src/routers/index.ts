@@ -31,6 +31,7 @@ import profileRouter from "./profile";
 import taskRouter from "./sartask";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
+import HospitalResourceRequestsRouter from "./hospitalResourceRequest"
 
 export default Router()
   .use("/users", user)
@@ -69,4 +70,5 @@ export default Router()
   .use("/sartasksdone", taskRouter)
   .use(",sartasksstatistics", taskRouter)
   .use("/alertQueue", alertQueueRouter)
-  .use("/hospital-resource", HospitalResourceRouter);
+  .use("/hospital-resource", HospitalResourceRouter)
+  .use("/hospital-resources-requests", HospitalResourceRequestsRouter);

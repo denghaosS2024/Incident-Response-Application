@@ -8,66 +8,108 @@ import { HospitalResourceRequestClient } from "../controllers/HospitalResourceRe
 import HospitalResourceController from "../controllers/HospitalResourceController";
 import { IResourceRequestBase } from "../models/HospitalResourceRequest";
 
-export default Router().post("/", async (request, response) => {
-  try {
-    const hospitalResourceRequest: HospitalResourceRequestClient = request.body;
+export default Router()
+  .post("/", async (request, response) => {
+    try {
+      const hospitalResourceRequest: HospitalResourceRequestClient =
+        request.body;
 
-    const {
-      senderHospitalId,
-      receiverHospitalId,
-      hospitalResourceId,
-      resourceName,
-      requestedQuantity,
-    } = hospitalResourceRequest;
+      const {
+        senderHospitalId,
+        receiverHospitalId,
+        hospitalResourceId,
+        resourceName,
+        requestedQuantity,
+      } = hospitalResourceRequest;
 
-    if (
-      !senderHospitalId ||
-      !resourceName ||
-      !hospitalResourceId ||
-      receiverHospitalId === undefined
-    ) {
-      throw new HttpError(
-        "senderHospitalId, resourceName, receiverHospitalId, and hospitalResourceId are mandatory fields.",
-        400,
-      );
+      if (
+        !senderHospitalId ||
+        !resourceName ||
+        !hospitalResourceId ||
+        receiverHospitalId === undefined
+      ) {
+        throw new HttpError(
+          "senderHospitalId, resourceName, receiverHospitalId, and hospitalResourceId are mandatory fields.",
+          400,
+        );
+      }
+
+      if (requestedQuantity <= 0) {
+        throw new HttpError(
+          "The requested quantity should be greater than 0.",
+          400,
+        );
+      }
+
+      // Step 1: Call the controller to get the resource that belongs to the receiver
+      const resource = await HospitalResourceController.createResource({
+        resourceName,
+      });
+
+      const hospitalResource =
+        await HospitalResourceController.getHospitalResourceByIds(
+          resource._id,
+          new Types.ObjectId(receiverHospitalId),
+        );
+
+      const payload: IResourceRequestBase = {
+        receiverHospitalId: new Types.ObjectId(receiverHospitalId),
+        senderHospitalId: new Types.ObjectId(senderHospitalId),
+        hospitalResourceId: hospitalResource._id,
+        resourceId: resource._id,
+        requestedQuantity: requestedQuantity,
+        status: "Pending",
+      };
+
+      const newRequest =
+        await HospitalResourceRequestController.createResourceRequest(payload);
+
+      return response.status(201).send(newRequest);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
     }
+  })
 
-    if (requestedQuantity <= 0) {
-      throw new HttpError(
-        "The requested quantity should be greater than 0.",
-        400,
-      );
+  .get("/:hospitalId/incoming", async (request, response) => {
+    const hospitalId = request.params.hospitalId;
+
+    try {
+      const incomingRequests =
+        await HospitalResourceRequestController.getResourceRequestsByReceiverHospital(
+          new Types.ObjectId(hospitalId),
+        );
+
+      return response.status(200).send(incomingRequests);
+
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
     }
+  })
 
-    // Step 1: Call the controller to get the resource that belongs to the receiver
-    const resource = await HospitalResourceController.createResource({
-      resourceName,
-    });
+  .get("/:hospitalId/outgoing", async (request, response) => {
+    const hospitalId = request.params.hospitalId;
 
-    const hospitalResource =
-      await HospitalResourceController.getHospitalResourceByIds(
-        resource._id,
-        new Types.ObjectId(receiverHospitalId),
-      );
+    try {
+      const outgoingRequests =
+        await HospitalResourceRequestController.getResourceRequestsBySenderHospital(
+          new Types.ObjectId(hospitalId),
+        );
 
-    const payload: IResourceRequestBase = {
-      receiverHospitalId: new Types.ObjectId(receiverHospitalId),
-      senderHospitalId: new Types.ObjectId(senderHospitalId),
-      hospitalResourceId: hospitalResource._id,
-      resourceId: resource._id,
-      requestedQuantity: requestedQuantity,
-      status: "Pending",
-    };
+      return response.status(200).send(outgoingRequests);
 
-    const newRequest =
-      await HospitalResourceRequestController.createResourceRequest(payload);
-
-    return response.status(201).send(newRequest);
-  } catch (e) {
-    if (e instanceof HttpError) {
-      return response.status(e.statusCode).send({ message: e.message });
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
     }
-    const error = e as Error;
-    return response.status(500).send({ message: error.message });
-  }
-});
+  });
