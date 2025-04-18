@@ -299,6 +299,57 @@ export default Router()
 
   /**
    * @swagger
+   * /api/hospital-resource/id/{_id}:
+   *   get:
+   *     summary: Get an individual hospital resource by _id
+   *     description: Get an individual hospital resource by _id
+   *     tags: [HospitalResource]
+   *     responses:
+   *       200:
+   *         description: HospitalResource retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               additionalProperties:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     hospitalId:
+   *                       type: string
+   *                     resourceName:
+   *                       type: string
+   *                     inStockQuantity:
+   *                       type: number
+   *                     inStockAlertThreshold:
+   *                       type: number
+   *       500:
+   *         description: Server error
+   */
+     .get("/id/:_id", async (request, response) => {
+      try {
+        const { _id } = request.params;
+
+        // Validate the resourceName parameter
+        if (!_id) {
+          throw new HttpError("resourceId parameter is required.", 400);
+        }
+        const hospitalResource =
+          await HospitalResourceController.getHospitalResourceById(new Types.ObjectId(_id));
+  
+        return response.status(200).send(hospitalResource);
+      } catch (e) {
+        if (e instanceof HttpError) {
+          return response.status(e.statusCode).send({ message: e.message });
+        }
+        const error = e as Error;
+        return response.status(500).send({ message: error.message });
+      }
+    })
+
+  /**
+   * @swagger
    * /api/hospital-resource/allResources/{_id}:
    *   get:
    *     summary: Get all HospitalResources for a specific hospital
