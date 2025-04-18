@@ -21,6 +21,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router";
 import IIncident from "../../../models/Incident";
 import { updateIncident } from "../../../redux/incidentSlice";
 import { AppDispatch, RootState } from "../../../redux/store";
@@ -699,7 +700,20 @@ const SARStep1: React.FC<SARStep1Props> = ({ autoPopulateData }) => {
             </div>
           </div>
         </Box>
+        
       </div>
+      <Box display="flex" justifyContent="center" mt={2}>
+        <Link to={"/map"}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<LocationOnIcon />}
+            sx={{ ml: 1 }}
+          >
+            Go to Large Map View
+          </Button>
+        </Link>
+      </Box>
 
       {/* Task Creation Dialog */}
       <Dialog

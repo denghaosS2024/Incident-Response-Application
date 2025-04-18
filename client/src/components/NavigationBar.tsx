@@ -67,6 +67,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/resources": "Resources",
     "/find-hospital": "Find Hospital",
     "/dashboard": "Dashboard",
+    "/sar-incident": "SAR Incident",
     "/defaulttruckinventory": "Default Truck Inventory",
     "/defaulttruckadditem": "Add Truck Item",
   };
