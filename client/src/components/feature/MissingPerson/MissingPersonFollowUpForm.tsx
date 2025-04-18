@@ -72,7 +72,7 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
         dateTimeSpotted: new Date(dateTime),
         additionalComment: additionalComment
       }
-      console.log(followUpInfo);
+
       console.log(JSON.stringify(followUpInfo));
     setSnackbarMessage("Follow-up submitted!");
     setSnackbarSeverity("success");
