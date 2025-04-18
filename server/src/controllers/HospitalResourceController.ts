@@ -56,6 +56,18 @@ class HospitalResourceController {
     hospitalResource: IHospitalResourceBase,
   ): Promise<LeanDocument<IHospitalResource>> {
     try {
+      // Step 1: Check if the combination of resourceId and hospitalId already exists
+      const existingHospitalResource = await HospitalResource.findOne({
+        resourceId: hospitalResource.resourceId,
+        hospitalId: hospitalResource.hospitalId,
+      }).exec();
+
+      if (existingHospitalResource) {
+        throw new HttpError(
+          "A HospitalResource with the given resourceId and hospitalId already exists.",
+          409, // Conflict
+        );
+      }
       const newHospitalResource = new HospitalResource({
         resourceId: hospitalResource.resourceId,
         hospitalId: hospitalResource.hospitalId,
@@ -229,6 +241,40 @@ class HospitalResourceController {
         "Failed to fetch hospital resources for a specific hospital",
         500,
       );
+    }
+  }
+
+  /**
+   * Fetch a specific HospitalResource by resourceId and hospitalId
+   * @param resourceId The ID of the resource
+   * @param hospitalId The ID of the hospital
+   * @returns The hospital resource object
+   * @throws HttpError if the hospital resource is not found
+   */
+  async getHospitalResourceByIds(
+    resourceId: Types.ObjectId,
+    hospitalId: Types.ObjectId,
+  ): Promise<LeanDocument<IHospitalResource>> {
+    try {
+      const hospitalResource = await HospitalResource.findOne({
+        resourceId,
+        hospitalId,
+      }).exec();
+
+      if (!hospitalResource) {
+        throw new HttpError(
+          "HospitalResource with the given resourceId and hospitalId not found.",
+          404,
+        );
+      }
+
+      return hospitalResource.toObject();
+    } catch (error) {
+      console.error("Error fetching hospital resource by IDs:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
+      throw new HttpError("Failed to fetch hospital resource by IDs", 500);
     }
   }
 
