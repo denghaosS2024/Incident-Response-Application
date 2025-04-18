@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import Car, { ICar } from "../models/Car";
 import City from "../models/City";
 import Incident, { IIncident } from "../models/Incident";
@@ -54,6 +55,12 @@ class CarController {
   }
 
   async removeCarById(id: string) {
+    if (!id || typeof id !== "string") {
+      throw new Error("Car ID is required");
+    }
+    if (!Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid Car ID format");
+    }
     const deleted = await Car.findByIdAndDelete(id);
     if (!deleted) {
       throw new Error("Car not found");
@@ -62,6 +69,13 @@ class CarController {
   }
 
   async updateCarCity(carName: string, cityName: string) {
+    // Check if carName is provided
+    if (!carName || typeof carName !== "string") {
+      throw new Error("Car name is required");
+    }
+
+    carName = carName.trim();
+
     // unassign car from city
     if (!cityName) {
       const car = await Car.findOne({ name: carName });
@@ -86,6 +100,11 @@ class CarController {
     if (!car) {
       throw new Error(`Car with name '${carName}' does not exist`);
     }
+
+    if (typeof cityName !== "string") {
+      throw new Error("City name is required");
+    }
+
     const cityExists = await City.findOne({ name: cityName });
     if (!cityExists) {
       throw new Error(`City '${cityName}' does not exist in the database`);
@@ -111,6 +130,12 @@ class CarController {
     commandingIncident: IIncident | null,
   ) {
     try {
+      if (!carName || typeof carName !== "string") {
+        throw new Error("Car name is required");
+      }
+      if (!username || typeof username !== "string") {
+        throw new Error("Username is required");
+      }
       const car: ICar | null = await Car.findOne({
         name: carName,
       });
@@ -118,6 +143,11 @@ class CarController {
         throw new Error(`Car with name '${carName}' does not exist`);
       }
       if (commandingIncident && !car.assignedIncident) {
+        // Validate incident ID before using it in update
+        const incidentId = commandingIncident.incidentId;
+        if (typeof incidentId !== "string") {
+          throw new Error("Invalid incident ID");
+        }
         const updatedCar = await Car.findOneAndUpdate(
           { name: carName },
           {
@@ -141,6 +171,14 @@ class CarController {
   }
 
   async releaseUsernameFromCar(carName: string, username: string) {
+    if (!carName || typeof carName !== "string") {
+      throw new Error("Car name is required and must be a string");
+    }
+
+    if (!username || typeof username !== "string") {
+      throw new Error("Username is required and must be a string");
+    }
+
     const car: ICar | null = await Car.findOne({
       name: carName,
     });
@@ -179,6 +217,10 @@ class CarController {
    */
   async getCarByName(name: string) {
     try {
+      if (!name || typeof name !== "string") {
+        throw new Error("Car name is required and must be a string");
+      }
+
       const car: ICar | null = await Car.findOne({
         name: name,
       });
@@ -193,6 +235,10 @@ class CarController {
   }
 
   async updateIncident(carName: string, incidentId: string | null) {
+    if (!carName || typeof carName !== "string") {
+      throw new Error("Car name is required and must be a string");
+    }
+
     const car = await Car.findOne({ name: carName });
     if (!car) {
       throw new Error(`Car with name '${carName}' does not exist`);
