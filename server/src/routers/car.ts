@@ -116,11 +116,18 @@ carRouter.get("/availability", async (_req: Request, res: Response) => {
 carRouter.post("/", async (req: Request, res: Response) => {
   try {
     const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: "Car name is required" });
+    }
+
+    if (typeof name !== "string") {
+      return res.status(400).json({ error: "Car name must be a string" });
+    }
     const newCar = await CarController.createCar(name);
-    res.status(201).json(newCar);
+    return res.status(201).json(newCar);
   } catch (err) {
     const error = err as Error;
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 });
 
