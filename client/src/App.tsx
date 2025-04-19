@@ -15,6 +15,7 @@ import FirstResponderPatientsPage from "./pages/FirstResponderPatientsPage";
 import GroupInformationPage from "./pages/GroupInformationPage";
 import GroupsPage from "./pages/GroupsPage";
 import HomePage from "./pages/HomePage";
+import HospitalResourceRequestsPage from "./pages/HospitalResourceRequestsPage.tsx";
 import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
 import HospitalsDirectory from "./pages/HospitalsDirectory";
 import IncidentReportPage from "./pages/IncidentReportPage.tsx";
@@ -29,6 +30,7 @@ import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
 import Organization from "./pages/Organization";
 import PatientAdmitPage from "./pages/PatientAdmitPage.tsx";
+import PatientMedicalReportPage from "./pages/PatientMedicalReportPage";
 import PatientsRouter from "./pages/PatientsRouter";
 import PatientVisitPage from "./pages/PatientVisitPage.tsx";
 import ProfilePage from "./pages/ProfilePage";
@@ -45,10 +47,8 @@ import ViewOrganization from "./pages/ViewOrganization";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
-import HospitalResourceRequestsPage from "./pages/HospitalResourceRequestsPage.tsx";
 
 export default function App() {
-
   //Feature toggling: show the hospitals directory page only when the flag is enabled
   const { ["hospitalsDirectory"]: hospitalsDirectory } = useFlags();
 
@@ -81,6 +81,10 @@ export default function App() {
             <Route path="/patients/nurse" element={<NursePatientsPage />} />
             <Route path="/patients/admit" element={<PatientAdmitPage />} />
             <Route path="/patient-visit" element={<PatientVisitPage />} />
+            <Route
+              path="/patients/report"
+              element={<PatientMedicalReportPage />}
+            />
             <Route path="/incidents/report" element={<IncidentReportPage />} />
             <Route path="/organization" element={<Organization />} />
             <Route path="/organization/view" element={<ViewOrganization />} />
@@ -114,7 +118,7 @@ export default function App() {
             />
             <Route
               path="/register-hospital/:hospitalId/resources/newResource"
-              element={<HospitalResourceForm/>}
+              element={<HospitalResourceForm />}
             />
 
             <Route
