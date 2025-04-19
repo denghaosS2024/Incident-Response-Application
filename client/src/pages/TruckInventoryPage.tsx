@@ -1,17 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { Box, Typography } from "@mui/material";
 import InventoryItem from "../components/inventory/InventoryItem";
+import IInventory, { IInventoryItem } from "../models/Inventory";
+import request from "../utils/request";
 
 const TruckInventoryPage: React.FC = () => {
   const { truckName } = useParams<{ truckName: string }>();
+  const [inventory, setInventoryItems] = useState<IInventory>({
+    category: "",
+    items: [],
+  });
 
-  // Mock inventory data
-  const mockInventory = [
-    { name: "Medical Kit", description: "First aid supplies", quantity: 5 },
-    { name: "Repair Tools", description: "Tools for vehicle repair", quantity: 3 },
-    { name: "Emergency", description: "Emergency response equipment", quantity: 2 },
-  ];
+  useEffect(() => {
+    // Fetch inventory data from the server using the truckName
+    const fetchInventory = async () => {
+      try {
+        console.log("Fetching inventory for truck:", truckName);
+        const response = await request(
+          `/api/inventories/category/${truckName}`,
+        );
+        console.log(response);
+        setInventoryItems(response);
+      } catch (error) {
+        console.error("Error fetching inventory:", error);
+      }
+    };
+    fetchInventory();
+  }, [truckName]);
 
   return (
     <Box
@@ -26,7 +42,7 @@ const TruckInventoryPage: React.FC = () => {
         Inventory for Truck: {truckName}
       </Typography> */}
       <Box>
-        {mockInventory.map((item, index) => (
+        {inventory.items.map((item, index) => (
           <InventoryItem
             key={index}
             name={item.name}
