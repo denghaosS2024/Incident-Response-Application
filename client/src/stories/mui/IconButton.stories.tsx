@@ -8,6 +8,7 @@ import {
   Warning,
   Hotel as BedIcon,
   Map as MapIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { IconButton, IconButtonProps } from "@mui/material";
@@ -119,5 +120,12 @@ export const MapButton: Story = {
   args: {
     size: "medium",
     children: <MapIcon />,
+  },
+};
+
+export const AddButton: Story = {
+  args: {
+    size: "small",
+    children: <AddIcon />,
   },
 };

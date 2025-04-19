@@ -37,18 +37,6 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
       route: "",
     });
 
-    const routeOptions = [
-      "PO", // Oral
-      "IV", // Intravenous
-      "IM", // Intramuscular
-      "SC", // Subcutaneous
-      "SL", // Sublingual
-      "PR", // Per Rectum
-      "TD", // Transdermal
-      "INH", // Inhalation
-    ];
-
-    // Expose methods to parent component
     useImperativeHandle(ref, () => ({
       getDrugsData: () => [...drugs],
     }));
