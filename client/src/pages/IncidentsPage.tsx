@@ -326,11 +326,35 @@ function IncidentsPage() {
       }
     }
 
-    if (
-      updatedIncident.incidentState === "Closed" ||
-      (updatedIncident.commander !== userId && updatedIncident.owner !== userId)
-    ) {
-      readOnly = true;
+    // SAR special case: allow edit if not closed and user is in a car assigned to a SAR task
+    function isUserInAssignedCarForSAR(incident: IIncident, userId: string): boolean {
+      if (!incident.sarTasks) return false;
+      // Each SAR task may have assignedCars, each with members (by id or username)
+      return incident.sarTasks.some((task: any) =>
+        task.assignedCars?.some((car: any) =>
+          car.members?.some((member: any) => member.id === userId || member.username === userId)
+        )
+      );
+    }
+
+    if (updatedIncident.type === "S") {
+      // SAR: only closed is readonly, otherwise allow edit for all involved
+      if (updatedIncident.incidentState === "Closed") {
+        readOnly = true;
+      } else {
+        // If not closed, allow edit if user is commander, owner, or assigned to a car
+        readOnly =
+          updatedIncident.commander !== userId &&
+          updatedIncident.owner !== userId &&
+          !isUserInAssignedCarForSAR(updatedIncident, userId);
+      }
+    } else {
+      if (
+        updatedIncident.incidentState === "Closed" ||
+        (updatedIncident.commander !== userId && updatedIncident.owner !== userId)
+      ) {
+        readOnly = true;
+      }
     }
 
     // Update sate in redux with updated incident
