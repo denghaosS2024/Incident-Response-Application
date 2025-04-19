@@ -1,3 +1,6 @@
+import IHospital from "@/models/Hospital";
+import { fetchAndSetHospital } from "@/redux/hospitalSlice";
+import { AppDispatch } from "@/redux/store";
 import { ArrowBack, MoreVert as More } from "@mui/icons-material";
 import {
   AppBar,
@@ -7,7 +10,8 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   useLocation,
   useNavigate,
@@ -39,8 +43,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const [openMenu, setOpenMenu] = useState(false);
   const [menuAnchor, setMenuAnchor] = React.useState<HTMLElement>();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
-  const { id } = useParams();
+  const { hospitalId } = useParams<{ hospitalId?: string }>();
+
   const [URLSearchParams] = useSearchParams();
   const name = URLSearchParams.get("name");
   const role = localStorage.getItem("role") ?? "Citizen";
@@ -48,6 +54,28 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const onBackHandler = onBack || (() => navigate(-1));
 
   const pathname = location.pathname;
+
+  const hospitalFromSlice: IHospital = useSelector(
+    (state: any) => state.hospital.hospitalData,
+  );
+
+  // Get the hospital name to include it in the page title
+  useEffect(() => {
+    if (!pathname.startsWith("/register-hospital") || !pathname.endsWith("resources")) {
+      return;
+    }
+    if(hospitalFromSlice?.hospitalName!=null) {
+      return;
+    }
+    const getHospital = async () => {
+      if (hospitalId) {
+        dispatch(fetchAndSetHospital(hospitalId));
+      }
+    };
+    getHospital();
+  }, [hospitalId]);
+
+  console.log(hospitalFromSlice)
 
   // Add "/organization" here to display "Organization"
   const pageTitles: Record<string, string> = {
@@ -147,6 +175,14 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   if (pathname==="/register-hospital/resources/directory") {
     title = "Hospital Resources";
+  }
+
+  if (pathname.startsWith("/register-hospital") && pathname.includes("resources/newResource")) {
+    title = "Hospital Resource";
+  }
+
+  if (pathname.startsWith("/register-hospital") && pathname.endsWith("resources")) {
+    title =  hospitalFromSlice?.hospitalName ? `${hospitalFromSlice?.hospitalName} Resources` : "Hospital Resources";
   }
 
   const openMenuHandler = (anchor: HTMLElement) => {

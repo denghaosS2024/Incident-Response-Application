@@ -31,6 +31,20 @@ const fetchHospitals = createAsyncThunk("hospital/fetchHospitals", async () => {
   }
 });
 
+const fetchAndSetHospital = createAsyncThunk("hospital/fetchHospital", async (hospitalId: string) => {
+  try {
+    const response = await request(`/api/hospital?hospitalId=${hospitalId}`, {
+      method: "GET",
+    });
+    setHospital(response)
+    console.log("Fetched hospital details:", response);
+    return response;
+  } catch (error) {
+    console.error("Error fetching hospital details:", error);
+    return null;
+  }
+});
+
 const sortHospitalsByDistance = createAsyncThunk(
   "hospital/sortHospitalsByDistance",
   async (_, { getState }) => {
@@ -135,7 +149,14 @@ const hospitalSlice = createSlice({
       )
       .addCase(sortHospitalsByDistance.fulfilled, (state, action) => {
         state.hospitals = action.payload;
-      });
+      })
+      .addCase(
+        fetchAndSetHospital.fulfilled,
+        (state, action: PayloadAction<IHospital>) => {
+          state.hospitalData = action.payload;
+          state.loading = false;
+        },
+      );
   },
 });
 
@@ -147,6 +168,6 @@ export const {
   setHospitalError,
 } = hospitalSlice.actions;
 
-export { fetchHospitals, sortHospitalsByDistance };
+export { fetchAndSetHospital, fetchHospitals, sortHospitalsByDistance };
 
 export default hospitalSlice.reducer;
