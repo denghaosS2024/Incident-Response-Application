@@ -70,6 +70,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/sar-incident": "SAR Incident",
     "/defaulttruckinventory": "Default Truck Inventory",
     "/defaulttruckadditem": "Add Truck Item",
+    "/register-hospital/resources/directory": "Hospital Resources"
   };
 
   const roleTitles: Record<string, string> = {
@@ -144,6 +145,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = name ? `${name} Follow-Up Information` : "Follow-Up Information";
   }
 
+  if (pathname==="/register-hospital/resources/directory") {
+    title = "Hospital Resources";
+  }
+
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true);
     setMenuAnchor(anchor);
@@ -200,6 +205,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
     navigate("/hospitals");
   };
 
+  const hospitalResources = () => {
+    navigate("/register-hospital/resources/directory");
+  };
+
   const findHospital = () => {
     navigate("/find-hospital");
   };
@@ -234,6 +243,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     }
     closeMenu();
   };
+  
 
   const navigateToPatientsPage = () => {
     if (["Fire", "Police", "Nurse"].includes(role)) {
@@ -277,6 +287,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
           {(role === "Nurse" || role === "Police" || role === "Fire") && (
             <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
+          )}
+           {(role === "Nurse") && (
+            <MenuItem onClick={hospitalResources}>Hospital Resources</MenuItem>
           )}
           {(role === "Police" || role === "Fire") && (
             <MenuItem onClick={findHospital}>Find Hospital</MenuItem>
