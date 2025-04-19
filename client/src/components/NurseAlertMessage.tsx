@@ -30,12 +30,12 @@ const parseAlertContent = (content: string) => {
 
   // Try the new format first: "HELP - Patient: PatientName - Nurses: X" or "E HELP - Patient: PatientName - Nurses: X"
   const patientMatch = content.match(/Patient:\s*([^-]+)/);
-  if (patientMatch && patientMatch[1]) {
+  if (patientMatch?.[1]) {
     patientName = patientMatch[1].trim();
 
     // Try to extract nurses count from new format
     const nursesMatch = content.match(/Nurses:\s*(\d+)/);
-    if (nursesMatch && nursesMatch[1]) {
+    if (nursesMatch?.[1]) {
       nursesNeeded = parseInt(nursesMatch[1], 10);
     }
   } else {

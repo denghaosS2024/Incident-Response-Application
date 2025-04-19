@@ -51,7 +51,7 @@ const Step2EmergencyType: React.FC<Step2EmergencyTypeProps> = ({
       <Box sx={{ maxWidth: 400 }}>
         {emergencyTypes.map((type, index) => (
           <Paper
-            key={index}
+            key={type.title}
             elevation={1}
             sx={{
               p: 2,
