@@ -13,6 +13,9 @@ export interface HospitalResourceClient {
   inStockAlertThreshold?: number;
 }
 class HospitalResourceController {
+  normalizeResourceName(resourceName: string): string {
+    return resourceName.trim().toLowerCase(); //
+  }
   /**
    * Create a new Resource
    * @param resource An object containing the resourceName and optionally resourceId
@@ -23,10 +26,14 @@ class HospitalResourceController {
     resource: Partial<IResourceBase>,
   ): Promise<LeanDocument<IResource>> {
     try {
-      const {resourceName} = resource;
-      // check if resource is already exist
+      const { resourceName } = resource;
+      if (!resourceName) {
+        throw new HttpError("Resource name is required", 400);
+      }
+
+      // check if resource is already exist, using text index for fuzzy search
       const existingResource = await Resource.findOne({
-        resourceName: resourceName,
+        $text: { $search: resourceName },
       }).exec();
 
       if (existingResource) {
@@ -108,7 +115,10 @@ class HospitalResourceController {
     resourceName: string,
   ): Promise<LeanDocument<IResource>> {
     try {
-      const resource = await Resource.findOne({ resourceName }).exec();
+      // use text index for fuzzy search
+      const resource = await Resource.findOne({
+        $text: { $search: resourceName },
+      }).exec();
       console.log("Resource fetched by name:", resourceName, resource);
       if (!resource) {
         throw new HttpError(
@@ -170,34 +180,26 @@ class HospitalResourceController {
     }
   }
 
-    /**
+  /**
    * Fetch hospital resource by mongodb _id
    * @param _id mongodb id
    * @returns A hospital resource object
    * @throws HttpError if no resource is found
    */
-     async getHospitalResourceById(
-      _id: Types.ObjectId,
-    ){
-      try {
-        const hospitalResource = await HospitalResource.find({
-          _id: _id,
-        }).populate("resourceId");
-        return hospitalResource;
-      } catch (error) {
-        console.error(
-          "Error fetching a specific hospital resource",
-          error,
-        );
-        if (error instanceof HttpError) {
-          throw error; // Re-throw if it's already an HttpError
-        }
-        throw new HttpError(
-          "Failed to fetch a specific hospital resources",
-          500,
-        );
+  async getHospitalResourceById(_id: Types.ObjectId) {
+    try {
+      const hospitalResource = await HospitalResource.find({
+        _id: _id,
+      }).populate("resourceId");
+      return hospitalResource;
+    } catch (error) {
+      console.error("Error fetching a specific hospital resource", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
       }
+      throw new HttpError("Failed to fetch a specific hospital resources", 500);
     }
+  }
 
   /**
    * Fetch all hospital resources
