@@ -571,6 +571,7 @@ export default Router()
         patientId as string,
         visitLog,
       );
+
       response.status(201).json(result);
     } catch (e) {
       const error = e as Error;
@@ -660,11 +661,16 @@ export default Router()
    *             required:
    *               - patientId
    *               - updatedVisitData
+   *               - updatedBy
    *             properties:
    *               patientId:
    *                 type: string
    *                 description: ID of the patient whose visit log should be updated.
    *                 example: "P12345"
+   *               updatedBy:
+   *                 type: string
+   *                 description: Username of the Nurse performing the update.
+   *                 example: "Nurse1"
    *               updatedVisitData:
    *                 type: object
    *                 description: Fields to update in the active visit log.
@@ -753,20 +759,22 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
+
   .put("/visitLogs", async (request, response) => {
     try {
-      const { patientId, updatedVisitData } = request.body;
-      if (!patientId || !updatedVisitData) {
-        response
-          .status(400)
-          .json({ message: "patientId and updatedVisitData are required" });
+      const { patientId, updatedVisitData, updatedBy } = request.body;
+      if (!patientId || !updatedVisitData || !updatedBy) {
+        response.status(400).json({
+          message: "patientId, updatedVisitData and updatedBy are required",
+        });
         return;
       }
 
       const result = await PatientController.updatePatientVisit(
         patientId as string,
-        updatedVisitData,
+        { ...updatedVisitData, updatedBy },
       );
+
       response.status(200).json(result);
     } catch (e) {
       const error = e as Error;
