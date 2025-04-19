@@ -33,6 +33,7 @@ import profileRouter from "./profile";
 import taskRouter from "./sartask";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
+import inventoryRouter from "./inventory";
 
 export default Router()
   .use("/users", user)
@@ -73,4 +74,5 @@ export default Router()
   .use("/alertQueue", alertQueueRouter)
   .use("/hospital-resource", HospitalResourceRouter)
   .use("/hospital-resources-requests", HospitalResourceRequestsRouter)
-  .use("/nurse-shifts", nurseShiftRouter);
+  .use("/nurse-shifts", nurseShiftRouter)
+  .use("/inventories", inventoryRouter);
