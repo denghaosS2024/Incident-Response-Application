@@ -1,17 +1,16 @@
 import HospitalResource from "@/models/HospitalResource";
 import {
-  Box,
-  Button,
-  Paper,
-  TextField
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import request from "../../../utils/request";
-
+import ResourceOrRequestForm from "./ResourceOrRequestForm";
 const HospitalResourceForm: React.FC = () => {
   const { resourceId } = useParams<{ resourceId?: string }>();
   const {hospitalId} = useParams<{hospitalId?: string}>();
+
   const emptyResourceData = {
     hospitalId: "",
     resourceId: {
@@ -21,13 +20,22 @@ const HospitalResourceForm: React.FC = () => {
     inStockAlertThreshold: 0,
   };
   const [hospitalResourceData, setHospitalResourceData] = useState<HospitalResource>(emptyResourceData);
+  const [fetchedhospitalResourceData, setFetchedhospitalResourceData] = useState<HospitalResource>(emptyResourceData);
   const [errors, setErrors] = useState({
     resourceName: false,
     quantity: false,
   });
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
+    "success",
+  );
 
   // Get the current resource
   useEffect(() => {
+    setLoading(true)
     const getHospitalResource = async () => {
       if (resourceId) {
         const data = await fetchHospitalResourceDetails(resourceId);
@@ -40,30 +48,35 @@ const HospitalResourceForm: React.FC = () => {
             inStockQuantity: data[0].inStockQuantity,
             inStockAlertThreshold: data[0].inStockAlertThreshold,
           });
+          setFetchedhospitalResourceData({
+            hospitalId: data[0].hospitalId,
+            resourceId: {
+              resourceName: data[0].resourceId.resourceName,
+            },
+            inStockQuantity: data[0].inStockQuantity,
+            inStockAlertThreshold: data[0].inStockAlertThreshold,
+          })
         }
+        setLoading(false);
       } else {
-        setHospitalResourceData(emptyResourceData); 
+        // If creating a new resource, get the mongodb format hospital id (_id) of the current hospital
+        const getHospital = async () => {
+          if (hospitalId) {
+              const data = await fetchHospitalDetails(hospitalId);
+              if (data) {
+                setHospitalResourceData({
+                  ...hospitalResourceData,
+                  hospitalId: data._id,
+                })    
+              }
+            }
+         }
+        setLoading(false);
+        getHospital();
       }
     };
-
     getHospitalResource();
   }, [resourceId]);
-
-  // Get the mongodb format hospital id (_id)
-  useEffect(() => {
-      const getHospital = async () => {
-      if (hospitalId) {
-          const data = await fetchHospitalDetails(hospitalId);
-          if (data) {
-            setHospitalResourceData({
-              ...hospitalResourceData,
-              hospitalId: data._id,
-            })    
-          }
-        }
-     }
-     getHospital();
-  }, [hospitalId]);
 
   const fetchHospitalDetails = async (hospitalId: string) => {
     console.log("Calling API to fetch hospital details based on hospitalId");
@@ -137,6 +150,13 @@ const HospitalResourceForm: React.FC = () => {
       }
     }
 
+      /* Function to show the alert */
+    const showSnackbar = (message: string, severity: "success" | "error") => {
+      setSnackbarMessage(message);
+      setSnackbarSeverity(severity);
+      setOpenSnackbar(true);
+    };
+
      /* Function to create or update a new hospital resource on submit*/
     const handleSubmit = async () => {
       if (!hospitalResourceData.resourceId.resourceName || !hospitalResourceData.inStockQuantity) {
@@ -155,80 +175,91 @@ const HospitalResourceForm: React.FC = () => {
       } else {
         response = await addNewHospitalResource(hospitalResourceData);
       }
+
+      if (response) {
+        showSnackbar(
+          resourceId
+            ? "Hospital resource updated successfully!"
+            : "Hospital resource created successfully!",
+          "success",
+        );
+      } else {
+        showSnackbar(
+          resourceId ? "Error updating a hospital resource." : "Error creating a hospital resource.",
+          "error",
+        );
+      }
     };
 
+  const handleCancel = async () => {
+    setHospitalResourceData(fetchedhospitalResourceData);
+  }
+
+  if (loading) return <div>Loading...</div>;
+
   return (
-    <Paper elevation={3} sx={{ p: 3, maxWidth: 400, mx: "auto", mt: 4 }}>
-      {/* Resource name*/}
-      <TextField
-        label="Name"
-        fullWidth
-        margin="normal"
-        disabled={resourceId ? true : false}
-        value={hospitalResourceData.resourceId.resourceName}
-        onChange={(e) =>
-          setHospitalResourceData({
-            ...hospitalResourceData,
-            resourceId: {
-              resourceName: String(e.target.value)
-          }}
-          )
-        }
+    <>
+      <ResourceOrRequestForm
+        inputFields={[
+          {
+            label: "Resource name",
+            name: "Resource name",
+            value: hospitalResourceData.resourceId.resourceName,
+            type: "text",
+            disabled: resourceId ? true : false,
+            onChange:(e) =>
+              setHospitalResourceData({
+                ...hospitalResourceData,
+                resourceId: {
+                  resourceName: String(e.target.value)
+              }}),
+            error: errors.resourceName,
+            helperText: errors.resourceName? "Resource name is required" : ""
+            },
+            {
+            label: "Quantity",
+            name: "Quantity",
+            value: hospitalResourceData.inStockQuantity,
+            type: "number",
+            onChange:(e) =>
+              setHospitalResourceData({
+                ...hospitalResourceData,
+                inStockQuantity: Number(e.target.value),
+              }),
+            error: errors.quantity,
+            helperText: errors.quantity? "Quantity is required" : ""
+            },
+            {
+              label: "Stock Alert Threshold",
+              name: "Stock Alert Threshold",
+              value: hospitalResourceData.inStockAlertThreshold,
+              type: "number",
+              onChange:(e) =>
+                setHospitalResourceData({
+                  ...hospitalResourceData,
+                  inStockAlertThreshold: Number(e.target.value),
+                })
+            },
+          ]}
+        submitButtonText="Submit"
+        handleCancel={handleCancel}
+        handleSubmit={handleSubmit}
       />
-      {/* Quantity */}
-      <TextField
-        label="Quantity"
-        fullWidth
-        type="number"
-        margin="normal"
-        value={hospitalResourceData.inStockQuantity}
-        onChange={(e) =>
-          setHospitalResourceData({
-            ...hospitalResourceData,
-            inStockQuantity: Number(e.target.value),
-          })
-        }
-        InputProps={{
-          inputProps: {
-            inputMode: "numeric", // Forces numeric keyboard on iOS
-            pattern: "[0-9]*", // Ensures only numbers are entered
-            max: 110,
-            min: 1,
-          },
-        }}
-      />
-       {/* Stock Alert Threshold */}
-       <TextField
-        label="Stock Alert Threshold"
-        fullWidth
-        type="number"
-        margin="normal"
-        value={hospitalResourceData.inStockAlertThreshold}
-        onChange={(e) =>
-          setHospitalResourceData({
-            ...hospitalResourceData,
-            inStockAlertThreshold: Number(e.target.value),
-          })
-        }
-        InputProps={{
-          inputProps: {
-            inputMode: "numeric", // Forces numeric keyboard on iOS
-            pattern: "[0-9]*", // Ensures only numbers are entered
-            max: 110,
-            min: 1,
-          },
-        }}
-      />
-      {/* Buttons to submit, cancel or delete */}
-      <Box sx={{ mt: 3, display: "flex", justifyContent: "center", gap: 2 }}>
-        <Button variant="contained" color="primary">
-          Cancel
-        </Button>
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
-          Submit
-        </Button>
-      </Box>
-    </Paper>
+      {/* For Alerts pertaining to hospital registration or updation*/}
+      <Snackbar
+      open={openSnackbar}
+      autoHideDuration={3000}
+      onClose={() => setOpenSnackbar(false)}
+      anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+    >
+      <Alert
+        onClose={() => setOpenSnackbar(false)}
+        severity={snackbarSeverity}
+      >
+        {snackbarMessage}
+      </Alert>
+    </Snackbar>
+    </>
   );
 };
 

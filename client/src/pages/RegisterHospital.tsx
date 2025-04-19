@@ -569,18 +569,19 @@ const RegisterHospital: React.FC = () => {
       </Paper>
 
       {role === "Nurse" && nurseAlreadyRegistered && (
-        <Box className="grid w-96 flex-column m-2 justify-center hey">
+        <Box className="flex w-full flex-column m-2 justify-center hey">
           <Button
-            className="m-2"
+            className="m-2 w-[45%] self-center"
             variant="contained"
             color="primary"
+     
             onClick={navigateToRequests}
           >
-            Manage Requests
+            Manage Requests 
           </Button>
 
           <Button
-            className="m-2"
+            className="m-2 w-[45%] self-center"
             variant="contained"
             color="primary"
             onClick={navigateToResources}
