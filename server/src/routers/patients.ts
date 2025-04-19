@@ -1130,11 +1130,13 @@ export default Router()
         await PatientController.getMedicalTimeline(patientId, visitLogId);
 
       return response.json({ visitLogId: chosenId, events });
-    } catch (err: any) {
-      console.error(err);
-      if (err.message.includes("not found")) {
-        return response.status(404).json({ message: err.message });
+    } catch (e) {
+      const error = e as Error;
+
+      if (error.message.includes("not found")) {
+        return response.status(404).json({ message: error.message });
       }
-      return response.status(500).json({ message: err.message });
+
+      return response.status(500).json({ message: error.message });
     }
   });
