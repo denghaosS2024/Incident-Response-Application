@@ -46,7 +46,7 @@ class UserConnections {
     console.log(`User ${uid} connected with role ${role}`);
     // Add logging to verify room joining
     const rooms = connection.rooms;
-    console.log("User connected:", {
+    console.debug("User connected:", {
       uid,
       role,
       rooms: Array.from(rooms || []),

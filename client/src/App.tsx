@@ -47,6 +47,7 @@ import ViewOrganization from "./pages/ViewOrganization";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
+import TruckInventoryPage from "./pages/TruckInventoryPage.tsx";
 
 export default function App() {
   //Feature toggling: show the hospitals directory page only when the flag is enabled
@@ -156,6 +157,10 @@ export default function App() {
             <Route
               path="/defaulttruckadditem"
               element={<DefaultTruckAddItem />}
+            />
+            <Route
+              path="/truck-inventory/:truckName"
+              element={<TruckInventoryPage />}
             />
           </Route>
 
