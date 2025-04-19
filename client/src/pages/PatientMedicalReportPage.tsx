@@ -6,7 +6,14 @@ import TimelineContent from "@mui/lab/TimelineContent";
 import TimelineDot from "@mui/lab/TimelineDot";
 import TimelineItem from "@mui/lab/TimelineItem";
 import TimelineSeparator from "@mui/lab/TimelineSeparator";
-import { Box, Divider, IconButton, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import React, { useEffect } from "react";
 import { useSearchParams } from "react-router";
 
@@ -113,10 +120,10 @@ const PatientMedicalReportPage: React.FC = () => {
         ))}
       </Timeline>
 
-      <Box display="flex" justifyContent="center" mt={3}>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
-          PRINT REPORT
-        </button>
+      <Box textAlign="center" mt={4} mb={2}>
+        <Button variant="outlined" onClick={() => window.print()}>
+          Print Report
+        </Button>
       </Box>
     </Box>
   );
