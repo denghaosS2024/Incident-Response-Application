@@ -14,10 +14,17 @@ const TruckInventoryPage: React.FC = () => {
   ];
 
   return (
-    <Box padding="16px">
-      <Typography variant="h4" gutterBottom>
+    <Box
+      display="flex"
+      flexDirection="column"
+      justifyContent="center"
+      alignItems="center"
+      minHeight="10vh"
+      padding="16px"
+    >
+      {/* <Typography variant="h4" gutterBottom>
         Inventory for Truck: {truckName}
-      </Typography>
+      </Typography> */}
       <Box>
         {mockInventory.map((item, index) => (
           <InventoryItem
