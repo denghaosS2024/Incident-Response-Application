@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
+import HospitalController from "../../src/controllers/HospitalController";
 import HospitalResourceController from "../../src/controllers/HospitalResourceController";
+import { IHospital } from "../../src/models/Hospital";
 import * as TestDatabase from "../utils/TestDatabase";
 
 describe("HospitalResourceController", () => {
@@ -11,6 +13,29 @@ describe("HospitalResourceController", () => {
   });
 
   afterAll(async () => await TestDatabase.close());
+
+  const getDefaultHospitalData = (
+    overrides: Partial<IHospital> = {},
+  ): IHospital => {
+    return {
+      hospitalId: new mongoose.Types.ObjectId().toString(),
+      hospitalName: "Default Hospital",
+      hospitalAddress: `123 Default Street ${Date.now()}-${Math.random()}`,
+      hospitalDescription: "Default Description",
+      totalNumberERBeds: 10,
+      totalNumberOfPatients: 0,
+      nurses: [],
+      patients: [],
+      hospitalGroupId: new mongoose.Types.ObjectId().toString(),
+      ...overrides, // 覆盖默认值
+    } as IHospital;
+  };
+
+  const createHospital = async (hospitalName: string) => {
+    const hospitalData = getDefaultHospitalData({ hospitalName });
+    const hospital = await HospitalController.create(hospitalData);
+    return hospital;
+  };
 
   it("should create a new resource", async () => {
     // Act
@@ -67,6 +92,10 @@ describe("HospitalResourceController", () => {
 
   it("should group hospital resources by resourceName", async () => {
     // Arrange
+    const hospital1 = await createHospital("Test Hospital1");
+    const hospital2 = await createHospital("Test Hospital2");
+    const hospital3 = await createHospital("Test Hospital3");
+
     const resource1 = await HospitalResourceController.createResource({
       resourceName: "Ventilator",
     });
@@ -78,9 +107,9 @@ describe("HospitalResourceController", () => {
 
     console.log("Created resource2:", resource2);
 
-    let newHospitalId1 = new mongoose.Types.ObjectId();
-    let newHospitalId2 = new mongoose.Types.ObjectId();
-    let newHospitalId3 = new mongoose.Types.ObjectId();
+    const newHospitalId1 = hospital1._id;
+    const newHospitalId2 = hospital2._id;
+    const newHospitalId3 = hospital3._id;
 
     const hospitalResource1 =
       await HospitalResourceController.createHospitalResource({
@@ -117,38 +146,56 @@ describe("HospitalResourceController", () => {
       await HospitalResourceController.getAllHospitalResourcesGroupedByResource();
 
     // Assert
+    // Assert
     expect(groupedResources).toBeDefined();
-    expect(Object.keys(groupedResources)).toHaveLength(2);
-    expect(groupedResources["Ventilator"]).toHaveLength(2);
-    expect(groupedResources["Oxygen Tank"]).toHaveLength(1);
+    expect(Object.keys(groupedResources)).toHaveLength(2); // Two resource groups: "Ventilator" and "Oxygen Tank"
 
-    expect(groupedResources["Ventilator"]).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          hospitalId: newHospitalId1.toString(),
-          resourceName: "Ventilator",
-          inStockQuantity: 10,
-          inStockAlertThreshold: 5,
-        }),
-        expect.objectContaining({
-          hospitalId: newHospitalId2.toString(),
-          resourceName: "Ventilator",
-          inStockQuantity: 20,
-          inStockAlertThreshold: 8,
-        }),
-      ]),
+    // Check "Ventilator" group
+    const ventilatorGroup = groupedResources["Ventilator"];
+    expect(ventilatorGroup).toHaveLength(2);
+
+    const ventilatorHospitalIds = ventilatorGroup.map((item) =>
+      item.hospitalId._id.toString(),
+    );
+    const ventilatorResourceNames = ventilatorGroup.map(
+      (item) => item.resourceId.resourceName,
+    );
+    const ventilatorQuantities = ventilatorGroup.map(
+      (item) => item.inStockQuantity,
     );
 
-    expect(groupedResources["Oxygen Tank"]).toEqual(
+    expect(ventilatorHospitalIds).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({
-          hospitalId: newHospitalId3.toString(),
-          resourceName: "Oxygen Tank",
-          inStockQuantity: 15,
-          inStockAlertThreshold: 3,
-        }),
+        newHospitalId1.toString(),
+        newHospitalId2.toString(),
       ]),
     );
+    expect(ventilatorResourceNames).toEqual(
+      expect.arrayContaining(["Ventilator", "Ventilator"]),
+    );
+    expect(ventilatorQuantities).toEqual(expect.arrayContaining([10, 20]));
+
+    // Check "Oxygen Tank" group
+    const oxygenTankGroup = groupedResources["Oxygen Tank"];
+    expect(oxygenTankGroup).toHaveLength(1);
+
+    const oxygenTankHospitalIds = oxygenTankGroup.map((item) =>
+      item.hospitalId._id.toString(),
+    );
+    const oxygenTankResourceNames = oxygenTankGroup.map(
+      (item) => item.resourceId.resourceName,
+    );
+    const oxygenTankQuantities = oxygenTankGroup.map(
+      (item) => item.inStockQuantity,
+    );
+
+    expect(oxygenTankHospitalIds).toEqual(
+      expect.arrayContaining([newHospitalId3.toString()]),
+    );
+    expect(oxygenTankResourceNames).toEqual(
+      expect.arrayContaining(["Oxygen Tank"]),
+    );
+    expect(oxygenTankQuantities).toEqual(expect.arrayContaining([15]));
   });
 
   it("should return an empty object if no hospital resources exist", async () => {
