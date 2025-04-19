@@ -57,12 +57,17 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+    let parsedValue: string | number | Date = value;
+
+    if (name === "dateLastSeen") {
+      parsedValue = new Date(value);
+    } else if (name === "age" || name === "weight" || name === "height") {
+      parsedValue = Number(value);
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "age" || name === "weight" || name === "height"
-          ? Number(value)
-          : value,
+      [name]: parsedValue,
     }));
   };
 
