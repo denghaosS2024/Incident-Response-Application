@@ -1,5 +1,4 @@
 import HospitalResource from "@/models/HospitalResource";
-import { IHospitalResourceRequest } from "@/models/HospitalResourceRequest";
 import request from "@/utils/request";
 import { HospitalResourceState } from "@/utils/types";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -7,10 +6,10 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 // Initial state for the message slice
 const initialState: HospitalResourceState = {
   resources: [],
+  hospitalResourceGroupedByResource: {},
   loading: false, // Indicates if a message operation is in progress
   error: null, // Stores any error that occurred during message operations
 };
-
 
 /* ---------------------- Async Thunk to Fetch Hospital Resource Requests ---------------------- */
 const fetchHospitalResourcesForSpecificHospital = createAsyncThunk(
@@ -32,30 +31,27 @@ const fetchHospitalResourcesForSpecificHospital = createAsyncThunk(
   },
 );
 
-// const fetchAllResources = createAsyncThunk(
-//   "hospitalResourceRequests/fetchOutgoingHospitalResourceRequests",
-//   async (hospitalId: string) => {
-//     try {
-//       const response = await request(
-//         `/api/hospital-resources-requests/${hospitalId}/outgoing`,
-//         {
-//           method: "GET",
-//           headers: { "Content-Type": "application/json" },
-//         },
-//       );
-//       return response;
-//     } catch (error) {
-//       console.error("Error fetching hostpitals:", error);
-//       throw error;
-//     }
-//   },
-// );
+export const fetchAllHospitalResources = createAsyncThunk(
+  "hospitalResources/fetchAllHospitalResources",
+  async () => {
+    try {
+      const response = await request(`/api/hospital-resource`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      return response;
+    } catch (error) {
+      console.error("Error fetching all hospital resources:", error);
+      throw error;
+    }
+  },
+);
 
 const hospitalResourceRequestSlice = createSlice({
-    name: "hospitalReasourceRequests",
-    initialState,
-    reducers: {},
-    extraReducers: (builder) => {
+  name: "hospitalReasourceRequests",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
     builder
       .addCase(fetchHospitalResourcesForSpecificHospital.pending, (state) => {
         state.loading = true;
@@ -68,10 +64,24 @@ const hospitalResourceRequestSlice = createSlice({
           state.loading = false;
         },
       )
+      .addCase(fetchAllHospitalResources.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        fetchAllHospitalResources.fulfilled,
+        (state, action: PayloadAction<Record<string, HospitalResource[]>>) => {
+          state.hospitalResourceGroupedByResource = action.payload; // Update the resources in the state
+          state.loading = false;
+        },
+      )
+      .addCase(fetchAllHospitalResources.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Failed to fetch hospital resources";
+      });
   },
 });
 
-export {
-  fetchHospitalResourcesForSpecificHospital,
-};
-export default hospitalResourceRequestSlice.reducer 
+export { fetchHospitalResourcesForSpecificHospital };
+export default hospitalResourceRequestSlice.reducer;

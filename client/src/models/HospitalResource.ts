@@ -1,9 +1,12 @@
 export default interface HospitalResource {
-  hospitalId: string;
-  resourceId:{
+  hospitalId: {
+    hospitalName: string;
+    _id: string;
+  };
+  resourceId: {
     resourceName: string;
-  }
-  _id?: string,
+  };
+  _id?: string;
   inStockQuantity: number;
   inStockAlertThreshold?: number;
 }

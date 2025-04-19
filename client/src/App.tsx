@@ -15,6 +15,7 @@ import FirstResponderPatientsPage from "./pages/FirstResponderPatientsPage";
 import GroupInformationPage from "./pages/GroupInformationPage";
 import GroupsPage from "./pages/GroupsPage";
 import HomePage from "./pages/HomePage";
+import HospitalResourceDirectoryPage from "./pages/HospitalResourceDirectoryPage.tsx";
 import HospitalResourceRequestsPage from "./pages/HospitalResourceRequestsPage.tsx";
 import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
 import HospitalsDirectory from "./pages/HospitalsDirectory";
@@ -112,7 +113,10 @@ export default function App() {
               path="/sartasksstatistics/:incidentId"
               element={<StatisticsPage />}
             />
-
+            <Route
+              path="/register-hospital/resources/directory"
+              element={<HospitalResourceDirectoryPage />}
+            />
             <Route
               path="/register-hospital/:hospitalId/resources"
               element={<HospitalResourcesPage />}

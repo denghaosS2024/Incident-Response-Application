@@ -1,4 +1,5 @@
 import { LeanDocument, Types } from "mongoose";
+import { IHospital } from "../models/Hospital";
 import HospitalResource, {
   IHospitalResource,
   IHospitalResourceBase,
@@ -12,6 +13,14 @@ export interface HospitalResourceClient {
   inStockQuantity?: number;
   inStockAlertThreshold?: number;
 }
+
+export interface HospitalResourceWithPopulateData {
+  hospitalId: IHospital;
+  resourceId: IResource;
+  inStockQuantity?: number;
+  inStockAlertThreshold?: number;
+}
+
 class HospitalResourceController {
   normalizeResourceName(resourceName: string): string {
     return resourceName.trim().toLowerCase(); //
@@ -37,6 +46,7 @@ class HospitalResourceController {
       }).exec();
 
       if (existingResource) {
+        console.log("Resource already exists:", existingResource);
         return existingResource.toObject();
       }
 
@@ -50,6 +60,9 @@ class HospitalResourceController {
       return newResource.toObject();
     } catch (error) {
       console.error("Error creating resource:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
       throw new HttpError("Failed to create resource", 500);
     }
   }
@@ -86,6 +99,9 @@ class HospitalResourceController {
       return newHospitalResource.toObject();
     } catch (error) {
       console.error("Error creating hospital resource:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
       throw new HttpError("Failed to create hospital resource", 500);
     }
   }
@@ -310,16 +326,20 @@ class HospitalResourceController {
    * @returns An object where keys are resourceNames and values are arrays of HospitalResourceRequest
    */
   async getAllHospitalResourcesGroupedByResource(): Promise<
-    Record<string, HospitalResourceClient[]>
+    Record<string, HospitalResourceWithPopulateData[]>
   > {
     try {
       // Fetch all hospital resources and populate resourceId
       const hospitalResources = await HospitalResource.find()
         .populate<{ resourceId: IResource }>("resourceId") // Populate resourceId with IResource type
+        .populate<{ hospitalId: IHospital }>("hospitalId") // Populate hospitalId with IHospital type
         .exec();
 
       // Group resources by resourceName
-      const groupedResources: Record<string, HospitalResourceClient[]> = {};
+      const groupedResources: Record<
+        string,
+        HospitalResourceWithPopulateData[]
+      > = {};
 
       hospitalResources.forEach((hospitalResource) => {
         // Ensure resourceId is populated and has a resourceName
@@ -338,8 +358,8 @@ class HospitalResourceController {
         }
 
         groupedResources[resourceName].push({
-          hospitalId: hospitalResource.hospitalId.toString(),
-          resourceName,
+          hospitalId: hospitalResource.hospitalId,
+          resourceId: hospitalResource.resourceId,
           inStockQuantity: hospitalResource.inStockQuantity,
           inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
         });
