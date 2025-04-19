@@ -9,7 +9,6 @@ import {
   Select,
   SelectChangeEvent,
   TextField,
-  Typography,
 } from "@mui/material";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import IMissingPerson, {
@@ -24,6 +23,7 @@ export interface MissingPersonFormProps {
   onSubmit: (data: IMissingPerson) => void;
   /** Called when the form is cancelled/reset (optional) */
   onCancel?: () => void;
+  /** If true, fields are read‑only and no submit button */
   readonly: boolean;
 }
 
@@ -31,7 +31,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
   initialData,
   onSubmit,
   onCancel,
-  readonly
+  readonly,
 }) => {
   const initialFormState: IMissingPerson = {
     _id: undefined,
@@ -52,7 +52,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
 
   const [formData, setFormData] = useState<IMissingPerson>(initialFormState);
 
-  // Handle text field changes
+  // Text inputs
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -66,7 +66,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     }));
   };
 
-  // Handle select changes
+  // Select dropdowns
   const handleSelectChange = (e: SelectChangeEvent) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -75,7 +75,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     }));
   };
 
-  // Sync external initialData changes
+  // reset when initialData changes
   useEffect(() => {
     if (initialData) {
       setFormData({ ...initialFormState });
@@ -84,13 +84,13 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
 
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Typography variant="h5" gutterBottom>
-      {readonly
-        ? "Original Report"
-        : initialData
-          ? "Edit Missing Person"
-          : "Register Missing Person"}
-      </Typography>
+      {/* <Typography variant="h5" gutterBottom>
+        {readonly
+          ? "Original Report"
+          : initialData
+            ? "Edit Missing Person"
+            : "Register Missing Person"}
+      </Typography> */}
 
       <Box
         component="form"
@@ -107,9 +107,9 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               required
               name="name"
               label="Name"
-              fullWidth
               value={formData.name}
               onChange={handleInputChange}
+              fullWidth
               disabled={readonly}
             />
           </Grid>
@@ -121,9 +121,9 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               name="age"
               label="Age"
               type="number"
-              fullWidth
               value={formData.age}
               onChange={handleInputChange}
+              fullWidth
               disabled={readonly}
             />
           </Grid>
@@ -134,22 +134,21 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               name="weight"
               label="Weight (lbs)"
               type="number"
-              fullWidth
               value={formData.weight ?? ""}
               onChange={handleInputChange}
+              fullWidth
               disabled={readonly}
             />
           </Grid>
-
           {/* Height */}
           <Grid item xs={12} sm={6}>
             <TextField
               name="height"
               label="Height (cm)"
               type="number"
-              fullWidth
               value={formData.height ?? ""}
               onChange={handleInputChange}
+              fullWidth
               disabled={readonly}
             />
           </Grid>
@@ -165,7 +164,6 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
                 value={formData.race}
                 label="Race"
                 onChange={handleSelectChange}
-                disabled={readonly}
               >
                 {Object.values(Race).map((r) => (
                   <MenuItem key={r} value={r}>
@@ -181,9 +179,9 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
             <TextField
               name="eyeColor"
               label="Eye Color"
-              fullWidth
               value={formData.eyeColor}
               onChange={handleInputChange}
+              fullWidth
               disabled={readonly}
             />
           </Grid>
@@ -199,7 +197,6 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
                 value={formData.gender}
                 label="Gender"
                 onChange={handleSelectChange}
-                disabled={readonly}
               >
                 {Object.values(Gender).map((g) => (
                   <MenuItem key={g} value={g}>
@@ -217,9 +214,9 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               label="Description"
               multiline
               rows={3}
-              fullWidth
               value={formData.description}
               onChange={handleInputChange}
+              fullWidth
               disabled={readonly}
             />
           </Grid>
@@ -231,10 +228,10 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               name="dateLastSeen"
               label="Date Last Seen"
               type="date"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
               value={formData.dateLastSeen.toISOString().split("T")[0]}
               onChange={handleInputChange}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
               disabled={readonly}
             />
           </Grid>
@@ -244,18 +241,24 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
             <TextField
               name="locationLastSeen"
               label="Location Last Seen"
-              fullWidth
               value={formData.locationLastSeen}
               onChange={handleInputChange}
+              fullWidth
               disabled={readonly}
             />
           </Grid>
 
-          {/* Action Buttons */}
-          <Grid item xs={12} container spacing={2} justifyContent="flex-end">
+          {/* Action Buttons (centered) */}
+          <Grid item xs={12} container spacing={2} justifyContent="center">
             {onCancel && (
               <Grid item>
-                <Button variant="outlined" onClick={onCancel}>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setFormData(initialFormState);
+                    onCancel();
+                  }}
+                >
                   Cancel
                 </Button>
               </Grid>
