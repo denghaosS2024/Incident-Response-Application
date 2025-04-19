@@ -26,7 +26,7 @@ import { RootState } from "../../../redux/store";
 import Loading from "../../common/Loading";
 import { IVisitLogForm } from "./IVisitLogForm";
 import VisitLogHelper from "./VisitLogHelper";
-
+import DrugEntry from "./DrugEntry";
 // Default: E
 
 // Returns the current date and time formatted as "MM.DD.YY-HH:mm"
@@ -509,15 +509,9 @@ const VisitLogForm: React.FC<{
       <FormControl>
         <Box display="flex" alignItems="center" gap={2}>
           <Typography sx={{ width: 120, flexShrink: 0 }}>Drugs:</Typography>
-          <TextField
-            variant="outlined"
-            name="drugs"
-            value={formData.drugs}
-            onChange={handleChange}
-            fullWidth
-            size="small"
-            InputProps={{ readOnly: isReadOnly }}
-          />
+          <Box sx={{ flex: 1, width: 200 }}>
+            <DrugEntry isReadOnly={isReadOnly} />
+          </Box>
         </Box>
       </FormControl>
 
