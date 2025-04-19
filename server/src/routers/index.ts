@@ -24,14 +24,16 @@ import carRouter from "./car";
 import cityRouter from "./city";
 import dashboard from "./dashboard";
 import HospitalResourceRouter from "./hospitalResource";
+import HospitalResourceRequestsRouter from "./hospitalResourceRequest";
 import incidentReportRouter from "./incidentReport";
+import nurseShiftRouter from "./nurseShift";
 import patientRouter from "./patients";
 import personnelRouter from "./personnel";
 import profileRouter from "./profile";
 import taskRouter from "./sartask";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
-import HospitalResourceRequestsRouter from "./hospitalResourceRequest"
+import inventoryRouter from "./inventory";
 
 export default Router()
   .use("/users", user)
@@ -71,4 +73,6 @@ export default Router()
   .use(",sartasksstatistics", taskRouter)
   .use("/alertQueue", alertQueueRouter)
   .use("/hospital-resource", HospitalResourceRouter)
-  .use("/hospital-resources-requests", HospitalResourceRequestsRouter);
+  .use("/hospital-resources-requests", HospitalResourceRequestsRouter)
+  .use("/nurse-shifts", nurseShiftRouter)
+  .use("/inventories", inventoryRouter);
