@@ -19,14 +19,14 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { RootState } from "../../../redux/store";
 import Loading from "../../common/Loading";
+import DrugEntry from "./DrugEntry";
 import { IVisitLogForm } from "./IVisitLogForm";
 import VisitLogHelper from "./VisitLogHelper";
-import DrugEntry from "./DrugEntry";
 // Default: E
 
 // Returns the current date and time formatted as "MM.DD.YY-HH:mm"
@@ -50,7 +50,7 @@ const VisitLogForm: React.FC<{
     breathing: "",
     chiefComplaint: "",
     condition: "",
-    drugs: "",
+    drugs: [],
     allergies: "",
     hospitalId: "",
     hospitalName: "",
@@ -59,6 +59,8 @@ const VisitLogForm: React.FC<{
   console.log("visitLogId:", visitLogId);
   console.log("active:", active);
   const isReadOnly = active === false;
+
+  const drugEntryRef = useRef<DrugEntryHandle>(null);
 
   const navigate = useNavigate();
 
@@ -123,29 +125,6 @@ const VisitLogForm: React.FC<{
     }
 
     console.log("Incident questions:", incident.questions);
-
-    // for (const question of incident.questions as MedicalQuestions[]) {
-    //   // if (question.isPatient && question.username === propUsername) {
-    //   if (question.username === propUsername) {
-    //     console.log("Found patient data:", question);
-    //     setFormData((prev) => ({
-    //       ...prev,
-    //       // Only update age if it exists and can be converted to a string
-    //       age: question.age !== undefined ? question.age.toString() : prev.age,
-    //       // Only update conscious if it exists and is not empty
-    //       conscious:
-    //         question.conscious !== "" ? question.conscious : prev.conscious,
-    //       // Only update breathing if it exists and is not empty
-    //       breathing:
-    //         question.breathing !== "" ? question.breathing : prev.breathing,
-    //       // Only update chiefComplaint if it exists and is not empty
-    //       chiefComplaint: question.chiefComplaint
-    //         ? question.chiefComplaint
-    //         : prev.chiefComplaint,
-    //     }));
-    //     break;
-    //   }
-    // }
   };
 
   // Check the role when the component mounts
@@ -169,6 +148,31 @@ const VisitLogForm: React.FC<{
     }
     const patient = patients.find((p) => p.username === propUsername);
     return patient ? patient.patientId : "";
+  };
+
+  // Discharge logic
+  const dischargePatient = async () => {
+    const patientId = getCurrentPatientId();
+    if (!patientId) return;
+    const uid = localStorage.getItem("uid") || "";
+    try {
+      // set active=false on current visit log
+      await request("/api/patients/visitLogs", {
+        method: "PUT",
+        body: JSON.stringify({
+          patientId,
+          updatedVisitData: { active: false },
+          updatedBy: uid,
+        }),
+      });
+      // set ER status to discharged
+      await request("/api/patients/erStatus", {
+        method: "PUT",
+        body: JSON.stringify({ patientId, erStatus: "discharged" }),
+      });
+    } catch (err) {
+      console.error("Discharge failed:", err);
+    }
   };
 
   useEffect(() => {
@@ -510,7 +514,7 @@ const VisitLogForm: React.FC<{
         <Box display="flex" alignItems="center" gap={2}>
           <Typography sx={{ width: 120, flexShrink: 0 }}>Drugs:</Typography>
           <Box sx={{ flex: 1, width: 200 }}>
-            <DrugEntry isReadOnly={isReadOnly} />
+            <DrugEntry isReadOnly={isReadOnly} ref={drugEntryRef} />
           </Box>
         </Box>
       </FormControl>
@@ -580,29 +584,75 @@ const VisitLogForm: React.FC<{
         </FormControl>
       )}
 
+      {/* Request First Aid Assistance */}
+      {["Police", "Fire", "Dispatch"].includes(
+        localStorage.getItem("role") ?? "",
+      ) && (
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Request Support:
+            </Typography>
+            <Link style={{ textDecoration: "none" }}>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  // TODO: Navigate to the First Aid Assistance page
+                }}
+              >
+                First Aid Assist
+              </Button>
+            </Link>
+          </Box>
+        </FormControl>
+      )}
+
       {!isReadOnly && (
-        <Box display="flex" justifyContent="center" mt={4}>
-          <button
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#1976d2",
-              color: "#fff",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-            onClick={() => {
-              VisitLogHelper.saveFormData(
-                formData,
-                incidentId,
-                visitTime,
-                getCurrentPatientId() ?? "",
-              );
-            }}
-          >
-            Save
-          </button>
+        <Box display="flex" justifyContent="center" mt={4} gap={2}>
+        <Button
+          variant="contained"
+          sx={{
+            padding: "10px 20px",
+            backgroundColor: "#1976d2",
+            color: "#fff",
+            borderRadius: "4px",
+            fontSize: "16px",
+            textTransform: "none",
+          }}
+          onClick={() => {
+            const drugs = (drugEntryRef.current?.getDrugsData() ?? []).map(
+              (drug) => `${drug.name} (${drug.dosage}, ${drug.route})`
+            );
+      
+            VisitLogHelper.saveFormData(
+              {
+                ...formData,
+                drugs,
+              },
+              incidentId,
+              visitTime,
+              getCurrentPatientId() ?? ""
+            );
+          }}
+        >
+          Save
+        </Button>
+        <Button
+          variant="contained"
+          sx={{
+            padding: "10px 20px",
+            backgroundColor: "#1976d2",
+            color: "#fff",
+            borderRadius: "4px",
+            fontSize: "16px",
+            textTransform: "none",
+          }}
+          onClick={() => navigate(`/patients/report?patientId=${getCurrentPatientId()}`)}
+        >
+          Cancel
+        </Button>
         </Box>
       )}
     </div>

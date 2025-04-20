@@ -195,6 +195,34 @@ class ResourceRequestController {
       throw new HttpError("Failed to update resource request status", 500);
     }
   }
+
+  async updateResourceRequestQuantity(
+    id: Types.ObjectId,
+    requestedQuantity: number,
+  ): Promise<LeanDocument<IResourceRequest> | null> {
+    try {
+      const updatedResourceRequest = await ResourceRequest.findByIdAndUpdate(
+        id,
+        { requestedQuantity }, // Only update the requestedQuantity field
+        { new: true }, // Return the updated document
+      ).lean();
+
+      
+      if (!updatedResourceRequest) {
+        throw new HttpError("ResourceRequest not found.", 404);
+      }
+
+      return updatedResourceRequest;
+    } catch (error) {
+      console.error("Error updating resource request status:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
+      throw new HttpError("Failed to update resource request status", 500);
+    }
+  }
 }
+
+
 
 export default new ResourceRequestController();

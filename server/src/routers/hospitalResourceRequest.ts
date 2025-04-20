@@ -84,7 +84,6 @@ export default Router()
         );
 
       return response.status(200).send(incomingRequests);
-
     } catch (e) {
       if (e instanceof HttpError) {
         return response.status(e.statusCode).send({ message: e.message });
@@ -104,7 +103,49 @@ export default Router()
         );
 
       return response.status(200).send(outgoingRequests);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
 
+  .put("/:requestId/requested-quantity", async (request, response) => {
+    const requestId = request.params.requestId;
+    const { requestedQuantity } = request.body;
+    try {
+      const updatedResourceRequest =
+        await HospitalResourceRequestController.updateResourceRequestQuantity(
+          new Types.ObjectId(requestId),
+          requestedQuantity as number,
+        );
+
+      if (!updatedResourceRequest) {
+        throw new HttpError("HospitalResource not found.", 404);
+      }
+
+      return response.status(200).send(updatedResourceRequest);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
+
+  .get("/:requestId", async (request, response) => {
+    const requestId = request.params.requestId;
+
+    try {
+      const reosurceRequest =
+        await HospitalResourceRequestController.getResourceRequestById(
+          new Types.ObjectId(requestId),
+        );
+
+      return response.status(200).send(reosurceRequest);
     } catch (e) {
       if (e instanceof HttpError) {
         return response.status(e.statusCode).send({ message: e.message });
@@ -113,3 +154,5 @@ export default Router()
       return response.status(500).send({ message: error.message });
     }
   });
+
+  

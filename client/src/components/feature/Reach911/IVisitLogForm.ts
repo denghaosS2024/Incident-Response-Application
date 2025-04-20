@@ -6,7 +6,7 @@ export interface IVisitLogForm {
   breathing: string;
   chiefComplaint: string;
   condition: string;
-  drugs: string;
+  drugs: string[];
   allergies: string;
   hospitalId: string;
   hospitalName: string;

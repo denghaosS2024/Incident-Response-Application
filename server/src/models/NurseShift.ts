@@ -9,12 +9,17 @@ export interface INurseShift extends Document {
   dayOfWeek: number;
   startHour: number;
   endHour: number;
+  valid: boolean;
 }
 
 const NurseShiftSchema = new Schema({
   nurseId: {
     type: String,
     required: true,
+  },
+  valid: {
+    type: Boolean,
+    default: true,
   },
   dayOfWeek: {
     type: Number,

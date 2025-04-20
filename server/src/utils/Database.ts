@@ -14,6 +14,7 @@ import User from "../models/User";
 
 import dotenv from "dotenv";
 import Channel from "../models/Channel";
+import Resource from "../models/Resource";
 import Env from "./Env";
 
 dotenv.config({ path: ".env" });
@@ -62,6 +63,7 @@ export const connect = async (
   );
   await User.ensureSystemUser();
   await Channel.ensureSystemDefinedGroup();
+  await Resource.syncIndexes();
 };
 
 /**

@@ -5,6 +5,7 @@ import Inventory from "../../src/models/Inventory";
 
 describe("Router - Inventory", () => {
   afterAll(async () => {
+    await Inventory.deleteMany({});
     await TestDatabase.close();
   });
 
@@ -26,7 +27,7 @@ describe("Router - Inventory", () => {
 
   beforeAll(async () => {
     await TestDatabase.connect();
-
+    await Inventory.deleteMany({});
     await Inventory.create(defaultInventory);
     await Inventory.create(truckInventory);
   });

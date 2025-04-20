@@ -296,6 +296,39 @@ class HospitalResourceController {
     }
   }
 
+  async getHospitalResourceByResourceNameAndHospitalId(
+    resourceName: string,
+    hospitalId: Types.ObjectId,
+  ): Promise<LeanDocument<IHospitalResource>[]> {
+    try {
+      const resource = await this.getResourceByName(resourceName);
+
+      const hospitalResource = await HospitalResource.findOne({
+        resourceId: resource._id,
+        hospitalId: hospitalId,
+      }).exec();
+
+      if (!hospitalResource) {
+        throw new HttpError(
+          "HospitalResource with the given resourceId and hospitalId not found.",
+          404,
+        );
+      }
+
+      return hospitalResource.toObject();
+
+    } catch (error) {
+      console.error("Error fetching hospital resources by resourceId:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
+      throw new HttpError(
+        "Failed to fetch hospital resources by resourceId",
+        500,
+      );
+    }
+  }
+
   /**
    * Fetch hospital resources by resourceId
    * @param resourceId The ID of the resource

@@ -87,39 +87,12 @@ const HospitalResourceRequestsPage: React.FC = () => {
   };
 
   // Handle redirection to see details of an exisiting resource
-  const redirectToIncomingHospitalResourceDetails = (resourceNmae: string) => {
-    const result = resources.find(
-      (resource) => resource.resourceId.resourceName === resourceNmae,
-    );
-
-    const resourceId = result?._id;
+  const redirectToIncomingHospitalResourceDetails = (requestId: string) => {
 
     navigate(
-      `/register-hospital/${hospitalId}/resources/newResource/${resourceId}`,
-      {
-        state: {
-          hospitalResource: result,
-        },
-      },
+      `/register-hospital/${hospitalId}/requests/${requestId}`
     );
   };
-
-  // const fetchInstockQuantity = async (resourceId: string) => {
-  //   try {
-  //     const response: HospitalResource = await request(
-  //       `/api/hospital-resource/${hospitalId}/${resourceId}`,
-  //       {
-  //         method: "GET",
-  //       },
-  //     );
-  //     if (response) {
-  //       return response.inStockQuantity;
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching hospital details:", error);
-  //     return null;
-  //   }
-  // };
 
   return (
     <Box className="p-2">
@@ -187,7 +160,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
         items={outgoingRequests}
         key="Outgoing Requests"
         getKey={(hospitalResourceRequest: IHospitalResourceRequest): string =>
-          hospitalResourceRequest.receiverHospitalId
+          hospitalResourceRequest.receiverHospitalId.hospitalId
         }
         showHeader={false}
         title={`Outgoing Requests`}
@@ -214,13 +187,13 @@ const HospitalResourceRequestsPage: React.FC = () => {
             key: "hospitalResourceId",
             align: "center",
             label: "",
-            render: (hospitalResource) => (
+            render: (hospitalResourceRequest) => (
               <IconButton
                 edge="end"
                 size="large"
                 onClick={() =>
                   redirectToIncomingHospitalResourceDetails(
-                    hospitalResource.resourceId.resourceName,
+                    hospitalResourceRequest._id,
                   )
                 }
               >

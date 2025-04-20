@@ -4,12 +4,18 @@ export interface IAppointment extends Document {
   // Per team 1's discussion, we will use Citizen's ID rather than patient's ID
   userId: string;
   // This is nurse's Citizen ID
-  nurseId: string;
+  nurseId: string | undefined;
   createDate: Date;
   updateDate: Date;
   closedDate: Date;
-  note: string;
+  isResolved: boolean;
+  issueName: string;
+  note: string | undefined;
   severityIndex: number;
+  feedback: string | undefined;
+  valid: boolean;
+  startHour: number;
+  endHour: number;
 }
 
 const AppointmentSchema = new Schema({
@@ -19,7 +25,7 @@ const AppointmentSchema = new Schema({
   },
   nurseId: {
     type: String,
-    required: true,
+    required: false,
   },
   createDate: {
     type: Date,
@@ -33,6 +39,27 @@ const AppointmentSchema = new Schema({
     type: Date,
     default: null,
   },
+  startHour: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 23,
+  },
+  endHour: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 23,
+  },
+  isResolved: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
+  issueName: {
+    type: String,
+    required: true,
+  },
   note: {
     type: String,
     default: "",
@@ -42,6 +69,15 @@ const AppointmentSchema = new Schema({
     default: 0,
     min: 0,
     max: 5,
+  },
+  feedback: {
+    type: String,
+    default: "",
+  },
+  valid: {
+    type: Boolean,
+    default: true,
+    required: true,
   },
 });
 

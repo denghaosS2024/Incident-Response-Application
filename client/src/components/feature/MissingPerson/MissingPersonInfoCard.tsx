@@ -34,7 +34,6 @@ const MissingPersonCard: React.FC<MissingPersonCardProps> = ({
     weight,
     dateLastSeen,
     photo,
-    reportStatus,
     personStatus,
   } = person;
 

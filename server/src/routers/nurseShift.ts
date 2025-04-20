@@ -106,7 +106,7 @@ router
         throw new HttpError("Missing or invalid 'hours' array", 400);
       }
 
-      const result = await NurseShiftController.updateShiftsForDay(
+      const result = await NurseShiftController.updateShiftForDay(
         nurseId,
         parseInt(dayOfWeek),
         hours,

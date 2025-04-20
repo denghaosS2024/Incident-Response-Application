@@ -22,20 +22,25 @@ export default class VisitLogHelper {
 
     const normalizeValue = (
       key: keyof IVisitLogForm,
-      value: string,
+      value: any,
     ): IVisitLogForm[keyof IVisitLogForm] => {
       if (key === "age") {
         return value === "" ? null : parseInt(value);
       } else if (key === "drugs" || key === "allergies") {
+        // If it's already an array, just filter
+        if (Array.isArray(value)) {
+          return value.filter((v) => typeof v === "string" && v.trim().length > 0);
+        }
+        // If it's a string (fallback), split it
         return value
           .split(",")
-          .map((v) => v.trim())
-          .filter((v) => v.length > 0);
+          .map((v: string) => v.trim())
+          .filter((v: string) => v.length > 0);
       } else {
         return value;
       }
     };
-
+    
     for (const [key, value] of Object.entries(formData)) {
       if (!value) continue; // skip undefined / empty
       const typedKey = key as keyof IVisitLogForm;

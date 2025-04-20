@@ -327,26 +327,28 @@ export default Router()
    *       500:
    *         description: Server error
    */
-     .get("/id/:_id", async (request, response) => {
-      try {
-        const { _id } = request.params;
+  .get("/id/:_id", async (request, response) => {
+    try {
+      const { _id } = request.params;
 
-        // Validate the resourceName parameter
-        if (!_id) {
-          throw new HttpError("resourceId parameter is required.", 400);
-        }
-        const hospitalResource =
-          await HospitalResourceController.getHospitalResourceById(new Types.ObjectId(_id));
-  
-        return response.status(200).send(hospitalResource);
-      } catch (e) {
-        if (e instanceof HttpError) {
-          return response.status(e.statusCode).send({ message: e.message });
-        }
-        const error = e as Error;
-        return response.status(500).send({ message: error.message });
+      // Validate the resourceName parameter
+      if (!_id) {
+        throw new HttpError("resourceId parameter is required.", 400);
       }
-    })
+      const hospitalResource =
+        await HospitalResourceController.getHospitalResourceById(
+          new Types.ObjectId(_id),
+        );
+
+      return response.status(200).send(hospitalResource);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
 
   /**
    * @swagger
@@ -400,6 +402,35 @@ export default Router()
         );
 
       return response.status(200).send(hospitalResources);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
+
+  .get("/allResources/:hospitalId/:resourceName", async (request, response) => {
+    try {
+      const { hospitalId, resourceName } = request.params;
+
+      // Validate the resourceName parameter
+      if (!hospitalId) {
+        throw new HttpError("hospitalId parameter is required.", 400);
+      }
+
+      if (!resourceName) {
+        throw new HttpError("resourceName parameter is required.", 400);
+      }
+
+      const resource =
+        await HospitalResourceController.getHospitalResourceByResourceNameAndHospitalId(
+          resourceName,
+          new Types.ObjectId(hospitalId),
+        );
+
+      return response.status(200).send(resource);
     } catch (e) {
       if (e instanceof HttpError) {
         return response.status(e.statusCode).send({ message: e.message });

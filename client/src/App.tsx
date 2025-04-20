@@ -12,6 +12,8 @@ import DefaultTruckAddItem from "./pages/DefaultTruckAddItem.tsx";
 import DefaultTruckInventory from "./pages/DefaultTruckInventory.tsx";
 import FindHospital from "./pages/FindHospital";
 import FirstResponderPatientsPage from "./pages/FirstResponderPatientsPage";
+import FundingCenter from "./pages/FundingCenter.tsx";
+import FundingInformation from "./pages/FundingInformation.tsx";
 import GroupInformationPage from "./pages/GroupInformationPage";
 import GroupsPage from "./pages/GroupsPage";
 import HomePage from "./pages/HomePage";
@@ -28,9 +30,11 @@ import MissingPersonDirectoryPage from "./pages/MissingPersonDirectoryPage";
 import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
 import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualReportPage";
 import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
+import MissingPersonUpdatePage from "./pages/MissingPersonUpdatePage.tsx";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
 import NurseShiftPage from "./pages/NurseShiftPage";
 import Organization from "./pages/Organization";
+import PastAppointmentPage from "./pages/PastAppointmentPage.tsx";
 import PatientAdmitPage from "./pages/PatientAdmitPage.tsx";
 import PatientMedicalReportPage from "./pages/PatientMedicalReportPage";
 import PatientsRouter from "./pages/PatientsRouter";
@@ -52,8 +56,7 @@ import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
-import FundingCenter from "./pages/FundingCenter.tsx";
-import FundingInformation from "./pages/FundingInformation.tsx";
+import HospitalResourceRequestEditPage from "./pages/HospitalResourceRequestEditPage.tsx";
 
 export default function App() {
   //Feature toggling: show the hospitals directory page only when the flag is enabled
@@ -70,7 +73,13 @@ export default function App() {
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/funding-center" element={<FundingCenter />} />
-            <Route path="/funding-information/:incidentId" element={<FundingInformation />} />
+            <Route
+             
+              path="/funding-information/:incidentId"
+             
+              element={<FundingInformation />}
+           
+            />
             {/* The path /messages/:id allows for passing channelId as a query parameter.
             This allow us to navigate to /messages but automatically into a specific channel chat.
             Please look into the implementation in Messages.tsx */}
@@ -146,6 +155,10 @@ export default function App() {
               path="/register-hospital/:hospitalId/requests"
               element={<HospitalResourceRequestsPage />}
             />
+            <Route
+              path="/register-hospital/:hospitalId/requests/:requestId"
+              element={<HospitalResourceRequestEditPage />}
+            />
 
             <Route
               path="/missing-person/directory"
@@ -161,8 +174,13 @@ export default function App() {
             />
 
             <Route
-              path="missing-person/followUp/:reportId"
+              path="/missing-person/followUp/:reportId"
               element={<MissingPersonFollowUpPage />}
+            />
+
+            <Route
+              path="/missing-person/update/:reportId"
+              element={<MissingPersonUpdatePage />}
             />
 
             <Route
@@ -179,6 +197,7 @@ export default function App() {
             />
             <Route path="/truck-stock" element={<TruckStockPage />} />
             <Route path="/shifts" element={<NurseShiftPage />} />
+            <Route path="/past-appointment" element={<PastAppointmentPage />} />
           </Route>
 
           <Route element={<RoutedHome showBackButton isSubPage />}>

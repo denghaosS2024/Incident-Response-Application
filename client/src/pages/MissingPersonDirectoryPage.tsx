@@ -57,7 +57,7 @@ const MissingPersonDirectoryPage: React.FC = () => {
               key={p._id}
               person={p}
               showAction
-              onActionClick={() => navigate(`/missing-person/${p._id}`)}
+              onActionClick={() => navigate(`/missing-person/report/${p._id}`)}
             />
           ))
         ) : (
@@ -72,7 +72,12 @@ const MissingPersonDirectoryPage: React.FC = () => {
         </Typography>
         {closedReports.length > 0 ? (
           closedReports.map((p) => (
-            <MissingPersonCard key={p._id} person={p} showAction={false} />
+            <MissingPersonCard
+              key={p._id}
+              person={p}
+              showAction
+              onActionClick={() => navigate(`/missing-person/report/${p._id}`)}
+            />
           ))
         ) : (
           <Typography>No closed reports found.</Typography>

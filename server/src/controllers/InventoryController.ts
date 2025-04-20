@@ -92,6 +92,40 @@ class InventoryController {
     console.log("Non-default inventories:", inventories);
     return inventories;
   }
+
+
+  async updateItemQuantity(category, itemName, newQuantity) {
+  try {
+
+    if (!category || !itemName) {
+      throw new Error("Category and item name are required");
+    }
+    
+    if (newQuantity === undefined || !Number.isInteger(newQuantity) || newQuantity < 0) {
+      throw new Error("A valid non-negative integer quantity is required");
+    }
+    
+    const inventory = await Inventory.findOne({ category });
+    
+    if (!inventory) {
+      throw new Error(`Inventory with category '${category}' not found`);
+    }
+    
+    const item = inventory.items.find(item => item.name === itemName);
+    
+    if (!item) {
+      throw new Error(`Item '${itemName}' not found in category '${category}'`);
+    }
+    
+    item.quantity = newQuantity;
+    
+    await inventory.save();
+    
+    return inventory;
+  } catch (error) {
+    throw error;
+  }
+}
 }
 
 export default new InventoryController();

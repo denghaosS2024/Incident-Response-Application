@@ -183,6 +183,7 @@ const HospitalResourceForm: React.FC = () => {
             : "Hospital resource created successfully!",
           "success",
         );
+        setFetchedhospitalResourceData(hospitalResourceData)
       } else {
         showSnackbar(
           resourceId ? "Error updating a hospital resource." : "Error creating a hospital resource.",
