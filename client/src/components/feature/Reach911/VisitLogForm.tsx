@@ -19,7 +19,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { RootState } from "../../../redux/store";
@@ -514,7 +514,7 @@ const VisitLogForm: React.FC<{
         <Box display="flex" alignItems="center" gap={2}>
           <Typography sx={{ width: 120, flexShrink: 0 }}>Drugs:</Typography>
           <Box sx={{ flex: 1, width: 200 }}>
-          <DrugEntry isReadOnly={isReadOnly} ref={drugEntryRef} />
+            <DrugEntry isReadOnly={isReadOnly} ref={drugEntryRef} />
           </Box>
         </Box>
       </FormControl>
@@ -578,6 +578,31 @@ const VisitLogForm: React.FC<{
                 onClick={onClickRequestHelp}
               >
                 Request Help
+              </Button>
+            </Link>
+          </Box>
+        </FormControl>
+      )}
+
+      {/* Request First Aid Assistance */}
+      {["Police", "Fire", "Dispatch"].includes(
+        localStorage.getItem("role") ?? "",
+      ) && (
+        <FormControl>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography sx={{ width: 120, flexShrink: 0 }}>
+              Request Support:
+            </Typography>
+            <Link style={{ textDecoration: "none" }}>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  // TODO: Navigate to the First Aid Assistance page
+                }}
+              >
+                First Aid Assist
               </Button>
             </Link>
           </Box>
