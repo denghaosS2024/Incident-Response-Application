@@ -10,6 +10,7 @@ import CreatechartPage from "./pages/CreatechartPage.tsx";
 import DashboardPage from "./pages/DashboardPage";
 import DefaultTruckAddItem from "./pages/DefaultTruckAddItem.tsx";
 import DefaultTruckInventory from "./pages/DefaultTruckInventory.tsx";
+import ExerciseLibraryPage from "./pages/ExerciseLibraryPage";
 import FindHospital from "./pages/FindHospital";
 import FirstResponderPatientsPage from "./pages/FirstResponderPatientsPage";
 import FundingCenter from "./pages/FundingCenter.tsx";
@@ -211,6 +212,8 @@ export default function App() {
             <Route path="/messages/:id" element={<ChatRoomPage />} />
             <Route path="/groups/:id" element={<GroupInformationPage />} />
           </Route>
+
+          <Route path="/exercise-library" element={<ExerciseLibraryPage />} />
         </Routes>
       </Router>
     </StyledEngineProvider>
