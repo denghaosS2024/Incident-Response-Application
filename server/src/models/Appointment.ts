@@ -14,6 +14,8 @@ export interface IAppointment extends Document {
   severityIndex: number;
   feedback: string | undefined;
   valid: boolean;
+  startHour: number;
+  endHour: number;
 }
 
 const AppointmentSchema = new Schema({
@@ -36,6 +38,18 @@ const AppointmentSchema = new Schema({
   closedDate: {
     type: Date,
     default: null,
+  },
+  startHour: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 23,
+  },
+  endHour: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 23,
   },
   isResolved: {
     type: Boolean,

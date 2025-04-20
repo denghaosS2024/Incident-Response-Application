@@ -1,5 +1,5 @@
 export interface IAppointment {
-  appointmentId: string;
+  _id: string;
   // Per team 1's discussion, we will use Citizen's ID rather than patient's ID
   userId: string;
   // This is nurse's Citizen ID

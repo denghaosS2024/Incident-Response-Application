@@ -1,7 +1,7 @@
 import { Appointment, IAppointment } from "../models/Appointment";
 import UserController from "./UserController";
 
-export class AppointmentController {
+class AppointmentController {
   /**
    * Create a new appointment
    * @param appointment - The appointment to create
@@ -11,8 +11,9 @@ export class AppointmentController {
     userId,
     issueName,
     nurseId = undefined,
-    note,
     severityIndex = 0,
+    startHour,
+    endHour,
   }: IAppointment) {
     // Check for existing user
     await UserController.getExistingUser(userId);
@@ -25,8 +26,9 @@ export class AppointmentController {
       userId,
       nurseId,
       issueName,
-      note,
       severityIndex,
+      startHour,
+      endHour,
     });
 
     await doc.save();
@@ -79,3 +81,5 @@ export class AppointmentController {
     );
   }
 }
+
+export default new AppointmentController();

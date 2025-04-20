@@ -20,7 +20,7 @@ const PastAppointmentList: React.FC<PastAppointmentListProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { appointments } = await request(
+        const appointments = await request(
           `/api/appointments/past?userId=${userId}`,
           {
             method: "GET",
@@ -32,37 +32,7 @@ const PastAppointmentList: React.FC<PastAppointmentListProps> = ({
         console.error("Error fetching data:", error);
       }
     };
-    // TODO: uncomment fetchData when backend is ready
-    // fetchData();
-
-    // test Data
-    // setNumOfEntries(2);
-    // setPastAppointmentList([
-    //   {
-    //     appointmentId: "111",
-    //     userId: "abcdefg",
-    //     nurseId: "abcd",
-    //     createDate: new Date(Date.now()),
-    //     updateDate: new Date(Date.now()),
-    //     closedDate: new Date(Date.now()),
-    //     isResolved: true,
-    //     issueName: "headache",
-    //     note: "111",
-    //     severityIndex: 1,
-    //   },
-    //   {
-    //     appointmentId: "112",
-    //     userId: "abcdefg",
-    //     nurseId: "abcd",
-    //     createDate: new Date(Date.now()),
-    //     updateDate: new Date(Date.now()),
-    //     closedDate: new Date(Date.now()),
-    //     isResolved: true,
-    //     issueName: "headache 2",
-    //     note: "111",
-    //     severityIndex: 1,
-    //   },
-    // ]);
+    fetchData();
   }, [userId]);
 
   return (
@@ -73,8 +43,8 @@ const PastAppointmentList: React.FC<PastAppointmentListProps> = ({
           key={index}
           index={index}
           issueName={appointment.issueName}
-          closedDate={appointment.closedDate}
-          appointmentId={appointment.appointmentId}
+          closedDate={new Date(appointment.closedDate)}
+          appointmentId={appointment._id}
         />
       ))}
       <Typography variant="h6" align="center">

@@ -20,12 +20,14 @@ import user from "./user";
 // This router does not exist in this codebase
 import airQuality from "./airQuality";
 import alertQueueRouter from "./alertQueue";
+import appointmentRouter from "./appointment";
 import carRouter from "./car";
 import cityRouter from "./city";
 import dashboard from "./dashboard";
 import HospitalResourceRouter from "./hospitalResource";
 import HospitalResourceRequestsRouter from "./hospitalResourceRequest";
 import incidentReportRouter from "./incidentReport";
+import inventoryRouter from "./inventory";
 import nurseShiftRouter from "./nurseShift";
 import patientRouter from "./patients";
 import personnelRouter from "./personnel";
@@ -33,7 +35,6 @@ import profileRouter from "./profile";
 import taskRouter from "./sartask";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
-import inventoryRouter from "./inventory";
 
 export default Router()
   .use("/users", user)
@@ -75,4 +76,5 @@ export default Router()
   .use("/hospital-resource", HospitalResourceRouter)
   .use("/hospital-resources-requests", HospitalResourceRequestsRouter)
   .use("/nurse-shifts", nurseShiftRouter)
-  .use("/inventories", inventoryRouter);
+  .use("/inventories", inventoryRouter)
+  .use("/appointments", appointmentRouter);
