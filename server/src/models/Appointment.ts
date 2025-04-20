@@ -14,6 +14,7 @@ export interface IAppointment extends Document {
   createDate: Date;
   updateDate: Date;
   closedDate: Date;
+  dayOfWeek: number;
   isResolved: boolean;
   issueName: string;
   note: string | undefined;

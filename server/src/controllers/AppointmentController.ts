@@ -12,6 +12,7 @@ class AppointmentController {
     issueName,
     nurseId = undefined,
     severityIndex = 0,
+    dayOfWeek,
     startHour,
     endHour,
   }: IAppointment) {
@@ -27,6 +28,7 @@ class AppointmentController {
       nurseId,
       issueName,
       severityIndex,
+      dayOfWeek,
       startHour,
       endHour,
     });
@@ -104,6 +106,7 @@ class AppointmentController {
       isResolved: false,
     }).sort({
       severityIndex: -1, // Sort by severity index desc (2, then 1, then 0)
+      dayOfWeek: 1, // Then sort by dayOfWeek asc (earlier first)
       startHour: 1, // Then sort by startHour asc (earlier first)
     });
   }
