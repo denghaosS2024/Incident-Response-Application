@@ -48,6 +48,52 @@ appointmentRouter.post("/", async (req, res) => {
 
 /**
  * @swagger
+ * /api/appointments/past:
+ *   get:
+ *     summary: Get resolved (past) appointments for a user
+ *     description: Retrieves appointments marked as resolved for a specific user, using their ID from query parameter.
+ *     tags:
+ *       - Appointments
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user ID to fetch past appointments for
+ *     responses:
+ *       '200':
+ *         description: A list of resolved appointments for the specified user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Appointment'
+ *       '400':
+ *         description: Bad request, invalid userId or user does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+appointmentRouter.get("/past", async (req, res) => {
+  try {
+    const userId = req.query.userId as string;
+    const appointments = await AppointmentController.findByUserId(userId, true);
+    res.status(200).json(appointments);
+  } catch (err) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
  * /api/appointments/{id}:
  *   get:
  *     summary: Get an appointment by ID
@@ -94,52 +140,6 @@ appointmentRouter.get("/active", async (_, res) => {
         dayOfWeek,
         hour,
       );
-    res.status(200).json(appointments);
-  } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/appointments/past:
- *   get:
- *     summary: Get resolved (past) appointments for a user
- *     description: Retrieves appointments marked as resolved for a specific user, using their ID from query parameter.
- *     tags:
- *       - Appointments
- *     parameters:
- *       - in: query
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: The user ID to fetch past appointments for
- *     responses:
- *       '200':
- *         description: A list of resolved appointments for the specified user
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Appointment'
- *       '400':
- *         description: Bad request, invalid userId or user does not exist
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message
- */
-appointmentRouter.get("/past", async (req, res) => {
-  try {
-    const userId = req.query.userId as string;
-    const appointments = await AppointmentController.findByUserId(userId, true);
     res.status(200).json(appointments);
   } catch (err) {
     const error = err as Error;
