@@ -8,6 +8,17 @@ interface ActiveAppointmentProps {
   severityIndex: number;
 }
 
+// Convert severityIndex to string label
+const getSeverityLabel = (severityIndex: number): string => {
+  return severityIndex === 0
+    ? "Low"
+    : severityIndex === 1
+      ? "Medium"
+      : severityIndex === 2
+        ? "High"
+        : "Urgent";
+};
+
 const ActiveAppointment: React.FC<ActiveAppointmentProps> = ({
   patientName,
   issueName,
@@ -37,14 +48,7 @@ const ActiveAppointment: React.FC<ActiveAppointmentProps> = ({
         <Typography variant="body2" color="textSecondary">
           {/* Severity Index */}
           {/* Priority: High */}
-          Priority:{" "}
-          {severityIndex === 0
-            ? "Low"
-            : severityIndex === 1
-              ? "Medium"
-              : severityIndex === 2
-                ? "High"
-                : "Urgent"}
+          Priority: {getSeverityLabel(severityIndex)}
         </Typography>
       </Box>
       <Box>
