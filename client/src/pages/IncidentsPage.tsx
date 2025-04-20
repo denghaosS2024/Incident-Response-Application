@@ -187,6 +187,12 @@ function IncidentsPage() {
         }
       }
 
+      const user = await request(`/api/users/${username}`, {
+        method: "GET",
+      });
+
+      console.log("User data:", user);
+
       const incidentId = `I${username}${incidentCount}`;
       const newIncident: IIncident = {
         _id: "",
@@ -196,6 +202,7 @@ function IncidentsPage() {
         incidentState: "Assigned",
         owner: username,
         commander: username,
+        city: user.assignedCity,
         address: "",
         type: IncidentType.Unset,
         questions: null,
@@ -208,6 +215,8 @@ function IncidentsPage() {
         searchOperation: undefined,
         sarTasks: [],
       };
+      
+      // console.log("New incident data:", newIncident); 
 
       await request("/api/incidents/new", {
         method: "POST",

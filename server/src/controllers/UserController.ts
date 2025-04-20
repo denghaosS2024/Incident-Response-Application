@@ -104,6 +104,19 @@ class UserController {
     }
   }
 
+  async getDirectorByCity(cityName: string) {
+    try {
+      const user = await User.findOne({
+        assignedCity: cityName,
+        role: ROLES.CITY_DIRECTOR,
+      }).lean().exec();
+      return user || null;
+    } catch (error) {
+      console.error("Error getting director by city:", error);
+      return null;
+    }
+  }
+
   /**
    * Check if a user exists
    * @param userId - The ID of the user

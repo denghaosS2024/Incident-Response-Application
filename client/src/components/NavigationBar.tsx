@@ -101,7 +101,11 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/sar-incident": "SAR Incident",
     "/defaulttruckinventory": "Default Truck Inventory",
     "/defaulttruckadditem": "Add Truck Item",
+<<<<<<< Updated upstream
     "/register-hospital/resources/directory": "Hospital Resources",
+=======
+    "/funding-center": "Funding Center",
+>>>>>>> Stashed changes
   };
 
   const roleTitles: Record<string, string> = {
@@ -307,6 +311,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     }
   };
 
+  const navigateToFundingCenter = () => {
+    if (["Fire Chief", "Police Chief"].includes(role)) {
+      navigate("/funding-center");
+    }
+    closeMenu();
+  }
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -360,6 +371,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
           )}
           {(role === "Fire" || role === "Police" || role === "Nurse") && (
             <MenuItem onClick={navigateToPatientsPage}>Patients</MenuItem>
+          )}
+          {(role === "Fire Chief" || role === "Police Chief") && (
+            <MenuItem onClick={navigateToFundingCenter}>Funding Center</MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
