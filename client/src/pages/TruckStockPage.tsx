@@ -1,3 +1,4 @@
+import { FireTruck as FireTruckIcon } from "@mui/icons-material";
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import {
     Box,
@@ -12,12 +13,13 @@ import {
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import request from "../utils/request";
+import { Truck } from "./Organization";
 
-// Define TypeScript interfaces
 interface InventoryItem {
   _id: string;
   name: string;
   quantity: number;
+  description: string;
 }
 
 interface TruckInventory {
@@ -26,27 +28,42 @@ interface TruckInventory {
   items: InventoryItem[];
 }
 
+
+
+
 const TruckStockPage: React.FC = () => {
   const [trucks, setTrucks] = useState<TruckInventory[]>([]);
+  const [truckData, setTruckData] = useState<Truck[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchTruckInventories = async (): Promise<void> => {
+    const fetchData = async (): Promise<void> => {
       try {
-        // Using request instead of axios
-        const data = await request('/api/inventories/non-default');
+        const [inventoryData, trucksData] = await Promise.all([
+          request('/api/inventories/non-default'),
+          request<Truck[]>("/api/trucks/list/all"),
+        ]);
+        console.log('Inventory Data:', inventoryData);
+        console.log('Trucks Data:', trucksData);
         
-        if (Array.isArray(data)) {
-          setTrucks(data);
+        if (Array.isArray(inventoryData)) {
+          setTrucks(inventoryData);
         } else {
-          if (data && Array.isArray(data.data)) {
-            setTrucks(data.data);
-          } else {
-            console.error('Unexpected API response format:', data);
-            setTrucks([]);
-          }
+          console.error('Unexpected inventory API response format:', inventoryData);
+          setTrucks([]);
         }
+        
+        // Process truck data
+        if (Array.isArray(trucksData)) {
+          setTruckData(trucksData);
+        } else if (trucksData && Array.isArray(trucksData)) {
+          setTruckData(trucksData);
+        } else {
+          console.error('Unexpected truck API response format:', trucksData);
+          setTruckData([]);
+        }
+        
         setLoading(false);
       } catch (err) {
         console.error('Error:', err);
@@ -54,13 +71,21 @@ const TruckStockPage: React.FC = () => {
       }
     };
 
-    fetchTruckInventories();
+    fetchData();
   }, []);
+
+  const getIncidentName = (truckCategory: string): string => {
+    // Find the truck with the matching name/category
+    const truck = truckData.find(t => t.name === truckCategory);
+    
+    // Return the incident name if available, otherwise return default text
+    return truck?.assignedIncident || "No active incident";
+  };
 
   const handleViewItems = (category: string): void => {
     navigate(`/truck-inventory/${category}`);
   };
-  
+
   const handleEditDefaultItems = (): void => {
     navigate('/defaulttruckinventory');
   };
@@ -93,28 +118,34 @@ const TruckStockPage: React.FC = () => {
         {trucks.map((truck) => (
           <Grid item xs={12} sm={6} md={4} key={truck._id}>
             <Card>
-                <CardContent>
+              <CardContent>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h6">
+                  <FireTruckIcon />
+                  <Typography variant="h6">
                     {truck.category}
-                    </Typography>
-                    <IconButton
-                     color="primary"
-                     aria-label="view items"
+                  </Typography>
+                  <IconButton
+                    color="primary"
+                    aria-label="view items"
                     onClick={() => handleViewItems(truck.category)}
-                    >
+                  >
                     <ArrowForwardIcon />
-                    </IconButton>
+                  </IconButton>
                 </Box>
-                </CardContent>
+                <Box mt={1}>
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>Incident:</strong> {getIncidentName(truck.category)}
+                  </Typography>
+                </Box>
+              </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
       
       <Box mt={4} display="flex" justifyContent="center">
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           color="primary"
           onClick={handleEditDefaultItems}
         >
