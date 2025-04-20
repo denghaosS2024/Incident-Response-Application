@@ -29,6 +29,7 @@ import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
 import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualReportPage";
 import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
+import NurseShiftPage from "./pages/NurseShiftPage";
 import Organization from "./pages/Organization";
 import PatientAdmitPage from "./pages/PatientAdmitPage.tsx";
 import PatientMedicalReportPage from "./pages/PatientMedicalReportPage";
@@ -173,6 +174,7 @@ export default function App() {
               element={<TruckInventoryPage />}
             />
             <Route path="/truck-stock" element={<TruckStockPage />} />
+            <Route path="/shifts" element={<NurseShiftPage />} />
           </Route>
 
           <Route element={<RoutedHome showBackButton isSubPage />}>

@@ -23,8 +23,28 @@ class NurseShiftController {
    */
   async isNurseOnShift(nurseId: string): Promise<boolean> {
     const now = new Date();
-    const currentDay = now.getDay(); // 0 (Sun) - 6 (Sat)
-    const currentHour = now.getHours();
+    const localTime = new Date(
+      now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
+    );
+
+    const currentDay = localTime.getDay();
+    const currentHour = localTime.getHours();
+
+    console.log(`[DEBUG] Local Time: ${localTime.toISOString()}`);
+    console.log(`[DEBUG] Day=${currentDay}, Hour=${currentHour}`);
+
+    const shifts = await NurseShift.find({
+      nurseId,
+      dayOfWeek: currentDay,
+    }).exec();
+
+    for (const shift of shifts) {
+      console.log(
+        `[DEBUG] Shift from ${shift.startHour} to ${shift.endHour} → Match? ${
+          shift.startHour <= currentHour && shift.endHour > currentHour
+        }`,
+      );
+    }
 
     const shift = await NurseShift.findOne({
       nurseId,
@@ -33,6 +53,7 @@ class NurseShiftController {
       endHour: { $gt: currentHour },
     }).exec();
 
+    console.log("[DEBUG] Final match shift found:", !!shift);
     return !!shift;
   }
 
