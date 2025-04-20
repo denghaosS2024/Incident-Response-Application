@@ -4,11 +4,53 @@ import HospitalResourceRequestController from "../controllers/HospitalResourceRe
 
 import HttpError from "../utils/HttpError";
 
-import { HospitalResourceRequestClient } from "../controllers/HospitalResourceRequestController";
 import HospitalResourceController from "../controllers/HospitalResourceController";
+import { HospitalResourceRequestClient } from "../controllers/HospitalResourceRequestController";
 import { IResourceRequestBase } from "../models/HospitalResourceRequest";
 
 export default Router()
+  /**
+   * @swagger
+   * /api/hospital-resources-requests/:
+   *   post:
+   *     summary: Create a new hospital resource request
+   *     description: Creates a new resource request between hospitals.
+   *     tags:
+   *       - Hospital Resource Requests
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               senderHospitalId:
+   *                 type: string
+   *                 description: The ID of the sender hospital.
+   *               receiverHospitalId:
+   *                 type: string
+   *                 description: The ID of the receiver hospital.
+   *               hospitalResourceId:
+   *                 type: string
+   *                 description: The ID of the hospital resource.
+   *               resourceName:
+   *                 type: string
+   *                 description: The name of the resource being requested.
+   *               requestedQuantity:
+   *                 type: number
+   *                 description: The quantity of the resource being requested.
+   *     responses:
+   *       201:
+   *         description: Resource request created successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/HospitalResourceRequest'
+   *       400:
+   *         description: Bad request. Missing or invalid parameters.
+   *       500:
+   *         description: Internal server error.
+   */
   .post("/", async (request, response) => {
     try {
       const hospitalResourceRequest: HospitalResourceRequestClient =
@@ -74,6 +116,35 @@ export default Router()
     }
   })
 
+  /**
+   * @swagger
+   * /api/hospital-resources-requests/{hospitalId}/incoming:
+   *   get:
+   *     summary: Get incoming resource requests
+   *     description: Retrieves all incoming resource requests for a specific hospital.
+   *     tags:
+   *       - Hospital Resource Requests
+   *     parameters:
+   *       - in: path
+   *         name: hospitalId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the hospital.
+   *     responses:
+   *       200:
+   *         description: A list of incoming resource requests.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/HospitalResourceRequest'
+   *       404:
+   *         description: Hospital not found.
+   *       500:
+   *         description: Internal server error.
+   */
   .get("/:hospitalId/incoming", async (request, response) => {
     const hospitalId = request.params.hospitalId;
 
@@ -93,6 +164,35 @@ export default Router()
     }
   })
 
+  /**
+   * @swagger
+   * /api/hospital-resources-requests/{hospitalId}/outgoing:
+   *   get:
+   *     summary: Get outgoing resource requests
+   *     description: Retrieves all outgoing resource requests for a specific hospital.
+   *     tags:
+   *       - Hospital Resource Requests
+   *     parameters:
+   *       - in: path
+   *         name: hospitalId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the hospital.
+   *     responses:
+   *       200:
+   *         description: A list of outgoing resource requests.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/HospitalResourceRequest'
+   *       404:
+   *         description: Hospital not found.
+   *       500:
+   *         description: Internal server error.
+   */
   .get("/:hospitalId/outgoing", async (request, response) => {
     const hospitalId = request.params.hospitalId;
 
@@ -111,7 +211,43 @@ export default Router()
       return response.status(500).send({ message: error.message });
     }
   })
-
+  /**
+   * @swagger
+   * /api/hospital-resources-requests/{requestId}/requested-quantity:
+   *   put:
+   *     summary: Update requested quantity
+   *     description: Updates the requested quantity for a specific resource request.
+   *     tags:
+   *       - Hospital Resource Requests
+   *     parameters:
+   *       - in: path
+   *         name: requestId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the resource request.
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               requestedQuantity:
+   *                 type: number
+   *                 description: The updated quantity of the resource being requested.
+   *     responses:
+   *       200:
+   *         description: Requested quantity updated successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/HospitalResourceRequest'
+   *       404:
+   *         description: Resource request not found.
+   *       500:
+   *         description: Internal server error.
+   */
   .put("/:requestId/requested-quantity", async (request, response) => {
     const requestId = request.params.requestId;
     const { requestedQuantity } = request.body;
@@ -135,7 +271,33 @@ export default Router()
       return response.status(500).send({ message: error.message });
     }
   })
-
+  /**
+   * @swagger
+   * /api/hospital-resources-requests/{requestId}:
+   *   get:
+   *     summary: Get a specific resource request
+   *     description: Retrieves a specific resource request by its ID.
+   *     tags:
+   *       - Hospital Resource Requests
+   *     parameters:
+   *       - in: path
+   *         name: requestId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the resource request.
+   *     responses:
+   *       200:
+   *         description: The requested resource request.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/HospitalResourceRequest'
+   *       404:
+   *         description: Resource request not found.
+   *       500:
+   *         description: Internal server error.
+   */
   .get("/:requestId", async (request, response) => {
     const requestId = request.params.requestId;
 
@@ -154,5 +316,3 @@ export default Router()
       return response.status(500).send({ message: error.message });
     }
   });
-
-  

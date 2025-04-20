@@ -16,7 +16,7 @@ export default function NurseShiftPage() {
       </Typography>
 
       <Typography variant="body1" color="textSecondary">
-        Don’t leave your patients behind!
+        Don't leave your patients behind!
       </Typography>
 
       <NurseShiftStatus />
