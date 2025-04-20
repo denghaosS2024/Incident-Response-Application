@@ -89,6 +89,43 @@ router
     }
   })
 
+  .get("/:username", async (req, res) => {
+    const { username } = req.params;
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+    try {
+      const result = await UserController.getUserByUsername(username);
+      if (!result) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.send(result);
+      return;
+    } catch (e) {
+      const error = e as Error;
+      return res.status(500).send({ message: error.message });
+    }
+  })
+
+  .get("/cities/directors/:cityName", async (req, res) => {
+    const { cityName } = req.params;
+    if (!cityName) {
+      return res.status(400).json({ error: "City name is required" });
+    }
+
+    try {
+      const result = await UserController.getDirectorByCity(cityName);
+      if (!result) {
+        return res.status(404).json({ message: "Director not found" });
+      }
+      res.send(result);
+      return;
+    } catch (e) {
+      const error = e as Error;
+      return res.status(500).send({ message: error.message });
+    }
+  })
+
   /**
    * Get user's last known location
    * @route GET /api/users/:id/location

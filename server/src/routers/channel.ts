@@ -930,4 +930,23 @@ export default Router()
   .get("/public/messages", async (_, response) => {
     const publicChannel = await Channel.getPublicChannel();
     return response.redirect(`/api/channels/${publicChannel.id}/messages`);
-  });
+  })
+
+  .get("/:cityName/:chiefName", async (request, response) => {
+    const { cityName, chiefName } = request.params;
+    if (!cityName || !chiefName) {
+      return response.status(400).json({ error: "City name and chief name are required" });
+    }
+    try {
+      const result = await ChannelController.getOrCreateDirectorChannel(chiefName, cityName);
+      if (!result) {
+        return response.status(404).json({ message: "Channel not found" });
+      }
+      response.send(result);
+      return;
+    }
+    catch (e) {
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })

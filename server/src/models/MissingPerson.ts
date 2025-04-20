@@ -27,6 +27,7 @@ export interface IMissingPerson extends Document {
   locationLastSeen?: string;
   photo?: string;
   reportStatus: string;
+  personStatus: string;
 }
 
 const MissingPersonSchema = new Schema({
@@ -74,6 +75,11 @@ const MissingPersonSchema = new Schema({
     type: String,
     enum: ["open", "closed"],
     default: "open",
+  },
+  personStatus: {
+    type: String,
+    enum: ["missing", "found"],
+    default: "missing",
   },
 });
 

@@ -101,7 +101,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/sar-incident": "SAR Incident",
     "/defaulttruckinventory": "Default Truck Inventory",
     "/defaulttruckadditem": "Add Truck Item",
-    "/register-hospital/resources/directory": "Hospital Resources",
+    "/funding-center": "Funding Center",
+    "/funding-information": "Funding Information",
   };
 
   const roleTitles: Record<string, string> = {
@@ -206,6 +207,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = `${name} Patient Visit`;
   }
 
+  if (pathname.startsWith("/funding-information/")) {
+    title = "Funding Information";
+  }
+
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true);
     setMenuAnchor(anchor);
@@ -307,6 +312,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     }
   };
 
+  const navigateToFundingCenter = () => {
+    if (["Fire Chief", "Police Chief"].includes(role)) {
+      navigate("/funding-center");
+    }
+    closeMenu();
+  }
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -360,6 +372,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
           )}
           {(role === "Fire" || role === "Police" || role === "Nurse") && (
             <MenuItem onClick={navigateToPatientsPage}>Patients</MenuItem>
+          )}
+          {(role === "Fire Chief" || role === "Police Chief") && (
+            <MenuItem onClick={navigateToFundingCenter}>Funding Center</MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
