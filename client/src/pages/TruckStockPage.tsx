@@ -62,7 +62,7 @@ const TruckStockPage: React.FC = () => {
   };
   
   const handleEditDefaultItems = (): void => {
-    navigate('/defaulttruckadditem');
+    navigate('/defaulttruckinventory');
   };
 
   if (loading) {
