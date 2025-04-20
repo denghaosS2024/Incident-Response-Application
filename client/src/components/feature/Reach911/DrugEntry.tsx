@@ -17,6 +17,7 @@ import {
   Paper,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import InfoIcon from "@mui/icons-material/Info";
 
 export interface DrugItem {
   name: string;
@@ -115,11 +116,20 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
                   mb: 1,
                 }}
               >
-                <Box>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", width: "100%" }}
+                >
                   <Typography variant="body1">{drug.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {drug.dosage} · {drug.route}
-                  </Typography>
+                  <IconButton
+                    edge="end"
+                    size="small"
+                    aria-label="view"
+                    onClick={() => setOpen(true)}
+                    color="primary"
+                    sx={{ ml: "auto" }}
+                  >
+                    <InfoIcon fontSize="small" />
+                  </IconButton>
                 </Box>
               </Paper>
             ))}
