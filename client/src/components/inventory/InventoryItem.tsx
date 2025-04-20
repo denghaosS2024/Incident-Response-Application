@@ -3,16 +3,17 @@ import EmergencyShareIcon from "@mui/icons-material/EmergencyShare";
 import HardwareIcon from "@mui/icons-material/Hardware";
 import HomeRepairServiceIcon from "@mui/icons-material/HomeRepairService";
 import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
-
 import {
   Avatar,
   Box,
   Card,
   CardContent,
+  CircularProgress,
   IconButton,
   Typography,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
+import request from "../../utils/request";
 
 interface InventoryItemData {
   name: string;
@@ -27,6 +28,33 @@ interface InventoryItemProps {
 
 const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
   const [quantity, setQuantity] = React.useState(item.quantity);
+  const [maxQuantity, setMaxQuantity] = React.useState<number | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMaxQuantity = async () => {
+      setLoading(true);
+      try {
+        const encodedItemName = encodeURIComponent(item.name);
+        const response = await request(`/api/inventories/default/item/${encodedItemName}`);
+        if (!response) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        
+        setMaxQuantity(response.quantity);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch max quantity:", err);
+        setError("Failed to load max quantity");
+        setMaxQuantity(0); 
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMaxQuantity();
+  }, [item.name]);
 
   const getIconForName = (name: string) => {
     const iconMap: { [key: string]: React.ReactNode } = {
@@ -45,9 +73,13 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
   };
   
   const onIncrease = () => {
-    setQuantity((prevQuantity) => prevQuantity + 1);
+    setQuantity((prevQuantity) => {
+      if (maxQuantity !== null && prevQuantity >= maxQuantity) {
+        return maxQuantity; 
+      }
+      return prevQuantity + 1;
+    });
   };
-
   
   return (
     <Card>
@@ -62,11 +94,22 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
         </Box>
         
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          Max Quantity: {quantity}
+          Max Quantity: {
+            loading ? (
+              <CircularProgress size={16} sx={{ ml: 1, verticalAlign: 'middle' }} />
+            ) : error ? (
+              <Typography component="span" color="error" variant="caption">Error loading</Typography>
+            ) : (
+              maxQuantity
+            )
+          }
         </Typography>
         
         <Box display="flex" alignItems="center" mt={1}>
           <Box display="flex" alignItems="center">
+            <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+              Current Quantity:
+            </Typography>
             <IconButton 
               size="small" 
               onClick={onDecrease}
@@ -80,6 +123,7 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
             <IconButton 
               size="small"
               onClick={onIncrease}
+              disabled={maxQuantity !== null && quantity >= maxQuantity}
             >
               <Add fontSize="small" />
             </IconButton>
