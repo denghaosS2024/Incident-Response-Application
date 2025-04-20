@@ -46,6 +46,16 @@ appointmentRouter.post("/", async (req, res) => {
   }
 });
 
+appointmentRouter.get("/active", async (_, res) => {
+  try {
+    const appointments = await AppointmentController.findActiveAppointments();
+    res.status(200).json(appointments);
+  } catch (err) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
+});
+
 /**
  * @swagger
  * /api/appointments/past:

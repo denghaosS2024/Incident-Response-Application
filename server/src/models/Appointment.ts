@@ -1,5 +1,11 @@
 import { Document, Schema, model } from "mongoose";
 
+// Severity index:
+// 0: Low
+// 1: Medium
+// 2: High
+type SeverityIndex = 0 | 1 | 2;
+
 export interface IAppointment extends Document {
   // Per team 1's discussion, we will use Citizen's ID rather than patient's ID
   userId: string;
@@ -11,7 +17,7 @@ export interface IAppointment extends Document {
   isResolved: boolean;
   issueName: string;
   note: string | undefined;
-  severityIndex: number;
+  severityIndex: SeverityIndex;
   feedback: string | undefined;
   // "Fake" delete, set (valid) boolean to false, we can use this to filter out
   valid: boolean;

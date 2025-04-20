@@ -80,6 +80,33 @@ class AppointmentController {
       { valid: false },
     );
   }
+
+  /**
+   * Find all active appointments for a specific nurse (appointments within his/her shifts)
+   * @param nurseId - The ID of the nurse
+   * @param resolved - Whether the appointment has been resolved
+   * @returns The active appointments
+   */
+  // async findActiveAppointments(nurseId: string, resolved = false) {
+  //   // Todo: Implement logic to find active appointments for a specific nurse
+  //   console.log("nurseId", nurseId);
+  //   console.log("resolved", resolved);
+  //   return;
+  // }
+
+  /**
+   * Find all active appointments
+   * @returns The active appointments
+   */
+  async findActiveAppointments() {
+    return await Appointment.find({
+      valid: true,
+      isResolved: false,
+    }).sort({
+      severityIndex: -1, // Sort by severity index desc (2, then 1, then 0)
+      startHour: 1, // Then sort by startHour asc (earlier first)
+    });
+  }
 }
 
 export default new AppointmentController();
