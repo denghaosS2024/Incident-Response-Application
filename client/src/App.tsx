@@ -10,6 +10,7 @@ import CreatechartPage from "./pages/CreatechartPage.tsx";
 import DashboardPage from "./pages/DashboardPage";
 import DefaultTruckAddItem from "./pages/DefaultTruckAddItem.tsx";
 import DefaultTruckInventory from "./pages/DefaultTruckInventory.tsx";
+import ExerciseLibraryPage from "./pages/ExerciseLibraryPage";
 import FindHospital from "./pages/FindHospital";
 import FirstResponderPatientsPage from "./pages/FirstResponderPatientsPage";
 import FundingCenter from "./pages/FundingCenter.tsx";
@@ -24,6 +25,7 @@ import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
 import HospitalsDirectory from "./pages/HospitalsDirectory";
 import IncidentReportPage from "./pages/IncidentReportPage.tsx";
 import IncidentsPage from "./pages/IncidentsPage";
+import IncidentSpendHistory from "./pages/IncidentSpendHistoryPage.tsx";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import Messages from "./pages/Messages";
@@ -78,6 +80,10 @@ export default function App() {
             <Route
               path="/funding-information/:incidentId"
               element={<FundingInformation />}
+            />
+            <Route
+              path="/spending-history/:incidentId"
+              element={<IncidentSpendHistory />}
             />
             {/* The path /messages/:id allows for passing channelId as a query parameter.
             This allow us to navigate to /messages but automatically into a specific channel chat.
@@ -208,6 +214,8 @@ export default function App() {
             <Route path="/messages/:id" element={<ChatRoomPage />} />
             <Route path="/groups/:id" element={<GroupInformationPage />} />
           </Route>
+
+          <Route path="/exercise-library" element={<ExerciseLibraryPage />} />
         </Routes>
       </Router>
     </StyledEngineProvider>

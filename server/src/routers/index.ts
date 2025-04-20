@@ -24,6 +24,7 @@ import appointmentRouter from "./appointment";
 import carRouter from "./car";
 import cityRouter from "./city";
 import dashboard from "./dashboard";
+import exerciseRouter from "./exercise";
 import firstAidAssistRouter from "./firstAidAssist";
 import HospitalResourceRouter from "./hospitalResource";
 import HospitalResourceRequestsRouter from "./hospitalResourceRequest";
@@ -36,6 +37,8 @@ import profileRouter from "./profile";
 import taskRouter from "./sartask";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
+
+import spendingRouter from "./spending";
 
 export default Router()
   .use("/users", user)
@@ -69,6 +72,7 @@ export default Router()
   .use("/hospital", HospitalRouter)
   .use("/charts", dashboard)
   .use("/missingPerson", missingPersonRouter)
+  .use("/spendings", spendingRouter)
 
   .use("/sartasks", taskRouter)
   .use("/sartasksdone", taskRouter)
@@ -79,4 +83,5 @@ export default Router()
   .use("/nurse-shifts", nurseShiftRouter)
   .use("/inventories", inventoryRouter)
   .use("/first-aid", firstAidAssistRouter)
-  .use("/appointments", appointmentRouter);
+  .use("/appointments", appointmentRouter)
+  .use("/exercises", exerciseRouter);

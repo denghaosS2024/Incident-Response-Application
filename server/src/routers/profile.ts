@@ -23,8 +23,6 @@ profileRouter.get("/:userId", async (req: Request, res: Response) => {
  * @route PUT /api/profiles/:userId
  */
 profileRouter.put("/:userId", async (req, res) => {
-  console.log("🟢 PUT request received for userId:", req.params.userId);
-  console.log("🟢 Request body:", req.body);
   try {
     const userId = new Types.ObjectId(req.params.userId);
     const updatedProfile = await ProfileController.upsertProfile(

@@ -10,7 +10,7 @@ import Reach911Step4 from "../components/feature/Reach911/Reach911Step4";
 import Reach911Step5 from "../components/feature/Reach911/Reach911Step5";
 
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import IIncident from "../models/Incident";
 import { updateIncident } from "../redux/incidentSlice";
 import { AppDispatch, RootState } from "../redux/store";
@@ -19,6 +19,7 @@ import request from "../utils/request";
 const STEP_CHAT = 3;
 
 const Reach911Page: React.FC = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   // Load saved step from localStorage or default to 0
   const [activeStep, setActiveStep] = useState<number>(() => {
@@ -117,7 +118,7 @@ const Reach911Page: React.FC = () => {
 
   useEffect(() => {
     if (!incident._id || activeStep == STEP_CHAT) return;
-    console.log("CULPRIT3")
+    console.log("CULPRIT3");
     const timer = setTimeout(() => {
       updateIncidentCall();
     }, 3000); // Increased debounce time
@@ -167,10 +168,16 @@ const Reach911Page: React.FC = () => {
   ];
 
   const isResponder =
-    role === "Fire" || role === "Police" || role === "Dispatch" || role === "Fire Chief" || role === "Police Chief";
+    role === "Fire" ||
+    role === "Police" ||
+    role === "Dispatch" ||
+    role === "Fire Chief" ||
+    role === "Police Chief";
   if (isResponder) {
     contents.push(<Reach911Step5 incidentId={incidentId} />);
   }
+
+  const isChief = role === "Fire Chief" || role === "Police Chief";
 
   const username = localStorage.getItem("username") ?? "";
 
@@ -179,7 +186,7 @@ const Reach911Page: React.FC = () => {
     incident?.commander !== username;
 
   const updateIncidentCall = async () => {
-    const {  ...safeIncident } = incident;
+    const { ...safeIncident } = incident;
     try {
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
@@ -205,7 +212,7 @@ const Reach911Page: React.FC = () => {
           commander: incident.commander || "System",
           caller: isCreatedByFirstResponder
             ? ""
-            : incident.caller ?? localStorage.getItem("username"),
+            : (incident.caller ?? localStorage.getItem("username")),
         }),
       });
 
@@ -261,7 +268,7 @@ const Reach911Page: React.FC = () => {
   };
 
   const lockedContents = contents.map((content, index) =>
-    readOnly ? (
+    readOnly || isChief ? (
       <div key={index} style={{ pointerEvents: "none" }}>
         {content}
       </div>
@@ -269,6 +276,11 @@ const Reach911Page: React.FC = () => {
       content
     ),
   );
+
+  // Handler for Total Spending button
+  const handleTotalSpendingClick = () => {
+    navigate(`/spending-history/${incidentId}`);
+  };
 
   return (
     <div
@@ -283,23 +295,24 @@ const Reach911Page: React.FC = () => {
           : {}
       }
     >
-      {readOnly && !isFirstResponder && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            padding: "10px",
-            backgroundColor: "rgba(0,0,0,0.7)",
-            color: "white",
-            textAlign: "center",
-            zIndex: 1000,
-          }}
-        >
-          This incident is in read-only mode.
-        </div>
-      )}
+      {(readOnly && !isFirstResponder) ||
+        (isChief && (
+          <div
+            style={{
+              position: "relative",
+              top: 0,
+              left: 0,
+              right: 0,
+              padding: "10px",
+              backgroundColor: "rgba(0,0,0,0.7)",
+              color: "white",
+              textAlign: "center",
+              zIndex: 1000,
+            }}
+          >
+            This incident is in read-only mode.
+          </div>
+        ))}
 
       <div style={readOnly ? { pointerEvents: "auto" } : {}}>
         <ClickableStepper
@@ -331,6 +344,28 @@ const Reach911Page: React.FC = () => {
             onClick={handleNextStep}
           >
             Next
+          </Button>
+        </div>
+      )}
+
+      {/* Total Spending button outside of the disabled area for chiefs */}
+      {isChief && (
+        <div
+          className={styles.buttonWrapper}
+          style={{
+            pointerEvents: "auto",
+            marginTop: "20px",
+            position: "relative",
+            zIndex: 1001,
+          }}
+        >
+          <Button
+            fullWidth
+            variant="contained"
+            color="secondary"
+            onClick={handleTotalSpendingClick}
+          >
+            Total Spending
           </Button>
         </div>
       )}

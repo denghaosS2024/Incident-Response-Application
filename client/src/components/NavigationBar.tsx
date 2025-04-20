@@ -103,6 +103,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/defaulttruckadditem": "Add Truck Item",
     "/funding-center": "Funding Center",
     "/funding-information": "Funding Information",
+    "/spending-history": "Spending History",
+    "/exercise-library": "Exercise Library",
   };
 
   const roleTitles: Record<string, string> = {
@@ -211,6 +213,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = "Funding Information";
   }
 
+  if (pathname.startsWith("/spending-history/")) {
+    title = "Spending History";
+  }
+
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true);
     setMenuAnchor(anchor);
@@ -265,6 +271,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   const hospitalsDirectory = () => {
     navigate("/hospitals");
+  };
+
+  const exerciseLibrary = () => {
+    navigate("/exercise-library");
   };
 
   const missingPersonsDirectory = () => {
@@ -386,6 +396,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
             <MenuItem onClick={navigateToFundingCenter}>
               Funding Center
             </MenuItem>
+          )}
+          {role === "Nurse" && (
+            <MenuItem onClick={exerciseLibrary}>Exercise Library</MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>

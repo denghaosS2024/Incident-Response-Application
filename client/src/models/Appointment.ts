@@ -2,6 +2,7 @@ export interface IAppointment {
   _id: string;
   // Per team 1's discussion, we will use Citizen's ID rather than patient's ID
   userId: string;
+  patientName: string;
   // This is nurse's Citizen ID
   nurseId: string;
   createDate: Date;
@@ -11,4 +12,6 @@ export interface IAppointment {
   issueName: string;
   note: string;
   severityIndex: number;
+  startHour: number;
+  endHour: number;
 }
