@@ -1,7 +1,19 @@
 import { Person2Outlined, PlayArrowRounded } from "@mui/icons-material";
 import { Box, Typography } from "@mui/material";
 
-const ActiveAppointment = () => {
+interface ActiveAppointmentProps {
+  patientName: string;
+  issueName: string;
+  startHour: number;
+  severityIndex: number;
+}
+
+const ActiveAppointment: React.FC<ActiveAppointmentProps> = ({
+  patientName,
+  issueName,
+  startHour,
+  severityIndex,
+}) => {
   return (
     <Box display="flex">
       <Box>
@@ -10,19 +22,29 @@ const ActiveAppointment = () => {
       <Box>
         <Typography variant="h6" fontWeight="bold">
           {/* Patient Name */}
-          John Doe
+          {patientName}
         </Typography>
         <Typography variant="body2" color="textSecondary">
           {/* Issue Name */}
-          Original Issue: Breast Pain from car crash
+          {/* Original Issue: Breast Pain from car crash */}
+          Issue: {issueName}
         </Typography>
         <Typography variant="body2" color="textSecondary">
           {/* Appointment Time */}
-          Time: 7PM Today
+          {/* Time: 7PM Today */}
+          Time: {startHour}:00
         </Typography>
         <Typography variant="body2" color="textSecondary">
           {/* Severity Index */}
-          Priority: High
+          {/* Priority: High */}
+          Priority:{" "}
+          {severityIndex === 0
+            ? "Low"
+            : severityIndex === 1
+              ? "Medium"
+              : severityIndex === 2
+                ? "High"
+                : "Urgent"}
         </Typography>
       </Box>
       <Box>
