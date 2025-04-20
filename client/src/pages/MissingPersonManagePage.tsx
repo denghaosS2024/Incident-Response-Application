@@ -1,31 +1,31 @@
-import React, { useEffect, useState, ChangeEvent } from "react";
-import { 
-  Box, 
-  Button, 
-  Typography, 
-  Paper, 
-  Grid,
-  FormControlLabel,
-  Checkbox,
-  Avatar,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  SelectChangeEvent
-} from "@mui/material";
-import { useNavigate, useParams } from "react-router";
-import IMissingPerson, { Gender, Race } from "../models/MissingPersonReport";
-import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
+import {
+  Avatar,
+  Box,
+  Button,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  Typography,
+} from "@mui/material";
+import React, { ChangeEvent, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router";
+import IMissingPerson, { Gender, Race } from "../models/MissingPersonReport";
 import request, { IRequestError } from "../utils/request";
 
 const MissingPersonManagePage: React.FC = () => {
   const { reportId } = useParams<{ reportId: string }>();
   const navigate = useNavigate();
-  
+
   // State for form data and UI controls
   const [formData, setFormData] = useState<IMissingPerson | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -41,7 +41,7 @@ const MissingPersonManagePage: React.FC = () => {
     }
 
     setLoading(true);
-    
+
     request<IMissingPerson>(
       `/api/missingPerson/report?id=${reportId}`,
       { method: "GET" },
@@ -65,25 +65,25 @@ const MissingPersonManagePage: React.FC = () => {
       setLoading(true);
       const payload = {
         ...updatedData,
-        reportStatus: isMarkedAsFound ? "closed" : "open"
+        reportStatus: isMarkedAsFound ? "closed" : "open",
       };
-      
+
       // Make API call to update the record using the request utility
       const updateUrl = `/api/missingPerson/${reportId}`;
-      console.log('Updating missing person with URL:', updateUrl);
-      
+      console.log("Updating missing person with URL:", updateUrl);
+
       await request<IMissingPerson>(
         updateUrl,
         {
-          method: 'PUT',
+          method: "PUT",
           body: JSON.stringify(payload),
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         },
         false,
       );
-      
+
       console.log("Update successful!");
-      
+
       // Navigate to the report page after successful update
       navigate(`/missing-person/report/${reportId}`);
     } catch (err) {
@@ -98,23 +98,23 @@ const MissingPersonManagePage: React.FC = () => {
   // Handle mark as found
   const handleFound = async () => {
     if (!formData) return;
-    
+
     try {
       setLoading(true);
-      
+
       // Make API call to mark as found using the request utility
       await request(
         `/api/missingPerson/${reportId}/found`,
         {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reportStatus: "closed" }),
         },
         false,
       );
-      
+
       console.log("Successfully marked as found");
-      
+
       // Navigate to the directory after successfully marking as found
       navigate(`/missing-person/directory`);
     } catch (err) {
@@ -130,14 +130,14 @@ const MissingPersonManagePage: React.FC = () => {
   const handleCancel = () => {
     navigate(`/missing-person/report/${reportId}`);
   };
-  
+
   // Handle file upload for photo
   const handlePhotoUpload = () => {
     // This is just a placeholder for the actual photo upload functionality
     console.log("Photo upload functionality would be implemented here");
     alert("Photo upload functionality would be implemented here");
   };
-  
+
   // Handle Generate PDF
   const handleGeneratePDF = () => {
     // This is just a placeholder for the actual PDF generation functionality
@@ -150,190 +150,312 @@ const MissingPersonManagePage: React.FC = () => {
   }
 
   if (error) {
-    return <Typography variant="h6" color="error">{error}</Typography>;
+    return (
+      <Typography variant="h6" color="error">
+        {error}
+      </Typography>
+    );
   }
 
   if (!formData) {
-    return <Typography variant="h6">Missing person record not found</Typography>;
+    return (
+      <Typography variant="h6">Missing person record not found</Typography>
+    );
   }
 
   return (
     <Paper elevation={3} sx={{ p: 3, m: 2, maxWidth: 800, mx: "auto" }}>
-      <Typography variant="h5" gutterBottom>
-        Manage Missing Person Report
-      </Typography>
-      
       <Grid container spacing={3}>
-        {/* Photo/Avatar section */}
-        <Grid item xs={12} sm={4} sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <Avatar
-            sx={{ 
-              width: 120, 
-              height: 120, 
-              bgcolor: "grey.500",
-              mb: 2 
-            }}
-          >
-            <QuestionMarkIcon sx={{ fontSize: 60 }} />
-          </Avatar>
-          
-          <Button
-            variant="outlined"
-            startIcon={<FileUploadIcon />}
-            onClick={handlePhotoUpload}
-            size="small"
-          >
-            Upload a New Photo
-          </Button>
-          
-          <Box sx={{ mt: 3 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<PictureAsPdfIcon />}
-              onClick={handleGeneratePDF}
-              fullWidth
-              sx={{ mb: 2 }}
-            >
-              GENERATE PDF
-            </Button>
-            
-            <FormControlLabel
-              control={
-                <Checkbox 
-                  checked={isMarkedAsFound}
-                  onChange={(e) => setIsMarkedAsFound(e.target.checked)}
-                />
-              }
-              label="Mark Person as Found"
-            />
-          </Box>
-        </Grid>
-        
-        {/* Form section */}
-        <Grid item xs={12} sm={8}>
+        {/* Main form content */}
+        <Grid item xs={12}>
           {formData && (
-            <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
+            <Box
+              component="form"
+              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              {/* Avatar and image section */}
+              <Grid container justifyContent="space-between" alignItems="center">
+                <Grid item>
+                  <Avatar
+                    sx={{
+                      width: 120,
+                      height: 120,
+                      bgcolor: "grey.500"
+                    }}
+                  >
+                    <QuestionMarkIcon sx={{ fontSize: 60 }} />
+                  </Avatar>
+                </Grid>
+                <Grid item xs={8}>
+                  {/* Name field */}
+                  <InputLabel
+                    sx={{ mb: 1, color: "text.secondary", fontSize: "0.75rem" }}
+                  >
+                    Name
+                  </InputLabel>
                   <TextField
-                    label="Name"
                     fullWidth
+                    variant="outlined"
                     value={formData.name}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    InputLabelProps={{ shrink: false }}
                   />
+                  
+                  {/* Age field */}
+                  <Box sx={{ mt: 2 }}>
+                    <InputLabel
+                      sx={{ mb: 1, color: "text.secondary", fontSize: "0.75rem" }}
+                    >
+                      Age
+                    </InputLabel>
+                    <TextField
+                      type="number"
+                      fullWidth
+                      variant="outlined"
+                      value={formData.age}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                        setFormData({ ...formData, age: Number(e.target.value) })
+                      }
+                      InputLabelProps={{ shrink: false }}
+                    />
+                  </Box>
                 </Grid>
-                
+              </Grid>
+
+              {/* Two column layout for Weight and Height */}
+              <Grid container spacing={2} sx={{ mt: 2 }}>
                 <Grid item xs={12} sm={6}>
+                  <InputLabel
+                    sx={{ mb: 1, color: "text.secondary", fontSize: "0.75rem" }}
+                  >
+                    Weight
+                  </InputLabel>
                   <TextField
-                    label="Age"
                     type="number"
                     fullWidth
-                    value={formData.age}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({...formData, age: Number(e.target.value)})}
+                    variant="outlined"
+                    value={formData.weight || ""}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setFormData({
+                        ...formData,
+                        weight: e.target.value
+                          ? Number(e.target.value)
+                          : undefined,
+                      })
+                    }
+                    InputLabelProps={{ shrink: false }}
                   />
                 </Grid>
-                
                 <Grid item xs={12} sm={6}>
+                  <InputLabel
+                    sx={{ mb: 1, color: "text.secondary", fontSize: "0.75rem" }}
+                  >
+                    Height
+                  </InputLabel>
                   <TextField
-                    label="Weight (in Pounds)"
-                    type="number"
                     fullWidth
-                    value={formData.weight || ''}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({...formData, weight: e.target.value ? Number(e.target.value) : undefined})}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Height"
-                    fullWidth
-                    value={formData.height !== undefined ? (typeof formData.height === 'number' ? `${Math.floor(formData.height / 12)}'${formData.height % 12}` : formData.height) : ''}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({...formData, height: Number(e.target.value) || formData.height})}
+                    variant="outlined"
+                    value={
+                      formData.height !== undefined && typeof formData.height === "number"
+                        ? `${Math.floor(formData.height / 12)}'${formData.height % 12}`
+                        : ""
+                    }
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      // Parse the height input - either convert to inches or keep existing value
+                      let heightValue: number | undefined = undefined;
+                      
+                      if (e.target.value) {
+                        // Try to parse feet and inches format (e.g. "5'7")
+                        const feetInchMatch = e.target.value.match(/(?<feet>\d+)'(?<inches>\d+)/);
+                        if (feetInchMatch?.groups) {
+                          const feet = parseInt(feetInchMatch.groups.feet);
+                          const inches = parseInt(feetInchMatch.groups.inches);
+                          heightValue = feet * 12 + inches;
+                        } else {
+                          // If it's just a number, try to parse it directly
+                          const parsedHeight = parseInt(e.target.value);
+                          if (!isNaN(parsedHeight)) {
+                            heightValue = parsedHeight;
+                          }
+                        }
+                      }
+                      
+                      setFormData({
+                        ...formData,
+                        height: heightValue,
+                      });
+                    }}
                     placeholder="e.g., 5'7"
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel id="race-label">Race</InputLabel>
-                    <Select
-                      labelId="race-label"
-                      value={formData.race}
-                      label="Race"
-                      onChange={(e: SelectChangeEvent) => setFormData({...formData, race: e.target.value as Race})}
-                    >
-                      {Object.values(Race).map((race) => (
-                        <MenuItem key={race} value={race}>{race}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Eye Color"
-                    fullWidth
-                    value={formData.eyeColor || ''}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({...formData, eyeColor: e.target.value})}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel id="gender-label">Gender</InputLabel>
-                    <Select
-                      labelId="gender-label"
-                      value={formData.gender}
-                      label="Gender"
-                      onChange={(e: SelectChangeEvent) => setFormData({...formData, gender: e.target.value as Gender})}
-                    >
-                      {Object.values(Gender).map((gender) => (
-                        <MenuItem key={gender} value={gender}>{gender}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <TextField
-                    label="Description"
-                    fullWidth
-                    multiline
-                    rows={3}
-                    value={formData.description || ''}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData({...formData, description: e.target.value})}
+                    InputLabelProps={{ shrink: false }}
                   />
                 </Grid>
               </Grid>
+
+              {/* Race - Full width */}
+              <InputLabel
+                sx={{ mb: 1, color: "text.secondary", fontSize: "0.75rem" }}
+              >
+                Race
+              </InputLabel>
+              <FormControl fullWidth variant="outlined">
+                <Select
+                  value={formData.race}
+                  onChange={(e: SelectChangeEvent) =>
+                    setFormData({
+                      ...formData,
+                      race: e.target.value as Race,
+                    })
+                  }
+                  displayEmpty
+                  inputProps={{ "aria-label": "Race" }}
+                >
+                  {Object.values(Race).map((race) => (
+                    <MenuItem key={race} value={race}>
+                      {race}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Two column layout for Eye color and Gender */}
+              <Grid container spacing={2} sx={{ mt: 2 }}>
+                <Grid item xs={12} sm={6}>
+                  <InputLabel
+                    sx={{ mb: 1, color: "text.secondary", fontSize: "0.75rem" }}
+                  >
+                    Eye color
+                  </InputLabel>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    value={formData.eyeColor || ""}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setFormData({ ...formData, eyeColor: e.target.value })
+                    }
+                    InputLabelProps={{ shrink: false }}
+                  />
+                </Grid>
+                
+                <Grid item xs={12} sm={6}>
+                  <InputLabel
+                    sx={{ mb: 1, color: "text.secondary", fontSize: "0.75rem" }}
+                  >
+                    Gender
+                  </InputLabel>
+                  <FormControl fullWidth variant="outlined">
+                    <Select
+                      value={formData.gender}
+                      onChange={(e: SelectChangeEvent) =>
+                        setFormData({
+                          ...formData,
+                          gender: e.target.value as Gender,
+                        })
+                      }
+                      displayEmpty
+                      inputProps={{ "aria-label": "Gender" }}
+                    >
+                      {Object.values(Gender).map((gender) => (
+                        <MenuItem key={gender} value={gender}>
+                          {gender}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
               
-              {/* Action buttons */}
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
-                <Button 
-                  variant="outlined" 
+              {/* Description - Full width */}
+              <InputLabel
+                sx={{ mb: 1, mt: 1, color: "text.secondary", fontSize: "0.75rem" }}
+              >
+                Description
+              </InputLabel>
+              <TextField
+                fullWidth
+                variant="outlined"
+                multiline
+                rows={3}
+                value={formData.description || ""}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                InputLabelProps={{ shrink: false }}
+              />
+
+              {/* Upload photo and Mark as found row */}
+              <Box sx={{ display: "flex", alignItems: "center", mt: 3, mb: 2 }}>
+                <Typography sx={{ mr: 2 }}>Upload a New Photo:</Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<FileUploadIcon />}
+                  onClick={handlePhotoUpload}
+                  size="small"
+                >
+                  <QuestionMarkIcon />
+                </Button>
+                
+                <Box sx={{ flexGrow: 1 }} />
+                
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<PictureAsPdfIcon />}
+                  onClick={handleGeneratePDF}
+                  sx={{ mr: 2 }}
+                >
+                  GENERATE PDF
+                </Button>
+              </Box>
+              
+              {/* Mark as found checkbox */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isMarkedAsFound}
+                    onChange={(e) => setIsMarkedAsFound(e.target.checked)}
+                  />
+                }
+                label="Mark Person as Found"
+                sx={{ mb: 2 }}
+              />
+              
+              {/* Action buttons row */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 2,
+                  mt: 3,
+                }}
+              >
+                <Button
+                  variant="outlined"
                   onClick={handleCancel}
+                  sx={{ minWidth: 100 }}
                 >
                   CANCEL
                 </Button>
-                
-                {isMarkedAsFound && (
-                  <Button 
-                    variant="contained" 
-                    color="success"
-                    onClick={handleFound}
-                  >
-                    FOUND
-                  </Button>
-                )}
-                
-                <Button 
-                  variant="contained" 
+
+                <Button
+                  variant="contained"
                   color="primary"
                   onClick={() => {
                     if (formData) handleUpdate(formData);
                   }}
+                  sx={{ minWidth: 100 }}
                 >
                   UPDATE
+                </Button>
+
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => navigate(`/missing-person/directory`)}
+                  sx={{ minWidth: 100 }}
+                >
+                  CLOSE
                 </Button>
               </Box>
             </Box>
