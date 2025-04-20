@@ -47,6 +47,9 @@ class InventoryController {
       category: "default",
     }).exec();
     if (category === "default") {
+      if (!this.defaultInventory) {
+        throw new Error("Default inventory not found");
+      }
       return this.defaultInventory;
     }
 
@@ -56,7 +59,7 @@ class InventoryController {
     }).exec()) as IInventory | null;
 
     // If no inventory exists for the requested category, return an empty inventory
-    if (!inventory) {
+    if (!inventory && this.defaultInventory) {
       return {
         category,
         items: this.defaultInventory.items.map((item) => ({
@@ -66,20 +69,23 @@ class InventoryController {
       };
     }
 
+    if (!this.defaultInventory) {
+      throw new Error("Default inventory not found");
+    }
+
     // Fill in missing items from the default inventory with 0 quantity
     const mergedItems = this.defaultInventory.items.map((defaultItem) => {
-      const matchingItem = inventory.items.find(
+      const matchingItem = inventory?.items.find(
         (item) => item.name === defaultItem.name,
       );
       return matchingItem || { name: defaultItem.name, quantity: 0 };
     });
 
     return {
-      category: inventory.category,
+      category: inventory?.category || category,
       items: mergedItems,
     };
   }
-
 
   async getAllNonDefaultInventories() {
     const inventories = await Inventory.find({ category: { $ne: "default" } });
