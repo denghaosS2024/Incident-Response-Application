@@ -49,8 +49,9 @@ export default Router()
    *                   type: string
    *                   description: Error message
    */
-  
+
   .get("/category/:category", async (req, res) => {
+    console.log("Category requested:", req.params.category);
     const { category } = req.params;
     try {
       const inventory =

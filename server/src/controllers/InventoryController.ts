@@ -13,6 +13,11 @@ class InventoryController {
             items: [
               { name: "Medical Kit", quantity: 10 },
               { name: "Repair Tools", quantity: 5 },
+              {
+                name: "Emergency",
+                description: "Emergency response equipment",
+                quantity: 22,
+              },
             ],
           });
           newDefaultInventory.save();
@@ -43,7 +48,9 @@ class InventoryController {
     }
 
     // Fetch the requested inventory
-    const inventory = (await Inventory.findOne({ category }).exec()) as IInventory | null;
+    const inventory = (await Inventory.findOne({
+      category,
+    }).exec()) as IInventory | null;
 
     // If no inventory exists for the requested category, return an empty inventory
     if (!inventory) {

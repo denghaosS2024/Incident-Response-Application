@@ -8,6 +8,7 @@ import Patient, {
 } from "../models/Patient";
 import PatientVisitEvent, {
   IFieldChange,
+  IPatientVisitEvent,
   VisitLogField,
   VisitLogValue,
 } from "../models/PatientVisitEvent";
@@ -807,6 +808,42 @@ class PatientController {
       console.error("Error fetching patients for incident id:", error);
       throw new Error("Failed to fetch patients for incident id");
     }
+  }
+
+  /**
+   * Returns the timeline events for a single visitLog.
+   * If visitLogId is omitted, use the patient’s latest visit log.
+   */
+  async getMedicalTimeline(
+    patientId: string,
+    visitLogId?: string,
+  ): Promise<{ visitLogId: string; events: IPatientVisitEvent[] }> {
+    // find patient
+    const patient = await Patient.findOne({ patientId }).lean();
+    if (!patient) throw new Error(`Patient ${patientId} not found`);
+
+    // pick the right visitLogId
+    let chosenId = visitLogId;
+    if (!chosenId) {
+      const logs = patient.visitLog || [];
+      if (!logs.length) {
+        throw new Error(`No visit logs exist for patient ${patientId}`);
+      }
+      // prefer active, else the one with greatest dateTime
+      const activeLog = logs.find((l) => l.active);
+      chosenId =
+        activeLog?._id ??
+        logs.reduce((a, b) => (a.dateTime > b.dateTime ? a : b))._id;
+    }
+
+    const events = await PatientVisitEvent.find({
+      patientId,
+      visitLogId: chosenId,
+    })
+      .sort({ timestamp: 1 })
+      .lean();
+
+    return { visitLogId: chosenId, events };
   }
 }
 

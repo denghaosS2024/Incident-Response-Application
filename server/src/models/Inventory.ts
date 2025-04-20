@@ -3,13 +3,14 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IInventoryItem {
   name: string;
   quantity: number;
+  description?: string; // Optional description of the item
+  //todo: maybe icon?
 }
 
 export interface IInventory extends Document {
   category: string; // e.g., "default", "truck:<id>""
   items: IInventoryItem[];
 }
-
 
 const InventorySchema = new Schema<IInventory>({
   category: {
@@ -27,6 +28,10 @@ const InventorySchema = new Schema<IInventory>({
         type: Number,
         required: true,
         min: 0,
+      },
+      description: {
+        type: String,
+        default: "",
       },
     },
   ],

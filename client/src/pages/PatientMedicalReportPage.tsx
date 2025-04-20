@@ -1,3 +1,4 @@
+import request from "@/utils/request";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import Timeline from "@mui/lab/Timeline";
@@ -14,67 +15,87 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 
-interface TimelineEvent {
-  title: string;
-  nurse: string;
+interface FieldChange {
+  field: string;
+  newValue: string | number | boolean | string[];
+}
+interface RawEvent {
+  changes: FieldChange[];
+  snapshot: {
+    dateTime: string;
+  };
+  updatedBy: string;
   timestamp: string;
 }
-
-const mockEvents: TimelineEvent[] = [
-  { title: "Patient En Route", nurse: "Olivia", timestamp: "2026.8.2 19:30" },
-  {
-    title: "Patient Visit Created",
-    nurse: "Olivia",
-    timestamp: "2026.8.2 20:30",
-  },
-  {
-    title: "Priority Updated: E",
-    nurse: "Olivia",
-    timestamp: "2026.8.2 21:30",
-  },
-  {
-    title: "Drugs Updated: Ceftriaxone",
-    nurse: "Olivia",
-    timestamp: "2026.8.2 22:30",
-  },
-  {
-    title: "Condition Updated: Cardiac Arrest",
-    nurse: "Olivia",
-    timestamp: "2026.8.2 22:40",
-  },
-];
+interface TimelineResponse {
+  visitLogId: string;
+  events: RawEvent[];
+}
 
 const PatientMedicalReportPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const patientId = searchParams.get("patientId");
   const theme = useTheme();
 
+  const [timeline, setTimeline] = useState<TimelineResponse | null>(null);
+
   useEffect(() => {
-    if (patientId) {
-      console.log("🔍 patientId from URL:", patientId);
-      // fetch real events next
-    }
+    if (!patientId) return;
+
+    request(`/api/patients/timeline/${patientId}`)
+      .then((res) => res as TimelineResponse)
+      .then(setTimeline)
+      .catch((err) => {
+        console.error("Failed to load timeline:", err);
+      });
   }, [patientId]);
+
+  if (!patientId || !timeline) return null;
+
+  const items: Array<{ titleLines: string[]; nurse: string; ts: string }> = [];
+
+  items.push({
+    titleLines: ["Patient Visit Created"],
+    nurse: timeline.events[0]?.updatedBy || "System",
+    ts: timeline.events[0]?.snapshot.dateTime,
+  });
+
+  timeline.events.forEach((evt) => {
+    if (evt.changes.length === 0) return;
+
+    const lines = evt.changes.map((c) => {
+      const prettyField = c.field
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (s) => s.toUpperCase());
+      const value = Array.isArray(c.newValue)
+        ? c.newValue.join(", ")
+        : String(c.newValue);
+      return `${prettyField} updated: ${value}`;
+    });
+
+    items.push({
+      titleLines: lines,
+      nurse: evt.updatedBy,
+      ts: evt.timestamp,
+    });
+  });
 
   return (
     <Box p={2}>
       <Typography variant="h6" fontWeight="bold" textAlign="center" mb={2}>
         Medical Timeline
       </Typography>
-
-      {patientId && (
-        <Typography
-          variant="subtitle2"
-          color="text.secondary"
-          textAlign="center"
-          mb={2}
-        >
-          Viewing report for patient <strong>{patientId}</strong>
-        </Typography>
-      )}
+      <Typography
+        variant="subtitle2"
+        color="text.secondary"
+        textAlign="center"
+        mb={2}
+      >
+        Viewing report for patient <strong>{patientId}</strong>
+      </Typography>
 
       <Timeline
         position="right"
@@ -87,11 +108,11 @@ const PatientMedicalReportPage: React.FC = () => {
           },
         }}
       >
-        {mockEvents.map((event, idx) => (
+        {items.map((item, idx) => (
           <TimelineItem key={idx}>
             <TimelineSeparator>
               <TimelineDot />
-              {idx < mockEvents.length - 1 && <TimelineConnector />}
+              {idx < items.length - 1 && <TimelineConnector />}
             </TimelineSeparator>
 
             <TimelineContent sx={{ px: 2 }}>
@@ -101,13 +122,17 @@ const PatientMedicalReportPage: React.FC = () => {
                 alignItems="center"
               >
                 <Box>
-                  <Typography variant="subtitle1">{event.title}</Typography>
+                  {item.titleLines.map((line, i) => (
+                    <Typography key={i} variant="subtitle1">
+                      {line}
+                    </Typography>
+                  ))}
                   <Box display="flex" alignItems="center" gap={1}>
                     <LocalHospitalIcon color="error" fontSize="small" />
-                    <Typography variant="body2">{event.nurse}</Typography>
+                    <Typography variant="body2">{item.nurse}</Typography>
                   </Box>
                   <Typography variant="caption" color="text.secondary">
-                    {event.timestamp}
+                    {new Date(item.ts).toLocaleString()}
                   </Typography>
                 </Box>
                 <IconButton>

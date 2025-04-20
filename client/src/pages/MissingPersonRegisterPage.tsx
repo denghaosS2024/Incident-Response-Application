@@ -1,11 +1,17 @@
-// src/pages/MissingPersonRegisterPage.tsx
-
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-import { Box, Container, IconButton, Typography } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Box,
+  Container,
+  IconButton,
+  Snackbar,
+  Typography,
+} from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { MissingPersonForm } from "../components/feature/MissingPerson/MissingPersonForm";
 import IMissingPerson from "../models/MissingPersonReport";
+import request, { IRequestError } from "../utils/request";
 
 const PLACEHOLDER = "/images/placeholder.png";
 
@@ -14,6 +20,8 @@ const MissingPersonRegisterPage: React.FC = () => {
   const [formKey, setFormKey] = useState(0);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [previewSrc, setPreviewSrc] = useState<string>(PLACEHOLDER);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!photoFile) {
@@ -33,32 +41,47 @@ const MissingPersonRegisterPage: React.FC = () => {
     }
 
     const payload: IMissingPerson = { ...data, photo: photoUrl };
+
     try {
-      const resp = await fetch("/missingPerson/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!resp.ok) throw new Error("API error");
-      navigate("/missing-person/directory");
+      await request<IMissingPerson>(
+        "/api/missingPerson/register",
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+        false,
+      );
+
+      setSnackbarOpen(true);
+      setTimeout(() => {
+        setSnackbarOpen(false);
+        navigate("/missing-person/directory");
+      }, 2000);
     } catch (err) {
-      console.error("Failed to save missing person:", err);
+      const error = err as IRequestError;
+      console.error(
+        `Failed to save missing person (status ${error.status}): ${error.message}`,
+      );
+      setErrorMessage(error.message ?? "Unknown error");
     }
   };
 
   const handleCancel = () => {
     setPhotoFile(null);
     setFormKey((k) => k + 1);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      {/* Centered Title */}
+      {/* Title */}
       <Typography variant="h4" align="center" gutterBottom>
         Register Missing Person
       </Typography>
 
-      {/* Centered Preview Image */}
+      {/* Preview */}
       <Box
         component="img"
         src={previewSrc}
@@ -74,7 +97,7 @@ const MissingPersonRegisterPage: React.FC = () => {
         }}
       />
 
-      {/* Photo Upload Icon */}
+      {/* Photo Upload */}
       <Box
         sx={{
           mb: 3,
@@ -89,6 +112,7 @@ const MissingPersonRegisterPage: React.FC = () => {
         <IconButton color="primary" component="label" aria-label="upload photo">
           <PhotoCameraIcon />
           <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
             hidden
@@ -102,7 +126,7 @@ const MissingPersonRegisterPage: React.FC = () => {
         )}
       </Box>
 
-      {/* Reusable Form */}
+      {/* Form */}
       <Box key={formKey}>
         <MissingPersonForm
           onSubmit={handleSubmit}
@@ -110,6 +134,33 @@ const MissingPersonRegisterPage: React.FC = () => {
           readonly={false}
         />
       </Box>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="success" elevation={6} variant="filled">
+          Missing Person registered successfully!
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={() => setErrorMessage(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setErrorMessage(null)}
+          severity="error"
+          elevation={6}
+          variant="filled"
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
