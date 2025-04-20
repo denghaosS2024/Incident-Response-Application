@@ -4,7 +4,8 @@ import { Document, Schema, model } from "mongoose";
 // 0: Low
 // 1: Medium
 // 2: High
-type SeverityIndex = 0 | 1 | 2;
+// 3: Urgent
+type SeverityIndex = 0 | 1 | 2 | 3;
 
 export interface IAppointment extends Document {
   // Per team 1's discussion, we will use Citizen's ID rather than patient's ID
