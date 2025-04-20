@@ -68,9 +68,8 @@ const HospitalSchema = new Schema({
 
 // set the hospitalId to be the same as _id when creating a new hospital
 HospitalSchema.pre("save", function (next) {
-  if (!this.hospitalId) {
-    this.hospitalId = this._id.toString();
-  }
+  // ignore the hospitalId if it is already set, always set to _id
+  this.hospitalId = this._id.toString();
   next();
 });
 
