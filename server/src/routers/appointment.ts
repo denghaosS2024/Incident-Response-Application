@@ -276,3 +276,76 @@ appointmentRouter.put("/:id", async (req, res) => {
  *             valid:
  *               type: boolean
  */
+
+/**
+ * @swagger
+ * /api/appointments/slots/next6:
+ *   get:
+ *     summary: Get next 6 available nurse appointment slots
+ *     description: Returns the next 6 available slots based on nurse shift schedule
+ *     tags:
+ *       - Appointments
+ *     responses:
+ *       '200':
+ *         description: List of upcoming slots
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   nurseId:
+ *                     type: string
+ *                   dayOfWeek:
+ *                     type: integer
+ *                   startHour:
+ *                     type: integer
+ *                   endHour:
+ *                     type: integer
+ */
+appointmentRouter.get("/slots/next6", async (_, res) => {
+  try {
+    const slots = await AppointmentController.findNext6AvailableSlots();
+    res.status(200).json(slots);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/appointments/user/{userId}/active:
+ *   get:
+ *     summary: Check if a user has an active appointment
+ *     description: Returns true if a user has an unresolved and valid appointment
+ *     tags:
+ *       - Appointments
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Boolean result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 hasAppointment:
+ *                   type: boolean
+ */
+appointmentRouter.get("/user/:userId/active", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const has = await AppointmentController.hasActiveAppointment(userId);
+    res.status(200).json({ hasAppointment: has });
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+});
