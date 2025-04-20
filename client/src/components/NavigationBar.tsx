@@ -61,10 +61,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   // Get the hospital name to include it in the page title
   useEffect(() => {
-    if (!pathname.startsWith("/register-hospital") || !pathname.endsWith("resources")) {
+    if (
+      !pathname.startsWith("/register-hospital") ||
+      !pathname.endsWith("resources")
+    ) {
       return;
     }
-    if(hospitalFromSlice?.hospitalName!=null) {
+    if (hospitalFromSlice?.hospitalName != null) {
       return;
     }
     const getHospital = async () => {
@@ -75,7 +78,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     getHospital();
   }, [hospitalId]);
 
-  console.log(hospitalFromSlice)
+  console.log(hospitalFromSlice);
 
   // Add "/organization" here to display "Organization"
   const pageTitles: Record<string, string> = {
@@ -98,7 +101,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/sar-incident": "SAR Incident",
     "/defaulttruckinventory": "Default Truck Inventory",
     "/defaulttruckadditem": "Add Truck Item",
-    "/register-hospital/resources/directory": "Hospital Resources"
+    "/register-hospital/resources/directory": "Hospital Resources",
   };
 
   const roleTitles: Record<string, string> = {
@@ -173,16 +176,29 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = name ? `${name} Follow-Up Information` : "Follow-Up Information";
   }
 
-  if (pathname==="/register-hospital/resources/directory") {
+  if (pathname === "/register-hospital/resources/directory") {
     title = "Hospital Resources";
   }
 
-  if (pathname.startsWith("/register-hospital") && pathname.includes("resources/newResource")) {
+  if (
+    pathname.startsWith("/register-hospital") &&
+    pathname.includes("resources/newResource")
+  ) {
     title = "Hospital Resource";
   }
 
-  if (pathname.startsWith("/register-hospital") && pathname.endsWith("resources")) {
-    title =  hospitalFromSlice?.hospitalName ? `${hospitalFromSlice?.hospitalName} Resources` : "Hospital Resources";
+  if (
+    pathname.startsWith("/register-hospital") &&
+    pathname.endsWith("resources")
+  ) {
+    title = hospitalFromSlice?.hospitalName
+      ? `${hospitalFromSlice?.hospitalName} Resources`
+      : "Hospital Resources";
+  }
+
+  // override for Medical Report page
+  if (pathname.startsWith("/patients/report") && name) {
+    title = `${name} Medical Report`;
   }
 
   const openMenuHandler = (anchor: HTMLElement) => {
@@ -279,7 +295,6 @@ const NavigationBar: FunctionComponent<IProps> = ({
     }
     closeMenu();
   };
-  
 
   const navigateToPatientsPage = () => {
     if (["Fire", "Police", "Nurse"].includes(role)) {
@@ -324,7 +339,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
           {(role === "Nurse" || role === "Police" || role === "Fire") && (
             <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
           )}
-           {(role === "Nurse") && (
+          {role === "Nurse" && (
             <MenuItem onClick={hospitalResources}>Hospital Resources</MenuItem>
           )}
           {(role === "Police" || role === "Fire") && (

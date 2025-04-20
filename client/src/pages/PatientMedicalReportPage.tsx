@@ -88,14 +88,6 @@ const PatientMedicalReportPage: React.FC = () => {
       <Typography variant="h6" fontWeight="bold" textAlign="center" mb={2}>
         Medical Timeline
       </Typography>
-      <Typography
-        variant="subtitle2"
-        color="text.secondary"
-        textAlign="center"
-        mb={2}
-      >
-        Viewing report for patient <strong>{patientId}</strong>
-      </Typography>
 
       <Timeline
         position="right"
