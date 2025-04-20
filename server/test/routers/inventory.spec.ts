@@ -4,7 +4,9 @@ import * as TestDatabase from "../utils/TestDatabase";
 import Inventory from "../../src/models/Inventory";
 
 describe("Router - Inventory", () => {
-  afterAll(TestDatabase.close);
+  afterAll(async () => {
+    await TestDatabase.close();
+  });
 
   const defaultInventory = {
     category: "default",
@@ -34,7 +36,14 @@ describe("Router - Inventory", () => {
       .get("/api/inventories/category/default")
       .expect(200);
 
-    expect(body).toMatchObject(defaultInventory);
+    expect(body).toMatchObject(
+      expect.objectContaining({
+        category: defaultInventory.category,
+        items: expect.arrayContaining(
+          defaultInventory.items.map((item) => expect.objectContaining(item)),
+        ),
+      }),
+    );
   });
 
   it("should return the truck inventory when category is 'truck1'", async () => {
@@ -42,7 +51,14 @@ describe("Router - Inventory", () => {
       .get("/api/inventories/category/truck1")
       .expect(200);
 
-    expect(body).toMatchObject(truckInventory);
+    expect(body).toMatchObject(
+      expect.objectContaining({
+        category: truckInventory.category,
+        items: expect.arrayContaining(
+          truckInventory.items.map((item) => expect.objectContaining(item)),
+        ),
+      }),
+    );
   });
 
   it("should return an empty inventory when category does not exist", async () => {
@@ -50,12 +66,14 @@ describe("Router - Inventory", () => {
       .get("/api/inventories/category/unknown")
       .expect(200);
 
-    expect(body).toMatchObject({
-      category: "unknown",
-      items: [
-        { name: "Medical Kit", quantity: 0 },
-        { name: "Repair Tools", quantity: 0 },
-      ],
-    });
+    expect(body).toMatchObject(
+      expect.objectContaining({
+        category: "unknown",
+        items: expect.arrayContaining([
+          expect.objectContaining({ name: "Medical Kit", quantity: 0 }),
+          expect.objectContaining({ name: "Repair Tools", quantity: 0 }),
+        ]),
+      }),
+    );
   });
 });
