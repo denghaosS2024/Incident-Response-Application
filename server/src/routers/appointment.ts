@@ -153,15 +153,75 @@ export default appointmentRouter;
 
 /**
  * @swagger
+ * /api/appointments/{id}:
+ *   put:
+ *     summary: Update an appointment
+ *     description: Updates one or more fields of an existing appointment. Only the provided fields will be updated.
+ *     tags:
+ *       - Appointments
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the appointment to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Appointment'
+ *     responses:
+ *       '200':
+ *         description: Appointment successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Appointment'
+ *       '404':
+ *         description: Appointment not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       '400':
+ *         description: Invalid request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+appointmentRouter.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    const updated = await AppointmentController.update(id, updatedData);
+
+    if (!updated) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+
+    return res.status(200).json(updated);
+  } catch (err) {
+    const error = err as Error;
+    return res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     AppointmentInput:
  *       type: object
- *       required:
- *         - userId
- *         - issueName
- *         - startHour
- *         - endHour
  *       properties:
  *         userId:
  *           type: string
@@ -173,6 +233,8 @@ export default appointmentRouter;
  *           type: number
  *           minimum: 0
  *           maximum: 5
+ *         dayOfWeek:
+ *           type: number
  *         startHour:
  *           type: number
  *           minimum: 0
