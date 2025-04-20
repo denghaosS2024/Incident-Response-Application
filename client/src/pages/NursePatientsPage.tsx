@@ -352,7 +352,9 @@ const NursePatientsPage: React.FC = () => {
                 edge="end"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/patients/report?patientId=${patient.patientId}`);
+                  navigate(
+                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                  );
                 }}
               >
                 <DescriptionIcon />
@@ -397,7 +399,9 @@ const NursePatientsPage: React.FC = () => {
                 edge="end"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/patients/report?patientId=${patient.patientId}`);
+                  navigate(
+                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                  );
                 }}
               >
                 <DescriptionIcon />
@@ -442,7 +446,9 @@ const NursePatientsPage: React.FC = () => {
                 edge="end"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/patients/report?patientId=${patient.patientId}`);
+                  navigate(
+                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                  );
                 }}
               >
                 <DescriptionIcon />
@@ -487,7 +493,9 @@ const NursePatientsPage: React.FC = () => {
                 edge="end"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/patients/report?patientId=${patient.patientId}`);
+                  navigate(
+                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                  );
                 }}
               >
                 <DescriptionIcon />
