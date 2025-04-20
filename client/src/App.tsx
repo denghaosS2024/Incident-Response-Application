@@ -47,6 +47,7 @@ import StatisticsPage from "./pages/SarTasksStatistics";
 import TruckInventoryPage from "./pages/TruckInventoryPage.tsx";
 import TruckStockPage from "./pages/TruckStockPage.tsx";
 import ViewOrganization from "./pages/ViewOrganization";
+import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
@@ -87,6 +88,10 @@ export default function App() {
             <Route
               path="/patients/report"
               element={<PatientMedicalReportPage />}
+            />
+            <Route
+              path="/patients/visit/view"
+              element={<ViewPatientVisitPage />}
             />
             <Route path="/incidents/report" element={<IncidentReportPage />} />
             <Route path="/organization" element={<Organization />} />
@@ -167,10 +172,7 @@ export default function App() {
               path="/truck-inventory/:truckName"
               element={<TruckInventoryPage />}
             />
-            <Route
-              path="/truck-stock"
-              element={<TruckStockPage />}
-            />
+            <Route path="/truck-stock" element={<TruckStockPage />} />
           </Route>
 
           <Route element={<RoutedHome showBackButton isSubPage />}>

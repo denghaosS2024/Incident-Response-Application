@@ -201,6 +201,11 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = `${name} Medical Report`;
   }
 
+  // override for Patient Visit Detail page
+  if (pathname.startsWith("/patients/visit/view") && name) {
+    title = `${name} Patient Visit`;
+  }
+
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true);
     setMenuAnchor(anchor);
