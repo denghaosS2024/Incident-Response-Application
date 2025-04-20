@@ -84,18 +84,25 @@ const PatientMedicalReportPage: React.FC = () => {
         }}
       >
         {events.map((evt, idx) => {
+          // detect if this event is a discharge
+          const isDischarge = evt.changes.some(
+            (c) => c.field === "active" && c.newValue === false,
+          );
+
           const titleLines =
             idx === 0
               ? ["Patient Visit Created"]
-              : evt.changes.map((c) => {
-                  const prettyField = c.field
-                    .replace(/([A-Z])/g, " $1")
-                    .replace(/^./, (s) => s.toUpperCase());
-                  const value = Array.isArray(c.newValue)
-                    ? c.newValue.join(", ")
-                    : String(c.newValue);
-                  return `${prettyField} updated: ${value}`;
-                });
+              : isDischarge
+                ? ["Patient Discharged"]
+                : evt.changes.map((c) => {
+                    const prettyField = c.field
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (s) => s.toUpperCase());
+                    const value = Array.isArray(c.newValue)
+                      ? c.newValue.join(", ")
+                      : String(c.newValue);
+                    return `${prettyField} updated: ${value}`;
+                  });
 
           return (
             <TimelineItem key={idx}>
@@ -119,7 +126,9 @@ const PatientMedicalReportPage: React.FC = () => {
                     <Box display="flex" alignItems="center" gap={1}>
                       <LocalHospitalIcon color="error" fontSize="small" />
                       <Typography variant="body2">
-                        {evt.updatedBy || "System"}
+                        {isDischarge
+                          ? (patientName ?? "")
+                          : evt.updatedBy || "System"}
                       </Typography>
                     </Box>
                     <Typography variant="caption" color="text.secondary">
@@ -129,7 +138,9 @@ const PatientMedicalReportPage: React.FC = () => {
                   <IconButton
                     onClick={() =>
                       navigate(
-                        `/patients/visit/view?patientId=${patientId}&visitLogId=${visitLogId}&eventIndex=${idx}&name=${encodeURIComponent(patientName ?? "")}`,
+                        `/patients/visit/view?patientId=${patientId}&visitLogId=${visitLogId}&eventIndex=${idx}&name=${encodeURIComponent(
+                          patientName ?? "",
+                        )}`,
                       )
                     }
                   >
