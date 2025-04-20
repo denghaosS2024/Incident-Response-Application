@@ -109,7 +109,9 @@ class UserController {
       const user = await User.findOne({
         assignedCity: cityName,
         role: ROLES.CITY_DIRECTOR,
-      }).lean().exec();
+      })
+        .lean()
+        .exec();
       return user || null;
     } catch (error) {
       console.error("Error getting director by city:", error);
@@ -128,6 +130,18 @@ class UserController {
     });
 
     return user !== null;
+  }
+
+  async getExistingUser(userId: string) {
+    const user = await User.findOne({
+      _id: userId,
+    });
+
+    if (user === null) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    return user;
   }
 
   /**
@@ -601,11 +615,13 @@ class UserController {
           name: "",
           sex: "",
           dob: "",
-          hospitalId: hospitalId
-        }
+          hospitalId: hospitalId,
+        };
 
-        const newPatient = await PatientController.create(newPatientSchema, callerUid);
-
+        const newPatient = await PatientController.create(
+          newPatientSchema,
+          callerUid,
+        );
 
         return {
           message: "A new user account has been created for the Patient.",
@@ -630,7 +646,7 @@ class UserController {
           console.warn("Duplicate temp username, retrying...", attempt);
           continue;
         }
-        console.error("Error creating temporary patient user:", error); 
+        console.error("Error creating temporary patient user:", error);
         throw new Error("Failed to create temporary patient user.");
       }
     }
