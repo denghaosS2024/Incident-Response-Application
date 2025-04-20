@@ -47,6 +47,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     locationLastSeen: "",
     photo: "",
     reportStatus: "open",
+    personStatus: "missing",
     ...initialData,
   };
 
@@ -60,8 +61,10 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     let parsedValue: string | number | Date = value;
 
     if (name === "dateLastSeen") {
+      // parse date string into Date
       parsedValue = new Date(value);
     } else if (name === "age" || name === "weight" || name === "height") {
+      // convert numeric strings to numbers
       parsedValue = Number(value);
     }
 
@@ -71,7 +74,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     }));
   };
 
-  // Select dropdowns
+  // Select dropdowns (including personStatus)
   const handleSelectChange = (e: SelectChangeEvent) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -89,14 +92,6 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
 
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      {/* <Typography variant="h5" gutterBottom>
-        {readonly
-          ? "Original Report"
-          : initialData
-            ? "Edit Missing Person"
-            : "Register Missing Person"}
-      </Typography> */}
-
       <Box
         component="form"
         onSubmit={(e) => {
@@ -145,6 +140,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               disabled={readonly}
             />
           </Grid>
+
           {/* Height */}
           <Grid item xs={12} sm={6}>
             <TextField
@@ -281,3 +277,5 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     </Container>
   );
 };
+
+export default MissingPersonForm;

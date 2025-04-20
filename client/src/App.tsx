@@ -30,6 +30,7 @@ import MissingPersonDirectoryPage from "./pages/MissingPersonDirectoryPage";
 import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
 import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualReportPage";
 import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
+import MissingPersonUpdatePage from "./pages/MissingPersonUpdatePage.tsx";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
 import NurseShiftPage from "./pages/NurseShiftPage";
 import Organization from "./pages/Organization";
@@ -165,8 +166,13 @@ export default function App() {
             />
 
             <Route
-              path="missing-person/followUp/:reportId"
+              path="/missing-person/followUp/:reportId"
               element={<MissingPersonFollowUpPage />}
+            />
+
+            <Route
+              path="/missing-person/update/:reportId"
+              element={<MissingPersonUpdatePage />}
             />
 
             <Route
