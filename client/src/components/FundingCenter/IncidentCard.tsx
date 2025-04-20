@@ -44,11 +44,11 @@ const IncidentCard: React.FC<Props> = ({ incident, onChat }) => {
         <Button
           variant="contained"
           color="secondary"
-          onClick={() =>
-            navigate("/reach911", {
-              state: { incidentId: incident.incidentId },
-            })
-          }
+        //   onClick={() =>
+        //     navigate("/reach911", {
+        //       state: { incidentId: incident.incidentId },
+        //     })
+        //   }
         >
           Details
         </Button>
