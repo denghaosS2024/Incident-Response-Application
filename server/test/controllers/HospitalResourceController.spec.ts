@@ -27,7 +27,7 @@ describe("HospitalResourceController", () => {
       nurses: [],
       patients: [],
       hospitalGroupId: new mongoose.Types.ObjectId().toString(),
-      ...overrides, // 覆盖默认值
+      ...overrides, 
     } as IHospital;
   };
 
@@ -205,5 +205,85 @@ describe("HospitalResourceController", () => {
 
     // Assert
     expect(groupedResources).toEqual({});
+  });
+
+
+  it("should get hospital resource by resource id", async () => {
+    const resource = await HospitalResourceController.createResource({
+      resourceName: "Mask",
+    });
+
+    let newHospitalId = new mongoose.Types.ObjectId();
+
+    const hospitalResource =
+      await HospitalResourceController.createHospitalResource({
+        hospitalId: newHospitalId,
+        resourceId: resource._id,
+        inStockQuantity: 10,
+        inStockAlertThreshold: 5,
+      });
+      const fetchedHospitalResource = await HospitalResourceController.getHospitalResourceById(hospitalResource._id);
+      expect(fetchedHospitalResource).toHaveLength(1);
+      expect(fetchedHospitalResource[0]).toBeDefined();
+      expect(fetchedHospitalResource[0].resourceId._id.toString()).toBe(hospitalResource.resourceId.toString());
+      expect(fetchedHospitalResource[0].hospitalId.toString()).toBe(newHospitalId.toString()); 
+  });
+
+  it("should fetch hospital resources for a specific hospital", async () =>{
+    const resource1 = await HospitalResourceController.createResource({
+      resourceName: "Mask",
+    });
+    const resource2 = await HospitalResourceController.createResource({
+      resourceName: "Needle",
+    });
+
+    let newHospitalId = new mongoose.Types.ObjectId();
+
+    await HospitalResourceController.createHospitalResource({
+        hospitalId: newHospitalId,
+        resourceId: resource1._id,
+        inStockQuantity: 10,
+        inStockAlertThreshold: 5,
+      });
+
+    
+    await HospitalResourceController.createHospitalResource({
+        hospitalId: newHospitalId,
+        resourceId: resource2._id,
+        inStockQuantity: 10,
+        inStockAlertThreshold: 5,
+    });
+
+    const fetchedHospitalResources = await HospitalResourceController.getAllHospitalResourcesByHospitalId(newHospitalId);
+
+    expect(fetchedHospitalResources).toHaveLength(2)
+    expect(fetchedHospitalResources[0].resourceId._id.toString()).toBe(resource1._id.toString());
+    expect(fetchedHospitalResources[1].resourceId._id.toString()).toBe(resource2._id.toString());
+  });
+
+  it("should update a hospital resource", async () =>{
+    const resource1 = await HospitalResourceController.createResource({
+      resourceName: "Mask",
+    });
+
+    let newHospitalId = new mongoose.Types.ObjectId();
+
+    const originalHospitalResource = await HospitalResourceController.createHospitalResource({
+        hospitalId: newHospitalId,
+        resourceId: resource1._id,
+        inStockQuantity: 10,
+        inStockAlertThreshold: 5,
+      });
+
+    const updatedData = 
+    {
+      resourceId: originalHospitalResource.resourceId,
+      hospitalId: originalHospitalResource.hospitalId,
+      inStockQuantity: 15
+    }
+
+    const updatedHospitalResource = await HospitalResourceController.updateHospitalResource(updatedData);
+
+    expect(updatedHospitalResource?.inStockQuantity).toBe(updatedData.inStockQuantity);
   });
 });

@@ -146,6 +146,53 @@ describe("Router - HospitalResource", () => {
     expect(Array.isArray(response.body[resourceName2])).toBe(true);
   });
 
+    /* -------------------------------- GET: /api/hospital-resource/allResources/{_id} ------------------- */
+
+    it("should fetch all hospital resources for a specific hospital", async () => {
+      const resourceName1 = "Ventilator";
+      const resourceName2 = "Oxygen Tank";
+      const hospitalId = new mongoose.Types.ObjectId().toString();
+  
+      // Create resources
+      await createResource(resourceName1, hospitalId);
+      await createResource(resourceName2, hospitalId);
+  
+      const response = await request(app)
+        .get(`/api/hospital-resource/allResources/${hospitalId}`)
+        .expect(200);
+      expect(response.body).toBeDefined();
+      expect(response.body[0].resourceId.resourceName).toBe(resourceName1);
+      expect(response.body[1].resourceId.resourceName).toBe(resourceName2);
+    });
+
+      /* -------------------------------- GET: /api/hospital-resource/id/{_id} ------------------- */
+
+      it("should fetch a hospital resource by id", async () => {
+        const resource = await HospitalResourceController.createResource({
+          resourceName: "Ventilator",
+        });
+      
+        const newHospitalId = new mongoose.Types.ObjectId();
+      
+        const hospitalResource = await HospitalResourceController.createHospitalResource({
+          hospitalId: newHospitalId,
+          resourceId: resource._id,
+          inStockQuantity: 10,
+          inStockAlertThreshold: 5,
+        });
+      
+        const response = await request(app)
+          .get(`/api/hospital-resource/id/${hospitalResource._id}`)
+          .expect(200);
+      
+        const returned = response.body[0];
+      
+        expect(returned).toBeDefined();
+        expect(returned._id).toBe(String(hospitalResource._id));
+        expect(returned.resourceId).toBeDefined();
+        expect(returned.resourceId._id).toBe(String(resource._id));
+      });
+
   /* -------------------------------- Error Handling ------------------------------------ */
 
   it("should return 500 if an unexpected error occurs", async () => {
