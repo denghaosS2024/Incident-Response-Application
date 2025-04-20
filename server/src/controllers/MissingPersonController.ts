@@ -59,6 +59,47 @@ class MissingPersonController {
       throw new Error("Failed to fetch missing person records");
     }
   }
+
+  /**
+   * Update an existing missing person record.
+   * @param id The ID of the missing person record to update.
+   * @param updateData The data to update the record with.
+   * @returns The updated missing person record.
+   */
+  async updateMissingPerson(id: string, updateData: Partial<IMissingPerson>) {
+    try {
+      const missingPerson = await MissingPerson.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true }
+      ).exec();
+      
+      return missingPerson;
+    } catch (error) {
+      console.error("Error updating missing person:", error);
+      throw new Error("Failed to update missing person record");
+    }
+  }
+  
+  /**
+   * Mark a missing person as found.
+   * @param id The ID of the missing person record.
+   * @returns The updated missing person record.
+   */
+  async markAsFound(id: string) {
+    try {
+      const missingPerson = await MissingPerson.findByIdAndUpdate(
+        id,
+        { $set: { reportStatus: "closed" } },
+        { new: true }
+      ).exec();
+      
+      return missingPerson;
+    } catch (error) {
+      console.error("Error marking missing person as found:", error);
+      throw new Error("Failed to mark missing person as found");
+    }
+  }
 }
 
 export default new MissingPersonController();

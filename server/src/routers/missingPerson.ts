@@ -42,6 +42,59 @@ export default Router()
       const error = e as Error;
       return response.status(500).send({ message: error.message });
     }
+  })
+  
+  .get("/:id", async (request, response) => {
+    try {
+      const { id } = request.params;
+      const result = await MissingPersonController.getMissingPersonById(id);
+      if (!result) {
+        return response.status(404).send({
+          message: "Missing person report not found.",
+        });
+      }
+      return response.status(200).send(result);
+    } catch (e) {
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
+  
+  .put("/:id", async (request, response) => {
+    try {
+      const { id } = request.params;
+      const updateData = request.body as Partial<IMissingPerson>;
+      
+      const result = await MissingPersonController.updateMissingPerson(id, updateData);
+      if (!result) {
+        return response.status(404).send({
+          message: "Missing person report not found.",
+        });
+      }
+      
+      return response.status(200).send(result);
+    } catch (e) {
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
+  
+  .patch("/:id/found", async (request, response) => {
+    try {
+      const { id } = request.params;
+      
+      const result = await MissingPersonController.markAsFound(id);
+      if (!result) {
+        return response.status(404).send({
+          message: "Missing person report not found.",
+        });
+      }
+      
+      return response.status(200).send(result);
+    } catch (e) {
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
   });
 
 /**

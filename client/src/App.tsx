@@ -18,6 +18,7 @@ import GroupInformationPage from "./pages/GroupInformationPage";
 import GroupsPage from "./pages/GroupsPage";
 import HomePage from "./pages/HomePage";
 import HospitalResourceDirectoryPage from "./pages/HospitalResourceDirectoryPage.tsx";
+import HospitalResourceRequestEditPage from "./pages/HospitalResourceRequestEditPage.tsx";
 import HospitalResourceRequestsPage from "./pages/HospitalResourceRequestsPage.tsx";
 import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
 import HospitalsDirectory from "./pages/HospitalsDirectory";
@@ -29,6 +30,7 @@ import Messages from "./pages/Messages";
 import MissingPersonDirectoryPage from "./pages/MissingPersonDirectoryPage";
 import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
 import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualReportPage";
+import MissingPersonManagePage from "./pages/MissingPersonManagePage";
 import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
 import MissingPersonUpdatePage from "./pages/MissingPersonUpdatePage.tsx";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
@@ -56,7 +58,6 @@ import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
-import HospitalResourceRequestEditPage from "./pages/HospitalResourceRequestEditPage.tsx";
 
 export default function App() {
   //Feature toggling: show the hospitals directory page only when the flag is enabled
@@ -74,11 +75,8 @@ export default function App() {
             <Route path="/messages" element={<Messages />} />
             <Route path="/funding-center" element={<FundingCenter />} />
             <Route
-             
               path="/funding-information/:incidentId"
-             
               element={<FundingInformation />}
-           
             />
             {/* The path /messages/:id allows for passing channelId as a query parameter.
             This allow us to navigate to /messages but automatically into a specific channel chat.
@@ -176,6 +174,10 @@ export default function App() {
             <Route
               path="/missing-person/followUp/:reportId"
               element={<MissingPersonFollowUpPage />}
+            />
+            <Route
+              path="missing-person/manage/:reportId"
+              element={<MissingPersonManagePage />}
             />
 
             <Route

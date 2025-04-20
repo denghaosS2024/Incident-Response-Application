@@ -51,7 +51,7 @@ const MissingPersonIndividualReportPage: React.FC = () => {
             person={person}
             showAction
             onActionClick={() =>
-              navigate(`/missing-person/update/${person._id}`)
+              navigate(`/missing-person/manage/${person._id}`)
             }
           />
 
