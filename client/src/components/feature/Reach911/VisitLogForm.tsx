@@ -24,9 +24,9 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { RootState } from "../../../redux/store";
 import Loading from "../../common/Loading";
+import DrugEntry from "./DrugEntry";
 import { IVisitLogForm } from "./IVisitLogForm";
 import VisitLogHelper from "./VisitLogHelper";
-import DrugEntry from "./DrugEntry";
 // Default: E
 
 // Returns the current date and time formatted as "MM.DD.YY-HH:mm"
@@ -125,29 +125,6 @@ const VisitLogForm: React.FC<{
     }
 
     console.log("Incident questions:", incident.questions);
-
-    // for (const question of incident.questions as MedicalQuestions[]) {
-    //   // if (question.isPatient && question.username === propUsername) {
-    //   if (question.username === propUsername) {
-    //     console.log("Found patient data:", question);
-    //     setFormData((prev) => ({
-    //       ...prev,
-    //       // Only update age if it exists and can be converted to a string
-    //       age: question.age !== undefined ? question.age.toString() : prev.age,
-    //       // Only update conscious if it exists and is not empty
-    //       conscious:
-    //         question.conscious !== "" ? question.conscious : prev.conscious,
-    //       // Only update breathing if it exists and is not empty
-    //       breathing:
-    //         question.breathing !== "" ? question.breathing : prev.breathing,
-    //       // Only update chiefComplaint if it exists and is not empty
-    //       chiefComplaint: question.chiefComplaint
-    //         ? question.chiefComplaint
-    //         : prev.chiefComplaint,
-    //     }));
-    //     break;
-    //   }
-    // }
   };
 
   // Check the role when the component mounts
@@ -171,6 +148,31 @@ const VisitLogForm: React.FC<{
     }
     const patient = patients.find((p) => p.username === propUsername);
     return patient ? patient.patientId : "";
+  };
+
+  // Discharge logic
+  const dischargePatient = async () => {
+    const patientId = getCurrentPatientId();
+    if (!patientId) return;
+    const uid = localStorage.getItem("uid") || "";
+    try {
+      // set active=false on current visit log
+      await request("/api/patients/visitLogs", {
+        method: "PUT",
+        body: JSON.stringify({
+          patientId,
+          updatedVisitData: { active: false },
+          updatedBy: uid,
+        }),
+      });
+      // set ER status to discharged
+      await request("/api/patients/erStatus", {
+        method: "PUT",
+        body: JSON.stringify({ patientId, erStatus: "discharged" }),
+      });
+    } catch (err) {
+      console.error("Discharge failed:", err);
+    }
   };
 
   useEffect(() => {

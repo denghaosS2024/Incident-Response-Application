@@ -44,8 +44,8 @@ const TruckStockPage: React.FC = () => {
           request('/api/inventories/non-default'),
           request<Truck[]>("/api/trucks/list/all"),
         ]);
-        console.log('Inventory Data:', inventoryData);
-        console.log('Trucks Data:', trucksData);
+        // console.log('Inventory Data:', inventoryData);
+        // console.log('Trucks Data:', trucksData);
 
         if (Array.isArray(inventoryData)) {
           setTrucks(inventoryData);
