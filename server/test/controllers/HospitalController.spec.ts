@@ -18,21 +18,19 @@ describe("Hospital Controller", () => {
 
   afterAll(async () => await TestDatabase.close());
 
-  const createTestHospital = async (hospitalId: string) => {
-    const newHospital = new Hospital({
-      hospitalId: hospitalId,
+  const createTestHospital = async () => {
+    const hospitalData = new Hospital({
       hospitalName: "Test Hospital",
       hospitalAddress: "123 Main St",
       hospitalDescription: "Test hospital",
       totalNumberERBeds: 10,
       totalNumberOfPatients: 5,
     });
-    return newHospital.save();
+    return await HospitalController.create(hospitalData);
   };
 
   it("should create hospital", async () => {
     const hospitalData = new Hospital({
-      hospitalId: "123456789",
       hospitalName: "Test Hospital",
       hospitalAddress: "123 Main St",
       hospitalDescription: "Test hospital",
@@ -114,7 +112,6 @@ describe("Hospital Controller", () => {
 
   it("should throw an error when updating hospitals fails", async () => {
     const hospitalData = new Hospital({
-      hospitalId: "123456789",
       hospitalName: "Test Hospital",
       hospitalAddress: "123 Main St",
       hospitalDescription: "Test hospital",
@@ -122,10 +119,10 @@ describe("Hospital Controller", () => {
       totalNumberOfPatients: 5,
     });
 
-    await HospitalController.create(hospitalData);
+    const hospital = await HospitalController.create(hospitalData);
 
     const updatedData = {
-      hospitalId: "123456789",
+      hospitalId: hospital.hospitalId,
       totalNumberERBeds: 5,
     };
 
@@ -144,7 +141,7 @@ describe("Hospital Controller", () => {
   });
 
   it("should update hospital", async () => {
-    const hospital = await createTestHospital("hospital1");
+    const hospital = await createTestHospital();
 
     const updatedData = {
       hospitalId: hospital.hospitalId,
@@ -164,16 +161,16 @@ describe("Hospital Controller", () => {
   });
 
   it("should update multiple hospitals successfully", async () => {
-    const hospitalId1 = "hospital_for_batch_update1";
-    const hospitalId2 = "hospital_for_batch_update2";
-
     // Arrange
     const patient1 = new mongoose.Types.ObjectId();
     const patient2 = new mongoose.Types.ObjectId();
     const patient3 = new mongoose.Types.ObjectId();
 
-    await createTestHospital(hospitalId1);
-    await createTestHospital(hospitalId2);
+    const hospital1 = await createTestHospital();
+    const hospital2 = await createTestHospital();
+
+    const hospitalId1 = hospital1.hospitalId;
+    const hospitalId2 = hospital2.hospitalId;
 
     const updates = [
       {
@@ -218,14 +215,14 @@ describe("Hospital Controller", () => {
 
   it("should throw an error if one or more hospitals do not exist", async () => {
     // Arrange
-    const hospitalId1 = "existing_hospital";
-    const hospitalId2 = "non_existent_hospital";
 
     const patient1 = new mongoose.Types.ObjectId();
     const patient2 = new mongoose.Types.ObjectId();
     const patient3 = new mongoose.Types.ObjectId();
 
-    await createTestHospital(hospitalId1);
+    const hospital1 = await createTestHospital();
+    const hospitalId1 = hospital1.hospitalId;
+    const hospitalId2 = new mongoose.Types.ObjectId().toString(); // Non-existent hospital
 
     const updates = [
       {
@@ -263,15 +260,15 @@ describe("Hospital Controller", () => {
   });
 
   it("should throw an error when the multiple hospital update fails due to a database issue", async () => {
-    const hospitalId1 = "existing_hospital";
-    const hospitalId2 = "non_existent_hospital";
-
     const patient1 = new mongoose.Types.ObjectId();
     const patient2 = new mongoose.Types.ObjectId();
     const patient3 = new mongoose.Types.ObjectId();
 
-    await createTestHospital(hospitalId1);
-    await createTestHospital(hospitalId2);
+    const hospital1 = await createTestHospital();
+    const hospital2 = await createTestHospital();
+
+    const hospitalId1 = hospital1.hospitalId;
+    const hospitalId2 = hospital2.hospitalId;
 
     const updates = [
       {
@@ -306,18 +303,18 @@ describe("Hospital Controller", () => {
   });
 
   it("should delete hospital successfully", async () => {
-    await createTestHospital("delete_test_hospital");
+    const hospital = await createTestHospital();
     const deletedHospital = await HospitalController.deleteHospital(
-      "delete_test_hospital",
+      hospital.hospitalId,
     );
 
     // Assert: Verify that the returned deleted hospital is defined and has the correct hospitalId
     expect(deletedHospital).toBeDefined();
-    expect(deletedHospital?.hospitalId).toBe("delete_test_hospital");
+    expect(deletedHospital?.hospitalId).toBe(hospital.hospitalId);
 
     // Verify that the hospital no longer exists in the database
     const foundHospital = await Hospital.findOne({
-      hospitalId: "delete_test_hospital",
+      hospitalId: hospital.hospitalId,
     });
     expect(foundHospital).toBeNull();
   });

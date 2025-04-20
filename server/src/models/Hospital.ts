@@ -16,7 +16,6 @@ export interface IHospital extends Document {
 const HospitalSchema = new Schema({
   hospitalId: {
     type: String,
-    required: true,
     unique: true,
   },
   hospitalName: {
