@@ -1,6 +1,6 @@
 import React from "react";
 import { Typography, Box, List } from "@mui/material";
-import {InventoryItem} from "./InventoryItem";
+import InventoryItem from "./InventoryItem";
 
 interface Inventory {
   items: InventoryItem[];
@@ -26,3 +26,5 @@ const InventoryList: React.FC<Inventory> = ({ items }) => {
     </Box>
   );
 }
+
+export default InventoryList;
