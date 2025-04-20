@@ -18,6 +18,7 @@ const MissingPersonDirectoryPage: React.FC = () => {
 
   const [reports, setReports] = useState<IMissingPerson[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const currentUserRole = localStorage.getItem("role");
 
   // fetch on mount
   useEffect(() => {
@@ -78,15 +79,17 @@ const MissingPersonDirectoryPage: React.FC = () => {
         )}
       </Box>
 
-      {/* Floating + button */}
-      <Fab
-        color="primary"
-        aria-label="add"
-        sx={{ position: "fixed", bottom: 24, right: 24 }}
-        onClick={() => navigate("/missing-person/register")}
-      >
-        <AddIcon />
-      </Fab>
+      {/* only show + if role is Police */}
+      {currentUserRole === "Police" && (
+        <Fab
+          color="primary"
+          aria-label="add"
+          sx={{ position: "fixed", bottom: 24, right: 24 }}
+          onClick={() => navigate("/missing-person/register")}
+        >
+          <AddIcon />
+        </Fab>
+      )}
 
       {/* Error Snackbar */}
       <Snackbar
