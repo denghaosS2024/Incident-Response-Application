@@ -44,11 +44,12 @@ import SARTaskPage from "./pages/SARTaskPage.tsx";
 import TodoTasksPage from "./pages/SarTasks";
 import DoneTasksPage from "./pages/SarTasksDone";
 import StatisticsPage from "./pages/SarTasksStatistics";
+import TruckInventoryPage from "./pages/TruckInventoryPage.tsx";
+import TruckStockPage from "./pages/TruckStockPage.tsx";
 import ViewOrganization from "./pages/ViewOrganization";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
-import TruckInventoryPage from "./pages/TruckInventoryPage.tsx";
 
 export default function App() {
   //Feature toggling: show the hospitals directory page only when the flag is enabled
@@ -165,6 +166,10 @@ export default function App() {
             <Route
               path="/truck-inventory/:truckName"
               element={<TruckInventoryPage />}
+            />
+            <Route
+              path="/truck-stock"
+              element={<TruckStockPage />}
             />
           </Route>
 

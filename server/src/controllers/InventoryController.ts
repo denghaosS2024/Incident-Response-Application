@@ -69,6 +69,13 @@ class InventoryController {
       items: mergedItems,
     };
   }
+
+
+  async getAllNonDefaultInventories() {
+    const inventories = await Inventory.find({ category: { $ne: "default" } });
+    console.log("Non-default inventories:", inventories);
+    return inventories;
+  }
 }
 
 export default new InventoryController();
