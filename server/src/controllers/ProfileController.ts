@@ -23,8 +23,6 @@ class ProfileController {
     userId: Types.ObjectId,
     profileData: Partial<IProfile>,
   ) => {
-    console.log("🟢 Attempting to update profile for userId:", userId);
-    console.log("🟢 Profile Data:", profileData);
     if (profileData.email && !this.emailRegex.test(profileData.email)) {
       throw new Error("Invalid email format");
     }
