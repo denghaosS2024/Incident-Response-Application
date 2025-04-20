@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, CircularProgress, Grid, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import InventoryItem from "../components/inventory/InventoryItem";
@@ -11,44 +11,48 @@ const TruckInventoryPage: React.FC = () => {
     category: "",
     items: [],
   });
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // Fetch inventory data from the server using the truckName
     const fetchInventory = async () => {
+      setLoading(true);
       try {
         const response = await request(
           `/api/inventories/category/${truckName}`,
         );
+        // console.log("Inventory Data:", response);
         setInventoryItems(response);
       } catch (error) {
         console.error("Error fetching inventory:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchInventory();
   }, [truckName]);
 
-  return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      justifyContent="center"
-      alignItems="center"
-      minHeight="10vh"
-      padding="16px"
-    >
-      {/* <Typography variant="h4" gutterBottom>
-        Inventory for Truck: {truckName}
-      </Typography> */}
-      <Box>
-        {inventory.items.map((item, index) => (
-          <InventoryItem
-            key={index}
-            name={item.name}
-            description={item.description || ""}
-            quantity={item.quantity}
-          />
-        ))}
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <CircularProgress />
       </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h5" gutterBottom>
+        {truckName} Inventory
+      </Typography>
+      
+      <Grid container spacing={2}>
+        {inventory.items.map((item, index) => (
+          <Grid item xs={12} sm={6} md={4} key={index}>
+            <InventoryItem item={item} />
+          </Grid>
+        ))}
+      </Grid>
     </Box>
   );
 };
