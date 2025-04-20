@@ -59,7 +59,9 @@ export interface IIncident extends Document {
   closingDate?: Date;
   incidentState: IncidentState;
   city: string;
-  funding: number;
+  fund_requested: number;
+  fund_assigned: number;
+  fund_left: number;
   /*
      TODO in the future: when the app is deployed we can create reserved user System
      and replace String with type of User (same with commander)
@@ -138,7 +140,17 @@ const IncidentSchema = new Schema({
     type: String,
     required: false,
   },
-  funding: {
+  fund_requested: {
+    type: Number,
+    required: false,
+    default: 0,
+  },
+  fund_assigned: {
+    type: Number,
+    required: false,
+    default: 0,
+  },
+  fund_left: {
     type: Number,
     required: false,
     default: 0,

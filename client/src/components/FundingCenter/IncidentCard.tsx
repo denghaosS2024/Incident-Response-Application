@@ -34,7 +34,7 @@ const IncidentCard: React.FC<Props> = ({ incident, onChat }) => {
         </Typography>
         <Typography>Priority: {incident.priority}</Typography>
         <Typography>
-          Funding Left: ${incident.funding.toLocaleString()}
+          Funding Left: ${incident.fund_left.toLocaleString()}
         </Typography>
       </CardContent>
       <CardActions>
