@@ -8,6 +8,16 @@ import Chart, {
 import Incident from "../models/Incident";
 import Message from "../models/Message";
 import Patient from "../models/Patient";
+import User from "../models/User"; // assuming default export
+
+async function getUserRoleMap(usernames: string[]): Promise<Record<string, string>> {
+  const users = await User.find({ username: { $in: usernames } }).select("username role");
+  const map: Record<string, string> = {};
+  users.forEach((user) => {
+    map[user.username] = user.role;
+  });
+  return map;
+}
 
 /**
  * Function: Get chart data formatted for a Pie Chart
@@ -46,67 +56,97 @@ const getPieChartData = async (
         datasets: [{ data: results.map((item) => item.count) }],
       }));
 
-    case ChartDataType.IncidentResources:
-      return await Incident.aggregate([
-        { $match: { openingDate: { $gte: startDate, $lte: endDate } } },
-        {
-          $project: {
-            commanders: "$commander",
-            police: { $cond: [{ $eq: ["$type", "P"] }, 1, 0] },
-            firefighters: { $cond: [{ $eq: ["$type", "F"] }, 1, 0] },
-            cars: {
-              $size: {
-                $filter: {
-                  input: "$assignedVehicles",
-                  as: "vehicle",
-                  cond: { $eq: ["$$vehicle.type", "Car"] },
-                },
-              },
-            },
-            trucks: {
-              $size: {
-                $filter: {
-                  input: "$assignedVehicles",
-                  as: "vehicle",
-                  cond: { $eq: ["$$vehicle.type", "Truck"] },
-                },
-              },
-            },
+      case ChartDataType.IncidentDuration:
+        return await Incident.aggregate([
+          {
+            $match: {
+              closingDate: { $exists: true },
+              openingDate: { $gte: startDate, $lte: endDate }
+            }
           },
-        },
-        {
-          $group: {
-            _id: null,
-            commanders: { $sum: 1 },
-            police: { $sum: "$police" },
-            firefighters: { $sum: "$firefighters" },
-            cars: { $sum: "$cars" },
-            trucks: { $sum: "$trucks" },
+          {
+            $project: {
+              durationMinutes: {
+                $divide: [
+                  { $subtract: ["$closingDate", "$openingDate"] },
+                  1000 * 60 // convert ms to minutes
+                ]
+              }
+            }
           },
-        },
-      ]).then((results) => {
-        const data = results[0];
-        return {
-          labels: [
-            "Commanders",
-            "Police Officers",
-            "Firefighters",
-            "Cars",
-            "Trucks",
-          ],
-          datasets: [
-            {
-              data: [
-                data.commanders,
-                data.police,
-                data.firefighters,
-                data.cars,
-                data.trucks,
-              ],
-            },
-          ],
-        };
-      });
+          {
+            $bucket: {
+              groupBy: "$durationMinutes",
+              boundaries: [0, 10, 30, 100000], // arbitrary upper limit
+              default: "Unknown",
+              output: {
+                count: { $sum: 1 }
+              }
+            }
+          }
+        ]).then(results => {
+          const labels = ["Less than 10 min", "10–30 min", "More than 30 min"];
+          const buckets = [0, 0, 0];
+      
+          results.forEach(bucket => {
+            if (bucket._id < 10) buckets[0] = bucket.count;
+            else if (bucket._id < 30) buckets[1] = bucket.count;
+            else buckets[2] = bucket.count;
+          });
+      
+          return {
+            labels,
+            datasets: [{ data: buckets }]
+          };
+        });
+      
+
+
+        case ChartDataType.IncidentResources: {
+          const incidents = await Incident.find({
+            openingDate: { $gte: startDate, $lte: endDate },
+          }).lean();
+        
+          const allUsernames = new Set<string>();
+          const commanders = new Set<string>();
+          let carCount = 0;
+          let truckCount = 0;
+        
+          for (const incident of incidents) {
+            if (incident.commander) commanders.add(incident.commander);
+            for (const v of incident.assignedVehicles || []) {
+              if (v.usernames) v.usernames.forEach((u) => allUsernames.add(u));
+              if (v.type === "Car") carCount++;
+              if (v.type === "Truck") truckCount++;
+            }
+          }
+        
+          const roleMap = await getUserRoleMap(Array.from(allUsernames));
+        
+          let policeCount = 0;
+          let fireCount = 0;
+        
+          Object.values(roleMap).forEach((role) => {
+            if (role.includes("Police")) policeCount++;
+            if (role.includes("Fire")) fireCount++;
+          });
+        
+          return {
+            labels: ["Commanders", "Police Officers", "Firefighters", "Cars", "Trucks"],
+            datasets: [
+              {
+                data: [
+                  commanders.size,
+                  policeCount,
+                  fireCount,
+                  carCount,
+                  truckCount,
+                ],
+              },
+            ],
+          };
+        }
+        
 
     case ChartDataType.PatientLocation:
       return await Patient.aggregate([
@@ -123,56 +163,52 @@ const getPieChartData = async (
         datasets: [{ data: results.map((item) => item.count) }],
       }));
 
-    case ChartDataType.SARTasks:
-      return await Incident.aggregate([
-        {
-          $match: {
+      case ChartDataType.SARTasks:
+        return await Incident.aggregate([
+          {
+            $match: {
+              type: "S",
+              openingDate: { $gte: startDate, $lte: endDate },
+              sarTasks: { $exists: true, $ne: [] }
+            }
+          },
+          { $unwind: "$sarTasks" },
+          {
+            $group: {
+              _id: "$sarTasks.state",
+              count: { $sum: 1 }
+            }
+          }
+        ]).then((results) => ({
+          labels: results.map((item) => item._id),
+          datasets: [{ data: results.map((item) => item.count) }]
+        }));
+      
+
+        case ChartDataType.SARVictims: {
+          const categories = ["Immediate", "Urgent", "Could Wait", "Dismiss", "Deceased"];
+          const totals = new Array(5).fill(0);
+        
+          const incidents = await Incident.find({
             type: "S",
             openingDate: { $gte: startDate, $lte: endDate },
-          },
-        },
-        { $group: { _id: "$incidentState", count: { $sum: 1 } } },
-      ]).then((results) => ({
-        labels: results.map((item) => item._id),
-        datasets: [{ data: results.map((item) => item.count) }],
-      }));
-
-    case ChartDataType.SARVictims:
-      const victimCategories = [
-        { type: "Immediate", index: 0 },
-        { type: "Urgent", index: 1 },
-        { type: "Could Wait", index: 2 },
-        { type: "Dismiss", index: 3 },
-        { type: "Deceased", index: 4 },
-      ];
-
-      const categoryTotals = new Array(victimCategories.length).fill(0);
-
-      const incidents = await Incident.find({
-        type: "S",
-        openingDate: { $gte: startDate, $lte: endDate },
-        sarTasks: { $exists: true, $ne: [] },
-      }).lean();
-
-      incidents.forEach((incident) => {
-        incident.sarTasks?.forEach((task) => {
-          if (Array.isArray(task.victims)) {
-            task.victims.forEach((count, idx) => {
-              if (
-                typeof count === "number" &&
-                categoryTotals[idx] !== undefined
-              ) {
-                categoryTotals[idx] += count;
-              }
-            });
+            sarTasks: { $exists: true, $ne: [] },
+          }).lean();
+        
+          for (const incident of incidents) {
+            for (const task of incident.sarTasks || []) {
+              (task.victims || []).forEach((count, idx) => {
+                if (typeof count === "number") totals[idx] += count;
+              });
+            }
           }
-        });
-      });
-
-      return {
-        labels: victimCategories.map((c) => c.type),
-        datasets: [{ data: categoryTotals }],
-      };
+        
+          return {
+            labels: categories,
+            datasets: [{ data: totals }],
+          };
+        }
+        
 
     case ChartDataType.FirePoliceAlerts:
       return await Message.aggregate([
@@ -346,13 +382,125 @@ const getLineChartData = async (
       return { labels, datasets };
     }
 
+    case ChartDataType.IncidentDuration: {
+      const incidents = await Incident.aggregate([
+        {
+          $match: {
+            closingDate: { $exists: true },
+            openingDate: { $gte: startDate, $lte: endDate }
+          }
+        },
+        {
+          $project: {
+            date: { $dateToString: { format: "%Y-%m-%d", date: "$openingDate" } },
+            durationMinutes: {
+              $divide: [
+                { $subtract: ["$closingDate", "$openingDate"] },
+                1000 * 60 // convert ms to minutes
+              ]
+            }
+          }
+        },
+        {
+          $addFields: {
+            durationCategory: {
+              $switch: {
+                branches: [
+                  { case: { $lt: ["$durationMinutes", 10] }, then: "Less than 10 min" },
+                  { case: { $lt: ["$durationMinutes", 30] }, then: "10–30 min" }
+                ],
+                default: "More than 30 min"
+              }
+            }
+          }
+        },
+        {
+          $group: {
+            _id: {
+              date: "$date",
+              category: "$durationCategory"
+            },
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { "_id.date": 1 } }
+      ]);
+    
+      const labels = [...new Set(incidents.map(i => i._id.date))].sort(
+        (a, b) => new Date(a).getTime() - new Date(b).getTime()
+      );
+      const categories = ["Less than 10 min", "10–30 min", "More than 30 min"];
+    
+      const datasets = categories.map((c) => ({
+        label: c,
+        data: labels.map((date) => {
+          const found = incidents.find(
+            (x) => x._id.date === date && x._id.category === c
+          );
+          return found ? found.count : 0;
+        })
+      }));
+    
+      return { labels, datasets };
+    }
+    
+
     // -------------------------------------
     // 4) IncidentResources (Line: each category vs. date)
-    // If you want a line chart for resources, you'd do something similar
-    // to get day-by-day sums of police, firefighters, etc. If you only want
-    // it aggregated once, you might skip line format. But here's a sample:
-    // (adjust if you want daily sums or some other logic)
-    // *Leaving blank if you don't want line chart for resources*
+    case ChartDataType.IncidentResources: {
+      const incidents = await Incident.find({
+        openingDate: { $gte: startDate, $lte: endDate },
+      }).lean();
+    
+      const grouped: Record<string, {
+        commanders: Set<string>,
+        users: Set<string>,
+        cars: number,
+        trucks: number
+      }> = {};
+    
+      for (const incident of incidents) {
+        const dateStr = new Date(incident.openingDate).toISOString().split("T")[0];
+        if (!grouped[dateStr]) grouped[dateStr] = {
+          commanders: new Set(),
+          users: new Set(),
+          cars: 0,
+          trucks: 0
+        };
+    
+        if (incident.commander) grouped[dateStr].commanders.add(incident.commander);
+    
+        for (const v of incident.assignedVehicles || []) {
+          if (v.type === "Car") grouped[dateStr].cars++;
+          if (v.type === "Truck") grouped[dateStr].trucks++;
+          v.usernames?.forEach(u => grouped[dateStr].users.add(u));
+        }
+      }
+    
+      const allUsernames = Array.from(new Set(Object.values(grouped).flatMap(g => Array.from(g.users))));
+      const roleMap = await getUserRoleMap(allUsernames);
+    
+      const labels = Object.keys(grouped).sort();
+      const datasets = ["Commanders", "Police Officers", "Firefighters", "Cars", "Trucks"].map(label => ({
+        label,
+        data: labels.map(date => {
+          const g = grouped[date];
+          if (label === "Commanders") return g.commanders.size;
+          if (label === "Cars") return g.cars;
+          if (label === "Trucks") return g.trucks;
+    
+          let count = 0;
+          for (const user of g.users) {
+            if (label === "Police Officers" && roleMap[user]?.includes("Police")) count++;
+            if (label === "Firefighters" && roleMap[user]?.includes("Fire")) count++;
+          }
+          return count;
+        })
+      }));
+    
+      return { labels, datasets };
+    }
+    
 
     // -------------------------------------
     // 5) PatientLocation
@@ -403,45 +551,46 @@ const getLineChartData = async (
 
     // -------------------------------------
     // 6) SARTasks
-    case ChartDataType.SARTasks: {
-      const tasks = await Incident.aggregate([
+    case ChartDataType.SARTasks:
+      return await Incident.aggregate([
         {
           $match: {
             type: "S",
             openingDate: { $gte: startDate, $lte: endDate },
-          },
+            sarTasks: { $exists: true, $ne: [] }
+          }
+        },
+        { $unwind: "$sarTasks" },
+        {
+          $project: {
+            date: {
+              $dateToString: { format: "%Y-%m-%d", date: "$sarTasks.startDate" }
+            },
+            state: "$sarTasks.state"
+          }
         },
         {
           $group: {
-            _id: {
-              date: {
-                $dateToString: { format: "%Y-%m-%d", date: "$openingDate" },
-              },
-              state: "$incidentState",
-            },
-            count: { $sum: 1 },
-          },
+            _id: { date: "$date", state: "$state" },
+            count: { $sum: 1 }
+          }
         },
-        { $sort: { "_id.date": 1 } },
-      ]);
+        { $sort: { "_id.date": 1 } }
+      ]).then(results => {
+        const labels = [...new Set(results.map(r => r._id.date))];
+        const states = ["Todo", "InProgress", "Done"];
 
-      const labels = [...new Set(tasks.map((t) => t._id.date))].sort(
-        (a, b) => new Date(a).getTime() - new Date(b).getTime(),
-      );
-      const states = [...new Set(tasks.map((t) => t._id.state))];
+        const datasets = states.map(state => ({
+          label: state,
+          data: labels.map(date => {
+            const match = results.find(r => r._id.date === date && r._id.state === state);
+            return match ? match.count : 0;
+          })
+        }));
 
-      const datasets = states.map((s) => ({
-        label: s,
-        data: labels.map((date) => {
-          const found = tasks.find(
-            (x) => x._id.date === date && x._id.state === s,
-          );
-          return found ? found.count : 0;
-        }),
-      }));
+        return { labels, datasets };
+      });
 
-      return { labels, datasets };
-    }
 
     // -------------------------------------
     // 7) SARVictims
@@ -730,54 +879,116 @@ export async function getBarChartData(
       return { labels: categories, datasets };
     }
 
-    /* ----------------------------------------------------------------
-       SAR TASKS
-       e.g. For 'S' incidents, group by incidentState
-    ---------------------------------------------------------------- */
-    case ChartDataType.SARTasks: {
+    case ChartDataType.IncidentDuration: {
       const agg = await Incident.aggregate([
         {
           $match: {
-            type: "S",
-            openingDate: { $gte: startDate, $lte: endDate },
-          },
+            closingDate: { $exists: true },
+            openingDate: { $gte: startDate, $lte: endDate }
+          }
+        },
+        {
+          $project: {
+            date: { $dateToString: { format: "%Y-%m-%d", date: "$openingDate" } },
+            durationMinutes: {
+              $divide: [
+                { $subtract: ["$closingDate", "$openingDate"] },
+                1000 * 60 // ms to minutes
+              ]
+            }
+          }
+        },
+        {
+          $addFields: {
+            durationCategory: {
+              $switch: {
+                branches: [
+                  { case: { $lt: ["$durationMinutes", 10] }, then: "Less than 10 min" },
+                  { case: { $lt: ["$durationMinutes", 30] }, then: "10–30 min" }
+                ],
+                default: "More than 30 min"
+              }
+            }
+          }
         },
         {
           $group: {
             _id: {
-              date: {
-                $dateToString: {
-                  format: "%Y-%m-%d",
-                  date: "$openingDate",
-                },
-              },
-              state: "$incidentState",
+              date: "$date",
+              category: "$durationCategory"
             },
-            count: { $sum: 1 },
-          },
+            count: { $sum: 1 }
+          }
         },
-        { $sort: { "_id.date": 1 } },
+        { $sort: { "_id.date": 1 } }
       ]);
-
-      const categories = [...new Set(agg.map((x) => x._id.state))].sort(
-        (a, b) => a.localeCompare(b),
-      );
+    
+      const categories = ["Less than 10 min", "10–30 min", "More than 30 min"];
       const dates = [...new Set(agg.map((x) => x._id.date))].sort(
-        (a, b) => new Date(a).getTime() - new Date(b).getTime(),
+        (a, b) => new Date(a).getTime() - new Date(b).getTime()
       );
-
+    
       const datasets = dates.map((dateStr) => ({
         label: dateStr,
         data: categories.map((cat) => {
           const found = agg.find(
-            (a) => a._id.date === dateStr && a._id.state === cat,
+            (a) => a._id.date === dateStr && a._id.category === cat
           );
           return found ? found.count : 0;
-        }),
+        })
       }));
-
+    
       return { labels: categories, datasets };
     }
+    
+
+    /* ----------------------------------------------------------------
+       SAR TASKS
+       e.g. For 'S' incidents, group by incidentState
+    ---------------------------------------------------------------- */
+    case ChartDataType.SARTasks:
+      return await Incident.aggregate([
+        {
+          $match: {
+            type: "S",
+            openingDate: { $gte: startDate, $lte: endDate },
+            sarTasks: { $exists: true, $ne: [] }
+          }
+        },
+        { $unwind: "$sarTasks" },
+        {
+          $project: {
+            date: {
+              $dateToString: { format: "%Y-%m-%d", date: "$sarTasks.startDate" }
+            },
+            state: "$sarTasks.state"
+          }
+        },
+        {
+          $group: {
+            _id: { date: "$date", state: "$state" },
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { "_id.date": 1 } }
+      ]).then(results => {
+      const dates = [...new Set(results.map(r => r._id.date))];
+      const states = ["Todo", "InProgress", "Done"];
+
+      const datasets = dates.map(date => ({
+        label: date,
+        data: states.map(state => {
+          const match = results.find(r => r._id.date === date && r._id.state === state);
+          return match ? match.count : 0;
+        })
+      }));
+
+      return {
+        labels: states,
+        datasets
+      };
+  });
+
 
     /* ----------------------------------------------------------------
        SAR VICTIMS
@@ -927,6 +1138,69 @@ export async function getBarChartData(
 
       return { labels: categories, datasets };
     }
+
+    case ChartDataType.IncidentResources: {
+      const incidents = await Incident.find({
+        openingDate: { $gte: startDate, $lte: endDate },
+      }).lean();
+    
+      const grouped: Record<string, {
+        commanders: Set<string>,
+        users: Set<string>,
+        cars: number,
+        trucks: number
+      }> = {};
+    
+      for (const incident of incidents) {
+        const dateStr = new Date(incident.openingDate).toISOString().split("T")[0];
+        if (!grouped[dateStr]) grouped[dateStr] = {
+          commanders: new Set(),
+          users: new Set(),
+          cars: 0,
+          trucks: 0
+        };
+    
+        if (incident.commander) grouped[dateStr].commanders.add(incident.commander);
+    
+        for (const v of incident.assignedVehicles || []) {
+          if (v.type === "Car") grouped[dateStr].cars++;
+          if (v.type === "Truck") grouped[dateStr].trucks++;
+          v.usernames?.forEach(u => grouped[dateStr].users.add(u));
+        }
+      }
+    
+      const allUsernames = Array.from(new Set(Object.values(grouped).flatMap(g => Array.from(g.users))));
+      const roleMap = await getUserRoleMap(allUsernames);
+    
+      const dates = Object.keys(grouped).sort();
+      const categories = ["Commanders", "Police Officers", "Firefighters", "Cars", "Trucks"];
+    
+      const datasets = dates.map(date => {
+        const g = grouped[date];
+        let police = 0, fire = 0;
+        for (const user of g.users) {
+          if (roleMap[user]?.includes("Police")) police++;
+          if (roleMap[user]?.includes("Fire")) fire++;
+        }
+    
+        return {
+          label: date,
+          data: [
+            g.commanders.size,
+            police,
+            fire,
+            g.cars,
+            g.trucks,
+          ]
+        };
+      });
+    
+      return {
+        labels: categories,
+        datasets
+      };
+    }
+    
 
     /* ----------------------------------------------------------------
        ALERT ACKNOWLEDGMENT TIME
