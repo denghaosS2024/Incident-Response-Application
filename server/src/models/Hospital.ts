@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
-import { v4 as uuidv4 } from "uuid";
 
 // TODO: The totalnumberofpatients field is redundant and should be removed in the future, can just use patients.length
 export interface IHospital extends Document {
@@ -19,7 +18,6 @@ const HospitalSchema = new Schema({
     type: String,
     required: true,
     unique: true,
-    default: uuidv4, // should change if got time
   },
   hospitalName: {
     type: String,
@@ -67,6 +65,14 @@ const HospitalSchema = new Schema({
     required: false,
     default: null,
   },
+});
+
+// set the hospitalId to be the same as _id when creating a new hospital
+HospitalSchema.pre("save", function (next) {
+  if (!this.hospitalId) {
+    this.hospitalId = this._id.toString();
+  }
+  next();
 });
 
 export default mongoose.model<IHospital>("Hospital", HospitalSchema);
