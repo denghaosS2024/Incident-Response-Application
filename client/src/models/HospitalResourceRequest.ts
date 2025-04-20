@@ -1,6 +1,9 @@
+import IHospital from "./Hospital";
+
 export interface IHospitalResourceRequest {
+  _id: string;
   senderHospitalId: string; // Reference to the sender Hospital's _id
-  receiverHospitalId: string; // Reference to the receiver Hospital's _id
+  receiverHospitalId: IHospital;
   hospitalResourceId: string; // Reference to the HospitalResource's _id
   resourceId: {
     resourceName: string;
