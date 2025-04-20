@@ -1,6 +1,7 @@
 import { Document, Schema, model } from "mongoose";
 
 export interface IAppointment extends Document {
+  appointmentId: string;
   // Per team 1's discussion, we will use Citizen's ID rather than patient's ID
   userId: string;
   // This is nurse's Citizen ID
@@ -8,11 +9,17 @@ export interface IAppointment extends Document {
   createDate: Date;
   updateDate: Date;
   closedDate: Date;
+  isResolved: boolean;
+  issueName: string;
   note: string;
   severityIndex: number;
 }
 
 const AppointmentSchema = new Schema({
+  appointmentId: {
+    type: String,
+    required: true,
+  },
   userId: {
     type: String,
     required: true,
@@ -32,6 +39,15 @@ const AppointmentSchema = new Schema({
   closedDate: {
     type: Date,
     default: null,
+  },
+  isResolved: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
+  issueName: {
+    type: String,
+    required: true,
   },
   note: {
     type: String,
