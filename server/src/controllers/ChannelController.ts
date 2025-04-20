@@ -676,6 +676,35 @@ class ChannelController {
       throw error;
     }
   };
+
+  getOrCreateDirectorChannel = async (chiefUsername: string, cityName: string) => {
+    const chief = await UserController.getUserByUsername(chiefUsername);
+    const director = await UserController.getDirectorByCity(cityName);
+  
+    if (!chief || !director) {
+      throw new Error("Chief or City Director not found.");
+    }
+  
+    const channelName = `${cityName}-DirectorChat-${chief.username}`;
+  
+    let channel = await Channel.findOne({
+      name: channelName,
+      users: { $all: [chief._id, director._id] },
+    }).exec();
+  
+    if (channel) return channel;
+  
+    // If not exist, create it
+    channel = await new Channel({
+      name: channelName,
+      users: [chief, director],
+      description: `Private chat between ${chief.username} and Director`,
+      owner: director,
+      closed: false,
+    }).save();
+  
+    return channel;
+  };
 }
 
 export default new ChannelController();

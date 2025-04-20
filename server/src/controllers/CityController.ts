@@ -149,6 +149,22 @@ class CityController {
     }
     throw new Error(`Invalid type '${type}'`);
   }
+
+  async getCityFireFunding(cityName: string) {
+    const city = await City.findOne({ name: cityName });
+    if (!city) {
+      throw new Error(`City '${cityName}' does not exist in the database`);
+    }
+    return city.fireFunding;
+  }
+
+  async getCityPoliceFunding(cityName: string) {
+    const city = await City.findOne({ name: cityName });
+    if (!city) {
+      throw new Error(`City '${cityName}' does not exist in the database`);
+    }
+    return city.policeFunding;
+  }
 }
 
 export default new CityController();
