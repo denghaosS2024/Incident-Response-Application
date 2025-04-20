@@ -549,6 +549,7 @@ const MissingPersonManagePage: React.FC = () => {
                   variant="contained"
                   color="success"
                   onClick={handleMarkAsFound}
+                  disabled={formData.reportStatus?.toLowerCase() !== "open"}
                   sx={{ minWidth: 100 }}
                 >
                   FOUND

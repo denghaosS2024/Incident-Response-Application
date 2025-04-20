@@ -34,14 +34,14 @@ const MissingPersonCard: React.FC<MissingPersonCardProps> = ({
     weight,
     dateLastSeen,
     photo,
-    personStatus,
   } = person;
 
   // Format MM/DD/YYYY
   const formattedDate = new Date(dateLastSeen).toLocaleDateString("en-US");
 
   // Determine status
-  const isMissing = personStatus.toLowerCase() === "missing";
+  // Prioritize reportStatus - if it's "closed", the person is found regardless of personStatus
+  const isMissing = person.reportStatus?.toLowerCase() === "open";
   const statusLabel = isMissing ? "MISSING" : "FOUND";
   const statusColor = isMissing ? "error" : "success";
 
