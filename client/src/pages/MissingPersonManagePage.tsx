@@ -5,9 +5,7 @@ import {
   Avatar,
   Box,
   Button,
-  Checkbox,
   FormControl,
-  FormControlLabel,
   Grid,
   InputLabel,
   MenuItem,
@@ -30,7 +28,6 @@ const MissingPersonManagePage: React.FC = () => {
   const [formData, setFormData] = useState<IMissingPerson | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isMarkedAsFound, setIsMarkedAsFound] = useState<boolean>(false);
 
   // Fetch the missing person data
   useEffect(() => {
@@ -65,7 +62,7 @@ const MissingPersonManagePage: React.FC = () => {
       setLoading(true);
       const payload = {
         ...updatedData,
-        reportStatus: isMarkedAsFound ? "closed" : "open",
+        reportStatus: "open", // Always maintain open status on regular update
       };
 
       // Make API call to update the record using the request utility
@@ -96,19 +93,25 @@ const MissingPersonManagePage: React.FC = () => {
   };
 
   // Handle mark as found
-  const handleFound = async () => {
+  const handleMarkAsFound = async () => {
     if (!formData) return;
 
     try {
       setLoading(true);
 
-      // Make API call to mark as found using the request utility
-      await request(
-        `/api/missingPerson/${reportId}/found`,
+      // Create the payload with closed report status
+      const payload = {
+        ...formData,
+        reportStatus: "closed"
+      };
+
+      // Make API call to update the record using the request utility
+      await request<IMissingPerson>(
+        `/api/missingPerson/${reportId}`,
         {
-          method: "PATCH",
+          method: "PUT",
+          body: JSON.stringify(payload),
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reportStatus: "closed" }),
         },
         false,
       );
@@ -132,17 +135,113 @@ const MissingPersonManagePage: React.FC = () => {
   };
 
   // Handle file upload for photo
-  const handlePhotoUpload = () => {
-    // This is just a placeholder for the actual photo upload functionality
-    console.log("Photo upload functionality would be implemented here");
-    alert("Photo upload functionality would be implemented here");
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return;
+    
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    
+    reader.onloadend = () => {
+      if (!formData) return;
+      // Store the image as a base64 string
+      setFormData({
+        ...formData,
+        photo: reader.result as string
+      });
+    };
+    
+    reader.readAsDataURL(file);
   };
 
   // Handle Generate PDF
   const handleGeneratePDF = () => {
-    // This is just a placeholder for the actual PDF generation functionality
-    console.log("PDF generation functionality would be implemented here");
-    alert("PDF generation functionality would be implemented here");
+    if (!formData) return;
+    
+    // Use window.print for a simple approach that works without additional libraries
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow popups for this website to generate PDF');
+      return;
+    }
+    
+    // Format date for display
+    const formatDate = (date: Date | string) => {
+      const d = new Date(date);
+      return d.toLocaleDateString();
+    };
+    
+    // Generate HTML content for the PDF
+    const content = `
+      <html>
+        <head>
+          <title>Missing Person Report: ${formData.name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .report-container { max-width: 800px; margin: 0 auto; }
+            .photo-container { text-align: center; margin: 20px 0; }
+            .photo { max-width: 300px; max-height: 300px; }
+            .data-row { margin: 10px 0; }
+            .label { font-weight: bold; }
+            h1 { color: #2c3e50; }
+            .status { padding: 5px 10px; border-radius: 4px; display: inline-block; }
+            .status-open { background-color: #e74c3c; color: white; }
+            .status-closed { background-color: #27ae60; color: white; }
+          </style>
+        </head>
+        <body>
+          <div class="report-container">
+            <div class="header">
+              <h1>Missing Person Report</h1>
+              <div class="status ${formData.reportStatus === 'open' ? 'status-open' : 'status-closed'}">
+                Status: ${formData.reportStatus === 'open' ? 'Missing' : 'Found'}
+              </div>
+            </div>
+            
+            <div class="photo-container">
+              ${formData.photo ? 
+                `<img src="${formData.photo}" alt="${formData.name}" class="photo" />` : 
+                '<p>No photo available</p>'}
+            </div>
+            
+            <div class="data-row"><span class="label">Name:</span> ${formData.name}</div>
+            <div class="data-row"><span class="label">Age:</span> ${formData.age}</div>
+            <div class="data-row"><span class="label">Gender:</span> ${formData.gender}</div>
+            <div class="data-row"><span class="label">Race:</span> ${formData.race}</div>
+            ${formData.height ? `<div class="data-row"><span class="label">Height:</span> ${formData.height}</div>` : ''}
+            ${formData.weight ? `<div class="data-row"><span class="label">Weight:</span> ${formData.weight} lbs</div>` : ''}
+            ${formData.eyeColor ? `<div class="data-row"><span class="label">Eye Color:</span> ${formData.eyeColor}</div>` : ''}
+            <div class="data-row"><span class="label">Date Last Seen:</span> ${formatDate(formData.dateLastSeen)}</div>
+            ${formData.locationLastSeen ? `<div class="data-row"><span class="label">Location Last Seen:</span> ${formData.locationLastSeen}</div>` : ''}
+            
+            ${formData.description ? 
+              `<div class="data-row">
+                <span class="label">Description:</span>
+                <p>${formData.description}</p>
+              </div>` : ''}
+            
+            <div class="data-row">
+              <span class="label">Report ID:</span> ${formData._id}
+            </div>
+            
+            <div class="data-row">
+              <p>This report was generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.open();
+    printWindow.document.write(content);
+    printWindow.document.close();
+    
+    // Wait for the content to load then print
+    setTimeout(() => {
+      printWindow.print();
+      // Keep the window open until the print dialog is closed
+    }, 500);
   };
 
   if (loading) {
@@ -177,13 +276,14 @@ const MissingPersonManagePage: React.FC = () => {
               <Grid container justifyContent="space-between" alignItems="center">
                 <Grid item>
                   <Avatar
+                    src={formData.photo}
                     sx={{
                       width: 120,
                       height: 120,
                       bgcolor: "grey.500"
                     }}
                   >
-                    <QuestionMarkIcon sx={{ fontSize: 60 }} />
+                    {!formData.photo && <QuestionMarkIcon sx={{ fontSize: 60 }} />}
                   </Avatar>
                 </Grid>
                 <Grid item xs={8}>
@@ -389,11 +489,17 @@ const MissingPersonManagePage: React.FC = () => {
                 <Typography sx={{ mr: 2 }}>Upload a New Photo:</Typography>
                 <Button
                   variant="outlined"
+                  component="label"
                   startIcon={<FileUploadIcon />}
-                  onClick={handlePhotoUpload}
                   size="small"
                 >
-                  <QuestionMarkIcon />
+                  Upload Photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={handlePhotoUpload}
+                  />
                 </Button>
                 
                 <Box sx={{ flexGrow: 1 }} />
@@ -409,17 +515,7 @@ const MissingPersonManagePage: React.FC = () => {
                 </Button>
               </Box>
               
-              {/* Mark as found checkbox */}
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={isMarkedAsFound}
-                    onChange={(e) => setIsMarkedAsFound(e.target.checked)}
-                  />
-                }
-                label="Mark Person as Found"
-                sx={{ mb: 2 }}
-              />
+              {/* Removed mark as found checkbox as per requirements */}
               
               {/* Action buttons row */}
               <Box
@@ -451,11 +547,11 @@ const MissingPersonManagePage: React.FC = () => {
 
                 <Button
                   variant="contained"
-                  color="error"
-                  onClick={() => navigate(`/missing-person/directory`)}
+                  color="success"
+                  onClick={handleMarkAsFound}
                   sx={{ minWidth: 100 }}
                 >
-                  CLOSE
+                  FOUND
                 </Button>
               </Box>
             </Box>
