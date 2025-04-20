@@ -610,35 +610,49 @@ const VisitLogForm: React.FC<{
       )}
 
       {!isReadOnly && (
-        <Box display="flex" justifyContent="center" mt={4}>
-          <button
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#1976d2",
-              color: "#fff",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-            onClick={() => {
-              const drugs = (drugEntryRef.current?.getDrugsData() ?? []).map(
-                (drug) => `${drug.name} (${drug.dosage}, ${drug.route})`,
-              );
-
-              VisitLogHelper.saveFormData(
-                {
-                  ...formData,
-                  drugs,
-                },
-                incidentId,
-                visitTime,
-                getCurrentPatientId() ?? "",
-              );
-            }}
-          >
-            Save
-          </button>
+        <Box display="flex" justifyContent="center" mt={4} gap={2}>
+        <Button
+          variant="contained"
+          sx={{
+            padding: "10px 20px",
+            backgroundColor: "#1976d2",
+            color: "#fff",
+            borderRadius: "4px",
+            fontSize: "16px",
+            textTransform: "none",
+          }}
+          onClick={() => {
+            const drugs = (drugEntryRef.current?.getDrugsData() ?? []).map(
+              (drug) => `${drug.name} (${drug.dosage}, ${drug.route})`
+            );
+      
+            VisitLogHelper.saveFormData(
+              {
+                ...formData,
+                drugs,
+              },
+              incidentId,
+              visitTime,
+              getCurrentPatientId() ?? ""
+            );
+          }}
+        >
+          Save
+        </Button>
+        <Button
+          variant="contained"
+          sx={{
+            padding: "10px 20px",
+            backgroundColor: "#1976d2",
+            color: "#fff",
+            borderRadius: "4px",
+            fontSize: "16px",
+            textTransform: "none",
+          }}
+          onClick={() => navigate(`/patients/report?patientId=${getCurrentPatientId()}`)}
+        >
+          Cancel
+        </Button>
         </Box>
       )}
     </div>
