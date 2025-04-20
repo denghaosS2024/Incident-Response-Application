@@ -46,24 +46,22 @@ const TruckStockPage: React.FC = () => {
         ]);
         console.log('Inventory Data:', inventoryData);
         console.log('Trucks Data:', trucksData);
-        
+
         if (Array.isArray(inventoryData)) {
           setTrucks(inventoryData);
         } else {
           console.error('Unexpected inventory API response format:', inventoryData);
           setTrucks([]);
         }
-        
+
         // Process truck data
-        if (Array.isArray(trucksData)) {
-          setTruckData(trucksData);
-        } else if (trucksData && Array.isArray(trucksData)) {
+        if (trucksData && Array.isArray(trucksData)) {
           setTruckData(trucksData);
         } else {
           console.error('Unexpected truck API response format:', trucksData);
           setTruckData([]);
         }
-        
+
         setLoading(false);
       } catch (err) {
         console.error('Error:', err);
@@ -77,7 +75,7 @@ const TruckStockPage: React.FC = () => {
   const getIncidentName = (truckCategory: string): string => {
     // Find the truck with the matching name/category
     const truck = truckData.find(t => t.name === truckCategory);
-    
+
     // Return the incident name if available, otherwise return default text
     return truck?.assignedIncident || "No active incident";
   };
@@ -113,7 +111,7 @@ const TruckStockPage: React.FC = () => {
       <Typography variant="h5" gutterBottom>
         Truck Inventory
       </Typography>
-      
+
       <Grid container spacing={2}>
         {trucks.map((truck) => (
           <Grid item xs={12} sm={6} md={4} key={truck._id}>
@@ -142,7 +140,7 @@ const TruckStockPage: React.FC = () => {
           </Grid>
         ))}
       </Grid>
-      
+
       <Box mt={4} display="flex" justifyContent="center">
         <Button
           variant="contained"
