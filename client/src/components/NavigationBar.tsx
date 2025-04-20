@@ -103,6 +103,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/defaulttruckadditem": "Add Truck Item",
     "/funding-center": "Funding Center",
     "/funding-information": "Funding Information",
+    "/spending-history": "Spending History",
   };
 
   const roleTitles: Record<string, string> = {
@@ -209,6 +210,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   if (pathname.startsWith("/funding-information/")) {
     title = "Funding Information";
+  }
+
+  if (pathname.startsWith("/spending-history/")) {
+    title = "Spending History";
   }
 
   const openMenuHandler = (anchor: HTMLElement) => {

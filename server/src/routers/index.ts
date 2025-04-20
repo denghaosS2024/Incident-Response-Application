@@ -38,6 +38,8 @@ import taskRouter from "./sartask";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
 
+import spendingRouter from "./spending";
+
 export default Router()
   .use("/users", user)
   .use("/login", login)
@@ -70,6 +72,7 @@ export default Router()
   .use("/hospital", HospitalRouter)
   .use("/charts", dashboard)
   .use("/missingPerson", missingPersonRouter)
+  .use("/spendings", spendingRouter)
 
   .use("/sartasks", taskRouter)
   .use("/sartasksdone", taskRouter)
