@@ -4,12 +4,14 @@ import HardwareIcon from "@mui/icons-material/Hardware";
 import HomeRepairServiceIcon from "@mui/icons-material/HomeRepairService";
 import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import {
+  Alert,
   Avatar,
   Box,
   Card,
   CardContent,
   CircularProgress,
   IconButton,
+  Snackbar,
   Typography,
 } from "@mui/material";
 import React, { useEffect } from "react";
@@ -24,13 +26,17 @@ interface InventoryItemData {
 
 interface InventoryItemProps {
   item: InventoryItemData;
+  category: string;
 }
 
-const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
+const InventoryItem: React.FC<InventoryItemProps> = ({ item, category }) => {
   const [quantity, setQuantity] = React.useState(item.quantity);
   const [maxQuantity, setMaxQuantity] = React.useState<number | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [updateLoading, setUpdateLoading] = React.useState(false);
+  const [updateError, setUpdateError] = React.useState<string | null>(null);
+  const [updateSuccess, setUpdateSuccess] = React.useState(false);
 
   useEffect(() => {
     const fetchMaxQuantity = async () => {
@@ -68,17 +74,56 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
   
   const icon = getIconForName(item.name);
 
+  const updateQuantity = async (newQuantity: number) => {
+    setUpdateLoading(true);
+    setUpdateError(null);
+    try {
+      const encodedCategory = encodeURIComponent(category);
+      const encodedItemName = encodeURIComponent(item.name);
+      
+      const response = await request(
+        `/api/inventories/category/${encodedCategory}/item/${encodedItemName}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ quantity: newQuantity }),
+        }
+      );
+      
+      if (!response) {
+        throw new Error('Failed to update quantity');
+      }
+      
+      setQuantity(newQuantity);
+      setUpdateSuccess(true);
+      
+      setTimeout(() => {
+        setUpdateSuccess(false);
+      }, 3000);
+    } catch (err) {
+      console.error('Failed to update quantity:', err);
+      setUpdateError('Failed to update quantity');
+      
+      setTimeout(() => {
+        setUpdateError(null);
+      }, 3000);
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
   const onDecrease = () => {
-    setQuantity((prevQuantity) => Math.max(prevQuantity - 1, 0));
+    const newQuantity = Math.max(quantity - 1, 0);
+    updateQuantity(newQuantity);
   };
   
   const onIncrease = () => {
-    setQuantity((prevQuantity) => {
-      if (maxQuantity !== null && prevQuantity >= maxQuantity) {
-        return maxQuantity; 
-      }
-      return prevQuantity + 1;
-    });
+    const newQuantity = maxQuantity !== null && quantity >= maxQuantity 
+      ? maxQuantity 
+      : quantity + 1;
+    updateQuantity(newQuantity);
   };
   
   return (
@@ -113,17 +158,21 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
             <IconButton 
               size="small" 
               onClick={onDecrease}
-              disabled={quantity <= 0}
+              disabled={quantity <= 0 || updateLoading}
             >
               <Remove fontSize="small" />
             </IconButton>
             <Typography sx={{ mx: 1, minWidth: '30px', textAlign: 'center' }}>
-              {quantity}
+              {updateLoading ? (
+                <CircularProgress size={16} />
+              ) : (
+                quantity
+              )}
             </Typography>
             <IconButton 
               size="small"
               onClick={onIncrease}
-              disabled={maxQuantity !== null && quantity >= maxQuantity}
+              disabled={(maxQuantity !== null && quantity >= maxQuantity) || updateLoading}
             >
               <Add fontSize="small" />
             </IconButton>
@@ -135,6 +184,27 @@ const InventoryItem: React.FC<InventoryItemProps> = ({ item }) => {
             Description: {item.description}
           </Typography>
         )}
+        
+        {/* Notifications */}
+        <Snackbar 
+          open={updateSuccess} 
+          autoHideDuration={3000}
+          onClose={() => setUpdateSuccess(false)}
+        >
+          <Alert severity="success" sx={{ width: '100%' }}>
+            Quantity updated successfully!
+          </Alert>
+        </Snackbar>
+        
+        <Snackbar 
+          open={!!updateError} 
+          autoHideDuration={3000}
+          onClose={() => setUpdateError(null)}
+        >
+          <Alert severity="error" sx={{ width: '100%' }}>
+            {updateError}
+          </Alert>
+        </Snackbar>
       </CardContent>
     </Card>
   );

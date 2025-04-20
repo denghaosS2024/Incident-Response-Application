@@ -49,7 +49,7 @@ const TruckInventoryPage: React.FC = () => {
       <Grid container spacing={2}>
         {inventory.items.map((item, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
-            <InventoryItem item={item} />
+            <InventoryItem item={item} category = {truckName!} />
           </Grid>
         ))}
       </Grid>
