@@ -267,6 +267,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
     navigate("/hospitals");
   };
 
+  const missingPersonsDirectory = () => {
+    navigate("/missing-person/directory");
+  };
+
   const hospitalResources = () => {
     navigate("/register-hospital/resources/directory");
   };
@@ -317,7 +321,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
       navigate("/funding-center");
     }
     closeMenu();
-  }
+  };
 
   return (
     <AppBar position="static">
@@ -362,6 +366,11 @@ const NavigationBar: FunctionComponent<IProps> = ({
           {(role === "Police" || role === "Fire") && (
             <MenuItem onClick={findHospital}>Find Hospital</MenuItem>
           )}
+          {
+            <MenuItem onClick={missingPersonsDirectory}>
+              Missing Persons Directory
+            </MenuItem>
+          }
           {(role === "Dispatch" || role === "Police" || role === "Fire") && (
             <MenuItem onClick={navigateToDashboard}>Dashboard</MenuItem>
           )}
@@ -374,7 +383,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
             <MenuItem onClick={navigateToPatientsPage}>Patients</MenuItem>
           )}
           {(role === "Fire Chief" || role === "Police Chief") && (
-            <MenuItem onClick={navigateToFundingCenter}>Funding Center</MenuItem>
+            <MenuItem onClick={navigateToFundingCenter}>
+              Funding Center
+            </MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
