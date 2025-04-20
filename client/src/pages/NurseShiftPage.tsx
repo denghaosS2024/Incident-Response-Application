@@ -1,3 +1,4 @@
+import ActiveAppointments from "@/components/NurseShift/ActiveAppointments";
 import NurseShiftStatus from "@/components/NurseShift/NurseShiftStatus";
 import { Box, Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router";
@@ -31,6 +32,10 @@ export default function NurseShiftPage() {
         >
           My Shifts
         </Button>
+      </Box>
+
+      <Box mt={4}>
+        <ActiveAppointments />
       </Box>
     </Box>
   );
