@@ -24,6 +24,7 @@ import appointmentRouter from "./appointment";
 import carRouter from "./car";
 import cityRouter from "./city";
 import dashboard from "./dashboard";
+import firstAidAssistRouter from "./firstAidAssist";
 import HospitalResourceRouter from "./hospitalResource";
 import HospitalResourceRequestsRouter from "./hospitalResourceRequest";
 import incidentReportRouter from "./incidentReport";
@@ -77,4 +78,5 @@ export default Router()
   .use("/hospital-resources-requests", HospitalResourceRequestsRouter)
   .use("/nurse-shifts", nurseShiftRouter)
   .use("/inventories", inventoryRouter)
+  .use("/first-aid", firstAidAssistRouter)
   .use("/appointments", appointmentRouter);
