@@ -1014,38 +1014,6 @@ export default Router()
 
   /**
    * @swagger
-   * /api/patients/{incidentId}/:
-   *   get:
-   *     summary: Get patients for an incident with location=ROAD with a priority E or 1
-   *     description: Get patients for an incident with location=ROAD with a priority E or 1
-   *     tags: [Patient]
-   *     parameters:
-   *       - in: path
-   *         name: incidentId
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: The ID of the incident
-   *     responses:
-   *       200:
-   *         description: Patients for an incident with location=ROAD with a priority E or 1
-   *       500:
-   *         description: Internal server error
-   */
-  .get("/:incidentId", async (request, response) => {
-    const { incidentId } = request.params;
-    try {
-      const result =
-        await PatientController.getPatientsByIncidentId(incidentId);
-      response.json(result);
-    } catch (e) {
-      const error = e as Error;
-      response.status(500).json({ message: error.message });
-    }
-  })
-
-  /**
-   * @swagger
    * /api/patients/timeline/{patientId}:
    *   get:
    *     summary: Get medical timeline for a patient
@@ -1138,5 +1106,37 @@ export default Router()
       }
 
       return response.status(500).json({ message: error.message });
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/{incidentId}/:
+   *   get:
+   *     summary: Get patients for an incident with location=ROAD with a priority E or 1
+   *     description: Get patients for an incident with location=ROAD with a priority E or 1
+   *     tags: [Patient]
+   *     parameters:
+   *       - in: path
+   *         name: incidentId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the incident
+   *     responses:
+   *       200:
+   *         description: Patients for an incident with location=ROAD with a priority E or 1
+   *       500:
+   *         description: Internal server error
+   */
+  .get("/:incidentId", async (request, response) => {
+    const { incidentId } = request.params;
+    try {
+      const result =
+        await PatientController.getPatientsByIncidentId(incidentId);
+      response.json(result);
+    } catch (e) {
+      const error = e as Error;
+      response.status(500).json({ message: error.message });
     }
   });
