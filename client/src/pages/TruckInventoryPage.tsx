@@ -1,8 +1,8 @@
+import { Box } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { Box, Typography } from "@mui/material";
 import InventoryItem from "../components/inventory/InventoryItem";
-import IInventory, { IInventoryItem } from "../models/Inventory";
+import IInventory from "../models/Inventory.ts";
 import request from "../utils/request";
 
 const TruckInventoryPage: React.FC = () => {
@@ -44,7 +44,7 @@ const TruckInventoryPage: React.FC = () => {
           <InventoryItem
             key={index}
             name={item.name}
-            description={item.description}
+            description={item.description || ""}
             quantity={item.quantity}
           />
         ))}
