@@ -609,6 +609,27 @@ const VisitLogForm: React.FC<{
         </FormControl>
       )}
 
+      {/* Discharge Button */}
+      <Box display="flex" justifyContent="center" mt={2}>
+          <button
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#d32f2f",
+              color: "#fff",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+            onClick={async () => {
+              await dischargePatient();
+              alert("Patient discharged successfully!");
+            }}
+          >
+            Discharge Patient
+          </button>
+        </Box>
+
       {!isReadOnly && (
         <Box display="flex" justifyContent="center" mt={4} gap={2}>
         <Button
