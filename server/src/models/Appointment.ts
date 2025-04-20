@@ -10,6 +10,7 @@ type SeverityIndex = 0 | 1 | 2 | 3;
 export interface IAppointment extends Document {
   // Per team 1's discussion, we will use Citizen's ID rather than patient's ID
   userId: string;
+  patientName: string;
   // This is nurse's Citizen ID
   nurseId: string | undefined;
   createDate: Date;
@@ -29,6 +30,10 @@ export interface IAppointment extends Document {
 
 const AppointmentSchema = new Schema({
   userId: {
+    type: String,
+    required: true,
+  },
+  patientName: {
     type: String,
     required: true,
   },

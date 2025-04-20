@@ -100,10 +100,15 @@ class AppointmentController {
    * Find all active appointments
    * @returns The active appointments
    */
-  async findActiveAppointments() {
+  async findActiveAppointmentsByShiftHour(
+    dayOfWeek: number,
+    startHour: number,
+  ) {
     return await Appointment.find({
       valid: true,
       isResolved: false,
+      dayOfWeek,
+      startHour,
     }).sort({
       severityIndex: -1, // Sort by severity index desc (2, then 1, then 0)
       dayOfWeek: 1, // Then sort by dayOfWeek asc (earlier first)

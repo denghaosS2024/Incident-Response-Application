@@ -48,7 +48,13 @@ appointmentRouter.post("/", async (req, res) => {
 
 appointmentRouter.get("/active", async (_, res) => {
   try {
-    const appointments = await AppointmentController.findActiveAppointments();
+    const dayOfWeek = new Date().getDay();
+    const hour = new Date().getHours();
+    const appointments =
+      await AppointmentController.findActiveAppointmentsByShiftHour(
+        dayOfWeek,
+        hour,
+      );
     res.status(200).json(appointments);
   } catch (err) {
     const error = err as Error;
