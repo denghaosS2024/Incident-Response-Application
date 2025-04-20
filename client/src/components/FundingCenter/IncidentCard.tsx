@@ -43,7 +43,7 @@ const IncidentCard: React.FC<Props> = ({ incident, onChat }) => {
         </Button>
         <Button
           variant="contained"
-          color="secondary"
+          color="primary"
           onClick={() =>
             navigate(`/funding-information/${incident.incidentId}`)
           }

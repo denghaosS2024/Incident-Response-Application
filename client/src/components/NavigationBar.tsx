@@ -207,6 +207,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = `${name} Patient Visit`;
   }
 
+  if (pathname.startsWith("/funding-information/")) {
+    title = "Funding Information";
+  }
+
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true);
     setMenuAnchor(anchor);
