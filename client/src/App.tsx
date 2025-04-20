@@ -55,6 +55,7 @@ import TruckInventoryPage from "./pages/TruckInventoryPage.tsx";
 import TruckStockPage from "./pages/TruckStockPage.tsx";
 import ViewOrganization from "./pages/ViewOrganization";
 import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
+import YourAppointmentPage from "./pages/YourAppointmentPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
@@ -200,6 +201,7 @@ export default function App() {
             <Route path="/truck-stock" element={<TruckStockPage />} />
             <Route path="/shifts" element={<NurseShiftPage />} />
             <Route path="/past-appointment" element={<PastAppointmentPage />} />
+            <Route path="/your-appointment" element={<YourAppointmentPage />} />
           </Route>
 
           <Route element={<RoutedHome showBackButton isSubPage />}>

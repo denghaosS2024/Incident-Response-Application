@@ -37,7 +37,12 @@ const PastAppointmentList: React.FC<PastAppointmentListProps> = ({
 
   return (
     <Box>
-      <Typography variant="h3">Past Appointments</Typography>
+      <Typography
+        variant="h4"
+        sx={{ padding: "16px 16px", fontWeight: "bold" }}
+      >
+        Past Appointments
+      </Typography>
       {pastAppointmentList.map((appointment, index) => (
         <PastAppointmentCard
           key={index}
@@ -47,9 +52,16 @@ const PastAppointmentList: React.FC<PastAppointmentListProps> = ({
           appointmentId={appointment._id}
         />
       ))}
-      <Typography variant="h6" align="center">
-        -- {numOfEntries} Entries Found --
-      </Typography>
+
+      {numOfEntries > 0 ? (
+        <Typography variant="h6" align="center">
+          -- {numOfEntries} entries found --
+        </Typography>
+      ) : (
+        <Typography variant="h6" align="center">
+          -- no entries found --
+        </Typography>
+      )}
     </Box>
   );
 };
