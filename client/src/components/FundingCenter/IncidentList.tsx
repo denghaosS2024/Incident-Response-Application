@@ -1,6 +1,6 @@
 import React from "react";
 import { Stack, Typography } from "@mui/material";
-import { IIncident } from "../models/Incident";
+import IIncident from "../../models/Incident";
 import IncidentCard from "./IncidentCard";
 
 interface Props {
@@ -8,18 +8,14 @@ interface Props {
   onChat: () => void;
 }
 
-const IncidentList: React.FC<Props> = ({ incidents, onChat }) => (
+const IncidentList: React.FC<Props> = ({ incidents }) => (
   <>
     <Typography variant="h6" gutterBottom>
       Incidents in Your City
     </Typography>
     <Stack spacing={2}>
       {incidents.map((incident) => (
-        <IncidentCard
-          key={incident.incidentId}
-          incident={incident}
-          onChat={onChat}
-        />
+        <IncidentCard key={incident.incidentId} incident={incident} />
       ))}
     </Stack>
   </>

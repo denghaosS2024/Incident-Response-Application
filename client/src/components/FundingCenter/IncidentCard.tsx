@@ -7,14 +7,13 @@ import {
   Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router";
-import { IIncident } from "../models/Incident";
+import IIncident from "../../models/Incident";
 
 interface Props {
   incident: IIncident;
-  onChat: () => void;
 }
 
-const IncidentCard: React.FC<Props> = ({ incident, onChat }) => {
+const IncidentCard: React.FC<Props> = ({ incident }) => {
   const navigate = useNavigate();
 
   return (
@@ -38,9 +37,6 @@ const IncidentCard: React.FC<Props> = ({ incident, onChat }) => {
         </Typography>
       </CardContent>
       <CardActions>
-        <Button variant="outlined" color="primary" onClick={onChat}>
-          Chat
-        </Button>
         <Button
           variant="contained"
           color="primary"

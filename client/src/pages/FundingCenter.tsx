@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router";
 import request from "../utils/request";
-import { IIncident } from "../models/Incident";
+import IIncident from "../models/Incident";
 import FundingSummaryCard from "../components/FundingCenter/FundingSummaryCard";
 import IncidentList from "../components/FundingCenter/IncidentList";
 
@@ -17,7 +17,7 @@ const FundingCenter: React.FC = () => {
     const chief = await request(`/api/users/${username}`, { method: "GET" });
     const channel = await request(
       `/api/channels/${chief.assignedCity}/${username}`,
-      { method: "GET" }
+      { method: "GET" },
     );
     navigate(`/messages/${channel._id}`);
   };
@@ -31,25 +31,23 @@ const FundingCenter: React.FC = () => {
       if (userRole === "Fire Chief") {
         const fireFunding = await request(
           `/api/cities/fire-funding/${chief.assignedCity}`,
-          { method: "GET" }
+          { method: "GET" },
         );
         setTotalFunds(fireFunding);
       } else if (userRole === "Police Chief") {
         const policeFunding = await request(
           `/api/cities/police-funding/${chief.assignedCity}`,
-          { method: "GET" }
+          { method: "GET" },
         );
         setTotalFunds(policeFunding);
       }
 
-      const incidents = await request(
-        `/api/incidents/${chief.assignedCity}`,
-        { method: "GET" }
-      );
+      const incidents = await request(`/api/incidents/${chief.assignedCity}`, {
+        method: "GET",
+      });
       const sortedIncidents = incidents.sort(
         (a: any, b: any) =>
-          new Date(b.openingDate).getTime() -
-          new Date(a.openingDate).getTime()
+          new Date(b.openingDate).getTime() - new Date(a.openingDate).getTime(),
       );
       setIncidents(sortedIncidents);
     };
@@ -69,4 +67,3 @@ const FundingCenter: React.FC = () => {
 };
 
 export default FundingCenter;
-

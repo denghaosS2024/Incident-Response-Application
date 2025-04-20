@@ -54,6 +54,10 @@ export default interface IIncident {
   commander: string; // The commander of the incident
   address: string; // The address of the user who created the incident
   type: IncidentType; // The type of the incident
+  city: string;
+  fund_requested: number;
+  fund_assigned: number;
+  fund_left: number;
   questions:
     | MedicalQuestions[]
     | FireQuestions
