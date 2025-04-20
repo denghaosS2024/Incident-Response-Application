@@ -46,6 +46,45 @@ appointmentRouter.post("/", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/appointments/{id}:
+ *   get:
+ *     summary: Get an appointment by ID
+ *     description: Retrieves a specific appointment by its ID.
+ *     tags:
+ *       - Appointments
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the appointment to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Appointment found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Appointment'
+ *       '404':
+ *         description: Appointment not found
+ */
+appointmentRouter.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const appointment = await AppointmentController.findById(id);
+    if (!appointment) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+    return res.status(200).json(appointment);
+  } catch (err) {
+    const error = err as Error;
+    return res.status(400).json({ error: error.message });
+  }
+});
+
 appointmentRouter.get("/active", async (_, res) => {
   try {
     const dayOfWeek = new Date().getDay();

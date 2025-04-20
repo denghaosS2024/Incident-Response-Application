@@ -39,6 +39,10 @@ class AppointmentController {
     return doc;
   }
 
+  async findById(itemId: string) {
+    return await Appointment.findById(itemId);
+  }
+
   /**
    * Find appointments by user ID
    * @param userId - The ID of the user
