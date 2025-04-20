@@ -1,6 +1,7 @@
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import {
     Box,
+    Button,
     Card,
     CardContent,
     CircularProgress,
@@ -59,6 +60,10 @@ const TruckStockPage: React.FC = () => {
   const handleViewItems = (category: string): void => {
     navigate(`/inventory/${category}`);
   };
+  
+  const handleEditDefaultItems = (): void => {
+    navigate('/defaulttruckadditem');
+  };
 
   if (loading) {
     return (
@@ -93,20 +98,29 @@ const TruckStockPage: React.FC = () => {
                     <Typography variant="h6">
                     {truck.category}
                     </Typography>
-                    <IconButton 
-                    color="primary" 
-                    aria-label="view items"
+                    <IconButton
+                     color="primary"
+                     aria-label="view items"
                     onClick={() => handleViewItems(truck.category)}
                     >
                     <ArrowForwardIcon />
                     </IconButton>
                 </Box>
                 </CardContent>
-
             </Card>
           </Grid>
         ))}
       </Grid>
+      
+      <Box mt={4} display="flex" justifyContent="center">
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={handleEditDefaultItems}
+        >
+          Edit Default Truck Items
+        </Button>
+      </Box>
     </Box>
   );
 };
