@@ -24,7 +24,7 @@ describe("Router - User", () => {
     const { body: user } = await register().expect(200);
 
     expect(user).toMatchObject({
-      _id: /.+/,
+      _id: /.+/,-
       username,
       role,
     });
