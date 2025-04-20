@@ -571,6 +571,7 @@ export default Router()
         patientId as string,
         visitLog,
       );
+
       response.status(201).json(result);
     } catch (e) {
       const error = e as Error;
@@ -660,11 +661,16 @@ export default Router()
    *             required:
    *               - patientId
    *               - updatedVisitData
+   *               - updatedBy
    *             properties:
    *               patientId:
    *                 type: string
    *                 description: ID of the patient whose visit log should be updated.
    *                 example: "P12345"
+   *               updatedBy:
+   *                 type: string
+   *                 description: Username of the Nurse performing the update.
+   *                 example: "Nurse1"
    *               updatedVisitData:
    *                 type: object
    *                 description: Fields to update in the active visit log.
@@ -753,20 +759,22 @@ export default Router()
    *       500:
    *         description: Internal server error.
    */
+
   .put("/visitLogs", async (request, response) => {
     try {
-      const { patientId, updatedVisitData } = request.body;
-      if (!patientId || !updatedVisitData) {
-        response
-          .status(400)
-          .json({ message: "patientId and updatedVisitData are required" });
+      const { patientId, updatedVisitData, updatedBy } = request.body;
+      if (!patientId || !updatedVisitData || !updatedBy) {
+        response.status(400).json({
+          message: "patientId, updatedVisitData and updatedBy are required",
+        });
         return;
       }
 
       const result = await PatientController.updatePatientVisit(
         patientId as string,
-        updatedVisitData,
+        { ...updatedVisitData, updatedBy },
       );
+
       response.status(200).json(result);
     } catch (e) {
       const error = e as Error;
@@ -1001,6 +1009,103 @@ export default Router()
     } catch (e) {
       const error = e as Error;
       response.status(500).json({ message: error.message });
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/patients/timeline/{patientId}:
+   *   get:
+   *     summary: Get medical timeline for a patient
+   *     description: >
+   *       Retrieves a patient's medical timeline, including historical field-level changes during a visit.
+   *       If no `visitLogId` is provided, the most recent visit log is used.
+   *     tags: [Patient]
+   *     parameters:
+   *       - in: path
+   *         name: patientId
+   *         required: true
+   *         description: The ID of the patient whose medical timeline is being requested.
+   *         schema:
+   *           type: string
+   *       - in: query
+   *         name: visitLogId
+   *         required: false
+   *         description: Optional. The specific visitLogId to get events for. If omitted, the most recent visitLog will be used.
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Medical timeline retrieved successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 visitLogId:
+   *                   type: string
+   *                   description: ID of the visitLog associated with the returned events.
+   *                 events:
+   *                   type: array
+   *                   description: List of historical changes for the specified visit log.
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       patientId:
+   *                         type: string
+   *                       visitLogId:
+   *                         type: string
+   *                       changes:
+   *                         type: array
+   *                         items:
+   *                           type: object
+   *                           properties:
+   *                             field:
+   *                               type: string
+   *                               enum:
+   *                                 - priority
+   *                                 - location
+   *                                 - age
+   *                                 - conscious
+   *                                 - breathing
+   *                                 - chiefComplaint
+   *                                 - condition
+   *                                 - drugs
+   *                                 - allergies
+   *                                 - active
+   *                             newValue:
+   *                               type: string
+   *                               description: The new value that was set for the field.
+   *                       snapshot:
+   *                         type: object
+   *                         description: The full visit log at the time of the update.
+   *                       updatedBy:
+   *                         type: string
+   *                       timestamp:
+   *                         type: string
+   *                         format: date-time
+   *       404:
+   *         description: Patient or visit log not found.
+   *       500:
+   *         description: Internal server error.
+   */
+  .get("/timeline/:patientId", async (request, response) => {
+    try {
+      const { patientId } = request.params;
+      const { visitLogId } = request.query as { visitLogId?: string };
+
+      const { visitLogId: chosenId, events } =
+        await PatientController.getMedicalTimeline(patientId, visitLogId);
+
+      return response.json({ visitLogId: chosenId, events });
+    } catch (e) {
+      const error = e as Error;
+
+      if (error.message.includes("not found")) {
+        return response.status(404).json({ message: error.message });
+      }
+
+      return response.status(500).json({ message: error.message });
     }
   })
 

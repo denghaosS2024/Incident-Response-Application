@@ -88,6 +88,7 @@ class IncidentController {
           ? incident.incidentId
           : `I${incident.caller}`,
         caller: incident.caller,
+        city: incident.city ? incident.city : "",
         openingDate: new Date(),
         incidentState: incident.incidentState
           ? incident.incidentState
@@ -838,6 +839,17 @@ class IncidentController {
     } catch (error) {
       console.error("Error updating incident state:", error);
       throw error;
+    }
+  }
+
+  async getIncidentByCityName(cityName: string): Promise<IIncident[]> {
+    try {
+      const incidents = await Incident.find({ city: cityName }).exec();
+      return incidents;
+    }
+    catch (error) {
+      console.error("Error fetching incidents by city name:", error);
+      throw new Error(`Failed to retrieve incidents: ${error}`);
     }
   }
 }

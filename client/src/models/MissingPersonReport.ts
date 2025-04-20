@@ -26,4 +26,5 @@ export default interface IMissingPerson {
   locationLastSeen?: string;
   photo?: string;
   reportStatus: string;
+  personStatus: string;
 }

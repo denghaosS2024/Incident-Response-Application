@@ -38,8 +38,9 @@ interface Car {
   usernames: string[];
 }
 
-interface Truck {
+export interface Truck {
   assignedCity: string;
+  assignedIncident: string;
   _id: string;
   name: string;
   usernames: string[];

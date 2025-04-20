@@ -191,6 +191,19 @@ class TruckController {
     );
     return updatedTruck;
   }
+
+
+/**
+ * Fetch all trucks from the database, sorted by name,
+ * and return them as plain JavaScript objects.
+ */
+async getAllFormattedTrucks(): Promise<ITruck[]> {
+  const trucks = await Truck.find({}).sort({ name: 1 });
+  return trucks.map(truck => truck.toObject() as ITruck);
 }
+
+}
+
+
 
 export default new TruckController();

@@ -5,12 +5,13 @@
  */
 
 import IHospital from "@/models/Hospital";
+import HospitalResource from "@/models/HospitalResource";
+import { IHospitalResourceRequest } from "@/models/HospitalResourceRequest";
 import IPatient from "@/models/Patient";
 import IIncident from "../models/Incident";
 import IMessage from "../models/Message";
 import { IProfile } from "../models/Profile";
 import IUser from "../models/User";
-import { IHospitalResourceRequest } from "@/models/HospitalResourceRequest";
 
 /**
  * Interface representing the state of hospitals in the application
@@ -113,6 +114,13 @@ export interface PatientState {
 export interface HospitalResourceRequestState {
   incomingRequests: IHospitalResourceRequest[];
   outgoingRequests: IHospitalResourceRequest[];
+  loading: boolean;
+  error: string | null;
+}
+
+export interface HospitalResourceState {
+  resources: HospitalResource[];
+  hospitalResourceGroupedByResource: Record<string, HospitalResource[]>;
   loading: boolean;
   error: string | null;
 }

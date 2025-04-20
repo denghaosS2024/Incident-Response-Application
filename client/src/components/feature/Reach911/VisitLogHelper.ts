@@ -18,23 +18,42 @@ export default class VisitLogHelper {
     visitTime: string,
     patientId: string,
   ) {
-    // Post the form data to the server
-    console.log([
-      {
-        ...formData,
-        incidentId: incidentId,
-        dateTime: visitTime,
-      },
-    ]);
+    const cleanedData: Partial<IVisitLogForm> = {};
+
+    const normalizeValue = (
+      key: keyof IVisitLogForm,
+      value: string,
+    ): IVisitLogForm[keyof IVisitLogForm] => {
+      if (key === "age") {
+        return value === "" ? null : parseInt(value);
+      } else if (key === "drugs" || key === "allergies") {
+        return value
+          .split(",")
+          .map((v) => v.trim())
+          .filter((v) => v.length > 0);
+      } else {
+        return value;
+      }
+    };
+
+    for (const [key, value] of Object.entries(formData)) {
+      if (!value) continue; // skip undefined / empty
+      const typedKey = key as keyof IVisitLogForm;
+
+      // Use `as typeof cleanedData` to satisfy strict index types
+      cleanedData[typedKey] = normalizeValue(typedKey, value);
+    }
+
     const message = await request("/api/patients/visitLogs", {
       method: "PUT",
       body: JSON.stringify({
-        patientId: patientId,
+        patientId,
         updatedVisitData: {
-          ...formData,
-          incidentId: incidentId,
+          ...cleanedData,
+          incidentId,
           dateTime: visitTime,
         },
+        updatedBy: localStorage.getItem("username"),
       }),
     });
 

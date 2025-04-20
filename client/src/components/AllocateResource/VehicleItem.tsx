@@ -11,6 +11,7 @@ import { Draggable } from "react-beautiful-dnd";
 import getRoleIcon from "../../components/common/RoleIcon";
 import { FireTruck as FireTruckIcon } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
+import { useNavigate } from "react-router";
 
 interface VehicleItemProps {
   name: string;
@@ -31,6 +32,7 @@ const VehicleItem: React.FC<VehicleItemProps> = ({
   );
 
   const roleType = type === "Car" ? "Police" : "Fire";
+  const navigate = useNavigate();
 
   return (
     <Draggable key={draggableId} draggableId={draggableId} index={index}>
@@ -101,7 +103,7 @@ const VehicleItem: React.FC<VehicleItemProps> = ({
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.location.href = "/defaulttruckadditem";
+                    navigate(`/truck-inventory/${name}`);
                   }}
                   />
                 </Avatar>

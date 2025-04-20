@@ -166,6 +166,18 @@ export default Router()
     }
   })
 
+  .get("/:cityName", async (request, response) => {
+    const { cityName } = request.params;
+    try {
+      const result = await IncidentController.getIncidentByCityName(cityName);
+      response.send(result)
+      return;
+    } catch (e) {
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
+
   /**
    * @swagger
    * /api/incidents/{username}/active:
@@ -554,6 +566,7 @@ export default Router()
       const { channelId } = request.query;
       const { commander } = request.query;
       const { incidentState } = request.query;
+      const { cityName } = request.query;
 
       console.log("commander", commander);
 
@@ -595,6 +608,8 @@ export default Router()
           response.status(404).json({ message: "No incidents found" });
           return;
         }
+      } else if (cityName) {
+
       } else {
         result = await IncidentController.getAllIncidents();
       }

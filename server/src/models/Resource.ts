@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IResourceBase {
-    resourceName: string; // Name of the resource
+  resourceName: string; // Name of the resource
 }
 
 export interface IResource extends IResourceBase, Document {}
@@ -17,5 +17,8 @@ const ResourceSchema = new Schema<IResource>({
     required: true,
   },
 });
+
+// create index for text search on resourceName
+ResourceSchema.index({ resourceName: "text" });
 
 export default mongoose.model<IResource>("Resource", ResourceSchema);

@@ -1,5 +1,6 @@
 import AddIcon from "@mui/icons-material/Add";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import DescriptionIcon from "@mui/icons-material/Description";
 import {
   Box,
   CircularProgress,
@@ -140,9 +141,12 @@ const NursePatientsPage: React.FC = () => {
   const fetchPatientsData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await request(`/api/patients/hospital/${hospitalId}/nurse-view`, {
-        method: "GET",
-      });
+      const response = await request(
+        `/api/patients/hospital/${hospitalId}/nurse-view`,
+        {
+          method: "GET",
+        },
+      );
       setPatients(response);
       setLoading(false);
     } catch (err) {
@@ -220,58 +224,58 @@ const NursePatientsPage: React.FC = () => {
   // Handle drop on a category
   const handleDrop =
     (targetCategory: "requesting" | "ready" | "inUse" | "discharged") =>
-      async (e: React.DragEvent) => {
-        e.preventDefault();
+    async (e: React.DragEvent) => {
+      e.preventDefault();
 
-        const data = e.dataTransfer.getData("text/plain");
-        if (!data) return;
+      const data = e.dataTransfer.getData("text/plain");
+      if (!data) return;
 
-        try {
-          const { patientId, fromCategory } = JSON.parse(data);
+      try {
+        const { patientId, fromCategory } = JSON.parse(data);
 
-          // Skip if dropping in the same category
-          if (fromCategory === targetCategory) return;
+        // Skip if dropping in the same category
+        if (fromCategory === targetCategory) return;
 
-          // Update the erStatus in the database
-          await request("/api/patients/erStatus", {
-            method: "PUT",
-            body: JSON.stringify({
-              patientId,
-              erStatus: targetCategory,
-            }),
-          });
+        // Update the erStatus in the database
+        await request("/api/patients/erStatus", {
+          method: "PUT",
+          body: JSON.stringify({
+            patientId,
+            erStatus: targetCategory,
+          }),
+        });
 
-          // Update the local state
-          setPatients((prev) => {
-            // Find the patient to move
-            const patientToMove = prev[
-              fromCategory as keyof PatientsByCategory
-            ].find((p) => p.patientId === patientId);
+        // Update the local state
+        setPatients((prev) => {
+          // Find the patient to move
+          const patientToMove = prev[
+            fromCategory as keyof PatientsByCategory
+          ].find((p) => p.patientId === patientId);
 
-            if (!patientToMove) return prev;
+          if (!patientToMove) return prev;
 
-            // Create a new state object
-            const newState = { ...prev };
+          // Create a new state object
+          const newState = { ...prev };
 
-            // Remove from old category
-            newState[fromCategory as keyof PatientsByCategory] = prev[
-              fromCategory as keyof PatientsByCategory
-            ].filter((p) => p.patientId !== patientId);
+          // Remove from old category
+          newState[fromCategory as keyof PatientsByCategory] = prev[
+            fromCategory as keyof PatientsByCategory
+          ].filter((p) => p.patientId !== patientId);
 
-            // Add to new category
-            newState[targetCategory] = [...prev[targetCategory], patientToMove];
+          // Add to new category
+          newState[targetCategory] = [...prev[targetCategory], patientToMove];
 
-            return newState;
-          });
+          return newState;
+        });
 
-          setNotification(
-            `Patient moved to ${targetCategory.replace(/([A-Z])/g, " $1").toLowerCase()}`,
-          );
-        } catch (err) {
-          console.error("Error moving patient:", err);
-          setNotification("Failed to move patient");
-        }
-      };
+        setNotification(
+          `Patient moved to ${targetCategory.replace(/([A-Z])/g, " $1").toLowerCase()}`,
+        );
+      } catch (err) {
+        console.error("Error moving patient:", err);
+        setNotification("Failed to move patient");
+      }
+    };
 
   // Handle dragover event
   const handleDragOver = (e: React.DragEvent) => {
@@ -344,6 +348,17 @@ const NursePatientsPage: React.FC = () => {
               <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
                 <Typography variant="body1">{patient.priority}</Typography>
               </Box>
+              <IconButton
+                edge="end"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(
+                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                  );
+                }}
+              >
+                <DescriptionIcon />
+              </IconButton>
               <IconButton edge="end">
                 <ChevronRightIcon />
               </IconButton>
@@ -380,6 +395,17 @@ const NursePatientsPage: React.FC = () => {
               <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
                 <Typography variant="body1">{patient.priority}</Typography>
               </Box>
+              <IconButton
+                edge="end"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(
+                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                  );
+                }}
+              >
+                <DescriptionIcon />
+              </IconButton>
               <IconButton edge="end">
                 <ChevronRightIcon />
               </IconButton>
@@ -416,6 +442,17 @@ const NursePatientsPage: React.FC = () => {
               <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
                 <Typography variant="body1">{patient.priority}</Typography>
               </Box>
+              <IconButton
+                edge="end"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(
+                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                  );
+                }}
+              >
+                <DescriptionIcon />
+              </IconButton>
               <IconButton edge="end">
                 <ChevronRightIcon />
               </IconButton>
@@ -452,6 +489,17 @@ const NursePatientsPage: React.FC = () => {
               <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
                 <Typography variant="body1">{patient.priority}</Typography>
               </Box>
+              <IconButton
+                edge="end"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(
+                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                  );
+                }}
+              >
+                <DescriptionIcon />
+              </IconButton>
               <IconButton edge="end">
                 <ChevronRightIcon />
               </IconButton>

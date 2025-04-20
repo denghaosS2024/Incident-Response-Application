@@ -27,13 +27,12 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 }) => {
   //const socket = SocketClient
   const dispatch = useDispatch<AppDispatch>();
-  // const [maydayOpen, setMaydayOpen] = useState<boolean>(false);
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   // TODO: Implement the logic to check if the current user is the incident commander or first responder
   // const isIncidentCommander = false
 
   const [responders, setResponders] = useState<string[]>([]);
-  //const [acknowledgedBy, setAcknowledgedBy] = useState<string[]>([])
   const [openAlertPanel, setOpenAlertPanel] = useState<boolean>(false);
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -87,9 +86,6 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
   // Fetch the resopnder if commander
   useEffect(() => {
-    // if (isIncidentCommander) {
-    //   handleFetchResponders();
-    // }
     handleFetchResponders();
   }, [isIncidentCommander]);
 
@@ -112,27 +108,6 @@ const MessageAlertOptions: React.FC<MessageAlertOptionsProps> = ({
 
     dispatch(addMessage(message));
   };
-  // const handleDoubleClick = () => {
-  //   console.log('Double clicked');
-  //   setMaydayOpen(false);
-  // };
-
-  // const lastTap = useRef<number | null>(null);
-
-  // const handleDoubleTapDismiss = () => {
-  //     const now = Date.now();
-  //     if (lastTap.current && now - lastTap.current < 300) {
-  //         setMaydayOpen(false);
-  //         socket.emit('acknowledge-alert', { senderId: currentUserId, type: 'mayday', timestamp: now });
-  //     }
-  //     lastTap.current = now;
-  // };
-
-  // const flash = keyframes`
-  //     0% { background-color: red; }
-  //     50% { background-color: black; }
-  //     100% { background-color: red; }
-  // `;
 
   return (
     <>

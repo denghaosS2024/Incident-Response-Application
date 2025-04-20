@@ -167,7 +167,7 @@ const Reach911Page: React.FC = () => {
   ];
 
   const isResponder =
-    role === "Fire" || role === "Police" || role === "Dispatch";
+    role === "Fire" || role === "Police" || role === "Dispatch" || role === "Fire Chief" || role === "Police Chief";
   if (isResponder) {
     contents.push(<Reach911Step5 incidentId={incidentId} />);
   }

@@ -6,6 +6,12 @@ import Patient, {
   IVisitLog,
   PatientSchema,
 } from "../models/Patient";
+import PatientVisitEvent, {
+  IFieldChange,
+  IPatientVisitEvent,
+  VisitLogField,
+  VisitLogValue,
+} from "../models/PatientVisitEvent";
 import { IUser } from "../models/User";
 import HttpError from "../utils/HttpError";
 import ROLES from "../utils/Roles";
@@ -384,7 +390,7 @@ class PatientController {
    */
   async createUpdatePatientVisit(
     patientId: string,
-    patientVisitData: IVisitLog,
+    patientVisitData: IVisitLog & { updatedBy: string },
   ) {
     const patient = await Patient.findOne({ patientId });
 
@@ -556,7 +562,10 @@ class PatientController {
    * @returns The updated patient document with the modified visit log
    * @throws Error if the patient with the given ID does not exist
    */
-  async updatePatientVisit(patientId: string, updatedVisitData: IVisitLog) {
+  async updatePatientVisit(
+    patientId: string,
+    updatedVisitData: IVisitLog & { updatedBy?: string },
+  ) {
     const patient = await Patient.findOne({ patientId });
 
     if (!patient) {
@@ -568,18 +577,51 @@ class PatientController {
       throw new Error(`No active visit log found for patient ID ${patientId}`);
     }
 
-    // Update only the provided fields
-    Object.entries(updatedVisitData).forEach(([key, value]) => {
-      if (value !== undefined) {
-        activeVisit[key] = value;
-      }
-    });
+    const changes: IFieldChange[] = [];
 
-    if (updatedVisitData.location === "ER") {
-      if (
-        updatedVisitData.priority === "E" ||
-        updatedVisitData.priority === "1"
-      ) {
+    const updatableFields: (keyof IVisitLog)[] = [
+      "priority",
+      "location",
+      "age",
+      "conscious",
+      "breathing",
+      "chiefComplaint",
+      "condition",
+      "drugs",
+      "allergies",
+      "active",
+    ];
+
+    for (const field of updatableFields) {
+      const newValue = updatedVisitData[field];
+      const currentValue = activeVisit[field];
+
+      const isArray = Array.isArray(currentValue) && Array.isArray(newValue);
+      const hasChanged = isArray
+        ? JSON.stringify(currentValue) !== JSON.stringify(newValue)
+        : currentValue !== newValue;
+
+      if (newValue !== undefined && hasChanged) {
+        (activeVisit[field] as
+          | string
+          | number
+          | boolean
+          | Date
+          | string[]
+          | null) = newValue;
+        changes.push({
+          field: field as VisitLogField,
+          newValue: newValue as VisitLogValue,
+        });
+      }
+    }
+
+    // Update erStatus logic
+    const loc = updatedVisitData.location ?? activeVisit.location;
+    const pri = updatedVisitData.priority ?? activeVisit.priority;
+
+    if (loc === "ER") {
+      if (pri === "E" || pri === "1") {
         patient.set("erStatus", patient.get("erStatus") || "requesting");
       } else {
         patient.set("erStatus", undefined);
@@ -587,13 +629,23 @@ class PatientController {
     } else {
       patient.set("erStatus", undefined);
     }
-    // Set patient's location to whatever this updated visit log is
-    patient.set("location", updatedVisitData.location);
+
+    patient.set("location", loc);
+
+    // Save visit event if changed and updatedBy provided
+    if (changes.length > 0 && updatedVisitData.updatedBy) {
+      await PatientVisitEvent.create({
+        patientId,
+        visitLogId: activeVisit._id,
+        changes,
+        snapshot: JSON.parse(JSON.stringify(activeVisit)),
+        updatedBy: updatedVisitData.updatedBy,
+        timestamp: new Date(),
+      });
+    }
 
     await patient.save();
-
     UserConnections.broadcast("patientUpdated", patient.patientId);
-
     return patient;
   }
 
@@ -756,6 +808,42 @@ class PatientController {
       console.error("Error fetching patients for incident id:", error);
       throw new Error("Failed to fetch patients for incident id");
     }
+  }
+
+  /**
+   * Returns the timeline events for a single visitLog.
+   * If visitLogId is omitted, use the patient’s latest visit log.
+   */
+  async getMedicalTimeline(
+    patientId: string,
+    visitLogId?: string,
+  ): Promise<{ visitLogId: string; events: IPatientVisitEvent[] }> {
+    // find patient
+    const patient = await Patient.findOne({ patientId }).lean();
+    if (!patient) throw new Error(`Patient ${patientId} not found`);
+
+    // pick the right visitLogId
+    let chosenId = visitLogId;
+    if (!chosenId) {
+      const logs = patient.visitLog || [];
+      if (!logs.length) {
+        throw new Error(`No visit logs exist for patient ${patientId}`);
+      }
+      // prefer active, else the one with greatest dateTime
+      const activeLog = logs.find((l) => l.active);
+      chosenId =
+        activeLog?._id ??
+        logs.reduce((a, b) => (a.dateTime > b.dateTime ? a : b))._id;
+    }
+
+    const events = await PatientVisitEvent.find({
+      patientId,
+      visitLogId: chosenId,
+    })
+      .sort({ timestamp: 1 })
+      .lean();
+
+    return { visitLogId: chosenId, events };
   }
 }
 

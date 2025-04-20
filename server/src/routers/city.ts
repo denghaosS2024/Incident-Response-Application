@@ -189,6 +189,36 @@ cityRouter.get(
   },
 );
 
+cityRouter.get(
+  "/fire-funding/:cityName",
+  async (req: Request, res: Response) => {
+    try {
+      const { cityName } = req.params;
+      const funding = await CityController.getCityFireFunding(cityName);
+      res.json(funding);
+    }
+    catch (err) {
+      const error = err as Error;
+      res.status(400).json({ error: error.message });
+    }
+  }
+)
+
+cityRouter.get(
+  "/police-funding/:cityName",
+  async (req: Request, res: Response) => {
+    try {
+      const { cityName } = req.params;
+      const funding = await CityController.getCityPoliceFunding(cityName);
+      res.json(funding);
+    }
+    catch (err) {
+      const error = err as Error;
+      res.status(400).json({ error: error.message });
+    }
+  }
+)
+
 /**
  * @swagger
  * /api/cities/assignments/{cityName}:

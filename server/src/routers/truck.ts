@@ -319,4 +319,39 @@ truckRouter.put("/usernames/release", async (req: Request, res: Response) => {
   }
 });
 
+
+/**
+ * @swagger
+ * /api/trucks/list/all:
+ *   get:
+ *     summary: Get all trucks with formatted details
+ *     description: Retrieves a comprehensive list of all trucks with additional information.
+ *     tags:
+ *       - Trucks
+ *     responses:
+ *       200:
+ *         description: A formatted list of all trucks retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/TruckDetails"
+ *       500:
+ *         description: Server error while fetching trucks.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ErrorResponse"
+ */
+truckRouter.get("/list/all", async (_req: Request, res: Response) => {
+  try {
+    const trucks = await TruckController.getAllFormattedTrucks();
+    res.json(trucks);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default truckRouter;

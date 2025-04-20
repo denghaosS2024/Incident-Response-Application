@@ -1,8 +1,8 @@
 import request from "supertest";
 
 import app from "../../src/app";
-import * as TestDatabase from "../utils/TestDatabase";
 import ROLES from "../../src/utils/Roles";
+import * as TestDatabase from "../utils/TestDatabase";
 
 describe("Router - User", () => {
   // "System" user is created in the database upon app run so by default there always is one user present in the database.

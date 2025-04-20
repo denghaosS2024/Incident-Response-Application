@@ -11,6 +11,7 @@ import snackbarReducer from "./snackbarSlice";
 import storageReducer from "./storageSlice";
 import userHospitalReducer from "./userHospitalSlice";
 import hospitalResourceRequestReducer from "./hospitalResourceRequestSlice"
+import hospitalResourceReducer from "./hospitalResourceSlice"
 /**
  * Redux Store Configuration
  *
@@ -56,7 +57,8 @@ export const store = configureStore({
     notifyState: notifyReducer, // Reducer for managing notification state
     alertQueue: alertQueueReducer, // Reducer for managing alert queue state
     userHospital: userHospitalReducer, // Reducer for managing current user's hospital ID
-    hositalResourceRequestState: hospitalResourceRequestReducer
+    hositalResourceRequestState: hospitalResourceRequestReducer, // Resucer for managing the hospital resource requests state
+    hospitalResourceState: hospitalResourceReducer // Reducer for the hospital resources state
   },
 });
 

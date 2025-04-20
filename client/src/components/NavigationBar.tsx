@@ -1,3 +1,6 @@
+import IHospital from "@/models/Hospital";
+import { fetchAndSetHospital } from "@/redux/hospitalSlice";
+import { AppDispatch } from "@/redux/store";
 import { ArrowBack, MoreVert as More } from "@mui/icons-material";
 import {
   AppBar,
@@ -7,7 +10,8 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   useLocation,
   useNavigate,
@@ -39,8 +43,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const [openMenu, setOpenMenu] = useState(false);
   const [menuAnchor, setMenuAnchor] = React.useState<HTMLElement>();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
-  const { id } = useParams();
+  const { hospitalId } = useParams<{ hospitalId?: string }>();
+
   const [URLSearchParams] = useSearchParams();
   const name = URLSearchParams.get("name");
   const role = localStorage.getItem("role") ?? "Citizen";
@@ -48,6 +54,31 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const onBackHandler = onBack || (() => navigate(-1));
 
   const pathname = location.pathname;
+
+  const hospitalFromSlice: IHospital = useSelector(
+    (state: any) => state.hospital.hospitalData,
+  );
+
+  // Get the hospital name to include it in the page title
+  useEffect(() => {
+    if (
+      !pathname.startsWith("/register-hospital") ||
+      !pathname.endsWith("resources")
+    ) {
+      return;
+    }
+    if (hospitalFromSlice?.hospitalName != null) {
+      return;
+    }
+    const getHospital = async () => {
+      if (hospitalId) {
+        dispatch(fetchAndSetHospital(hospitalId));
+      }
+    };
+    getHospital();
+  }, [hospitalId]);
+
+  console.log(hospitalFromSlice);
 
   // Add "/organization" here to display "Organization"
   const pageTitles: Record<string, string> = {
@@ -70,6 +101,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/sar-incident": "SAR Incident",
     "/defaulttruckinventory": "Default Truck Inventory",
     "/defaulttruckadditem": "Add Truck Item",
+    "/funding-center": "Funding Center",
+    "/funding-information": "Funding Information",
   };
 
   const roleTitles: Record<string, string> = {
@@ -86,7 +119,12 @@ const NavigationBar: FunctionComponent<IProps> = ({
   let title = pageTitles[pathname] || "Incident Response";
 
   // If user is Fire or Police and path is /reach911, override title to "Incidents"
- 
+
+  if (pathname.startsWith("/truck-inventory/")) {
+    const truckName = pathname.split("/")[2];
+    title = `Truck ${truckName} Inventory`;
+  }
+
   if (
     pathname.startsWith("/register-hospital/") &&
     pathname.endsWith("/requests")
@@ -137,6 +175,40 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   if (pathname.startsWith("/missing-person/followUp/")) {
     title = name ? `${name} Follow-Up Information` : "Follow-Up Information";
+  }
+
+  if (pathname === "/register-hospital/resources/directory") {
+    title = "Hospital Resources";
+  }
+
+  if (
+    pathname.startsWith("/register-hospital") &&
+    pathname.includes("resources/newResource")
+  ) {
+    title = "Hospital Resource";
+  }
+
+  if (
+    pathname.startsWith("/register-hospital") &&
+    pathname.endsWith("resources")
+  ) {
+    title = hospitalFromSlice?.hospitalName
+      ? `${hospitalFromSlice?.hospitalName} Resources`
+      : "Hospital Resources";
+  }
+
+  // override for Medical Report page
+  if (pathname.startsWith("/patients/report") && name) {
+    title = `${name} Medical Report`;
+  }
+
+  // override for Patient Visit Detail page
+  if (pathname.startsWith("/patients/visit/view") && name) {
+    title = `${name} Patient Visit`;
+  }
+
+  if (pathname.startsWith("/funding-information/")) {
+    title = "Funding Information";
   }
 
   const openMenuHandler = (anchor: HTMLElement) => {
@@ -195,6 +267,14 @@ const NavigationBar: FunctionComponent<IProps> = ({
     navigate("/hospitals");
   };
 
+  const missingPersonsDirectory = () => {
+    navigate("/missing-person/directory");
+  };
+
+  const hospitalResources = () => {
+    navigate("/register-hospital/resources/directory");
+  };
+
   const findHospital = () => {
     navigate("/find-hospital");
   };
@@ -236,6 +316,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     }
   };
 
+  const navigateToFundingCenter = () => {
+    if (["Fire Chief", "Police Chief"].includes(role)) {
+      navigate("/funding-center");
+    }
+    closeMenu();
+  };
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -273,9 +360,17 @@ const NavigationBar: FunctionComponent<IProps> = ({
           {(role === "Nurse" || role === "Police" || role === "Fire") && (
             <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
           )}
+          {role === "Nurse" && (
+            <MenuItem onClick={hospitalResources}>Hospital Resources</MenuItem>
+          )}
           {(role === "Police" || role === "Fire") && (
             <MenuItem onClick={findHospital}>Find Hospital</MenuItem>
           )}
+          {
+            <MenuItem onClick={missingPersonsDirectory}>
+              Missing Persons Directory
+            </MenuItem>
+          }
           {(role === "Dispatch" || role === "Police" || role === "Fire") && (
             <MenuItem onClick={navigateToDashboard}>Dashboard</MenuItem>
           )}
@@ -286,6 +381,11 @@ const NavigationBar: FunctionComponent<IProps> = ({
           )}
           {(role === "Fire" || role === "Police" || role === "Nurse") && (
             <MenuItem onClick={navigateToPatientsPage}>Patients</MenuItem>
+          )}
+          {(role === "Fire Chief" || role === "Police Chief") && (
+            <MenuItem onClick={navigateToFundingCenter}>
+              Funding Center
+            </MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
