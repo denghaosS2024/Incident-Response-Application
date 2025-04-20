@@ -1,4 +1,9 @@
-import React, { useState, forwardRef, useImperativeHandle } from "react";
+import React, {
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useEffect,
+} from "react";
 import {
   Box,
   Button,
@@ -21,6 +26,7 @@ export interface DrugItem {
 
 export interface DrugEntryHandle {
   getDrugsData: () => DrugItem[];
+  setDrugsData: (items: DrugItem[]) => void;
 }
 
 interface DrugEntryProps {
@@ -37,8 +43,10 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
       route: "",
     });
 
+    // Expose methods to parent
     useImperativeHandle(ref, () => ({
       getDrugsData: () => [...drugs],
+      setDrugsData: (items: DrugItem[]) => setDrugs(items),
     }));
 
     const handleClickOpen = () => {
@@ -52,15 +60,13 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
 
     const handleAdd = () => {
       if (currentDrug.name.trim() === "") return;
-
-      // Add the new drug to the array
       setDrugs([...drugs, currentDrug]);
       handleClose();
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
-      setCurrentDrug({ ...currentDrug, [name]: value });
+      setCurrentDrug((prev) => ({ ...prev, [name]: value }));
     };
 
     return (
@@ -94,9 +100,9 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
 
           {/* List of drug names */}
           <Box sx={{ pt: 1 }}>
-            {drugs.map((drug) => (
+            {drugs.map((drug, index) => (
               <Paper
-                key={drug.name}
+                key={`${drug.name}-${index}`}
                 elevation={0}
                 sx={{
                   display: "flex",
@@ -106,10 +112,15 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
                   bgcolor: "white",
                   borderRadius: 1,
                   border: "1px solid #e0e0e0",
+                  mb: 1,
                 }}
               >
-                <Typography variant="body1">{drug.name}</Typography>
-                {/* Add a button here to view the added drug details */}
+                <Box>
+                  <Typography variant="body1">{drug.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {drug.dosage} · {drug.route}
+                  </Typography>
+                </Box>
               </Paper>
             ))}
             {drugs.length === 0 && (
@@ -120,7 +131,7 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
           </Box>
         </Paper>
 
-        {/* Drug Entry Dialog */}
+        {/* Dialog for entering a drug */}
         <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
           <DialogTitle>Drug Detail</DialogTitle>
           <DialogContent>

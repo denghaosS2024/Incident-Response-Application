@@ -19,7 +19,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { RootState } from "../../../redux/store";
@@ -50,7 +50,7 @@ const VisitLogForm: React.FC<{
     breathing: "",
     chiefComplaint: "",
     condition: "",
-    drugs: "",
+    drugs: [],
     allergies: "",
     hospitalId: "",
     hospitalName: "",
@@ -59,6 +59,8 @@ const VisitLogForm: React.FC<{
   console.log("visitLogId:", visitLogId);
   console.log("active:", active);
   const isReadOnly = active === false;
+
+  const drugEntryRef = useRef<DrugEntryHandle>(null);
 
   const navigate = useNavigate();
 
@@ -512,7 +514,7 @@ const VisitLogForm: React.FC<{
         <Box display="flex" alignItems="center" gap={2}>
           <Typography sx={{ width: 120, flexShrink: 0 }}>Drugs:</Typography>
           <Box sx={{ flex: 1, width: 200 }}>
-            <DrugEntry isReadOnly={isReadOnly} />
+          <DrugEntry isReadOnly={isReadOnly} ref={drugEntryRef} />
           </Box>
         </Box>
       </FormControl>
@@ -583,52 +585,36 @@ const VisitLogForm: React.FC<{
       )}
 
       {!isReadOnly && (
-        <>
-          <Box display="flex" justifyContent="center" mt={4}>
-            <button
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#1976d2",
-                color: "#fff",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-              onClick={() => {
-                VisitLogHelper.saveFormData(
-                  formData,
-                  incidentId,
-                  visitTime,
-                  getCurrentPatientId() ?? "",
-                );
-              }}
-            >
-              Save
-            </button>
-          </Box>
-
-          {/* Discharge Button */}
-          <Box display="flex" justifyContent="center" mt={2}>
-            <button
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#d32f2f",
-                color: "#fff",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-              onClick={async () => {
-                await dischargePatient();
-                alert("Patient discharged successfully!");
-              }}
-            >
-              Discharge Patient
-            </button>
-          </Box>
-        </>
+        <Box display="flex" justifyContent="center" mt={4}>
+          <button
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#1976d2",
+              color: "#fff",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+            onClick={() => {
+              const drugs = (drugEntryRef.current?.getDrugsData() ?? []).map(
+                (drug) => `${drug.name} (${drug.dosage}, ${drug.route})`
+              );              
+            
+              VisitLogHelper.saveFormData(
+                {
+                  ...formData,
+                  drugs,
+                },
+                incidentId,
+                visitTime,
+                getCurrentPatientId() ?? "",
+              );
+            }}            
+          >
+            Save
+          </button>
+        </Box>
       )}
     </div>
   );
