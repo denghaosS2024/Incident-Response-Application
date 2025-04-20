@@ -39,9 +39,9 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     age: 0,
     weight: undefined,
     height: undefined,
-    race: Race.White,
+    race: "" as any, // ← blank
     eyeColor: "",
-    gender: Gender.Male,
+    gender: "" as any, // ← blank
     description: "",
     dateLastSeen: new Date(),
     locationLastSeen: "",
@@ -156,7 +156,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
 
           {/* Race */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth disabled={readonly}>
+            <FormControl fullWidth required disabled={readonly}>
               <InputLabel id="race-label">Race</InputLabel>
               <Select
                 required
@@ -166,6 +166,9 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
                 label="Race"
                 onChange={handleSelectChange}
               >
+                <MenuItem value="">
+                  <em>Select a race</em>
+                </MenuItem>
                 {Object.values(Race).map((r) => (
                   <MenuItem key={r} value={r}>
                     {r}
@@ -189,7 +192,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
 
           {/* Gender */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth disabled={readonly}>
+            <FormControl fullWidth required disabled={readonly}>
               <InputLabel id="gender-label">Gender</InputLabel>
               <Select
                 required
@@ -199,6 +202,9 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
                 label="Gender"
                 onChange={handleSelectChange}
               >
+                <MenuItem value="">
+                  <em>Select gender</em>
+                </MenuItem>
                 {Object.values(Gender).map((g) => (
                   <MenuItem key={g} value={g}>
                     {g}
