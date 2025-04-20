@@ -69,8 +69,11 @@ const MissingPersonManagePage: React.FC = () => {
       };
       
       // Make API call to update the record using the request utility
+      const updateUrl = `/api/missingPerson/${reportId}`;
+      console.log('Updating missing person with URL:', updateUrl);
+      
       await request<IMissingPerson>(
-        `/api/missingPerson/update`,
+        updateUrl,
         {
           method: 'PUT',
           body: JSON.stringify(payload),
@@ -101,7 +104,7 @@ const MissingPersonManagePage: React.FC = () => {
       
       // Make API call to mark as found using the request utility
       await request(
-        `/api/missingPerson/status/${reportId}`,
+        `/api/missingPerson/${reportId}/found`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
