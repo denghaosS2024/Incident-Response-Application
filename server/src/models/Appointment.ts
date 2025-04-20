@@ -13,6 +13,7 @@ export interface IAppointment extends Document {
   note: string | undefined;
   severityIndex: number;
   feedback: string | undefined;
+  // "Fake" delete, set (valid) boolean to false, we can use this to filter out
   valid: boolean;
   startHour: number;
   endHour: number;
