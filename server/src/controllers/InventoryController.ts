@@ -43,6 +43,9 @@ class InventoryController {
       throw new Error("Default inventory not initialized");
     }
 
+    this.defaultInventory = await Inventory.findOne({
+      category: "default",
+    }).exec();
     if (category === "default") {
       return this.defaultInventory;
     }

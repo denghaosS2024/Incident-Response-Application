@@ -16,11 +16,9 @@ const TruckInventoryPage: React.FC = () => {
     // Fetch inventory data from the server using the truckName
     const fetchInventory = async () => {
       try {
-        console.log("Fetching inventory for truck:", truckName);
         const response = await request(
           `/api/inventories/category/${truckName}`,
         );
-        console.log(response);
         setInventoryItems(response);
       } catch (error) {
         console.error("Error fetching inventory:", error);
