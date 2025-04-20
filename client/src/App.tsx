@@ -52,7 +52,6 @@ import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
-import HospitalResourceRequestsPage from "./pages/HospitalResourceRequestsPage.tsx";
 import FundingCenter from "./pages/FundingCenter.tsx";
 import FundingInformation from "./pages/FundingInformation.tsx";
 

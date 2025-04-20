@@ -101,11 +101,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/sar-incident": "SAR Incident",
     "/defaulttruckinventory": "Default Truck Inventory",
     "/defaulttruckadditem": "Add Truck Item",
-<<<<<<< Updated upstream
-    "/register-hospital/resources/directory": "Hospital Resources",
-=======
     "/funding-center": "Funding Center",
->>>>>>> Stashed changes
+    "/funding-information": "Funding Information",
   };
 
   const roleTitles: Record<string, string> = {
