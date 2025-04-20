@@ -13,7 +13,7 @@ class NurseShiftController {
     nurseId: string,
     dayOfWeek: number,
   ): Promise<INurseShift[]> {
-    return await NurseShift.find({ nurseId, dayOfWeek }).exec();
+    return await NurseShift.find({ nurseId, dayOfWeek, valid: true }).exec();
   }
 
   /**
@@ -36,6 +36,7 @@ class NurseShiftController {
     const shifts = await NurseShift.find({
       nurseId,
       dayOfWeek: currentDay,
+      valid: true,
     }).exec();
 
     for (const shift of shifts) {
@@ -85,9 +86,9 @@ class NurseShiftController {
    * @returns All shift entries
    */
   async getAllShifts(nurseId: string): Promise<INurseShift[]> {
-    return await NurseShift.find({ nurseId })
+    return await NurseShift.find({ nurseId, valid: true })
       .sort({ dayOfWeek: 1, startHour: 1 })
-      .exec();
+      .lean();
   }
 
   /**
@@ -96,13 +97,14 @@ class NurseShiftController {
    * @param dayOfWeek - Day of week (0–6)
    * @param hours - Array of hour values to keep (e.g., [1, 3, 5])
    */
-  async updateShiftsForDay(
-    nurseId: string,
-    dayOfWeek: number,
-    hours: number[],
-  ) {
+  async updateShiftForDay(nurseId: string, dayOfWeek: number, hours: number[]) {
     // Clear existing shifts
-    await NurseShift.deleteMany({ nurseId, dayOfWeek });
+
+    // await NurseShift.deleteMany({ nurseId, dayOfWeek });
+    await NurseShift.updateMany(
+      { nurseId, dayOfWeek },
+      { $set: { valid: false } },
+    );
 
     // Add new ones
     const newShifts = hours.map((startHour) => ({
