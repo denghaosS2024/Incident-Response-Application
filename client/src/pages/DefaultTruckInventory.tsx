@@ -49,7 +49,6 @@ const DefaultTruckInventory: React.FC = () => {
     const fetchDefaultInventory = async (): Promise<void> => {
       try {
         const data = await request('/api/inventories/category/default');
-        console.log('Default inventory data:', data);
         
         if (data) {
           setDefaultItems(data.items);

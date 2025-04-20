@@ -58,7 +58,7 @@ const TruckStockPage: React.FC = () => {
   }, []);
 
   const handleViewItems = (category: string): void => {
-    navigate(`/inventory/${category}`);
+    navigate(`/truck-inventory/${category}`);
   };
   
   const handleEditDefaultItems = (): void => {
