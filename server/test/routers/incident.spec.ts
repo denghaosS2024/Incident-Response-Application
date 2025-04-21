@@ -241,6 +241,43 @@ describe("Router - Incident", () => {
 
       expect(updatedIncident.sarTasks[0]).toMatchObject(updatedTask);
     });
+
+
+        it("should close a SAR task for an incident", async () => {
+      // Create a SAR task
+      await request(app)
+        .post(`/api/incidents/${incidentId}/sar-task`)
+        .send({
+          state: "InProgress",
+          location: "Test Location",
+          coordinates: { latitude: 37.7749, longitude: -122.4194 },
+          name: "Initial SAR Task",
+          description: "Initial task for SAR incident",
+        })
+        .expect(200);
+
+      // Update the SAR task
+      const updatedTask = {
+        state: "Done",
+        location: "Updated Location",
+        coordinates: { latitude: 37.7849, longitude: -122.4294 },
+        name: "Updated SAR Task",
+        description: "Updated task for SAR incident",
+      };
+
+      const { body: updatedIncident } = await request(app)
+        .put(`/api/incidents/sar/${incidentId}`)
+        .send({
+          taskId: 0,
+          sarTask: updatedTask,
+        })
+        .expect(200);
+
+      expect(updatedIncident.sarTasks[0]).toMatchObject(updatedTask);
+    });
+
+
+
   });
 
   describe("Error Handling", () => {
