@@ -356,7 +356,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
   };
 
   const navigateToFundingCenter = () => {
-    if (["Fire Chief", "Police Chief"].includes(role)) {
+    if (["Fire Chief", "Police Chief", "City Director"].includes(role)) {
       navigate("/funding-center");
     }
     closeMenu();
@@ -428,7 +428,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
           {(role === "Fire" || role === "Police" || role === "Nurse") && (
             <MenuItem onClick={navigateToPatientsPage}>Patients</MenuItem>
           )}
-          {(role === "Fire Chief" || role === "Police Chief") && (
+          {(role === "Fire Chief" ||
+            role === "Police Chief" ||
+            role === "City Director") && (
             <MenuItem onClick={navigateToFundingCenter}>
               Funding Center
             </MenuItem>
