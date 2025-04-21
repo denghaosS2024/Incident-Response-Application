@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
   
-export interface MissingFollowUp extends Document {
+export interface IMissingFollowUpBase {
     reportId: Types.ObjectId
     isSpotted: boolean 
     locationSpotted: string
@@ -10,9 +10,12 @@ export interface MissingFollowUp extends Document {
     // TODO: Add Image URL????
 }
 
+interface IMissingFollowUp extends IMissingFollowUpBase, Document {}
+
 export const MissingPersonFollowUpSchema = new Schema({
     reportId: {
         type: Types.ObjectId,
+        ref: "MissingPerson",
         required: true
     },
     isSpotted: {
@@ -33,7 +36,7 @@ export const MissingPersonFollowUpSchema = new Schema({
     }
 })
 
-export default mongoose.model<MissingFollowUp>(
+export default mongoose.model<IMissingFollowUp>(
     "MissingPersonFollowUp",
     MissingPersonFollowUpSchema
 )
