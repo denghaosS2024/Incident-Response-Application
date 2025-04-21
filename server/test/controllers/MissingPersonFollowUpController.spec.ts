@@ -1,8 +1,8 @@
 import mongoose, { Query } from "mongoose";
 import MissingPersonFollowUpController from "../../src/controllers/MissingPersonFollowUpController";
 import MissingFollowUp, {
-  IMissingFollowUp,
-  IMissingFollowUpBase,
+    IMissingFollowUp,
+    IMissingFollowUpBase,
 } from "../../src/models/MissingFollowUp";
 import * as TestDatabase from "../utils/TestDatabase";
 
@@ -117,4 +117,29 @@ describe("MissingPersonFollowUpController", () => {
     expect(individualFollowup).toBeDefined();
     expect(individualFollowup!.reportId).toStrictEqual(newFollowUp.reportId);
   });
-});
+
+  it("should handle error for getting individual followup", async()=> {
+    const fakeQuery: Partial<Query<IMissingFollowUp[], IMissingFollowUp>> = {
+        exec: () => Promise.reject(new Error("Mocked MongoDB error")),
+      };
+  
+    // Mock MissingFollowup.find to return the fake query
+    jest
+    .spyOn(MissingFollowUp, "findById")
+    .mockReturnValue(fakeQuery as Query<IMissingFollowUp[], IMissingFollowUp>);
+   
+    const newFollowUp: IMissingFollowUpBase = {
+        reportId: new mongoose.Types.ObjectId(),
+        isSpotted: true, 
+        locationSpotted: "123 South Akron Rd. Mountain View, CA 94075",
+        datetimeSpotted: new Date("2025-10-27T19:30"),
+        additionalComment: "additional comment"
+
+    };
+
+    const followUp = await MissingPersonFollowUpController.addFollowUp(newFollowUp);
+
+    await expect(MissingPersonFollowUpController.getFollowUpById(followUp._id.toString()))
+    .rejects.toThrow("Error fetching followup for this id");
+  })
+})

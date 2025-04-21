@@ -11,6 +11,7 @@ export interface IProfile {
     drugs: string;
     allergies: string;
   };
+  languagePreference: ILanguagePreference;
   emergencyContacts: IEmergencyContact[];
 }
 
@@ -19,3 +20,15 @@ export interface IEmergencyContact {
   phone: string;
   email: string;
 }
+
+export interface ILanguagePreference {
+  languages: string[];
+  translateTarget: string;
+  autoTranslate: boolean;
+}
+
+export const defaultLanguagePreference: ILanguagePreference = {
+  languages: [],
+  translateTarget: "",
+  autoTranslate: false,
+};

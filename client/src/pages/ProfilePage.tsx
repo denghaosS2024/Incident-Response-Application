@@ -13,9 +13,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
 import EmergencyContactField from "../components/Profile/EmergencyContactField";
+import LanguagePreferenceField from "../components/Profile/LanguagePreferenceField";
 import MedicalInfoField from "../components/Profile/MedicalInfoField";
 import ProfileField from "../components/Profile/ProfileField";
-import { IEmergencyContact } from "../models/Profile";
+import {
+  IEmergencyContact,
+  ILanguagePreference,
+  defaultLanguagePreference,
+} from "../models/Profile";
 import Globals from "../utils/Globals";
 import request from "../utils/request";
 
@@ -54,6 +59,9 @@ export default function ProfilePage() {
   // const [snackbarSeverity, setSnackbarSeverity] = useState<
   //     'success' | 'error' | 'warning' | 'info'
   // >('info')
+
+  const [languagePreference, setLanguagePreference] =
+    useState<ILanguagePreference>(defaultLanguagePreference);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
@@ -153,6 +161,10 @@ export default function ProfilePage() {
     setDob(e.target.value);
   };
 
+  const handleLanguagePreferenceChange = (newData: ILanguagePreference) => {
+    setLanguagePreference(newData);
+  };
+
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!paramUserId) return;
@@ -171,6 +183,7 @@ export default function ProfilePage() {
             drugs?: string;
             allergies?: string;
           };
+          languagePreference?: ILanguagePreference;
         }>(`/api/profiles/${paramUserId}`);
 
         console.log("Fetched profile data:", profileData);
@@ -216,6 +229,7 @@ export default function ProfilePage() {
         email: sanitizedEmail,
         emergencyContacts: sanitizedEmergencyContacts,
         medicalInfo,
+        languagePreference,
       };
 
       try {
@@ -244,6 +258,7 @@ export default function ProfilePage() {
       email,
       emergencyContacts,
       medicalInfo,
+      languagePreference,
       isReadOnly,
     ],
   );
@@ -273,6 +288,9 @@ export default function ProfilePage() {
             drugs: response.medicalInfo?.drugs ?? "",
             allergies: response.medicalInfo?.allergies ?? "",
           });
+          setLanguagePreference(
+            response.languagePreference ?? defaultLanguagePreference,
+          );
         } else {
           console.log("Profile not found. No profile data loaded.");
         }
@@ -286,7 +304,17 @@ export default function ProfilePage() {
 
   useEffect(() => {
     debouncedHandleSave();
-  }, [name, dob, sex, address, phone, email, emergencyContacts, medicalInfo]);
+  }, [
+    name,
+    dob,
+    sex,
+    address,
+    phone,
+    email,
+    emergencyContacts,
+    medicalInfo,
+    languagePreference,
+  ]);
 
   useEffect(() => {
     if (paramUserId === uid) {
@@ -433,6 +461,12 @@ export default function ProfilePage() {
           if (!isReadOnly) return;
           handleMedicalInfoChange(field, value);
         }}
+        isReadOnly={isReadOnly}
+      />
+
+      <LanguagePreferenceField
+        languagePreference={languagePreference}
+        onLanguagePreferenceChange={handleLanguagePreferenceChange}
         isReadOnly={isReadOnly}
       />
 

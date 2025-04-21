@@ -17,7 +17,7 @@ export default function MedicalInfoField({
 }: MedicalInfoFieldProps) {
   return (
     <>
-      <h1>Medical Information</h1>
+      <h2>Medical Information</h2>
       <MedicalTextBox
         label="Condition"
         value={medicalInfo.condition}

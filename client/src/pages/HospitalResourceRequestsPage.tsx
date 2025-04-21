@@ -1,7 +1,14 @@
 import GenericItemizeContainer from "@/components/GenericItemizeContainer";
 import IHospital from "@/models/Hospital";
 import HospitalResource from "@/models/HospitalResource";
-import { Add, NavigateNext as Arrow } from "@mui/icons-material";
+import { IHospitalResourceRequest } from "@/models/HospitalResourceRequest";
+import {
+  fetchIncomingHospitalResourceRequests,
+  fetchOutgoingHospitalResourceRequests,
+} from "@/redux/hospitalResourceRequestSlice";
+import { fetchHospitalResourcesForSpecificHospital } from "@/redux/hospitalResourceSlice";
+import { AppDispatch, RootState } from "@/redux/store";
+import { NavigateNext as Arrow } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -9,33 +16,19 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Modal,
-  Select,
-  Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router";
 import request from "../utils/request";
-import { AppDispatch, RootState } from "@/redux/store";
-import { useDispatch, useSelector } from "react-redux";
-import { IHospitalResourceRequest } from "@/models/HospitalResourceRequest";
-import {
-  fetchIncomingHospitalResourceRequests,
-  fetchOutgoingHospitalResourceRequests,
-} from "@/redux/hospitalResourceRequestSlice";
-import { fetchHospitalResourcesForSpecificHospital } from "@/redux/hospitalResourceSlice";
-import NurseActionDialog from "@/components/feature/FindHospital/NurseActionDialog";
 
 const HospitalResourceRequestsPage: React.FC = () => {
   const incomingRequests: IHospitalResourceRequest[] = useSelector(
     (state: RootState) => state.hositalResourceRequestState.incomingRequests,
   );
   const outgoingRequests: IHospitalResourceRequest[] = useSelector(
-    (state: RootState) => state.hositalResourceRequestState.incomingRequests,
+    (state: RootState) => state.hositalResourceRequestState.outgoingRequests,
   );
 
   const resources: HospitalResource[] = useSelector(
@@ -98,7 +91,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
 
   // Handle redirection to see details of an exisiting resource
   const redirectToIncomingHospitalResourceDetails = (requestId: string) => {
-    navigate(`/hospital-resource-request//${hospitalId}/${requestId}`);
+    navigate(`/hospital-resource-request/${hospitalId}/${requestId}`);
   };
 
   return (
@@ -144,7 +137,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
             key: "status",
             align: "center",
             label: "",
-            render: (hospitalResourceRequest: IHospitalResourceRequest) => (
+            render: (__hospitalResourceRequest: IHospitalResourceRequest) => (
               <IconButton
                 edge="end"
                 size="large"

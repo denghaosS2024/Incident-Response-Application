@@ -16,6 +16,9 @@ interface Props {
 const IncidentCard: React.FC<Props> = ({ incident }) => {
   const navigate = useNavigate();
 
+  const threshold = 200;
+  const isBelowThreshold = incident.fund_left < threshold;
+
   return (
     <Card key={incident.incidentId} variant="outlined">
       <CardContent>
@@ -39,7 +42,7 @@ const IncidentCard: React.FC<Props> = ({ incident }) => {
       <CardActions>
         <Button
           variant="contained"
-          color="primary"
+          color={isBelowThreshold ? "error" : "primary"}
           onClick={() =>
             navigate(`/funding-information/${incident.incidentId}`)
           }

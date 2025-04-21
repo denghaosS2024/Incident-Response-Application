@@ -190,16 +190,34 @@ const NavigationBar: FunctionComponent<IProps> = ({
   }
 
   if (
-    (pathname.startsWith("/hospital") && pathname.includes("resource/add")) ||
-    pathname.includes("update")
+    pathname.startsWith("/hospital") &&
+    (pathname.endsWith("/resource/add") || pathname.endsWith("/update"))
   ) {
     title = "Hospital Resource";
   }
-
-  if (pathname.startsWith("/hospital") && pathname.endsWith("resources")) {
+  if (pathname.startsWith("/hospital") && pathname.endsWith("/resources")) {
     title = hospitalFromSlice?.hospitalName
       ? `${hospitalFromSlice?.hospitalName} Resources`
       : "Hospital Resources";
+  }
+
+  if (pathname.startsWith("/hospital-resource/directory")) {
+    title = "Hospital Resource";
+  }
+
+  if (
+    pathname.startsWith("/hospital") &&
+    pathname.endsWith("/resource-request/directory")
+  ) {
+    title = hospitalFromSlice?.hospitalName
+      ? `${hospitalFromSlice?.hospitalName} Resources Requests`
+      : "Hospital Resources Requests";
+  }
+
+  if (pathname.startsWith("/hospital-resource-request")) {
+    title = hospitalFromSlice?.hospitalName
+      ? `${hospitalFromSlice?.hospitalName} Resources Request`
+      : "Hospital Resources Request";
   }
 
   // override for Medical Report page
