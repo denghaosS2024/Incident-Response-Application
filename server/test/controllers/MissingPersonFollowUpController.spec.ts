@@ -96,4 +96,25 @@ describe("MissingPersonFollowUpController", () => {
       ),
     ).rejects.toThrow("Error fetching all followups for this reportId");
   });
+
+  it("should return a single follow up info when given its id", async () => {
+    const newFollowUp: IMissingFollowUpBase = {
+      reportId: new mongoose.Types.ObjectId(),
+      isSpotted: true,
+      locationSpotted: "123 South Akron Rd. Mountain View, CA 94075",
+      datetimeSpotted: new Date("2025-10-27T19:30"),
+      additionalComment: "additional comment",
+    };
+
+    const followUp =
+      await MissingPersonFollowUpController.addFollowUp(newFollowUp);
+
+    const individualFollowup =
+      await MissingPersonFollowUpController.getFollowUpById(
+        followUp._id.toString(),
+      );
+
+    expect(individualFollowup).toBeDefined();
+    expect(individualFollowup!.reportId).toStrictEqual(newFollowUp.reportId);
+  });
 });
