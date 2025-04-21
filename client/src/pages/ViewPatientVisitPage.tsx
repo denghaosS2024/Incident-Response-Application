@@ -157,6 +157,20 @@ const ViewPatientVisitPage: React.FC = () => {
         );
       })}
       <Divider sx={{ mt: 2 }} />
+
+      {/* If the paient is discharged, the message will be shown here. */}
+      {event.snapshot.active === false && (
+        <Box
+          sx={{
+            mt: 2,
+            p: 2,
+            borderRadius: 1,
+            backgroundColor: "rgba(76,175,80,0.2)",
+          }}
+        >
+          <Typography>This patient has been discharged.</Typography>
+        </Box>
+      )}
     </Box>
   );
 };
