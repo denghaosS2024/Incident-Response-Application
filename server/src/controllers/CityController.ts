@@ -264,6 +264,14 @@ class CityController {
     return await city.populate("policeFundingHistory.sender");
   }
 
+  /**
+   * Retrieves the remaining funding for a specified city.
+   *
+   * @param cityName - The name of the city to fetch the remaining funding for.
+   * @returns A promise that resolves to the remaining funding amount of the city.
+   * @throws {Error} If the city does not exist in the database.
+   * @throws {HttpError} If there is an error during the fetch operation.
+   */
   async getCityRemainingFunding(cityName: string) {
     try {
       const city = await City.findOne({ name: cityName });
@@ -277,6 +285,15 @@ class CityController {
     }
   }
 
+  /**
+   * Retrieves the total unassigned funding requests for a specified city.
+   *
+   * @param cityName - The name of the city to fetch unassigned funding requests for.
+   * @param role - The role of the user making the request (e.g., "Fire Chief" or "Police Chief").
+   * @returns A promise that resolves to the total unassigned funding requests amount.
+   * @throws {Error} If the city does not exist in the database.
+   * @throws {HttpError} If there is an error during the fetch operation.
+   */
   async getCityUnassignedFundingRequests(cityName: string, role: string) {
     try {
       const city = await City.findOne({ name: cityName });

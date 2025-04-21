@@ -222,6 +222,46 @@ router
     }
   })
 
+  /**
+   * @swagger
+   * /api/users/chiefs/{cityName}:
+   *   get:
+   *     summary: Get all chiefs in a city
+   *     description: Retrieve a list of all chiefs in a specified city.
+   *     parameters:
+   *       - name: cityName
+   *         in: path
+   *         required: true
+   *         description: The name of the city to retrieve chiefs from.
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: A list of chiefs in the specified city.
+   *         schema:
+   *           type: array
+   *           items:
+   *             type: object
+   *             properties:
+   *               chiefId:
+   *                 type: string
+   *               username:
+   *                 type: string
+   *               role:
+   *                 type: string
+   *       404:
+   *         description: Chiefs not found in the specified city.
+   *       500:
+   *         description: Internal server error.
+   *         schema:
+   *           type: object
+   *           properties:
+   *             message:
+   *               type: string
+   *               description: Error message.
+   *     tags:
+   *       - Users
+   */
   .get("/chiefs/:cityName", async (req, res) => {
     const { cityName } = req.params;
     if (!cityName) {

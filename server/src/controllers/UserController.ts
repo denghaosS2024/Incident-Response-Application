@@ -701,6 +701,11 @@ class UserController {
     return { userId: user._id };
   }
 
+  /**
+   * Get all chiefs by city name
+   * @param cityName - The name of the city
+   * @returns An array of chiefs with their IDs, usernames, and roles
+   */
   async getChiefsByCity(cityName: string) {
     const chiefs = await User.find({
       assignedCity: cityName,

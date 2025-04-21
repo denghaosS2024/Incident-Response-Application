@@ -488,6 +488,44 @@ cityRouter.post(
   },
 );
 
+/**
+ * @swagger
+ * /api/cities/remaining-funding/{cityName}:
+ *   get:
+ *     summary: Get remaining funding for a specific city
+ *     description: Retrieves the remaining funding amount for a given city.
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: MountainView
+ *         description: The name of the city.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved remaining funding.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 remainingFunding:
+ *                   type: number
+ *                   example: 15000
+ *       400:
+ *         description: Bad request due to invalid input or internal error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid city name provided."
+ */
 cityRouter.get(
   "/remaining-funding/:cityName",
   async (req: Request, res: Response) => {
@@ -501,6 +539,51 @@ cityRouter.get(
     }
   },
 );
+
+/**
+ * @swagger
+ * /api/cities/{cityName}/unassigned-funding-requests/{role}:
+ *   get:
+ *     summary: Get unassigned funding requests for a specific city
+ *     description: Retrieves unassigned funding requests for a given city based on the role (Fire Chief or Police Chief).
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: MountainView
+ *         description: The name of the city.
+ *       - in: path
+ *         name: role
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [Fire Chief, Police Chief]
+ *         example: Fire Chief
+ *         description: The role requesting the unassigned funding.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved unassigned funding request amount.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: number
+ *               example: 21000
+ *               description: The total amount of unassigned funding requests for the specified department.
+ *       400:
+ *         description: Bad request, possibly due to invalid parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "City not found"
+ */
 cityRouter.get(
   "/:cityName/unassigned-funding-requests/:role",
   async (req: Request, res: Response) => {
