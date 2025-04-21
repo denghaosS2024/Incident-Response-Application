@@ -1,6 +1,7 @@
+import { Query } from "mongoose";
 import request from "supertest";
 import app from "../../src/app";
-import MissingFollowUp from "../../src/models/MissingFollowUp";
+import MissingFollowUp, { IMissingFollowUp } from "../../src/models/MissingFollowUp";
 import { Gender, Race } from "../../src/models/MissingPerson";
 import * as TestDatabase from "../utils/TestDatabase";
 
@@ -102,7 +103,7 @@ describe("Router - MissingPesonFollowUp", () => {
 
   it('should return 200 and all followups for a reportId', async() => {
     const reportId = await createMissingPersonReport();
-
+        
     const newFollowUp = {
         reportId: reportId,
         isSpotted: true,
@@ -111,7 +112,7 @@ describe("Router - MissingPesonFollowUp", () => {
         additionalComment: "some comment",
       };
 
-    const res = await request(app)
+    await request(app)
         .post("/api/missing-person-followup/")
         .send(newFollowUp)
         .expect(201);
@@ -122,5 +123,24 @@ describe("Router - MissingPesonFollowUp", () => {
 
     expect(getResult).toBeDefined();
     expect(getResult.body[0].reportId).toStrictEqual(reportId);
+  })
+
+  it('should return 500 on server/db error', async() => {
+    const reportId = "notexist";
+
+    const fakeQuery: Partial<Query<IMissingFollowUp[], IMissingFollowUp>> = {
+        exec: () => Promise.reject(new Error("Mocked MongoDB error")),
+      };
+  
+      // Mock MissingFollowup.find to return the fake query
+      jest
+        .spyOn(MissingFollowUp, "find")
+        .mockReturnValue(
+          fakeQuery as Query<IMissingFollowUp[], IMissingFollowUp>,
+        );
+
+    await request(app)
+        .get(`/api/missing-person-followup/report/${reportId}`)
+        .expect(500)
   })
 });
