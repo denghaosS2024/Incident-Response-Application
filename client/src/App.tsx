@@ -64,6 +64,7 @@ import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
 import DirectorChatPage from "./pages/DirectorChatPage.tsx";
+import ChiefFundingHistory from "./pages/ChiefFundingHistory.tsx";
 
 export default function App() {
   //Feature toggling: show the hospitals directory page only when the flag is enabled
@@ -91,6 +92,10 @@ export default function App() {
             <Route
               path="/spending-history/:incidentId"
               element={<IncidentSpendHistory />}
+            />
+            <Route
+              path="/chief-funding-history/:incidentId"
+              element={<ChiefFundingHistory />}
             />
             {/* The path /messages/:id allows for passing channelId as a query parameter.
             This allow us to navigate to /messages but automatically into a specific channel chat.

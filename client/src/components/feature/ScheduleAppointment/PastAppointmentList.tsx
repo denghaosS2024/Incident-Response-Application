@@ -26,8 +26,13 @@ const PastAppointmentList: React.FC<PastAppointmentListProps> = ({
             method: "GET",
           },
         );
-        setNumOfEntries(appointments.length);
-        setPastAppointmentList(appointments);
+        const sortedAppointments = appointments.sort(
+          (a: IAppointment, b: IAppointment) =>
+            new Date(b.closedDate ?? 0).getTime() -
+            new Date(a.closedDate ?? 0).getTime(),
+        );
+        setNumOfEntries(sortedAppointments.length);
+        setPastAppointmentList(sortedAppointments);
       } catch (error) {
         console.error("Error fetching data:", error);
       }

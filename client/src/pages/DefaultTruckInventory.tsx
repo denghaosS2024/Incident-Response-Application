@@ -138,7 +138,9 @@ const DefaultTruckInventory: React.FC = () => {
                         <Avatar sx={{ mr: 1 }}>
                           {getIconForName(item.icon)}
                         </Avatar>
-                        <Typography variant="h6">{item.name}</Typography>
+                        <Typography variant="h6">
+                          {item.name} ({item.quantity})
+                        </Typography>
                       </Box>
                       <IconButton
                         edge="end"

@@ -5,6 +5,7 @@ import request from "../utils/request";
 import IIncident from "../models/Incident";
 import FundingSummaryCard from "../components/FundingCenter/FundingSummaryCard";
 import IncidentList from "../components/FundingCenter/IncidentList";
+import SocketClient from "../utils/Socket";
 
 const FundingCenter: React.FC = () => {
   const userRole = localStorage.getItem("role");
@@ -14,7 +15,10 @@ const FundingCenter: React.FC = () => {
   const navigate = useNavigate();
 
   const handleChatDirector = async () => {
-    const chief = await request(`/api/users/${username}`, { method: "GET" });
+    const chief = await request(`/api/users/usernames/${username}`, {
+      method: "GET",
+    });
+    console.log(chief);
     const res = await request(
       `/api/users/cities/directors/${chief.assignedCity}`,
       { method: "GET" },
@@ -58,6 +62,16 @@ const FundingCenter: React.FC = () => {
     };
 
     fetchData();
+
+    const socket = SocketClient;
+
+    socket.on("incidentFundingUpdated", () => {
+      fetchData();
+    });
+
+    return () => {
+      socket.off("incidentFundingUpdated");
+    };
   }, []);
 
   return (

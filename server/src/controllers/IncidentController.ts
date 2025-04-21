@@ -234,6 +234,35 @@ class IncidentController {
       if (!existingIncident) {
         throw new Error(`Incident with ID '${incident.incidentId}' not found`);
       }
+
+      let haveFundingUpdated = false;
+
+      if (incident.fundingHistory) {
+        existingIncident.fundingHistory = incident.fundingHistory;
+        haveFundingUpdated = true;
+      }
+      if (incident.fund_assigned !== undefined) {
+        existingIncident.fund_assigned = incident.fund_assigned;
+        haveFundingUpdated = true;
+      }
+      if (incident.fund_left !== undefined) {
+        existingIncident.fund_left = incident.fund_left;
+        haveFundingUpdated = true;
+      }
+
+      if (haveFundingUpdated) {
+        UserConnections.broadcaseToRole(
+          ROLES.FIRE_CHIEF,
+          "incidentFundingUpdated",
+          {},
+        );
+        UserConnections.broadcaseToRole(
+          ROLES.POLICE_CHIEF,
+          "incidentFundingUpdated",
+          {},
+        );
+      }
+
       if (
         incident.incidentState &&
         incident.incidentState !== existingIncident.incidentState
