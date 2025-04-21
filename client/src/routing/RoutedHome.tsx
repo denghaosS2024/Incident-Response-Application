@@ -308,7 +308,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       if (data.eyeColor !== "") { amberAlertMessage = amberAlertMessage + ` with ${data.eyeColor} eyes`;}
       amberAlertMessage = amberAlertMessage + `\n`;
       amberAlertMessage = amberAlertMessage + `LAST SEEN ${new Date(data.dateLastSeen).toLocaleString()}`;
-      if (data.locationLastSeen !== "") { amberAlertMessage = amberAlertMessage + `at ${data.lastSeenLocation}`};
+      if (data.locationLastSeen !== "") { amberAlertMessage = amberAlertMessage + `at ${data.lastSeenLocation}`;}
       console.log(amberAlertMessage);
       setAmberAlertMessage(amberAlertMessage);
       setAmberAlertOpen(true);
