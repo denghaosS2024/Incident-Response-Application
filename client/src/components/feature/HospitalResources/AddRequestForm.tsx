@@ -36,6 +36,7 @@ const AddRequestForm: React.FC<AddRequestFormProps> = ({
       value: resourceName,
       type: "text",
       disabled: true,
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       onChange: () => {},
     },
     {
@@ -44,6 +45,7 @@ const AddRequestForm: React.FC<AddRequestFormProps> = ({
       value: inStock,
       type: "number",
       disabled: true,
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       onChange: () => {},
     },
     {
