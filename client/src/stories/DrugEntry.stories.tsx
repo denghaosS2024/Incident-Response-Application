@@ -5,7 +5,7 @@ import DrugEntry, {
 } from "../components/feature/Reach911/DrugEntry";
 
 const meta: Meta<typeof DrugEntry> = {
-  title: "FindHospital/DrugEntryComponent",
+  title: "FindHospital/DrugEntry",
   component: DrugEntry,
   parameters: {
     layout: "centered",
