@@ -62,7 +62,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
   // Get the hospital name to include it in the page title
   useEffect(() => {
     if (
-      !pathname.startsWith("/register-hospital") ||
+      !pathname.startsWith("/hospital") ||
       !pathname.endsWith("resources")
     ) {
       return;
@@ -189,14 +189,15 @@ const NavigationBar: FunctionComponent<IProps> = ({
   }
 
   if (
-    pathname.startsWith("/register-hospital") &&
-    pathname.includes("resources/newResource")
+    pathname.startsWith("/hospital") &&
+    pathname.includes("resource/add") || 
+    pathname.includes("update")
   ) {
     title = "Hospital Resource";
   }
 
   if (
-    pathname.startsWith("/register-hospital") &&
+    pathname.startsWith("/hospital") &&
     pathname.endsWith("resources")
   ) {
     title = hospitalFromSlice?.hospitalName
