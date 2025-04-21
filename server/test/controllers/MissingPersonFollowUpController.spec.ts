@@ -27,7 +27,7 @@ describe("MissingPersonFollowUpController", () => {
 
   it('throw error by mongoDB', async() => {
 
-    jest.spyOn(MissingFollowUp.prototype, 'save').mockRejectedValueOnce(new Error("DB save failed")
+    jest.spyOn(MissingFollowUp.prototype, 'save').mockRejectedValueOnce(new Error("some mongo error")
 );
 
     const newFollowUp: IMissingFollowUpBase = {
@@ -40,6 +40,6 @@ describe("MissingPersonFollowUpController", () => {
 
       await expect(
         MissingPersonFollowUpController.addFollowUp(newFollowUp)
-      ).rejects.toThrow("DB save failed");
+      ).rejects.toThrow("Failed to add Follow Up info");
   });
 })
