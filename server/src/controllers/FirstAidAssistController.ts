@@ -2,7 +2,12 @@ import { OpenAI } from "openai";
 import FirstAidReport from "../models/FirstAidReport";
 import HttpError from "../utils/HttpError";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY ?? (() => {
+    throw new Error("Missing OPENAI_API_KEY");
+  })(),
+});
+
 
 class FirstAidReportController {
   /**
