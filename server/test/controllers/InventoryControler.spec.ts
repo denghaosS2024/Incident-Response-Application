@@ -66,4 +66,83 @@ describe("InventoryController - Get Inventory by Category", () => {
       ],
     });
   });
+
+describe("InventoryController - Update Item Quantity", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Mock `Inventory.findOne` specifically for updateItemQuantity
+    (Inventory.findOne as jest.Mock).mockImplementation(({ category }) => {
+      if (category === "truck1") {
+        return Promise.resolve({
+          category: "truck1",
+          items: [
+            { name: "Medical Kit", quantity: 5 },
+            { name: "Repair Tools", quantity: 2 },
+          ],
+          save: jest.fn().mockResolvedValue(true),
+        });
+      }
+      return Promise.resolve(null);
+    });
+  });
+
+  it("should successfully update item quantity", async () => {
+    const result = await InventoryController.updateItemQuantity("truck1", "Medical Kit", 10);
+    
+    expect(Inventory.findOne).toHaveBeenCalledWith({ category: "truck1" });
+    expect(result.items[0].quantity).toBe(10);
+    expect(result.save).toHaveBeenCalled();
+  });
+
+  it("should throw error if category is not provided", async () => {
+    await expect(
+      InventoryController.updateItemQuantity(null, "Medical Kit", 10)
+    ).rejects.toThrow("Category and item name are required");
+  });
+
+  it("should throw error if item name is not provided", async () => {
+    await expect(
+      InventoryController.updateItemQuantity("truck1", null, 10)
+    ).rejects.toThrow("Category and item name are required");
+  });
+
+  it("should throw error if quantity is undefined", async () => {
+    await expect(
+      InventoryController.updateItemQuantity("truck1", "Medical Kit", undefined)
+    ).rejects.toThrow("A valid non-negative integer quantity is required");
+  });
+
+  it("should throw error if quantity is not an integer", async () => {
+    await expect(
+      InventoryController.updateItemQuantity("truck1", "Medical Kit", 10.5)
+    ).rejects.toThrow("A valid non-negative integer quantity is required");
+  });
+
+  it("should throw error if quantity is negative", async () => {
+    await expect(
+      InventoryController.updateItemQuantity("truck1", "Medical Kit", -5)
+    ).rejects.toThrow("A valid non-negative integer quantity is required");
+  });
+
+  it("should throw error if inventory with category not found", async () => {
+    await expect(
+      InventoryController.updateItemQuantity("nonexistent", "Medical Kit", 10)
+    ).rejects.toThrow("Inventory with category 'nonexistent' not found");
+  });
+
+  it("should throw error if item not found in inventory", async () => {
+    await expect(
+      InventoryController.updateItemQuantity("truck1", "Nonexistent Item", 10)
+    ).rejects.toThrow("Item 'Nonexistent Item' not found in category 'truck1'");
+  });
+
+  it("should update quantity to 0 successfully", async () => {
+    const result = await InventoryController.updateItemQuantity("truck1", "Medical Kit", 0);
+    
+    expect(result.items[0].quantity).toBe(0);
+    expect(result.save).toHaveBeenCalled();
+  });
+});
+
 });

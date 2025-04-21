@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../../src/app";
-import * as TestDatabase from "../utils/TestDatabase";
 import Inventory from "../../src/models/Inventory";
+import * as TestDatabase from "../utils/TestDatabase";
 
 describe("Router - Inventory", () => {
   afterAll(async () => {
@@ -77,4 +77,108 @@ describe("Router - Inventory", () => {
       }),
     );
   });
+
+
+describe("PATCH /api/inventories/category/:category/item/:itemName", () => {
+    it("should update quantity for an existing item in truck1 inventory", async () => {
+      const { body } = await request(app)
+        .patch("/api/inventories/category/truck1/item/Medical Kit")
+        .send({ quantity: 8 })
+        .expect(200);
+
+      expect(body).toHaveProperty("result");
+
+      const updatedInventory = await Inventory.findOne({ category: "truck1" });
+      const medicalKit = updatedInventory?.items.find(item => item.name === "Medical Kit");
+      expect(medicalKit?.quantity).toBe(8);
+    });
+
+    it("should update quantity to 0 for an existing item", async () => {
+      const { body } = await request(app)
+        .patch("/api/inventories/category/truck1/item/Repair Tools")
+        .send({ quantity: 0 })
+        .expect(200);
+
+      expect(body).toHaveProperty("result");
+
+      // Verify the update in database
+      const updatedInventory = await Inventory.findOne({ category: "truck1" });
+      const repairTools = updatedInventory?.items.find(item => item.name === "Repair Tools");
+      expect(repairTools?.quantity).toBe(0);
+    });
+
+    it("should return 400 if quantity is not provided", async () => {
+      const { body } = await request(app)
+        .patch("/api/inventories/category/truck1/item/Medical Kit")
+        .send({})
+        .expect(400);
+
+      expect(body).toEqual({
+        error: "A valid non-negative integer quantity is required"
+      });
+    });
+
+    it("should return 400 for negative quantity", async () => {
+      const { body } = await request(app)
+        .patch("/api/inventories/category/truck1/item/Medical Kit")
+        .send({ quantity: -5 })
+        .expect(400);
+
+      expect(body).toEqual({
+        error: "A valid non-negative integer quantity is required"
+      });
+    });
+
+    it("should return 400 for non-integer quantity", async () => {
+      const { body } = await request(app)
+        .patch("/api/inventories/category/truck1/item/Medical Kit")
+        .send({ quantity: 5.5 })
+        .expect(400);
+
+      expect(body).toEqual({
+        error: "A valid non-negative integer quantity is required"
+      });
+    });
+
+    it("should return 404 if category does not exist", async () => {
+      const { body } = await request(app)
+        .patch("/api/inventories/category/nonexistent/item/Medical Kit")
+        .send({ quantity: 10 })
+        .expect(404);
+
+      expect(body).toHaveProperty("error");
+      expect(body.error).toContain("not found");
+    });
+
+    it("should return 404 if item does not exist in the category", async () => {
+      const { body } = await request(app)
+        .patch("/api/inventories/category/truck1/item/Nonexistent Item")
+        .send({ quantity: 10 })
+        .expect(404);
+
+      expect(body).toHaveProperty("error");
+      expect(body.error).toContain("not found");
+    });
+
+    it("should handle URL-encoded item names", async () => {
+      // Add an item with space in name to test URL encoding
+      await Inventory.findOneAndUpdate(
+        { category: "truck1" },
+        { $push: { items: { name: "First Aid Kit", quantity: 15 } } },
+      );
+
+      const { body } = await request(app)
+        .patch("/api/inventories/category/truck1/item/First%20Aid%20Kit")
+        .send({ quantity: 20 })
+        .expect(200);
+
+      expect(body).toHaveProperty("result");
+
+      // Verify the update in database
+      const updatedInventory = await Inventory.findOne({ category: "truck1" });
+      const firstAidKit = updatedInventory?.items.find(item => item.name === "First Aid Kit");
+      expect(firstAidKit?.quantity).toBe(20);
+    });
+  });
+
 });
