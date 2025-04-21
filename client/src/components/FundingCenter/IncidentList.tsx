@@ -5,7 +5,6 @@ import IncidentCard from "./IncidentCard";
 
 interface Props {
   incidents: IIncident[];
-  onChat: () => void;
 }
 
 const IncidentList: React.FC<Props> = ({ incidents }) => (

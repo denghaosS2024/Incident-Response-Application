@@ -102,6 +102,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/defaulttruckinventory": "Default Truck Inventory",
     "/defaulttruckadditem": "Add Truck Item",
     "/funding-center": "Funding Center",
+    "/directorchatroom": "Chat with Directory",
     "/funding-information": "Funding Information",
     "/spending-history": "Spending History",
   };

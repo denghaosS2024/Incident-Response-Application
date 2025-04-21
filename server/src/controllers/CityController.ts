@@ -5,6 +5,8 @@ import Personnel from "../models/User";
 import CarController from "./CarController";
 import PersonnelController from "./PersonnelController";
 import TruckController from "./TruckController";
+import UserController from "./UserController";
+import { Types } from "mongoose";
 
 class CityController {
   async getAllCities() {
@@ -164,6 +166,98 @@ class CityController {
       throw new Error(`City '${cityName}' does not exist in the database`);
     }
     return city.policeFunding;
+  }
+
+  async getCityFireFundingHistory(cityName: string) {
+    const city = await City.findOne({ name: cityName });
+    if (!city) {
+      throw new Error(`City '${cityName}' does not exist in the database`);
+    }
+    return (await city.populate("fireFundingHistory.sender"))
+      .fireFundingHistory;
+  }
+
+  async addCityFireFundingHistory(
+    reason: string,
+    type: "Assign" | "Request",
+    senderId: Types.ObjectId,
+    amount: number,
+    cityName: string,
+  ) {
+    const city = await City.findOne({ name: cityName });
+
+    if (!city) {
+      throw new Error(`City '${cityName}' does not exist in the database`);
+    }
+
+    const sender = await UserController.getUserById(senderId.toString());
+
+    if (!sender) {
+      throw new Error(`sender '${senderId}' does not exist in the database`);
+    }
+
+    const record = {
+      type: type,
+      sender: sender,
+      timestamp: new Date(),
+      amount: amount,
+      reason: reason,
+    };
+
+    if (record.type == "Assign") {
+      city.fireFunding += record.amount;
+    }
+
+    city.fireFundingHistory.push(record);
+
+    city.save();
+    return await city.populate("fireFundingHistory.sender");
+  }
+
+  async getCityPoliceFundingHistory(cityName: string) {
+    const city = await City.findOne({ name: cityName });
+    if (!city) {
+      throw new Error(`City '${cityName}' does not exist in the database`);
+    }
+    return (await city.populate("policeFundingHistory.sender"))
+      .policeFundingHistory;
+  }
+
+  async addCityPoliceFundingHistory(
+    reason: string,
+    type: "Assign" | "Request",
+    senderId: Types.ObjectId,
+    amount: number,
+    cityName: string,
+  ) {
+    const city = await City.findOne({ name: cityName });
+
+    if (!city) {
+      throw new Error(`City '${cityName}' does not exist in the database`);
+    }
+
+    const sender = await UserController.getUserById(senderId.toString());
+
+    if (!sender) {
+      throw new Error(`sender '${senderId}' does not exist in the database`);
+    }
+
+    const record = {
+      type: type,
+      sender: sender,
+      timestamp: new Date(),
+      amount: amount,
+      reason: reason,
+    };
+
+    if (record.type == "Assign") {
+      city.policeFunding += record.amount;
+    }
+
+    city.policeFundingHistory.push(record);
+
+    city.save();
+    return await city.populate("policeFundingHistory.sender");
   }
 }
 
