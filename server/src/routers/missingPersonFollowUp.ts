@@ -37,12 +37,20 @@ export default Router()
    *         description: Server error
    */
     .post('/', async (request, response) => {
-        const followUpData = request.body as Partial<IMissingFollowUpReqBody>;
-        const refReport = await MissingPersonController.getMissingPersonById(followUpData.reportId!);
+        try {
+            const followUpData = request.body as Partial<IMissingFollowUpReqBody>;
+            const refReport = await MissingPersonController.getMissingPersonById(followUpData.reportId!);
 
-        if (!refReport) {
-            return response.status(404).send({
-                message: "Cannot add Followup to non-existent reference report",
-            });
+            if (!refReport) {
+                return response.status(404).send({
+                    message: "Cannot add Followup to non-existent reference report",
+                });
+            }
+        } catch (error) {
+            if (error instanceof Error && error.message.includes("Failed to fetch missing person record")) {
+                return response.status(400).send({
+                    message: "Cannot add Followup due to bad format reference report id"
+                })
+            }
         }
     })
