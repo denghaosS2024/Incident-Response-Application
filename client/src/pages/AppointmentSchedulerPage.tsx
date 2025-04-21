@@ -3,6 +3,7 @@
 import AppointmentSlotSelector, {
   Slot,
 } from "@/components/NurseShift/ActiveAppointments/AppointmentSlotSelector";
+import { IAppointment } from "@/models/Appointment";
 import request from "@/utils/request";
 import {
   Box,
@@ -20,9 +21,8 @@ export default function AppointmentSchedulerPage() {
   const [hasAppointment, setHasAppointment] = useState(false);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selected, setSelected] = useState<Slot | null>(null);
-  const [currentAppointment, setCurrentAppointment] = useState<any | null>(
-    null,
-  );
+  const [currentAppointment, setCurrentAppointment] =
+    useState<IAppointment | null>(null);
   const dayNames = [
     "Sunday",
     "Monday",
@@ -157,7 +157,12 @@ export default function AppointmentSchedulerPage() {
       />
 
       <Box mt={4}>
-        <Button fullWidth variant="contained" sx={{ mb: 2 }}>
+        <Button
+          fullWidth
+          variant="contained"
+          sx={{ mb: 2 }}
+          onClick={() => navigate("/past-appointment")}
+        >
           Review your past appointments
         </Button>
         <Button

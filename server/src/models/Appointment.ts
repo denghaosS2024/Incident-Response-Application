@@ -61,8 +61,8 @@ const AppointmentSchema = new Schema({
   dayOfWeek: {
     type: Number,
     required: true,
-    min: 1,
-    max: 7,
+    min: 0,
+    max: 6,
   },
   issueName: {
     type: String,

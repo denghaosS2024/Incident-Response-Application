@@ -26,7 +26,7 @@ const PastAppointmentList: React.FC<PastAppointmentListProps> = ({
             method: "GET",
           },
         );
-        const sortedAppointments = appointments.sort(
+        const sortedAppointments: IAppointment[] = appointments.sort(
           (a: IAppointment, b: IAppointment) =>
             new Date(b.closedDate ?? 0).getTime() -
             new Date(a.closedDate ?? 0).getTime(),
@@ -53,8 +53,8 @@ const PastAppointmentList: React.FC<PastAppointmentListProps> = ({
           key={index}
           index={index}
           issueName={appointment.issueName}
-          closedDate={new Date(appointment.closedDate)}
-          appointmentId={appointment._id}
+          closedDate={new Date(appointment.closedDate ?? 0)}
+          appointmentId={appointment._id ?? ""}
         />
       ))}
 

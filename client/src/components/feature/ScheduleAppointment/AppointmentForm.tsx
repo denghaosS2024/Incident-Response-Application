@@ -25,18 +25,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   dayOfWeek,
 }) => {
   const severityList: string[] = ["Low", "Medium", "High", "Emergency"];
-  const username: string = localStorage.getItem("username");
+  const username: string = localStorage.getItem("username") || "";
   const [issueName, setIssueName] = useState<string>("");
   const [severityIndex, setSeverityIndex] = useState<number>(-1);
-  const dayOfWeekMap: { [key: string]: number } = {
-    Sunday: 1,
-    Monday: 2,
-    Tuesday: 3,
-    Wednesday: 4,
-    Thursday: 5,
-    Friday: 6,
-    Saturday: 7,
-  };
 
   const dayNames = [
     "Sunday",
@@ -70,6 +61,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     }
     const appointmentData: IAppointment = {
       userId,
+      username,
       issueName,
       isResolved: false,
       severityIndex: severityIndex as SeverityIndex,
@@ -80,8 +72,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       updateDate: new Date(),
       note: "",
       closedDate: undefined,
-      dayOfWeek:
-        dayOfWeekMap[new Date().toLocaleString("en-US", { weekday: "long" })],
+      dayOfWeek,
       feedback: undefined,
       valid: true,
     };
@@ -94,7 +85,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         },
       });
       if (appointments) {
-        window.location.href = "/appointments";
+        window.location.href = "/appointment-scheduler";
       }
     } catch (error) {
       console.error("Error sending request:", error);
