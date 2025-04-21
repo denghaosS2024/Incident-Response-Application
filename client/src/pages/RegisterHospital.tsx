@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router";
 import Globals from "../utils/Globals";
 import request from "../utils/request";
+import IUser from "@/models/User";
 
 const RegisterHospital: React.FC = () => {
   /* ------------------------------ CONSTANTS ------------------------------ */
@@ -58,6 +59,8 @@ const RegisterHospital: React.FC = () => {
   );
 
   const [nurseAlreadyRegistered, setNurseAlreadyRegistered] = useState(false);
+  const [nurseRegisteredToThisHospital, setNurseRegisteredToThisHospital] =
+    useState(false);
 
   // Local state for the address input field
   const [inputAddress, setInputAddress] = useState(
@@ -73,6 +76,12 @@ const RegisterHospital: React.FC = () => {
         if (data) {
           setHospitalData(data); // local state
           dispatch(setHospital(data)); // redux state
+
+          const found = data.nurses.some(
+            (nurse: IUser) => nurse._id === userId,
+          );
+
+          setNurseRegisteredToThisHospital(found);
         }
       } else {
         setHospitalData(emptyHospitalData); // local state
@@ -91,10 +100,13 @@ const RegisterHospital: React.FC = () => {
         const allHospitals: IHospital[] = await request("/api/hospital", {
           method: "GET",
         });
+
+        console.log(allHospitals);
         if (allHospitals && Array.isArray(allHospitals)) {
-          const found = allHospitals.some(
-            (hospital) => hospital.nurses && hospital.nurses.includes(userId),
+          const found = allHospitals.some((hospital) =>
+            hospital.nurses?.includes(userId),
           );
+
           setNurseAlreadyRegistered(found);
         }
       } catch (error) {
@@ -567,7 +579,7 @@ const RegisterHospital: React.FC = () => {
         </Snackbar>
       </Paper>
 
-      {role === "Nurse" && nurseAlreadyRegistered && (
+      {role === "Nurse" && nurseRegisteredToThisHospital && (
         <Box className="flex w-full flex-column m-2 justify-center hey">
           <Button
             className="m-2 w-[45%] self-center"

@@ -152,6 +152,11 @@ const HospitalResourceRequstEditPage: React.FC = () => {
           "success",
         );
 
+         setErrors({
+           ...errors,
+           quantity: false,
+         });
+
         setFetchedRequest(resourceRequest);
       }
     }
@@ -197,11 +202,14 @@ const HospitalResourceRequstEditPage: React.FC = () => {
             name: "Requested Quantity",
             value: resourceRequest.requestedQuantity,
             type: "number",
-            onChange: (e) =>
-              setResourceRequest({
-                ...resourceRequest,
-                requestedQuantity: Number(e.target.value),
-              }),
+            onChange: (e) =>{
+              if (Number(e.target.value) <= resource.inStockQuantity) {
+              
+                setResourceRequest({
+                  ...resourceRequest,
+                  requestedQuantity: Number(e.target.value),
+                });
+            }},
 
             error: errors.quantity,
             helperText: errors.quantity
