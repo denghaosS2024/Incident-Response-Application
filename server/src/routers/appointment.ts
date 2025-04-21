@@ -46,22 +46,6 @@ appointmentRouter.post("/", async (req, res) => {
   }
 });
 
-appointmentRouter.get("/active", async (_, res) => {
-  try {
-    const dayOfWeek = new Date().getDay();
-    const hour = new Date().getHours();
-    const appointments =
-      await AppointmentController.findActiveAppointmentsByShiftHour(
-        dayOfWeek,
-        hour,
-      );
-    res.status(200).json(appointments);
-  } catch (err) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
-  }
-});
-
 /**
  * @swagger
  * /api/appointments/past:
@@ -101,6 +85,61 @@ appointmentRouter.get("/past", async (req, res) => {
   try {
     const userId = req.query.userId as string;
     const appointments = await AppointmentController.findByUserId(userId, true);
+    res.status(200).json(appointments);
+  } catch (err) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/appointments/{id}:
+ *   get:
+ *     summary: Get an appointment by ID
+ *     description: Retrieves a specific appointment by its ID.
+ *     tags:
+ *       - Appointments
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the appointment to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Appointment found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Appointment'
+ *       '404':
+ *         description: Appointment not found
+ */
+appointmentRouter.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const appointment = await AppointmentController.findById(id);
+    if (!appointment) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+    return res.status(200).json(appointment);
+  } catch (err) {
+    const error = err as Error;
+    return res.status(400).json({ error: error.message });
+  }
+});
+
+appointmentRouter.get("/active", async (_, res) => {
+  try {
+    const dayOfWeek = new Date().getDay();
+    const hour = new Date().getHours();
+    const appointments =
+      await AppointmentController.findActiveAppointmentsByShiftHour(
+        dayOfWeek,
+        hour,
+      );
     res.status(200).json(appointments);
   } catch (err) {
     const error = err as Error;
@@ -276,3 +315,76 @@ appointmentRouter.put("/:id", async (req, res) => {
  *             valid:
  *               type: boolean
  */
+
+/**
+ * @swagger
+ * /api/appointments/slots/next6:
+ *   get:
+ *     summary: Get next 6 available nurse appointment slots
+ *     description: Returns the next 6 available slots based on nurse shift schedule
+ *     tags:
+ *       - Appointments
+ *     responses:
+ *       '200':
+ *         description: List of upcoming slots
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   nurseId:
+ *                     type: string
+ *                   dayOfWeek:
+ *                     type: integer
+ *                   startHour:
+ *                     type: integer
+ *                   endHour:
+ *                     type: integer
+ */
+appointmentRouter.get("/slots/next6", async (_, res) => {
+  try {
+    const slots = await AppointmentController.findNext6AvailableSlots();
+    res.status(200).json(slots);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/appointments/user/{userId}/active:
+ *   get:
+ *     summary: Check if a user has an active appointment
+ *     description: Returns true if a user has an unresolved and valid appointment
+ *     tags:
+ *       - Appointments
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Boolean result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 hasAppointment:
+ *                   type: boolean
+ */
+appointmentRouter.get("/user/:userId/active", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const has = await AppointmentController.hasActiveAppointment(userId);
+    res.status(200).json({ hasAppointment: has });
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+});

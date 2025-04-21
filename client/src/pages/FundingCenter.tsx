@@ -14,7 +14,7 @@ const FundingCenter: React.FC = () => {
   const navigate = useNavigate();
 
   const handleChatDirector = async () => {
-    const chief = await request(`/api/users/${username}`, { method: "GET" });
+    const chief = await request(`/api/users/usernames/${username}`, { method: "GET" });
     const channel = await request(
       `/api/channels/${chief.assignedCity}/${username}`,
       { method: "GET" },
@@ -24,7 +24,7 @@ const FundingCenter: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const chief = await request(`/api/users/${username}`, {
+      const chief = await request(`/api/users/usernames/${username}`, {
         method: "GET",
       });
 

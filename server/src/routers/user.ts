@@ -89,7 +89,7 @@ router
     }
   })
 
-  .get("/:username", async (req, res) => {
+  .get("/usernames/:username", async (req, res) => {
     const { username } = req.params;
     if (!username) {
       return res.status(400).json({ error: "Username is required" });

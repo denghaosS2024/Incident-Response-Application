@@ -1,4 +1,5 @@
 import { Appointment, IAppointment } from "../models/Appointment";
+import NurseShift from "../models/NurseShift";
 import UserController from "./UserController";
 
 class AppointmentController {
@@ -36,6 +37,10 @@ class AppointmentController {
     await doc.save();
 
     return doc;
+  }
+
+  async findById(itemId: string) {
+    return await Appointment.findById(itemId);
   }
 
   /**
@@ -114,6 +119,56 @@ class AppointmentController {
       dayOfWeek: 1, // Then sort by dayOfWeek asc (earlier first)
       startHour: 1, // Then sort by startHour asc (earlier first)
     });
+  }
+
+  async findNext6AvailableSlots(): Promise<
+    { nurseId: string; dayOfWeek: number; startHour: number; endHour: number }[]
+  > {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 (Sun) - 6 (Sat)
+    const currentHour = now.getHours(); // 0 - 23
+
+    const allShifts = await NurseShift.find({})
+      .sort({ dayOfWeek: 1, startHour: 1 })
+      .exec();
+
+    const sorted = allShifts
+      .filter((s) => {
+        if (s.dayOfWeek > currentDay) return true;
+        if (s.dayOfWeek === currentDay && s.startHour > currentHour)
+          return true;
+        return false;
+      })
+      .concat(
+        allShifts.filter((s) => {
+          if (s.dayOfWeek < currentDay) return true;
+          if (s.dayOfWeek === currentDay && s.startHour <= currentHour)
+            return true;
+          return false;
+        }),
+      )
+      .slice(0, 6);
+
+    return sorted.map((shift) => ({
+      nurseId: shift.nurseId,
+      dayOfWeek: shift.dayOfWeek,
+      startHour: shift.startHour,
+      endHour: shift.endHour,
+    }));
+  }
+
+  /**
+   * Check if the user already has an active (valid + not resolved) appointment
+   * @param userId - The ID of the user
+   * @returns true if exists, false otherwise
+   */
+  async hasActiveAppointment(userId: string): Promise<boolean> {
+    const existing = await Appointment.findOne({
+      userId,
+      isResolved: false,
+      valid: true,
+    }).exec();
+    return !!existing;
   }
 }
 

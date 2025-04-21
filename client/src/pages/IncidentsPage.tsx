@@ -187,7 +187,7 @@ function IncidentsPage() {
         }
       }
 
-      const user = await request(`/api/users/${username}`, {
+      const user = await request(`/api/users/usernames/${username}`, {
         method: "GET",
       });
 
