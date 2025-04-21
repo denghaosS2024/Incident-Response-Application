@@ -9,7 +9,6 @@ import ChatRoomPage from "./pages/ChatRoomPage";
 import Contacts from "./pages/Contacts";
 import CreatechartPage from "./pages/CreatechartPage.tsx";
 import DashboardPage from "./pages/DashboardPage";
-import DefaultTruckAddItem from "./pages/DefaultTruckAddItem.tsx";
 import DefaultTruckInventory from "./pages/DefaultTruckInventory.tsx";
 import ExerciseLibraryPage from "./pages/ExerciseLibraryPage";
 import FindHospital from "./pages/FindHospital";
@@ -203,10 +202,6 @@ export default function App() {
             <Route
               path="/defaulttruckinventory"
               element={<DefaultTruckInventory />}
-            />
-            <Route
-              path="/defaulttruckadditem"
-              element={<DefaultTruckAddItem />}
             />
             <Route
               path="/truck-inventory/:truckName"

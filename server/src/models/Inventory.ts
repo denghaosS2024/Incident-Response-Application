@@ -1,10 +1,10 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IInventoryItem {
   name: string;
   quantity: number;
+  icon: string;
   description?: string; // Optional description of the item
-  //todo: maybe icon?
 }
 
 export interface IInventory extends Document {
@@ -28,6 +28,10 @@ const InventorySchema = new Schema<IInventory>({
         type: Number,
         required: true,
         min: 0,
+      },
+      icon: {
+        type: String,
+        default: "Emergency",
       },
       description: {
         type: String,

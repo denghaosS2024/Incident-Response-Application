@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import InventoryController from "../controllers/InventoryController";
 import TruckController from "../controllers/TruckController";
 import { ITruck } from "../models/Truck";
 const truckRouter = Router();
@@ -112,6 +113,9 @@ truckRouter.post("/", async (req: Request, res: Response) => {
   try {
     const { name } = req.body;
     const newTruck = await TruckController.createTruck(name);
+    // Step 2: Add truck name as category in default inventory
+    await InventoryController.addNewTruckCategory(name);
+
     res.status(201).json(newTruck);
   } catch (err) {
     const error = err as Error;
@@ -157,11 +161,20 @@ truckRouter.post("/", async (req: Request, res: Response) => {
 truckRouter.delete("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const truck = await TruckController.getTruckById(id);
+    if (!truck) {
+      return res.status(404).json({ error: "Truck not found" });
+    }
+
+    // Delete the associated inventory category
+    await InventoryController.deleteInventoryByCategory(truck.name);
+
+    // Delete the truck itself
     const removedTruck = await TruckController.removeTruckById(id);
-    res.json({ message: "Truck deleted", truck: removedTruck });
+    return res.json({ message: "Truck deleted", truck: removedTruck }); // <-- Add return here
   } catch (err) {
     const error = err as Error;
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message }); // <-- And here
   }
 });
 
@@ -318,7 +331,6 @@ truckRouter.put("/usernames/release", async (req: Request, res: Response) => {
     res.status(400).json({ error: error.message });
   }
 });
-
 
 /**
  * @swagger
