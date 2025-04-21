@@ -51,5 +51,15 @@ describe("Router - User", () => {
     });
   });
 
+  it("will find a user by username", async () => {
+    await register();
+    const { body } = await request(app)
+      .get("/api/users/usernames/some-username")
+      .expect(200);
+
+    expect(body.username).toBe("some-username");
+    expect(body.role).toBe(ROLES.POLICE);
+  });
+
   afterAll(TestDatabase.close);
 });

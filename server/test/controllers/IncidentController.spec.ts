@@ -307,6 +307,7 @@ describe("Incident Controller", () => {
       openingDate: new Date(),
       incidentState: "Waiting",
       owner: "TestOwner",
+      city: "MTV",
       commander: testCommander.username,
       address: "110 Test Avenue",
       type: "U",
@@ -328,6 +329,7 @@ describe("Incident Controller", () => {
     expect(newIncident.questions).toEqual({});
     expect(newIncident.priority).toBe(IncidentPriority.Immediate);
     expect(newIncident.incidentCallGroup?.toString()).toBe(validGroupId);
+    expect(newIncident.city).toBe("MTV");
   });
 
   it("should create new incident with default values for state, owner, commander, and incidentCallGroup when passed null or undefined values", async () => {
