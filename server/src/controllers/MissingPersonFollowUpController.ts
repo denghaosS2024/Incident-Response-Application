@@ -36,6 +36,11 @@ class MissingPersonFollowUpController {
             throw new Error("Error fetching all followups for this reportId");
         }
     }
+
+    async getFollowUpById(id: string) {
+        const individualFollowUp = await MissingFollowUp.findById(id).exec();
+        return individualFollowUp;
+    }
 }
 
 export default new MissingPersonFollowUpController();

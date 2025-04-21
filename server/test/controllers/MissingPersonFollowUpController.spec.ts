@@ -102,6 +102,6 @@ describe("MissingPersonFollowUpController", () => {
     const individualFollowup = await MissingPersonFollowUpController.getFollowUpById(followUp._id.toString());
 
     expect(individualFollowup).toBeDefined();
-    expect(individualFollowup.reportId).toBe(newFollowUp.reportId);
+    expect(individualFollowup!.reportId).toStrictEqual(newFollowUp.reportId);
   })
 })
