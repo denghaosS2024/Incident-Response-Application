@@ -1,19 +1,35 @@
 import GenericItemizeContainer from "@/components/GenericItemizeContainer";
 import IHospital from "@/models/Hospital";
 import HospitalResource from "@/models/HospitalResource";
+import { Add, NavigateNext as Arrow } from "@mui/icons-material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Modal,
+  Select,
+  Typography
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router";
+import request from "../utils/request";
+import { AppDispatch, RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
 import { IHospitalResourceRequest } from "@/models/HospitalResourceRequest";
 import {
   fetchIncomingHospitalResourceRequests,
   fetchOutgoingHospitalResourceRequests,
 } from "@/redux/hospitalResourceRequestSlice";
 import { fetchHospitalResourcesForSpecificHospital } from "@/redux/hospitalResourceSlice";
-import { AppDispatch, RootState } from "@/redux/store";
-import { NavigateNext as Arrow } from "@mui/icons-material";
-import { Box, IconButton } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router";
-import request from "../utils/request";
+import NurseActionDialog from "@/components/feature/FindHospital/NurseActionDialog";
+
 
 const HospitalResourceRequestsPage: React.FC = () => {
   const incomingRequests: IHospitalResourceRequest[] = useSelector(
@@ -31,6 +47,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
 
   const { hospitalId } = useParams<{ hospitalId?: string }>();
   const [hospitalData, setHospitalData] = useState<IHospital>();
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
@@ -115,7 +132,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
               `Requested Quantity: ${hospitalResourceRequest.requestedQuantity}`,
           },
           {
-            key: "resourceId",
+            key: "receiverHospitalId",
             align: "center",
             label: "Resource Name",
             render: (
@@ -124,28 +141,65 @@ const HospitalResourceRequestsPage: React.FC = () => {
               return `Instock: ${searchForResource(hospitalResourceRequest.resourceId.resourceName)}`;
             },
           },
-          // {
-          //   key: "hospitalResourceId",
-          //   align: "center",
-          //   label: "",
-          //   render: (hospitalResourceRequest: IHospitalResourceRequest) => (
-          //     <FormControl fullWidth sx={{ mb: 2 }}>
-          //       <InputLabel id="patient-select-label">Patient</InputLabel>
-          //       <Select
-          //         labelId="request-select-label"
-          //         value={selectedPatientId}
-          //         label="Patient"
-          //         onChange={(e) => setSelectedPatientId(e.target.value)}
-          //       >
-          //         <MenuItem key={} value={patient.id}>
-          //           {patient.username}
-          //         </MenuItem>
-          //       </Select>
-          //     </FormControl>
-          //   ),
-          // },
+          {
+            key: "status",
+            align: "center",
+            label: "",
+            render: (hospitalResourceRequest: IHospitalResourceRequest) => (
+              <IconButton
+                edge="end"
+                size="large"
+                onClick={() => setIsDialogOpen(true)}
+              >
+                <Arrow />
+              </IconButton>
+            ),
+          },
         ]}
       />
+
+      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+        <DialogTitle>Respond to Request</DialogTitle>
+        <DialogContent>
+          {"Do you want to Accept or Reject this request?"}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDialogOpen(false)} color="secondary">
+            CANCEL
+          </Button>
+          <Button onClick={() => console.log("accept")} color="primary">
+            ACCEPT
+          </Button>
+          <Button onClick={() => console.log("reject")} color="primary">
+            REJECT
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* <Modal open={true}>
+        <Box
+          onClick={()=>console.log("pop")}
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "auto",
+            flexDirection: "column",
+          }}
+        >
+          <Typography
+            variant="h2"
+            sx={{ fontWeight: "bold", mb: 2 }}
+          >
+            hey
+          </Typography>
+        </Box>
+      </Modal> */}
 
       <GenericItemizeContainer
         items={outgoingRequests}
