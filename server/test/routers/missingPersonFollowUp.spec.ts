@@ -20,4 +20,18 @@ describe("Router - MissingPesonFollowUp", () => {
             .send(newFollowUp)
             .expect(404);
     })
+
+    it('should return 400 if reportId is not valid format (mongo _id hexstring)', async()=> {
+        const newFollowUp = {
+            reportId: "",
+            isSpotted: true, 
+            locationSpotted: "some location", 
+            datetimeSpotted: "2025-10-25T19:03",
+            additionalComment: "some comment"
+        };
+        const res = await request(app)
+            .post("/api/missing-person-followup/")
+            .send(newFollowUp)
+            .expect(400);
+    })
 });
