@@ -429,4 +429,34 @@ describe("City Routes", () => {
       );
     });
   });
+
+  describe("POST /api/cities/remaining-funding/:cityName", () => {
+    beforeAll(async () => {
+      await City.create({ name: "fundingCity" });
+    });
+
+    afterAll(async () => {
+      await City.deleteMany({ name: "fundingCity" });
+    });
+
+    it("should update remaining funding successfully", async () => {
+      const res = await request(app)
+        .post("/api/cities/remaining-funding/fundingCity")
+        .send({
+          amount: 4000,
+        })
+        .expect(200);
+
+      expect(res.body.remainingFunding).toEqual(4000);
+    });
+
+    it("should return 400 if city not existed", async () => {
+      await request(app)
+        .post("/api/cities/remaining-funding/mofundingCity")
+        .send({
+          amount: 4000,
+        })
+        .expect(400);
+    });
+  });
 });

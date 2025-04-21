@@ -319,4 +319,15 @@ describe("CityController", () => {
       );
     });
   });
+
+  describe("FundingRemaining", () => {
+    it("should update remaining funding successfully", async () => {
+      await CityController.createCity("fundingCity");
+      const city = await CityController.updateCityRemainingFunding(
+        "fundingCity",
+        1000,
+      );
+      expect(city.remainingFunding).toEqual(1000);
+    });
+  });
 });

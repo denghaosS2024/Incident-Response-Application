@@ -517,7 +517,43 @@ cityRouter.get(
     }
   },
 );
-
+/**
+ * @swagger
+ * /api/cities/remaining-funding/{cityName}:
+ *   post:
+ *     summary: Update the remaining funding of a city
+ *     description: >
+ *       Updates the `remainingFunding` field for a specified city by name.
+ *       This is typically used to manually set the current remaining funds for the city (e.g. after spending calculations).
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: MountainView
+ *         description: The name of the city to update remaining funding for.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 example: 12000
+ *                 description: The new remaining funding amount.
+ *     responses:
+ *       200:
+ *         description: Remaining funding updated successfully.
+ *       400:
+ *         description: Bad request due to invalid input or internal error.
+ */
 cityRouter.post(
   "/remaining-funding/:cityName",
   async (req: Request, res: Response) => {
