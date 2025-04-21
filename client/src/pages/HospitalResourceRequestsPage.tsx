@@ -100,7 +100,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
         items={incomingRequests}
         key="Incoming Requests"
         getKey={(hospitalResourceRequest: IHospitalResourceRequest): string =>
-          hospitalResourceRequest.senderHospitalId
+          hospitalResourceRequest._id
         }
         showHeader={false}
         title={`Incoming Requests`}
@@ -197,7 +197,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
         items={outgoingRequests}
         key="Outgoing Requests"
         getKey={(hospitalResourceRequest: IHospitalResourceRequest): string =>
-          hospitalResourceRequest.receiverHospitalId.hospitalId
+          hospitalResourceRequest._id
         }
         showHeader={false}
         title={`Outgoing Requests`}

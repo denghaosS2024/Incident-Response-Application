@@ -6,12 +6,14 @@ import { Navigate, Outlet, useNavigate } from "react-router";
 import IMessage from "../models/Message";
 // IR App
 import NurseActionDialog from "@/components/feature/FindHospital/NurseActionDialog";
+import NurseRequestDialog from "@/components/feature/HospitalResources/NurseRequestDialog";
 import {
   setHasGroupNotification,
   setHasNewIncident,
   setIncidentAlertMessage,
   setShowIncidentAlert,
 } from "@/redux/notifySlice";
+import request from "@/utils/request";
 import IrSnackbar from "../components/common/IrSnackbar";
 import GlobalAlertListener from "../components/GlobalAlertListener";
 import IncidentAlert from "../components/IncidentAlert";
@@ -67,6 +69,13 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
   const flash = useFlashAnimation(bgColor);
 
   const [maydayOpen, setMaydayOpen] = useState<boolean>(false);
+
+  const [currentHospitalId, setCurrentHospitalId] = useState<string | null>(
+    null,
+  );
+
+  const [isLoggedInAsWorkingNurse, setIsLoggedInAsWorkingNurse] =
+    useState<boolean>(false);
 
   const [assignedIncident, setAssignedIncident] = useState<string | null>(null);
 
@@ -245,6 +254,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
         "[DEBUG] Adding nurse alert to Redux alert queue with original channelId:",
         nurseAlertMessage.channelId,
       );
+
       dispatch(addAlert(nurseAlertMessage));
     });
     socket.on("nurse-alert-delayed", (message: string) => {
@@ -304,6 +314,34 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
     };
   }, [role, dispatch]);
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const userId = localStorage.getItem("uid");
+        const role = localStorage.getItem("role");
+        if (!userId) {
+          console.error("User ID not found in localStorage");
+          return;
+        }
+        if (role !== "Nurse") {
+          console.log("User is not a nurse");
+          setIsLoggedInAsWorkingNurse(false);
+          return;
+        }
+
+        const user = await request(`/api/users/${userId}`, {
+          method: "GET",
+        });
+        setCurrentHospitalId(user.hospitalId);
+        setIsLoggedInAsWorkingNurse(true);
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
   return (
     <>
       {!isLoggedIn && <Navigate to="/login" />}
@@ -314,6 +352,9 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
           <ManagedTabBar />
 
           <NurseActionDialog />
+          {isLoggedInAsWorkingNurse && currentHospitalId ? (
+            <NurseRequestDialog hospitalId={currentHospitalId} />
+          ) : null}
 
           {!alertOpen && <Outlet />}
 

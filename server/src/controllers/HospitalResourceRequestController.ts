@@ -4,6 +4,7 @@ import ResourceRequest, {
   IResourceRequestBase,
 } from "../models/HospitalResourceRequest";
 import HttpError from "../utils/HttpError";
+import UserConnections from "../utils/UserConnections";
 
 export interface HospitalResourceRequestClient {
   senderHospitalId: string; // Reference to the sender Hospital's _id
@@ -34,6 +35,12 @@ class ResourceRequestController {
       });
 
       await newResourceRequest.save();
+
+      UserConnections.broadcastToHospitalRoom(
+        resourceRequest.receiverHospitalId.toString(),
+        "hospital-nurse-new-request",
+        newResourceRequest.toObject(),
+      );
 
       return newResourceRequest.toObject();
     } catch (error) {
@@ -207,7 +214,6 @@ class ResourceRequestController {
         { new: true }, // Return the updated document
       ).lean();
 
-      
       if (!updatedResourceRequest) {
         throw new HttpError("ResourceRequest not found.", 404);
       }
@@ -222,7 +228,5 @@ class ResourceRequestController {
     }
   }
 }
-
-
 
 export default new ResourceRequestController();
