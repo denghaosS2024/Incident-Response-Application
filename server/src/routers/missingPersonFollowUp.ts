@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 import MissingPersonController from "../controllers/MissingPersonController";
 import MissingPersonFollowUpController from "../controllers/MissingPersonFollowUpController";
 import {
-  IMissingFollowUpBase,
-  IMissingFollowUpReqBody,
+    IMissingFollowUpBase,
+    IMissingFollowUpReqBody,
 } from "../models/MissingFollowUp";
 
 export default Router()
@@ -79,4 +79,34 @@ export default Router()
         });
       }
     }
-  });
+  })
+
+  /**
+   * @swagger
+   * /api/missing-person-followup/report/{reportId}:
+   *   get:
+   *     summary: Get all followups for a specific report
+   *     description: Get all followups for the report
+   *     tags: [MissingPersonFollowUp]
+   *     parameters:
+   *       - in: path
+   *         name: reportId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the missing person report.
+   *     responses:
+   *       200:
+   *         description: All Followups info for the report
+   *       404:
+   *         description: No Reference Report Exist for this Followup info
+   *       500:
+   *         description: Server error
+   */
+  .get('/report/:reportId', async(request, response) => {
+    const {reportId} = request.params;
+
+    const allFollowUps = await MissingPersonFollowUpController.getAllFollowUpsByReportId(reportId);
+    console.log("allfollowup", allFollowUps);
+    return response.status(200).send(allFollowUps);
+  })

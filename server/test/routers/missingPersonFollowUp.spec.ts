@@ -24,8 +24,7 @@ describe("Router - MissingPesonFollowUp", () => {
         description: "Last seen wearing blue jeans and white t-shirt",
         locationLastSeen: "Central Park, New York",
       });
-    console.log("yayaya", response.statusCode);
-    console.log("yayaya", response.body);
+    
     return response.body._id;
   };
 
@@ -122,6 +121,6 @@ describe("Router - MissingPesonFollowUp", () => {
         .expect(200)
 
     expect(getResult).toBeDefined();
-    expect(getResult[0].reportId).toStrictEqual(reportId);
+    expect(getResult.body[0].reportId).toStrictEqual(reportId);
   })
 });
