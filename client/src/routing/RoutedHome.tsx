@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { Navigate, Outlet, useNavigate } from "react-router";
 import IMessage from "../models/Message";
 // IR App
+import AlertSnackbar from "@/components/common/AlertSnackbar";
 import NurseActionDialog from "@/components/feature/FindHospital/NurseActionDialog";
 import NurseRequestDialog from "@/components/feature/HospitalResources/NurseRequestDialog";
 import {
@@ -80,6 +81,9 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
   const [assignedIncident, setAssignedIncident] = useState<string | null>(null);
 
   const lastTap = useRef<number | null>(null);
+
+  const [amberAlertOpen, setAmberAlertOpen] = useState(false);
+  const [amberAlertMessage, setAmberAlertMessage] = useState("");
 
   const handleDoubleTapDismiss = () => {
     console.log("Double clicked");
@@ -294,6 +298,23 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       }
     });
 
+    socket.on("missingPerson", (data) => {
+      console.log("MIssing Person Received:", data);
+      let amberAlertMessage = 
+        `ATTENTION! A MISSING PERSON HAS BEEN REPORTED\n\n` +
+        `${data.age} Years old ${data.race} ${data.gender}\n`;
+      if (data.weight) { amberAlertMessage = amberAlertMessage + `weigh ${data.weight} lbs`;}
+      if (data.height) { amberAlertMessage = amberAlertMessage + ` and ${data.height} cm tall`;}
+      if (data.eyeColor !== "") { amberAlertMessage = amberAlertMessage + ` with ${data.eyeColor} eyes`;}
+      amberAlertMessage = amberAlertMessage + `\n`;
+      amberAlertMessage = amberAlertMessage + `LAST SEEN ${new Date(data.dateLastSeen).toLocaleString()}`;
+      if (data.locationLastSeen !== "") { amberAlertMessage = amberAlertMessage + `at ${data.lastSeenLocation}`};
+      console.log(amberAlertMessage);
+      setAmberAlertMessage(amberAlertMessage);
+      setAmberAlertOpen(true);
+
+    })
+
     return () => {
       socket.off("new-message");
       socket.off("acknowledge-alert");
@@ -307,6 +328,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       socket.off("map-area-update");
       socket.off("map-area-delete");
       socket.off("join-new-incident");
+      socket.off("missingPerson");
       socket.close();
 
       // Clear any active timeout when unmounting
@@ -428,6 +450,16 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
               }}
             />
           )}
+
+          <AlertSnackbar
+            open={amberAlertOpen}
+            message={amberAlertMessage}
+            severity="warning" // Use "warning" for amber alert style
+            onClose={() => setAmberAlertOpen(false)}
+            autoHideDuration={20000} // e.g., 20 seconds
+            vertical="top"
+            horizontal="center"
+          />
         </>
       ) : (
         <Navigate to="/login" />

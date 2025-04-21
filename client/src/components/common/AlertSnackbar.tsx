@@ -33,6 +33,7 @@ const AlertSnackbar: React.FC<AlertSnackbarProps> = ({
         transform: "translate(-50%, -50%)",
         zIndex: 9999,
         width: "auto",
+        whiteSpace: "pre-line",
       }}
     >
       <Alert onClose={onClose} severity={severity} sx={{ width: "100%" }}>
