@@ -65,11 +65,6 @@ const HospitalResourcesPage: React.FC = () => {
         />
       </Box>
 
-      {/* Hospital Resources */}
-      <Typography variant="h5" sx={{ marginBottom: 2 }}>
-        Hospital Resources
-      </Typography>
-
       {loading ? (
         <Typography>Loading...</Typography>
       ) : Object.keys(groupedResources).length > 0 ? (
@@ -78,7 +73,7 @@ const HospitalResourcesPage: React.FC = () => {
             key={resourceName} // Use a unique key
             resourceName={resourceName} // Assuming hospitalId is the name or ID
             hospitals={hospitals} // Pass the resource as an array
-            onRequest={(hospitalId: string, hospitalResourceId: string) =>
+            onRequest={(__hospitalId: string, hospitalResourceId: string) =>
               navigate(
                 `/hospital-resource-request/${currentHospitalId}/${hospitalResourceId}/add`,
               )
