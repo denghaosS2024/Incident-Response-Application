@@ -98,8 +98,6 @@ export default Router()
    *     responses:
    *       200:
    *         description: All Followups info for the report
-   *       404:
-   *         description: No Reference Report Exist for this Followup info
    *       500:
    *         description: Server error
    */
@@ -115,4 +113,31 @@ export default Router()
             message: `Internal Server Error: ${error.message}`,
           });
     }
+  })
+
+  /**
+   * @swagger
+   * /api/missing-person-followup/single/{id}:
+   *   get:
+   *     summary: Get all followups for a specific report
+   *     description: Get all followups for the report
+   *     tags: [MissingPersonFollowUp]
+   *     parameters:
+   *       - in: path
+   *         name: reportId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the missing person report.
+   *     responses:
+   *       200:
+   *         description: All Followups info for the report
+   *       500:
+   *         description: Server error
+   */
+  .get("/single/:id", async (request, response)=> {
+    const {id} = request.params;
+
+    const singleFollowUp = await MissingPersonFollowUpController.getFollowUpById(id);
+    return response.status(200).send(singleFollowUp)
   })
