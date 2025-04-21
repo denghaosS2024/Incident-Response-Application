@@ -389,7 +389,7 @@ describe("City Routes", () => {
       await Personnel.deleteMany({ name: "firechief3" });
     });
 
-    it("should post a history record successfully", async () => {
+    it("should get a history record successfully", async () => {
       const sender = new Personnel({
         username: "firechief3",
         password: "test123",
