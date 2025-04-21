@@ -1,7 +1,9 @@
 // src/pages/MissingPersonIndividualReportPage.tsx
 
+import GenericItemizeContainer from "@/components/GenericItemizeContainer";
 import IFollowUpInfo from "@/models/FollowUpInfo";
-import { Box, Button, Container, Typography } from "@mui/material";
+import { NavigateNext as Arrow } from "@mui/icons-material";
+import { Box, Button, Container, IconButton, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import MissingPersonCard from "../components/feature/MissingPerson/MissingPersonInfoCard";
@@ -68,7 +70,51 @@ const MissingPersonIndividualReportPage: React.FC = () => {
               navigate(`/missing-person/manage/${person._id}`)
             }
           />
-
+          {/* List all followups in chronological order*/}
+          <GenericItemizeContainer
+            items={followUps}
+            key="Previous Follow-Up Information"
+            getKey={(followUp: IFollowUpInfo): string =>
+              followUp._id!
+            }
+            showHeader={false}
+            title={`Previous Follow-Up Information`}
+            emptyMessage="No Follow-Ups available"
+            columns={[
+              {
+                key: "locationSpotted",
+                align: "left",
+                label: "Location Spotted",
+                render: (item) => (
+                  <Box sx={{ wordBreak: 'break-word' }}>
+                    <Typography variant="body1">
+                      Spotted at: {item.locationSpotted !== "" ? item.locationSpotted : "N/A"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Date Reported: {new Date(item.datetimeSpotted).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                ),
+              },
+              {
+                key: "_id",
+                align: "center",
+                label: "",
+                width: 65,
+                render: (followUp) => (
+                  <IconButton
+                    edge="end"
+                    size="large"
+                    onClick={() =>
+                      navigate(`/missing-person/followUp/${followUp.reportId}?readonly=true&followUpId=${followUp._id}`)
+                    }
+                  >
+                    <Arrow />
+                  </IconButton>
+                ),
+              },
+            ]}
+          />
           {/* Add Follow-Up button */}
           <Box display="flex" justifyContent="center" my={2}>
             <Button

@@ -1,23 +1,24 @@
-import CameraCapture from '@/components/CameraCapture';
 import AlertSnackbar from "@/components/common/AlertSnackbar";
 import IFollowUpInfo from '@/models/FollowUpInfo';
 import request from '@/utils/request';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import { Box, Button, Checkbox, Container, Dialog, FormControlLabel, IconButton, Menu, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import { Box, Button, Checkbox, Container, FormControlLabel, IconButton, Stack, TextField, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 interface FollowUpFormProps {
   reportId: string
+  readonly: boolean
+  followUpId?: string
 }
 
-const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
+const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, readonly, followUpId}) => {
   const navigate = useNavigate();
 
   const [physicallySeen, setPhysicallySeen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [openCamera, setOpenCamera] = useState(false);
-  const [openFileUpload, setOpenFileUpload] = useState(false);
+  // const [openCamera, setOpenCamera] = useState(false);
+  // const [openFileUpload, setOpenFileUpload] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -29,6 +30,34 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
   const [dateTime, setDateTime] = useState("");
   const [additionalComment, setAdditionalComment] = useState("");
 
+  // Fetch existing follow-up info if in readonly mode
+  useEffect(() => {
+    if (readonly && followUpId) {
+      const id = followUpId;
+      request<IFollowUpInfo>(`/api/missing-person-followup/single/${id}`, { method: 'GET' }, false)
+        .then((data) => {
+          console.log(data)
+          setPhysicallySeen(data.isSpotted);
+          setLocation(data.locationSpotted ?? "");
+          const date = new Date(data.datetimeSpotted);
+          const pad = (n: number) => n.toString().padStart(2, '0');
+          const localDateTime =
+            date.getFullYear() + '-' +
+            pad(date.getMonth() + 1) + '-' +
+            pad(date.getDate()) + 'T' +
+            pad(date.getHours()) + ':' +
+            pad(date.getMinutes());
+          setDateTime(localDateTime);
+          setAdditionalComment(data.additionalComment ?? "");
+        })
+        .catch(() => {
+          setSnackbarMessage("Failed to load follow-up data.");
+          setSnackbarSeverity("error");
+          setSnackbarOpen(true);
+        });
+    }
+  }, [readonly, followUpId]);
+
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files && event.target.files[0];
     if (file) {
@@ -37,24 +66,24 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
     }
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+  // const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+  //   setAnchorEl(event.currentTarget);
+  // };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  // const handleMenuClose = () => {
+  //   setAnchorEl(null);
+  // };
 
-  const handelOpenCamera = () => {
-    setOpenCamera(true);
-  };
+  // const handelOpenCamera = () => {
+  //   setOpenCamera(true);
+  // };
 
-  const handelcCloseCamera = () => {
-    setOpenCamera(false);
-  };
+  // const handelcCloseCamera = () => {
+  //   setOpenCamera(false);
+  // };
 
-  const handleOpenFileUpload = () => setOpenFileUpload(true);
-  const handleCloseFileUpload = () => setOpenFileUpload(false);
+  // const handleOpenFileUpload = () => setOpenFileUpload(true);
+  // const handleCloseFileUpload = () => setOpenFileUpload(false);
 
   const handleSubmit = async() => {
     if (physicallySeen && !location.trim() ) {
@@ -119,6 +148,7 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
           <Checkbox
             checked={physicallySeen}
             onChange={(event) => setPhysicallySeen(event.target.checked)}
+            disabled={readonly}
           />
         }
         label="Check if physically seen the person"
@@ -133,7 +163,9 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
           InputLabelProps={{
             shrink: true,
           }}
+          value={location}
           onChange={(e) => setLocation(e.target.value)}
+          disabled={readonly}
         />
       )}
       <TextField
@@ -146,7 +178,9 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
         InputLabelProps={{
             shrink: true,
           }}
+        value={dateTime}
         onChange={(event) => setDateTime(event.target.value)}
+        disabled={readonly}
       />
       <TextField
         label="Additional Comments"
@@ -156,60 +190,35 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
         minRows={3}
         // placeholder="Enter Any Additional Comment You May Have"
         onChange={(event)=> setAdditionalComment(event.target.value)}
+        InputLabelProps={{
+          shrink: true,
+        }}
+        value={additionalComment}
+        disabled={readonly}
       />
-      
-      <Box display="flex" alignItems="center" flexDirection="row" marginY={2} gap={1}>
-      <Box sx={{ width: 5 }} />
-        <Typography>Upload a Photo:</Typography>
-        <IconButton color="primary" component="label" onClick={handleMenuOpen}>
-            <input hidden accept="image/*" type="file" id="upload-photo" onChange={handleImageChange} />
-            <AddPhotoAlternateIcon />
-        </IconButton>
-        
-        <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        {/* Existing attachment options can go here */}
-        <MenuItem onClick={handelOpenCamera}>Take Photo</MenuItem>
+      {!readonly && (
+          <>
+            <Box display="flex" alignItems="center" flexDirection="row" gap={1}>
+              <Typography>Upload a Photo:</Typography>
+              <IconButton color="primary" component="label" onClick={(e) => setAnchorEl(e.currentTarget)}>
+                <input hidden accept="image/*" type="file" onChange={handleImageChange} />
+                <AddPhotoAlternateIcon />
+              </IconButton>
+            </Box>
 
-        <MenuItem onClick={handleOpenFileUpload}>File Upload</MenuItem>
-      </Menu>
+            {imageUrl && (
+              <Box display="flex" flexDirection="column" mt={2}>
+                <img src={imageUrl} alt="Preview" style={{ width: "auto", height: "auto" }} />
+              </Box>
+            )}
+          </>
+        )}
 
-      <Dialog
-        open={openCamera}
-        onClose={handelcCloseCamera}
-        maxWidth="sm"
-        fullWidth
-      >
-        <CameraCapture channelId="" currentUserId="" />
-      </Dialog>
-      
-
-      {/* <Dialog open={openFileUpload} onClose={handleCloseFileUpload}>
-        <FileUploadForm onClose={handleCloseFileUpload} channelId={channelId} />
-      </Dialog> */}
-      
-        {/* <CameraCapture channelId="" currentUserId="" /> */}
-        </Box>
-        {imageUrl && (
-        <Box display="flex" flexDirection="column" marginY={2} gap={1}>
-          <img
-            src={imageUrl}
-            alt={selectedImage ? selectedImage.name : "Preview"}
-            style={{ width: "auto", height: "auto", display: "block" }}
-          />
-        </Box>
-      )}
-
-      
-        <Box display="flex" alignItems="center" flexDirection="column" marginY={2} gap={2}>
-            
-            <Button variant="contained" color="primary" size="medium" onClick={handleSubmit}>
-            Submit
-            </Button>
-        </Box>
+        {!readonly && (
+          <Box display="flex" justifyContent="center" mt={2}>
+            <Button variant="contained" color="primary" onClick={handleSubmit}>Submit</Button>
+          </Box>
+        )}
     </Stack>
     <AlertSnackbar
         open={snackbarOpen}

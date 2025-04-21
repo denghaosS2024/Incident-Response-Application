@@ -15,6 +15,8 @@ const MissingPersonFollowUpPage: React.FC = () => {
     const [previewSrc, setPreviewSrc] = useState<string>(PLACEHOLDER);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [followUpReadOnly, setFollowUpReadOnly] = useState<boolean>(false);
+    const [followUpId, setFollowUpId] = useState<string>("");
 
     useEffect(() => {
         if (!photoFile) {
@@ -45,6 +47,14 @@ const MissingPersonFollowUpPage: React.FC = () => {
           console.log(reportId);
     
       }, [reportId]);
+    
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const readonlyParam = searchParams.get("readonly");
+        const followUpIdParam = searchParams.get("followUpId");
+        setFollowUpReadOnly(readonlyParam === "true");
+        setFollowUpId(followUpIdParam!);
+    })
 
     // show error if fetch failed
     if (errorMessage) {
@@ -74,7 +84,7 @@ const MissingPersonFollowUpPage: React.FC = () => {
             }}
         />
             <MissingPersonForm initialData={person!} onSubmit={onSubmit} readonly={true}/>
-            <MissingPersonFollowUpForm reportId={reportId!} />
+            <MissingPersonFollowUpForm reportId={reportId!} readonly={followUpReadOnly} followUpId={followUpId} />
         </Container>
       
     );
