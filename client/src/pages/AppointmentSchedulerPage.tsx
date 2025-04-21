@@ -91,7 +91,7 @@ export default function AppointmentSchedulerPage() {
 
     const { startHour, endHour, nurseId, dayOfWeek } = selected;
     navigate(
-      `/your-appointment?startHour=${startHour}&endHour=${endHour}&nurseId=${nurseId}&dayOfWeek=${dayOfWeek}`,
+      `/your-appointment?startHour=${startHour}&endHour=${endHour}&dayOfWeek=${dayOfWeek}`,
     );
   };
 

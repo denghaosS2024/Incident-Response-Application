@@ -210,13 +210,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     pathname.endsWith("/resource-request/directory")
   ) {
     title = hospitalFromSlice?.hospitalName
-      ? `${hospitalFromSlice?.hospitalName} Resources`
-      : "Hospital Resources";
+      ? `${hospitalFromSlice?.hospitalName} Resources Requests`
+      : "Hospital Resources Requests";
   }
 
   if (pathname.startsWith("/hospital-resource-request")) {
     title = hospitalFromSlice?.hospitalName
-      ? `${hospitalFromSlice?.hospitalName} Resources`
+      ? `${hospitalFromSlice?.hospitalName} Resources Request`
       : "Hospital Resources Request";
   }
 
