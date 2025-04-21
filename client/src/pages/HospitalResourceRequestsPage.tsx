@@ -18,7 +18,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  Snackbar,
+  Snackbar
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -187,16 +187,22 @@ const HospitalResourceRequestsPage: React.FC = () => {
             align: "center",
             label: "",
             render: (__hospitalResourceRequest: IHospitalResourceRequest) => (
-              <IconButton
-                edge="end"
-                size="large"
+              <Button
+                variant="contained"
+                color="primary"  
+                size="small"
+                sx={{ 
+                  padding: '2px 8px',
+                  minWidth: '60px',
+                  fontSize: '0.7rem'
+                }}
                 onClick={() => {
                   setSelectedRequestId(__hospitalResourceRequest._id);
                   setIsDialogOpen(true);
                 }}
               >
-                <Arrow />
-              </IconButton>
+                Respond
+              </Button>
             ),
           },
         ]}
