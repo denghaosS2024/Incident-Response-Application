@@ -31,7 +31,7 @@ class MissingPersonFollowUpController {
     try {
       const reportFollowUpList = await MissingFollowUp.find({
         reportId: reportId,
-      }).exec();
+      }).sort({ datetimeSpotted: -1 }).exec();
       return reportFollowUpList;
     } catch (error) {
       console.error("Error getting all followups for reportId", error);
