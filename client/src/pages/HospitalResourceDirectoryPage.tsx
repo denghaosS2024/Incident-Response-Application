@@ -84,9 +84,9 @@ const HospitalResourcesPage: React.FC = () => {
               key={resourceName}
               resourceName={resourceName}
               hospitals={filteredHospitals}
-              onRequest={(hospitalId: string, hospitalResourceId: string) =>
+              onRequest={(hospitalResourceId: string) =>
                 navigate(
-                  `/hospital-resource-request/${hospitalId}/${hospitalResourceId}/add`,
+                  `/hospital-resource-request/${currentHospitalId}/${hospitalResourceId}/add`,
                 )
               }
             />

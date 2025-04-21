@@ -9,7 +9,7 @@ import React from "react";
 interface HospitalResourceCardProps {
   resourceName: string; // The name of the resource
   hospitals: HospitalResource[]; // List of hospitals under this resource
-  onRequest: (hospitalId: string, hospitalResourceId: string) => void; // Callback for request action
+  onRequest: (hospitalResourceId: string) => void; // Callback for request action
 }
 
 interface HospitalRowProps {
@@ -65,7 +65,7 @@ const HospitalResourceCard: React.FC<HospitalResourceCardProps> = ({
               console.error("Hospital resource ID is empty");
               return;
             }
-            onRequest(row.hospitalId, row.hospitalResourceId);
+            onRequest(row.hospitalResourceId);
           }}
         >
           {row.actions}
