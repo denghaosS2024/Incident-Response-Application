@@ -109,9 +109,10 @@ export default Router()
 
         const allFollowUps = await MissingPersonFollowUpController.getAllFollowUpsByReportId(reportId);
         return response.status(200).send(allFollowUps);
-    } catch (error) {
+    } catch (e) {
+        const error = e as Error
         return response.status(500).send({
-            message: "Internal Server Error",
+            message: `Internal Server Error: ${error.message}`,
           });
     }
   })
