@@ -9,6 +9,7 @@ import Reach911Step3 from "../components/feature/Reach911/Reach911Step3Form";
 import Reach911Step4 from "../components/feature/Reach911/Reach911Step4";
 import Reach911Step5 from "../components/feature/Reach911/Reach911Step5";
 
+import { ISpending } from "@/models/Spending";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import IIncident from "../models/Incident";
@@ -36,6 +37,7 @@ const Reach911Page: React.FC = () => {
     location.state ?? {};
   const role = localStorage.getItem("role");
   const uid = localStorage.getItem("uid");
+  const [totalSpending, setTotalSpending] = useState<number>(0);
 
   useEffect(() => {
     const initializeIncident = async () => {
@@ -155,6 +157,31 @@ const Reach911Page: React.FC = () => {
   useEffect(() => {
     localStorage.setItem("911Step", activeStep.toString());
   }, [activeStep]);
+
+  useEffect(() => {
+    // Fetch total spending if we have an incident ID
+    const fetchTotalSpending = async () => {
+      if (!incidentId) return;
+
+      try {
+        const spendings = await request(
+          `/api/spendings/?incidentId=${incidentId}`,
+          { method: "GET" },
+        );
+
+        // Calculate total
+        const total = spendings.reduce(
+          (sum: number, spending: ISpending) => sum + spending.amount,
+          0,
+        );
+        setTotalSpending(total);
+      } catch (err) {
+        console.error("Error fetching spending data:", err);
+      }
+    };
+
+    fetchTotalSpending();
+  }, [incidentId]);
 
   const contents = [
     <Reach911Step1
@@ -282,6 +309,9 @@ const Reach911Page: React.FC = () => {
     navigate(`/spending-history/${incidentId}`);
   };
 
+  // Format the total spending as currency
+  const formattedTotalSpending = totalSpending.toLocaleString();
+
   return (
     <div
       className={styles.wrapper}
@@ -364,6 +394,18 @@ const Reach911Page: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={handleTotalSpendingClick}
+            endIcon={
+              <div
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  borderRadius: "4px",
+                  padding: "2px 8px",
+                  marginLeft: "8px",
+                }}
+              >
+                ${formattedTotalSpending}
+              </div>
+            }
           >
             Total Spending
           </Button>

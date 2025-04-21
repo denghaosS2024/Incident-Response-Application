@@ -23,6 +23,9 @@ const IncidentSpendHistory: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-gray-100">
+      <div className="bg-gray-800 text-white px-2 py-2 shadow-md">
+        <h4 className="ttext-base font-semibold">Spending Details</h4>
+      </div>
       {/* Content */}
       <div className="m-4 bg-white rounded shadow">
         <div className="w-full overflow-hidden">
