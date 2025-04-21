@@ -8,7 +8,7 @@ interface AddRequestFormProps {
   handleSubmit: (data: {
     resourceName: string;
     requestedQuantity: number;
-  }) => void;
+  }) => Promise<boolean | string>;
   handleCancel: () => void;
 }
 
@@ -19,14 +19,27 @@ const AddRequestForm: React.FC<AddRequestFormProps> = ({
   handleCancel,
 }) => {
   const [requestedQuantity, setRequestedQuantity] = useState(0);
-  const [showWarning, setShowWarning] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
+    "success",
+  );
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (requestedQuantity > inStock) {
-      setShowWarning(true);
+      setSnackbarMessage("Requested quantity cannot exceed in-stock quantity!");
+      setSnackbarSeverity("error");
       return;
     }
-    handleSubmit({ resourceName, requestedQuantity });
+
+    const result = await handleSubmit({ resourceName, requestedQuantity });
+
+    if (result === true) {
+      setSnackbarMessage("Request submitted successfully!");
+      setSnackbarSeverity("success");
+    } else {
+      setSnackbarMessage(result as string);
+      setSnackbarSeverity("error");
+    }
   };
 
   const inputFields = [
@@ -67,17 +80,17 @@ const AddRequestForm: React.FC<AddRequestFormProps> = ({
         submitButtonText="Submit Request"
       />
       <Snackbar
-        open={showWarning}
+        open={!!snackbarMessage}
         autoHideDuration={3000}
-        onClose={() => setShowWarning(false)}
+        onClose={() => setSnackbarMessage(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={() => setShowWarning(false)}
-          severity="error"
+          onClose={() => setSnackbarMessage(null)}
+          severity={snackbarSeverity}
           sx={{ width: "100%" }}
         >
-          Requested quantity cannot exceed in-stock quantity!
+          {snackbarMessage}
         </Alert>
       </Snackbar>
     </>
