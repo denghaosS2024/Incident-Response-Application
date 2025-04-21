@@ -1,18 +1,18 @@
-import FileUploadIcon from "@mui/icons-material/FileUpload";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import {
   Avatar,
   Box,
   Button,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
   Select,
   SelectChangeEvent,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 import imageCompression from "browser-image-compression";
 import heic2any from "heic2any";
@@ -542,28 +542,25 @@ const MissingPersonManagePage: React.FC = () => {
 
               {/* Upload photo and Mark as found row */}
               <Box sx={{ display: "flex", alignItems: "center", mt: 3, mb: 2 }}>
-                <Typography sx={{ mr: 2 }}>Upload a New Photo:</Typography>
-                <Button
-                  variant="outlined"
+                <Typography variant="body1" sx={{ mr: 1 }}>Upload a New Photo:</Typography>
+                <IconButton
+                  color="primary" 
                   component="label"
-                  startIcon={<FileUploadIcon />}
-                  size="small"
+                  aria-label="upload photo"
                 >
-                  Upload Photo
+                  <PhotoCameraIcon />
                   <input
                     type="file"
                     accept="image/*"
                     hidden
                     onChange={handlePhotoUpload}
                   />
-                </Button>
-                
+                </IconButton>
                 <Box sx={{ flexGrow: 1 }} />
                 
                 <Button
                   variant="contained"
                   color="primary"
-                  startIcon={<PictureAsPdfIcon />}
                   onClick={handleGeneratePDF}
                   sx={{ mr: 2 }}
                 >
