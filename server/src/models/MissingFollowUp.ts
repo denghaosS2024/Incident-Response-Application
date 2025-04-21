@@ -1,5 +1,14 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
   
+export interface IMissingFollowUpReqBody {
+    reportId: string
+    isSpotted: boolean 
+    locationSpotted: string
+    datetimeSpotted: Date
+    additionalComment: string
+
+}
+
 export interface IMissingFollowUpBase {
     reportId: Types.ObjectId
     isSpotted: boolean 

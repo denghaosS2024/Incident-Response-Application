@@ -38,6 +38,7 @@ import taskRouter from "./sartask";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
 
+import missingPersonFollowUpRouter from "./missingPersonFollowUp";
 import spendingRouter from "./spending";
 
 export default Router()
@@ -84,4 +85,5 @@ export default Router()
   .use("/inventories", inventoryRouter)
   .use("/first-aid", firstAidAssistRouter)
   .use("/appointments", appointmentRouter)
-  .use("/exercises", exerciseRouter);
+  .use("/exercises", exerciseRouter)
+  .use("/missing-person-followup", missingPersonFollowUpRouter);
