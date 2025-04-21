@@ -1,22 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-} from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import { useNavigate } from "react-router";
 import request from "../utils/request";
 import IIncident from "../models/Incident";
 import FundingSummaryCard from "../components/FundingCenter/FundingSummaryCard";
 import IncidentList from "../components/FundingCenter/IncidentList";
 import SocketClient from "../utils/Socket";
+import DepartmentFundingTable from "../components/FundingCenter/DepartmentFundingTable";
 
 interface IDepartmentFunding {
   name: string;
@@ -167,51 +157,10 @@ const FundingCenter: React.FC = () => {
 
           <FundingSummaryCard totalFunds={totalFunds} />
 
-          <TableContainer component={Paper} sx={{ mb: 3 }}>
-            <Table>
-              <TableHead sx={{ bgcolor: "#e3f2fd" }}>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Request</TableCell>
-                  <TableCell>Department</TableCell>
-                  <TableCell>Chat</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {departmentRequests.map((request, index) => (
-                  <TableRow
-                    key={index}
-                    sx={{ "&:nth-of-type(odd)": { bgcolor: "#f5f5f5" } }}
-                  >
-                    <TableCell>{request.name}</TableCell>
-                    <TableCell>${request.request.toLocaleString()}</TableCell>
-                    <TableCell>{request.department}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{
-                          bgcolor:
-                            request.department === "Fire"
-                              ? "#ffcdd2"
-                              : "#bbdefb",
-                          color: "black",
-                          "&:hover": {
-                            bgcolor:
-                              request.department === "Fire"
-                                ? "#ef9a9a"
-                                : "#90caf9",
-                          },
-                        }}
-                      >
-                        Chat
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <DepartmentFundingTable
+            departmentRequests={departmentRequests}
+            onChatClick={handleChatDirector}
+          />
         </>
       );
     }
