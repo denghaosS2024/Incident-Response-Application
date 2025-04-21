@@ -92,6 +92,13 @@ router
     }
   })
 
+  /**
+   * get a user by username
+   * @route GET /api/users/usernames/:username
+   * @param {string} request.body.username - The username of the user to retrieve
+   * @returns {Object} The user object
+   * @throws {500} If no username matches
+   */
   .get("/usernames/:username", async (req, res) => {
     const { username } = req.params;
     if (!username) {
@@ -110,6 +117,13 @@ router
     }
   })
 
+  /**
+   * get the director user by city name
+   * @route GET /api/users/cities/directors/:cityName
+   * @param {string} request.body.cityName - The name of the city to retrieve the director from
+   * @returns {Object} The user object
+   * @throws {500} If no user matches
+   */
   .get("/cities/directors/:cityName", async (req, res) => {
     const { cityName } = req.params;
     if (!cityName) {
