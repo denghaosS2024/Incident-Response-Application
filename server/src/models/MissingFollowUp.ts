@@ -41,8 +41,14 @@ export const MissingPersonFollowUpSchema = new Schema({
   additionalComment: {
     type: String,
     required: false,
-  },
-});
+  }
+},
+{
+    timestamps: {
+      createdAt: "timestamp",
+      updatedAt: false,
+    },
+  },);
 
 export default mongoose.model<IMissingFollowUp>(
   "MissingPersonFollowUp",
