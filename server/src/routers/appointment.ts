@@ -131,6 +131,41 @@ appointmentRouter.get("/:id", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/appointments/status/active:
+ *   get:
+ *     summary: Get active appointments by nurse ID
+ *     description: Retrieves active appointments for a specific nurse based on their current shift hour.
+ *     tags:
+ *       - Appointments
+ *     parameters:
+ *       - in: query
+ *         name: nurseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The nurse ID to fetch active appointments for
+ *     responses:
+ *       '200':
+ *         description: A list of active appointments for the specified nurse during their shift
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Appointment'
+ *       '400':
+ *         description: Bad request, invalid nurseId or other error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
 appointmentRouter.get("/status/active", async (req, res) => {
   try {
     const { nurseId } = req.query;

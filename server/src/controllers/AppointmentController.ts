@@ -90,27 +90,12 @@ class AppointmentController {
   }
 
   /**
-   * Find all active appointments for a specific nurse (appointments within his/her shifts)
-   * @param nurseId - The ID of the nurse
-   * @param resolved - Whether the appointment has been resolved
-   * @returns The active appointments
-   */
-  // async findActiveAppointments(nurseId: string, resolved = false) {
-  //   // Todo: Implement logic to find active appointments for a specific nurse
-  //   console.log("nurseId", nurseId);
-  //   console.log("resolved", resolved);
-  //   return;
-  // }
-
-  /**
    * Find all active appointments
+   * @param nurseId - The ID of the nurse
    * @returns The active appointments
    */
   async findActiveAppointmentsByShiftHour(nurseId: string) {
     const nurseShifts = await NurseShift.find({ nurseId, valid: true });
-    console.log("nurseShifts", nurseShifts);
-    // console.log("dayOfWeek", dayOfWeek);
-    // console.log("startHour", startHour);
     const allAppointments: IAppointment[] = [];
     for (const shift of nurseShifts) {
       const { dayOfWeek, startHour } = shift;
@@ -140,7 +125,6 @@ class AppointmentController {
       return 0;
     });
 
-    console.log("allAppointments", allAppointments);
     return allAppointments;
   }
 
