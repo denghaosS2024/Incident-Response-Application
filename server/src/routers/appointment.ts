@@ -131,15 +131,13 @@ appointmentRouter.get("/:id", async (req, res) => {
   }
 });
 
-appointmentRouter.get("/status/active", async (_, res) => {
+appointmentRouter.get("/status/active", async (req, res) => {
   try {
-    // const dayOfWeek = new Date().getDay() + 1;
-    // const hour = new Date().getHours();
-    const appointments = await AppointmentController
-      .findActiveAppointmentsByShiftHour
-      // dayOfWeek,
-      // hour,
-      ();
+    const { nurseId } = req.query;
+    const appointments =
+      await AppointmentController.findActiveAppointmentsByShiftHour(
+        nurseId as string,
+      );
     res.status(200).json(appointments);
   } catch (err) {
     const error = err as Error;

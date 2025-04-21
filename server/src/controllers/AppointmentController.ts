@@ -106,22 +106,43 @@ class AppointmentController {
    * Find all active appointments
    * @returns The active appointments
    */
-  async findActiveAppointmentsByShiftHour() // startHour: number, // dayOfWeek: number,
-  {
+  async findActiveAppointmentsByShiftHour(nurseId: string) {
+    const nurseShifts = await NurseShift.find({ nurseId, valid: true });
+    console.log("nurseShifts", nurseShifts);
     // console.log("dayOfWeek", dayOfWeek);
     // console.log("startHour", startHour);
-    const shifts = await Appointment.find({
-      valid: true,
-      isResolved: false,
-      // dayOfWeek,
-      // startHour,
-    }).sort({
-      severityIndex: -1, // Sort by severity index desc (2, then 1, then 0)
-      // dayOfWeek: 1, // Then sort by dayOfWeek asc (earlier first)
-      // startHour: 1, // Then sort by startHour asc (earlier first)
+    const allAppointments: IAppointment[] = [];
+    for (const shift of nurseShifts) {
+      const { dayOfWeek, startHour } = shift;
+      const appointments = await Appointment.find({
+        valid: true,
+        isResolved: false,
+        nurseId,
+        dayOfWeek,
+        startHour,
+      });
+      allAppointments.push(...appointments);
+    }
+
+    // Sort by severity index desc (2, then 1, then 0)
+    allAppointments.sort((a, b) => {
+      // First sort by severity index (higher severity first)
+      if (a.severityIndex > b.severityIndex) return -1;
+      if (a.severityIndex < b.severityIndex) return 1;
+
+      // If severity is the same, sort by day of week (earlier days first)
+      if (a.dayOfWeek < b.dayOfWeek) return -1;
+      if (a.dayOfWeek > b.dayOfWeek) return 1;
+
+      // If day is the same too, sort by start hour (earlier hours first)
+      if (a.startHour < b.startHour) return -1;
+      if (a.startHour > b.startHour) return 1;
+
+      return 0;
     });
-    console.log("shifts", shifts);
-    return shifts;
+
+    console.log("allAppointments", allAppointments);
+    return allAppointments;
   }
 
   async findNext6AvailableSlots(): Promise<
