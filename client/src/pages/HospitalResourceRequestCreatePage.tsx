@@ -2,7 +2,7 @@ import AddRequestForm from "@/components/feature/HospitalResources/AddRequestFor
 import HospitalResource from "@/models/HospitalResource";
 import request from "@/utils/request";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 const HospitalResourceRequestCreatePage: React.FC = () => {
   const { senderHospitalId, hospitalResourceId } = useParams<{
@@ -10,6 +10,7 @@ const HospitalResourceRequestCreatePage: React.FC = () => {
     hospitalResourceId: string;
   }>();
 
+  const navigate = useNavigate();
   const [selectedResource, setSelectedResource] =
     useState<HospitalResource | null>(null);
 
@@ -59,8 +60,7 @@ const HospitalResourceRequestCreatePage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    console.log("Request creation canceled.");
-    alert("Request creation canceled.");
+    navigate(-1);
   };
 
   if (!selectedResource) {
