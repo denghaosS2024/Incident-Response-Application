@@ -2,12 +2,17 @@ import request from "@/utils/request";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Stack } from "@mui/material";
 import { useEffect, useState } from "react";
+import ConfirmationDialog from "../components/common/ConfirmationDialog";
 import ExerciseItem from "../components/Exercise/ExerciseItem";
 import { IExercise } from "../models/Exercise";
+
 const ExerciseLibraryPage = () => {
   const currentUserId = localStorage.getItem("uid") ?? "";
-  console.log("Current User ID:", currentUserId);
   const [exerciseList, setExerciseList] = useState<IExercise[]>([]);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     const fetchExerciseList = async () => {
@@ -31,10 +36,27 @@ const ExerciseLibraryPage = () => {
     fetchExerciseList();
   }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async () => {
+    if (!selectedExerciseId) return;
     setExerciseList((prevList) =>
-      prevList.filter((exercise) => exercise._id !== id),
+      prevList.filter((exercise) => exercise._id !== selectedExerciseId),
     );
+    try {
+      const response = await request(`/api/exercises/${selectedExerciseId}`, {
+        method: "DELETE",
+      });
+      console.log(" delete response:", response);
+    } catch (error) {
+      console.error("Failed to delete exercise:", error);
+    } finally {
+      setSelectedExerciseId(null);
+      setOpenConfirmDialog(false);
+    }
+  };
+
+  const openDialog = (id: string) => {
+    setOpenConfirmDialog(true);
+    setSelectedExerciseId(id);
   };
 
   const handleView = (exercise: IExercise) => {
@@ -61,11 +83,19 @@ const ExerciseLibraryPage = () => {
           <ExerciseItem
             key={idx}
             exercise={exercise}
-            onDelete={handleDelete}
+            onDelete={openDialog}
             onView={handleView}
           />
         ))}
       </Stack>
+
+      <ConfirmationDialog
+        open={openConfirmDialog}
+        title="Delete Group"
+        description="Are you sure you want to delete this group?"
+        onConfirm={handleDelete}
+        onCancel={() => setOpenConfirmDialog(false)}
+      />
 
       <Button
         variant="contained"
