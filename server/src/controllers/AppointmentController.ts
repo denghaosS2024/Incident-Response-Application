@@ -106,20 +106,22 @@ class AppointmentController {
    * Find all active appointments
    * @returns The active appointments
    */
-  async findActiveAppointmentsByShiftHour(
-    dayOfWeek: number,
-    startHour: number,
-  ) {
-    return await Appointment.find({
+  async findActiveAppointmentsByShiftHour() // startHour: number, // dayOfWeek: number,
+  {
+    // console.log("dayOfWeek", dayOfWeek);
+    // console.log("startHour", startHour);
+    const shifts = await Appointment.find({
       valid: true,
       isResolved: false,
-      dayOfWeek,
-      startHour,
+      // dayOfWeek,
+      // startHour,
     }).sort({
       severityIndex: -1, // Sort by severity index desc (2, then 1, then 0)
-      dayOfWeek: 1, // Then sort by dayOfWeek asc (earlier first)
-      startHour: 1, // Then sort by startHour asc (earlier first)
+      // dayOfWeek: 1, // Then sort by dayOfWeek asc (earlier first)
+      // startHour: 1, // Then sort by startHour asc (earlier first)
     });
+    console.log("shifts", shifts);
+    return shifts;
   }
 
   async findNext6AvailableSlots(): Promise<

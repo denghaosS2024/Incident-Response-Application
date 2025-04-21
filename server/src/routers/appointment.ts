@@ -131,15 +131,15 @@ appointmentRouter.get("/:id", async (req, res) => {
   }
 });
 
-appointmentRouter.get("/active", async (_, res) => {
+appointmentRouter.get("/status/active", async (_, res) => {
   try {
-    const dayOfWeek = new Date().getDay();
-    const hour = new Date().getHours();
-    const appointments =
-      await AppointmentController.findActiveAppointmentsByShiftHour(
-        dayOfWeek,
-        hour,
-      );
+    // const dayOfWeek = new Date().getDay() + 1;
+    // const hour = new Date().getHours();
+    const appointments = await AppointmentController
+      .findActiveAppointmentsByShiftHour
+      // dayOfWeek,
+      // hour,
+      ();
     res.status(200).json(appointments);
   } catch (err) {
     const error = err as Error;

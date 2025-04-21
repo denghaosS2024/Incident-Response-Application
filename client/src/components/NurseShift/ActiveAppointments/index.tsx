@@ -14,8 +14,8 @@ const ActiveAppointments = () => {
   const fetchActiveAppointmentsInCurrentShiftHour = async () => {
     try {
       const response = await request(
-        // `/api/appointments/active?nurseId=${nurseId}`,
-        `/api/appointments/active`,
+        // `/api/appointments/status/active?nurseId=${nurseId}`,
+        `/api/appointments/status/active`,
         {
           method: "GET",
         },
@@ -40,7 +40,7 @@ const ActiveAppointments = () => {
         {activeAppointments.map((appointment) => (
           <ActiveAppointment
             key={appointment._id}
-            patientName={appointment.patientName}
+            patientName={appointment.username}
             issueName={appointment.issueName}
             startHour={appointment.startHour}
             severityIndex={appointment.severityIndex}
