@@ -4,17 +4,18 @@ import { Document, Schema, model } from "mongoose";
 // 0: Low
 // 1: Medium
 // 2: High
-// 3: Urgent
+// 3: Emergency
 type SeverityIndex = 0 | 1 | 2 | 3;
 
 export interface IAppointment extends Document {
   // Per team 1's discussion, we will use Citizen's ID rather than patient's ID
   userId: string;
+  username: string;
   // This is nurse's Citizen ID
   nurseId: string | undefined;
   createDate: Date;
   updateDate: Date;
-  closedDate: Date;
+  closedDate: Date | undefined;
   dayOfWeek: number;
   isResolved: boolean;
   issueName: string;
@@ -29,6 +30,10 @@ export interface IAppointment extends Document {
 
 const AppointmentSchema = new Schema({
   userId: {
+    type: String,
+    required: true,
+  },
+  username: {
     type: String,
     required: true,
   },
@@ -48,22 +53,16 @@ const AppointmentSchema = new Schema({
     type: Date,
     default: null,
   },
-  startHour: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 23,
-  },
-  endHour: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 23,
-  },
   isResolved: {
     type: Boolean,
     default: false,
     required: true,
+  },
+  dayOfWeek: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 7,
   },
   issueName: {
     type: String,
@@ -77,7 +76,7 @@ const AppointmentSchema = new Schema({
     type: Number,
     default: 0,
     min: 0,
-    max: 5,
+    max: 3,
   },
   feedback: {
     type: String,
@@ -87,6 +86,18 @@ const AppointmentSchema = new Schema({
     type: Boolean,
     default: true,
     required: true,
+  },
+  startHour: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 23,
+  },
+  endHour: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 23,
   },
 });
 

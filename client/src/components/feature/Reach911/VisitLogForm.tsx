@@ -58,7 +58,8 @@ const VisitLogForm: React.FC<{
 
   console.log("visitLogId:", visitLogId);
   console.log("active:", active);
-  const isReadOnly = active === false;
+  const [isLocalReadOnly, setIsLocalReadOnly] = useState(active === false);
+  const isReadOnly = active === false || isLocalReadOnly;
 
   const drugEntryRef = useRef<DrugEntryHandle>(null);
 
@@ -250,10 +251,12 @@ const VisitLogForm: React.FC<{
             allergies,
             hospitalId,
             hospitalName,
+            active: visitLogActive,
           } = result;
 
           setVisitTime(dateTime ?? getCurrentDateTime());
           setIncidentId(incidentId ?? "");
+          setIsLocalReadOnly(visitLogActive === false);
 
           setFormData((prev) => ({
             ...prev,
@@ -609,71 +612,87 @@ const VisitLogForm: React.FC<{
         </FormControl>
       )}
 
-      {/* Discharge Button */}
-      <Box display="flex" justifyContent="center" mt={2}>
-          <button
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#d32f2f",
-              color: "#fff",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-            onClick={async () => {
-              await dischargePatient();
-              alert("Patient discharged successfully!");
-            }}
-          >
-            Discharge Patient
-          </button>
-        </Box>
-
       {!isReadOnly && (
-        <Box display="flex" justifyContent="center" mt={4} gap={2}>
-        <Button
-          variant="contained"
-          sx={{
-            padding: "10px 20px",
-            backgroundColor: "#1976d2",
-            color: "#fff",
-            borderRadius: "4px",
-            fontSize: "16px",
-            textTransform: "none",
-          }}
-          onClick={() => {
-            const drugs = (drugEntryRef.current?.getDrugsData() ?? []).map(
-              (drug) => `${drug.name} (${drug.dosage}, ${drug.route})`
-            );
-      
-            VisitLogHelper.saveFormData(
-              {
-                ...formData,
-                drugs,
-              },
-              incidentId,
-              visitTime,
-              getCurrentPatientId() ?? ""
-            );
-          }}
+        <>
+          <Box display="flex" justifyContent="center" mt={4} gap={2}>
+            <Button
+              variant="contained"
+              sx={{
+                padding: "10px 20px",
+                backgroundColor: "#1976d2",
+                color: "#fff",
+                borderRadius: "4px",
+                fontSize: "16px",
+                textTransform: "none",
+              }}
+              onClick={() => {
+                const drugs = (drugEntryRef.current?.getDrugsData() ?? []).map(
+                  (drug) => `${drug.name} (${drug.dosage}, ${drug.route})`,
+                );
+
+                VisitLogHelper.saveFormData(
+                  {
+                    ...formData,
+                    drugs,
+                  },
+                  incidentId,
+                  visitTime,
+                  getCurrentPatientId() ?? "",
+                );
+              }}
+            >
+              Save
+            </Button>
+            <Button
+              variant="contained"
+              sx={{
+                padding: "10px 20px",
+                backgroundColor: "#1976d2",
+                color: "#fff",
+                borderRadius: "4px",
+                fontSize: "16px",
+                textTransform: "none",
+              }}
+              onClick={() =>
+                navigate(`/patients/report?patientId=${getCurrentPatientId()}`)
+              }
+            >
+              Cancel
+            </Button>
+          </Box>
+
+          {/* Discharge button*/}
+          <Box display="flex" justifyContent="center" mt={3}>
+            <button
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#d32f2f",
+                color: "#fff",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+              onClick={async () => {
+                await dischargePatient();
+                alert("Patient discharged successfully!");
+              }}
+            >
+              Discharge Patient
+            </button>
+          </Box>
+        </>
+      )}
+
+      {/* Display Patient is discharged if inactive */}
+      {isReadOnly && (
+        <Box
+          display="flex"
+          justifyContent="center"
+          mt={3}
+          sx={{ color: "red" }}
         >
-          Save
-        </Button>
-        <Button
-          variant="contained"
-          sx={{
-            padding: "10px 20px",
-            backgroundColor: "#1976d2",
-            color: "#fff",
-            borderRadius: "4px",
-            fontSize: "16px",
-            textTransform: "none",
-          }}
-          onClick={() => navigate(`/patients/report?patientId=${getCurrentPatientId()}`)}
-        >
-          Cancel
-        </Button>
+          <Typography variant="h6">Patient is discharged</Typography>
         </Box>
       )}
     </div>

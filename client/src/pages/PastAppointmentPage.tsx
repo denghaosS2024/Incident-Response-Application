@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router";
 
 const PastAppointmentPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const userId = localStorage.getItem("uid") ?? "";
+  const userId = searchParams.get("userId") ?? "";
 
   return (
     <Box sx={{ height: "100%" }}>

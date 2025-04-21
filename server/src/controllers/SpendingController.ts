@@ -50,41 +50,6 @@ class SpendingController {
 
     return spending.save();
   }
-
-  /**
-   * Create spendings for a list of incidents.
-   */
-  async createSpendingsForIncidents(
-    incidentIds: string[],
-    amount: number,
-    date: Date,
-    reason: string,
-  ) {
-    if (
-      !Array.isArray(incidentIds) ||
-      incidentIds.length === 0 ||
-      !amount ||
-      !date ||
-      !reason
-    ) {
-      throw new Error(
-        "All fields are required and incidentIds must be a non-empty array",
-      );
-    }
-
-    try {
-      const spendings = await Spending.createForIncidents(
-        incidentIds,
-        amount,
-        date,
-        reason,
-      );
-      return spendings;
-    } catch (error) {
-      console.error("Error creating spendings for incidents:", error);
-      throw error;
-    }
-  }
 }
 
 export default new SpendingController();

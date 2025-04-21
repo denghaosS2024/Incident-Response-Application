@@ -1,6 +1,7 @@
 import { Query, Types } from "mongoose";
 import ChannelController from "../../src/controllers/ChannelController";
 import IncidentController from "../../src/controllers/IncidentController";
+import SpendingController from "../../src/controllers/SpendingController";
 import UserController from "../../src/controllers/UserController";
 import Car, { ICar } from "../../src/models/Car";
 import Incident, {
@@ -9,6 +10,7 @@ import Incident, {
   IncidentState,
   IncidentType,
 } from "../../src/models/Incident";
+import Truck from "../../src/models/Truck";
 import ROLES from "../../src/utils/Roles";
 import * as TestDatabase from "../utils/TestDatabase";
 
@@ -640,6 +642,89 @@ describe("Incident Controller", () => {
       await expect(
         IncidentController.updateVehicleHistory(incident),
       ).rejects.toThrow("Cannot deallocate commander's vehicle");
+    });
+
+    it("should record spendings for the incident", async () => {
+      // Create test data
+      const username = "test-spending-user";
+      const carName = "test-spending-car";
+      const truckName = "test-spending-truck";
+
+      // Mock SpendingController.createSpending
+      const createSpendingSpy = jest
+        .spyOn(SpendingController, "createSpending")
+        .mockResolvedValue({} as any);
+
+      const car = await createTestCar(carName, [username]);
+      const truck = await Truck.create({
+        name: truckName,
+        usernames: [username],
+        assignedIncident: null,
+        assignedCity: "TestCity",
+      });
+
+      // // Create incident and vehicles
+      const incident = await createTestIncident(username);
+      const updatedIncident = incident as IIncident;
+      updatedIncident.assignedVehicles.push({
+        name: carName,
+        type: "Car",
+        usernames: [username],
+      });
+      updatedIncident.assignedVehicles.push({
+        name: truckName,
+        type: "Truck",
+        usernames: [username],
+      });
+      car.assignedIncident = incident.incidentId;
+      truck.assignedIncident = incident.incidentId;
+      await car.save();
+      await truck.save();
+
+      await IncidentController.updateVehicleHistory(updatedIncident);
+
+      // Verify spending creation for vehicle assignment
+      expect(createSpendingSpy).toHaveBeenCalledTimes(2);
+      expect(createSpendingSpy).toHaveBeenCalledWith(
+        incident.incidentId,
+        100, // $100 for Car
+        expect.any(Date),
+        `Assignment of Car ${carName} to incident`,
+      );
+      expect(createSpendingSpy).toHaveBeenCalledWith(
+        incident.incidentId,
+        250, // $250 for Truck
+        expect.any(Date),
+        `Assignment of Truck ${truckName} to incident`,
+      );
+
+      // Reset the mock to prepare for unassignment test
+      createSpendingSpy.mockClear();
+
+      // Second update - remove vehicles
+      const unassignIncident = updatedIncident as IIncident;
+      unassignIncident.assignedVehicles = [];
+
+      // Call updateVehicleHistory to unassign vehicles
+      await IncidentController.updateVehicleHistory(unassignIncident);
+
+      // Verify spending creation for vehicle unassignment
+      expect(createSpendingSpy).toHaveBeenCalledTimes(2);
+      expect(createSpendingSpy).toHaveBeenCalledWith(
+        incident.incidentId,
+        -50, // $-50 credit for Car
+        expect.any(Date),
+        `Return of Car ${carName} from incident`,
+      );
+      expect(createSpendingSpy).toHaveBeenCalledWith(
+        incident.incidentId,
+        -100, // $-100 credit for Truck
+        expect.any(Date),
+        `Return of Truck ${truckName} from incident`,
+      );
+
+      // Restore the spy
+      createSpendingSpy.mockRestore();
     });
 
     it("should update a specific SAR task by index", async () => {

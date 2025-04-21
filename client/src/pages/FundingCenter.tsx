@@ -29,7 +29,7 @@ const FundingCenter: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const chief = await request(`/api/users/${username}`, {
+      const chief = await request(`/api/users/usernames/${username}`, {
         method: "GET",
       });
 

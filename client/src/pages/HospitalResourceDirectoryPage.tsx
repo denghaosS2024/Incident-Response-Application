@@ -12,7 +12,8 @@ const HospitalResourcesPage: React.FC = () => {
 
   // Redux state
   const groupedResources = useSelector(
-    (state: RootState) => state.hospitalResourceState.hospitalResourceGroupedByResource,
+    (state: RootState) =>
+      state.hospitalResourceState.hospitalResourceGroupedByResource,
   );
   const loading = useSelector(
     (state: RootState) => state.hospitalResourceState.loading,
@@ -46,14 +47,16 @@ const HospitalResourcesPage: React.FC = () => {
 
       {loading ? (
         <Typography>Loading...</Typography>
-      ) :  Object.keys(groupedResources).length > 0 ? (
+      ) : Object.keys(groupedResources).length > 0 ? (
         Object.entries(groupedResources).map(([resourceName, hospitals]) => (
           <HospitalResourceCard
             key={resourceName} // Use a unique key
             resourceName={resourceName} // Assuming hospitalId is the name or ID
             hospitals={hospitals} // Pass the resource as an array
-            onRequest={(hospitalId) =>
-              navigate(`/register-hospital/${hospitalId}/requests`)
+            onRequest={(hospitalId: string, hospitalResourceId: string) =>
+              navigate(
+                `/hospital-resource-request/${hospitalId}/${hospitalResourceId}/add`,
+              )
             }
           />
         ))

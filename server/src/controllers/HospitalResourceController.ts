@@ -15,6 +15,7 @@ export interface HospitalResourceClient {
 }
 
 export interface HospitalResourceWithPopulateData {
+  _id: string;
   hospitalId: IHospital;
   resourceId: IResource;
   inStockQuantity?: number;
@@ -206,7 +207,9 @@ class HospitalResourceController {
     try {
       const hospitalResource = await HospitalResource.find({
         _id: _id,
-      }).populate("resourceId");
+      })
+        .populate("resourceId")
+        .populate("hospitalId");
       return hospitalResource;
     } catch (error) {
       console.error("Error fetching a specific hospital resource", error);
@@ -316,7 +319,6 @@ class HospitalResourceController {
       }
 
       return hospitalResource.toObject();
-
     } catch (error) {
       console.error("Error fetching hospital resources by resourceId:", error);
       if (error instanceof HttpError) {
@@ -391,6 +393,7 @@ class HospitalResourceController {
         }
 
         groupedResources[resourceName].push({
+          _id: hospitalResource._id.toString(),
           hospitalId: hospitalResource.hospitalId,
           resourceId: hospitalResource.resourceId,
           inStockQuantity: hospitalResource.inStockQuantity,

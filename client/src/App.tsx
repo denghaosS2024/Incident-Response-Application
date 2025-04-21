@@ -4,12 +4,13 @@ import { Route, BrowserRouter as Router, Routes } from "react-router";
 
 // Pages
 import HospitalResourceForm from "./components/feature/HospitalResources/HospitalResourceForm.tsx";
+import AppointmentSchedulerPage from "./pages/AppointmentSchedulerPage.tsx";
 import ChatRoomPage from "./pages/ChatRoomPage";
 import Contacts from "./pages/Contacts";
 import CreatechartPage from "./pages/CreatechartPage.tsx";
 import DashboardPage from "./pages/DashboardPage";
-import DefaultTruckAddItem from "./pages/DefaultTruckAddItem.tsx";
 import DefaultTruckInventory from "./pages/DefaultTruckInventory.tsx";
+import ExerciseLibraryPage from "./pages/ExerciseLibraryPage";
 import FindHospital from "./pages/FindHospital";
 import FirstResponderPatientsPage from "./pages/FirstResponderPatientsPage";
 import FundingCenter from "./pages/FundingCenter.tsx";
@@ -18,6 +19,7 @@ import GroupInformationPage from "./pages/GroupInformationPage";
 import GroupsPage from "./pages/GroupsPage";
 import HomePage from "./pages/HomePage";
 import HospitalResourceDirectoryPage from "./pages/HospitalResourceDirectoryPage.tsx";
+import HospitalResourceRequestCreatePage from "./pages/HospitalResourceRequestCreatePage.tsx";
 import HospitalResourceRequestEditPage from "./pages/HospitalResourceRequestEditPage.tsx";
 import HospitalResourceRequestsPage from "./pages/HospitalResourceRequestsPage.tsx";
 import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
@@ -34,6 +36,7 @@ import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualRe
 import MissingPersonManagePage from "./pages/MissingPersonManagePage";
 import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
 import MissingPersonUpdatePage from "./pages/MissingPersonUpdatePage.tsx";
+import NurseAppointmentInfoPage from "./pages/NurseAppointmentInfoPage.tsx";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
 import NurseShiftPage from "./pages/NurseShiftPage";
 import Organization from "./pages/Organization";
@@ -56,6 +59,7 @@ import TruckInventoryPage from "./pages/TruckInventoryPage.tsx";
 import TruckStockPage from "./pages/TruckStockPage.tsx";
 import ViewOrganization from "./pages/ViewOrganization";
 import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
+import YourAppointmentPage from "./pages/YourAppointmentPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
@@ -119,6 +123,7 @@ export default function App() {
             <Route path="/organization" element={<Organization />} />
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile/:userId" element={<ProfilePage />} />
+            <Route path="/exercise-library" element={<ExerciseLibraryPage />} />
 
             <Route path="/register-hospital" element={<RegisterHospital />} />
             <Route
@@ -142,30 +147,34 @@ export default function App() {
               element={<StatisticsPage />}
             />
             <Route
-              path="/register-hospital/resources/directory"
+              path="/hospital-resource/directory"
               element={<HospitalResourceDirectoryPage />}
             />
             <Route
-              path="/register-hospital/:hospitalId/resources"
+              path="/hospital/:hospitalId/resources"
               element={<HospitalResourcesPage />}
             />
             <Route
-              path="/register-hospital/:hospitalId/resources/newResource"
+              path="/hospital/:hospitalId/resource/add"
               element={<HospitalResourceForm />}
             />
 
             <Route
-              path="/register-hospital/:hospitalId/resources/newResource/:resourceId"
+              path="/hospital/:hospitalId/resource/:resourceId/update"
               element={<HospitalResourceForm />}
             />
 
             <Route
-              path="/register-hospital/:hospitalId/requests"
+              path="/hospital/:hospitalId/resource-request/directory"
               element={<HospitalResourceRequestsPage />}
             />
             <Route
-              path="/register-hospital/:hospitalId/requests/:requestId"
+              path="/hospital-resource-request/:hospitalId/:requestId"
               element={<HospitalResourceRequestEditPage />}
+            />
+            <Route
+              path="/hospital-resource-request/:senderHospitalId/:hospitalResourceId/add"
+              element={<HospitalResourceRequestCreatePage />}
             />
 
             <Route
@@ -200,16 +209,21 @@ export default function App() {
               element={<DefaultTruckInventory />}
             />
             <Route
-              path="/defaulttruckadditem"
-              element={<DefaultTruckAddItem />}
-            />
-            <Route
               path="/truck-inventory/:truckName"
               element={<TruckInventoryPage />}
             />
             <Route path="/truck-stock" element={<TruckStockPage />} />
             <Route path="/shifts" element={<NurseShiftPage />} />
             <Route path="/past-appointment" element={<PastAppointmentPage />} />
+            <Route path="/your-appointment" element={<YourAppointmentPage />} />
+            <Route
+              path="/appointment-scheduler"
+              element={<AppointmentSchedulerPage />}
+            />
+            <Route
+              path="/nurse-appointment-info"
+              element={<NurseAppointmentInfoPage />}
+            />
           </Route>
 
           <Route element={<RoutedHome showBackButton isSubPage />}>

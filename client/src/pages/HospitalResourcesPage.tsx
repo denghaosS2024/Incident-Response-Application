@@ -71,14 +71,14 @@ const HospitalResourcesPage: React.FC = () => {
 
   // Handle redirection to add a new resource
   const redirectToHospitalResource = () => {
-    navigate("newResource");
+    navigate(`/hospital/${hospitalId}/resource/add`);
   };
 
   // Handle redirection to see details of an exisiting resource
   const redirectToHospitalResourceDetails = (
     hospitalResource: HospitalResource,
   ) => {
-    navigate(`newResource/${hospitalResource._id}`);
+    navigate(`/hospital/${hospitalId}/resource/${hospitalResource._id}/update`);
   };
 
   return (

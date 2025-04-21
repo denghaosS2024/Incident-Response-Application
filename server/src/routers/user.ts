@@ -22,7 +22,10 @@ router
       if (!callerUid) {
         throw new HttpError("Caller UID is required", 400);
       }
-      const result = await UserController.createTempUserForPatient(hospitalId, callerUid);
+      const result = await UserController.createTempUserForPatient(
+        hospitalId,
+        callerUid,
+      );
       response.status(201).send(result);
     } catch (e) {
       const error = e as Error;
@@ -89,7 +92,7 @@ router
     }
   })
 
-  .get("/:username", async (req, res) => {
+  .get("/usernames/:username", async (req, res) => {
     const { username } = req.params;
     if (!username) {
       return res.status(400).json({ error: "Username is required" });

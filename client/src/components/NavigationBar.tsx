@@ -105,6 +105,11 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/directorchatroom": "Chat with Directory",
     "/funding-information": "Funding Information",
     "/spending-history": "Spending History",
+    "/exercise-library": "Exercise Library",
+    "/past-appointment": "Past Appointments",
+    "/nurse-appointment-info": "Appointment Information",
+    "/appointment-scheduler": "Appointment Scheduler",
+    "/shifts": "Shifts Management",
   };
 
   const roleTitles: Record<string, string> = {
@@ -217,6 +222,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = "Spending History";
   }
 
+  if (pathname === "/exercise-library" && role === "Nurse") {
+    title = "Exercise Library";
+  }
+
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true);
     setMenuAnchor(anchor);
@@ -273,12 +282,16 @@ const NavigationBar: FunctionComponent<IProps> = ({
     navigate("/hospitals");
   };
 
+  const exerciseLibrary = () => {
+    navigate("/exercise-library");
+  };
+
   const missingPersonsDirectory = () => {
     navigate("/missing-person/directory");
   };
 
   const hospitalResources = () => {
-    navigate("/register-hospital/resources/directory");
+    navigate("/hospital-resource/directory");
   };
 
   const findHospital = () => {
@@ -392,6 +405,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
             <MenuItem onClick={navigateToFundingCenter}>
               Funding Center
             </MenuItem>
+          )}
+          {role === "Nurse" && (
+            <MenuItem onClick={exerciseLibrary}>Exercise Library</MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>

@@ -187,7 +187,7 @@ function IncidentsPage() {
         }
       }
 
-      const user = await request(`/api/users/${username}`, {
+      const user = await request(`/api/users/usernames/${username}`, {
         method: "GET",
       });
 
@@ -215,8 +215,8 @@ function IncidentsPage() {
         searchOperation: undefined,
         sarTasks: [],
       };
-      
-      // console.log("New incident data:", newIncident); 
+
+      // console.log("New incident data:", newIncident);
 
       await request("/api/incidents/new", {
         method: "POST",
@@ -336,13 +336,18 @@ function IncidentsPage() {
     }
 
     // SAR special case: allow edit if not closed and user is in a car assigned to a SAR task
-    function isUserInAssignedCarForSAR(incident: IIncident, userId: string): boolean {
+    function isUserInAssignedCarForSAR(
+      incident: IIncident,
+      userId: string,
+    ): boolean {
       if (!incident.sarTasks) return false;
       // Each SAR task may have assignedCars, each with members (by id or username)
       return incident.sarTasks.some((task: any) =>
         task.assignedCars?.some((car: any) =>
-          car.members?.some((member: any) => member.id === userId || member.username === userId)
-        )
+          car.members?.some(
+            (member: any) => member.id === userId || member.username === userId,
+          ),
+        ),
       );
     }
 
@@ -360,7 +365,8 @@ function IncidentsPage() {
     } else {
       if (
         updatedIncident.incidentState === "Closed" ||
-        (updatedIncident.commander !== userId && updatedIncident.owner !== userId)
+        (updatedIncident.commander !== userId &&
+          updatedIncident.owner !== userId)
       ) {
         readOnly = true;
       }
@@ -369,8 +375,8 @@ function IncidentsPage() {
     // Update sate in redux with updated incident
     console.log("Updated incident:", updatedIncident);
 
-    // Wait for a second just to let backend do its thing 
-    setTimeout(()=>{
+    // Wait for a second just to let backend do its thing
+    setTimeout(() => {
       // dispatch(resetIncident())
       // dispatch(updateIncident(updatedIncident))
 
@@ -387,8 +393,7 @@ function IncidentsPage() {
           },
         });
       } else {
-
-        console.log(incident.caller)
+        console.log(incident.caller);
 
         if (!incident.caller) {
           navigate("/reach911", {
@@ -396,7 +401,7 @@ function IncidentsPage() {
               incidentId: incident.incidentId,
               readOnly,
               autoPopulateData,
-              isCreatedByFirstResponder: true
+              isCreatedByFirstResponder: true,
             },
           });
         } else {
@@ -406,11 +411,10 @@ function IncidentsPage() {
               incidentId: incident.incidentId,
               readOnly,
               autoPopulateData,
-              isCreatedByFirstResponder: false
+              isCreatedByFirstResponder: false,
             },
           });
         }
-          
       }
     }, 250);
   };

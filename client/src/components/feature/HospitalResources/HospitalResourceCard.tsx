@@ -9,10 +9,11 @@ import React from "react";
 interface HospitalResourceCardProps {
   resourceName: string; // The name of the resource
   hospitals: HospitalResource[]; // List of hospitals under this resource
-  onRequest: (hospitalId: string) => void; // Callback for request action
+  onRequest: (hospitalId: string, hospitalResourceId: string) => void; // Callback for request action
 }
 
 interface HospitalRowProps {
+  hospitalResourceId: string;
   hospitalName: string;
   hospitalId: string;
   inStockQuantity: number;
@@ -25,6 +26,7 @@ function mapHospitalsToRows(
   __onRequest: HospitalResourceCardProps["onRequest"],
 ): HospitalRowProps[] {
   return hospitals.map((hospital) => ({
+    hospitalResourceId: hospital._id || "",
     hospitalName: hospital.hospitalId.hospitalName,
     hospitalId: hospital.hospitalId._id,
     inStockQuantity: hospital.inStockQuantity,
@@ -58,7 +60,14 @@ const HospitalResourceCard: React.FC<HospitalResourceCardProps> = ({
         <Button
           variant="contained"
           color="primary"
-          onClick={() => onRequest(row.hospitalId)}
+          onClick={() => {
+            console.log(row);
+            if (row.hospitalResourceId === "") {
+              console.error("Hospital resource ID is empty");
+              return;
+            }
+            onRequest(row.hospitalId, row.hospitalResourceId);
+          }}
         >
           {row.actions}
         </Button>

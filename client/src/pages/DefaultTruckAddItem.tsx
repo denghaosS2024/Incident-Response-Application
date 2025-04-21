@@ -1,17 +1,82 @@
 import { Unstable_NumberInput as BaseNumberInput } from "@mui/base/Unstable_NumberInput";
 import { styled } from "@mui/system";
 
+import { Hardware } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
+import FlagIcon from "@mui/icons-material/Flag";
+import HomeRepairServiceIcon from "@mui/icons-material/HomeRepairService";
+import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { Box, Button, Container, TextField } from "@mui/material";
-import React from "react";
+import {
+  Box,
+  Button,
+  Container,
+  FormHelperText,
+  TextField,
+} from "@mui/material";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import React, { useState } from "react";
+import { IInventoryItem } from "../models/Inventory";
 
-const DefaultTruckAddItem: React.FC = () => {
+export interface IProps {
+  item?: IInventoryItem;
+  onSubmit: (data: IInventoryItem) => void;
+  onCancel: () => void;
+  onDelete?: (item: IInventoryItem) => void;
+}
+
+const DefaultTruckAddItem: React.FC<IProps> = (props: IProps) => {
+  const { item } = props;
+  const [itemName, setName] = useState<string>(item?.name || "");
+  const [itemIcon, setIcon] = useState<string>(item?.icon || "");
+  const [itemQuantity, setQuantity] = useState<number>(item?.quantity || 0);
+  const [itemDescription, setDescription] = useState<string>(
+    item?.description || "",
+  );
+
+  const [itemNameError, setItemNameError] = useState<string>("");
+  const [itemIconError, setItemIconError] = useState<string>("");
+
+  const clearError = () => {
+    setItemNameError("");
+    setItemIconError("");
+  };
+
+  const onSubmitHandler = async () => {
+    clearError();
+
+    let hasError = false;
+
+    if (!itemName) {
+      setItemNameError("Item name cannot be empty");
+      hasError = true;
+    }
+
+    if (!itemIcon) {
+      setItemIconError("Icon cannot be empty");
+      hasError = true;
+    }
+
+    if (!hasError) {
+      const payload = {
+        name: itemName,
+        icon: itemIcon,
+        quantity: itemQuantity,
+        description: itemDescription,
+      };
+      console.log("Sending payload:", payload);
+      props.onSubmit(payload); // this will call the handleSubmitItem function in DefaultTruckInventory
+    }
+  };
+
   return (
     <div>
       <Container
         sx={{
-          padding: "40px 0",
+          padding: "15px 0",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-around",
@@ -19,16 +84,52 @@ const DefaultTruckAddItem: React.FC = () => {
         }}
       >
         <Box width="100%" maxWidth="400px" my={2} paddingBottom={"30px"}>
-          <TextField variant="outlined" label="Icon" fullWidth />
+          <TextField
+            variant="outlined"
+            label="Item Name"
+            fullWidth
+            value={itemName || ""} // Ensure value is a string
+            error={!!itemNameError}
+            helperText={itemNameError}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </Box>
+        <Box width="60%" maxWidth="400px" my={2} paddingBottom={"30px"}>
+          <FormControl sx={{ width: "100%" }} error={!!itemIconError}>
+            <InputLabel id="selectIcon">Icon</InputLabel>
+            <Select
+              labelId="icon"
+              id="icon"
+              label="Icon"
+              value={itemIcon || ""}
+              onChange={(e) => setIcon(e.target.value)}
+            >
+              <MenuItem value={"Hardware"} sx={{ justifyContent: "center" }}>
+                <Hardware />
+              </MenuItem>
+              <MenuItem value={"Medical Kit"} sx={{ justifyContent: "center" }}>
+                <MedicalServicesIcon />,
+              </MenuItem>
+              <MenuItem
+                value={"Repair Tools"}
+                sx={{ justifyContent: "center" }}
+              >
+                <HomeRepairServiceIcon />
+              </MenuItem>
+              <MenuItem value={"Flag"} sx={{ justifyContent: "center" }}>
+                <FlagIcon />
+              </MenuItem>
+            </Select>
+            <FormHelperText>{itemIconError}</FormHelperText>
+          </FormControl>
         </Box>
         <Box width="100%" maxWidth="400px" my={2} paddingBottom={"30px"}>
-          <TextField variant="outlined" label="Item Name" fullWidth />
-        </Box>
-        <Box width="100%" maxWidth="500px" my={2} paddingBottom={"30px"}>
           <BaseNumberInput
             min={0}
             aria-label="Item quantity"
             placeholder="Quantity"
+            value={itemQuantity || 0}
+            onChange={(_, value) => setQuantity(Number(value))}
             slots={{
               root: StyledInputRoot,
               input: StyledInput,
@@ -47,28 +148,50 @@ const DefaultTruckAddItem: React.FC = () => {
           />
         </Box>
         <Box width="100%" maxWidth="400px" my={2}>
-          <TextField variant="outlined" label="Description" fullWidth />
+          <TextField
+            variant="outlined"
+            label="Description"
+            fullWidth
+            value={itemDescription || ""}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </Box>
-        <Container
-          sx={{ display: "flex", alignItems: "center", padding: "20px 115px" }}
-        >
+        <Box width="100%" maxWidth="200px" alignItems="center">
           <Button
-            variant="contained"
+            variant="outlined"
             color="primary"
             type="submit"
             sx={{ mt: 2, mx: 1, width: "80px" }}
+            onClick={props.onCancel}
           >
-            Remove
+            Cancel
           </Button>
           <Button
             variant="contained"
             color="primary"
             type="submit"
             sx={{ mt: 2, mx: 1, width: "80px" }}
+            onClick={(e) => {
+              e.preventDefault();
+
+              onSubmitHandler();
+            }}
           >
             Add
           </Button>
-        </Container>
+        </Box>
+        <Box width="100%" maxWidth="100px" alignItems="center">
+          {item && item.name != "" && (
+            <Button
+              variant="contained"
+              color="error"
+              sx={{ mt: 2, mx: 1, width: "80px" }}
+              onClick={() => props.onDelete?.(item)}
+            >
+              Remove
+            </Button>
+          )}
+        </Box>
       </Container>
     </div>
   );
