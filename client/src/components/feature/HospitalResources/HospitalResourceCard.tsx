@@ -61,7 +61,6 @@ const HospitalResourceCard: React.FC<HospitalResourceCardProps> = ({
           variant="contained"
           color="primary"
           onClick={() => {
-            console.log(row);
             if (row.hospitalResourceId === "") {
               console.error("Hospital resource ID is empty");
               return;

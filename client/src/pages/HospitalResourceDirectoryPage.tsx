@@ -1,4 +1,5 @@
 import HospitalResourceCard from "@/components/feature/HospitalResources/HospitalResourceCard";
+import HospitalResource from "@/models/HospitalResource";
 import { fetchAllHospitalResources } from "@/redux/hospitalResourceSlice";
 import { AppDispatch, RootState } from "@/redux/store";
 import request from "@/utils/request";
@@ -68,18 +69,29 @@ const HospitalResourcesPage: React.FC = () => {
       {loading ? (
         <Typography>Loading...</Typography>
       ) : Object.keys(groupedResources).length > 0 ? (
-        Object.entries(groupedResources).map(([resourceName, hospitals]) => (
-          <HospitalResourceCard
-            key={resourceName} // Use a unique key
-            resourceName={resourceName} // Assuming hospitalId is the name or ID
-            hospitals={hospitals} // Pass the resource as an array
-            onRequest={(__hospitalId: string, hospitalResourceId: string) =>
-              navigate(
-                `/hospital-resource-request/${currentHospitalId}/${hospitalResourceId}/add`,
-              )
-            }
-          />
-        ))
+        Object.entries(groupedResources).map(([resourceName, hospitals]) => {
+          const filteredHospitals = hospitals.filter(
+            (hospital: HospitalResource) =>
+              hospital.hospitalId._id !== currentHospitalId,
+          );
+
+          if (filteredHospitals.length === 0) {
+            return <Typography>No resources available.</Typography>;
+          }
+
+          return (
+            <HospitalResourceCard
+              key={resourceName}
+              resourceName={resourceName}
+              hospitals={filteredHospitals}
+              onRequest={(hospitalId: string, hospitalResourceId: string) =>
+                navigate(
+                  `/hospital-resource-request/${hospitalId}/${hospitalResourceId}/add`,
+                )
+              }
+            />
+          );
+        })
       ) : (
         <Typography>No resources available.</Typography>
       )}
