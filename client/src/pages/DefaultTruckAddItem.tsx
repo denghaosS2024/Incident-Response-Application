@@ -177,7 +177,7 @@ const DefaultTruckAddItem: React.FC<IProps> = (props: IProps) => {
               onSubmitHandler();
             }}
           >
-            Add
+            Save
           </Button>
         </Box>
         <Box width="100%" maxWidth="100px" alignItems="center">
