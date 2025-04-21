@@ -1,8 +1,10 @@
 import request from "supertest";
 
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 import app from "../../src/app";
 import Patient from "../../src/models/Patient";
+import PatientVisitEvent from "../../src/models/PatientVisitEvent";
 import * as TestDatabase from "../utils/TestDatabase";
 
 describe.skip("Router - Patient", () => {
@@ -93,4 +95,78 @@ describe.skip("Router - Patient", () => {
   });
 
   afterAll(TestDatabase.close);
+});
+
+describe("GET /api/patients/timeline/:patientId", () => {
+  beforeAll(TestDatabase.connect);
+
+  afterEach(async () => {
+    await Patient.deleteMany({});
+    await PatientVisitEvent.deleteMany({});
+  });
+
+  afterAll(TestDatabase.close);
+
+  it("should return 404 if patient does not exist", async () => {
+    const res = await request(app)
+      .get("/api/patients/timeline/nonexistent")
+      .expect(404);
+
+    expect(res.body.message).toMatch(/not found/);
+  });
+
+  it("should return 200 with correct visitLogId and events", async () => {
+    const visitLogId = uuidv4();
+    const patientId = "timeline-patient";
+
+    await Patient.create({
+      patientId,
+      username: "user-a",
+      visitLog: [
+        {
+          _id: visitLogId,
+          incidentId: "i1",
+          priority: "E",
+          location: "Road",
+          dateTime: new Date(),
+          active: true,
+        },
+      ],
+    });
+
+    await PatientVisitEvent.create({
+      patientId,
+      visitLogId,
+      changes: [
+        {
+          field: "priority",
+          newValue: "1",
+        },
+        {
+          field: "location",
+          newValue: "ER",
+        },
+      ],
+      snapshot: {
+        _id: visitLogId,
+        incidentId: "i1",
+        priority: "1",
+        location: "ER",
+        dateTime: new Date(),
+        active: true,
+      },
+      updatedBy: "nurse-xyz",
+      timestamp: new Date(),
+    });
+
+    const res = await request(app)
+      .get(`/api/patients/timeline/${patientId}`)
+      .expect(200);
+
+    expect(res.body.visitLogId).toBe(visitLogId);
+    expect(res.body.events.length).toBe(1);
+    expect(res.body.events[0].changes.map((c) => c.field)).toEqual(
+      expect.arrayContaining(["priority", "location"]),
+    );
+  });
 });
