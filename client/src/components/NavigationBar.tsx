@@ -217,6 +217,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
     title = "Spending History";
   }
 
+  if (pathname === "/exercise-library" && role === "Nurse") {
+    title = "Exercise Library";
+  }
+
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true);
     setMenuAnchor(anchor);

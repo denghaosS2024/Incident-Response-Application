@@ -63,7 +63,6 @@ const roleTabs: Record<string, ITab[]> = {
     { text: "Map", link: "/map", icon: <LocationIcon /> },
     // please add route here, now there will be no navigate
     { text: "Patients", link: "/patients/nurse" },
-    { text: "Exercise Library", link: "/exercise-library" },
   ],
 };
 

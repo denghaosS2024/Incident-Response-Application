@@ -117,6 +117,7 @@ export default function App() {
             <Route path="/organization" element={<Organization />} />
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile/:userId" element={<ProfilePage />} />
+            <Route path="/exercise-library" element={<ExerciseLibraryPage />} />
 
             <Route path="/register-hospital" element={<RegisterHospital />} />
             <Route
@@ -219,8 +220,6 @@ export default function App() {
             <Route path="/messages/:id" element={<ChatRoomPage />} />
             <Route path="/groups/:id" element={<GroupInformationPage />} />
           </Route>
-
-          <Route path="/exercise-library" element={<ExerciseLibraryPage />} />
         </Routes>
       </Router>
     </StyledEngineProvider>

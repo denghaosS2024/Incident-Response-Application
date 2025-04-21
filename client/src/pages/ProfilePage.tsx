@@ -182,12 +182,12 @@ export default function ProfilePage() {
     fetchProfileData();
   }, [paramUserId]);
 
-  // 🛠 Debounced handleSave to prevent excessive API calls
+  // Debounced handleSave to prevent excessive API calls
   const debouncedHandleSave = useCallback(
     debounce(async () => {
       if (isReadOnly) {
         console.log(
-          "❌ Unauthorized attempt to save profile. ReadOnly mode is active.",
+          "Unauthorized attempt to save profile. ReadOnly mode is active.",
         );
         return;
       }
@@ -195,7 +195,7 @@ export default function ProfilePage() {
       const userIdToUse = effectiveUserId;
 
       if (!userIdToUse) {
-        console.error("❌ Cannot save profile because userId is undefined.");
+        console.error("Cannot save profile because userId is undefined.");
         return;
       }
 
@@ -219,10 +219,7 @@ export default function ProfilePage() {
       };
 
       try {
-        console.log(
-          "🔵 Attempting to save profile data for userId:",
-          userIdToUse,
-        );
+        console.log("Attempting to save profile data for userId:", userIdToUse);
         console.log("Profile Data:", profileData);
 
         await request(`/api/profiles/${userIdToUse}`, {
@@ -233,9 +230,9 @@ export default function ProfilePage() {
           body: JSON.stringify(profileData),
         });
 
-        console.log("✅ Profile saved successfully.");
+        console.log("Profile saved successfully.");
       } catch (error) {
-        console.error("❌ Failed to save profile:", error);
+        console.error("Failed to save profile:", error);
       }
     }, 500),
     [
@@ -259,7 +256,7 @@ export default function ProfilePage() {
         const response = await request(`/api/profiles/${effectiveUserId}`);
 
         if (response) {
-          console.log("🟢 Profile already exists. Data loaded successfully.");
+          console.log("Profile already exists. Data loaded successfully.");
           setName(response.name ?? "");
           setDob(
             response.dob
@@ -277,10 +274,10 @@ export default function ProfilePage() {
             allergies: response.medicalInfo?.allergies ?? "",
           });
         } else {
-          console.log("🟡 Profile not found. No profile data loaded.");
+          console.log("Profile not found. No profile data loaded.");
         }
       } catch (error) {
-        console.error("❌ Failed to load profile:", error);
+        console.error("Failed to load profile:", error);
       }
     };
 
