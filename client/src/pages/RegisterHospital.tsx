@@ -53,7 +53,6 @@ const RegisterHospital: React.FC = () => {
 
   const role = localStorage.getItem("role");
   const userId = localStorage.getItem("uid");
-  const username = localStorage.getItem("username");
   const hospitalFromSlice: IHospital = useSelector(
     (state: any) => state.hospital.hospitalData,
   );
