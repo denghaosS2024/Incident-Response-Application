@@ -37,6 +37,14 @@ export interface IProps {
   showMenu?: boolean;
 }
 
+const createMenuItem = (hook: IPageHook) => {
+  return (
+    <MenuItem onClick={hook.onSelect} key={uuidv4()}>
+      {hook.name}
+    </MenuItem>
+  );
+};
+
 const NavigationBar: FunctionComponent<IProps> = ({
   showBackButton,
   onBack,
@@ -308,15 +316,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
           )} */}
 
           {/* Nurse-only menu items */}
-          {role === "Nurse" && (
-            <>
-              {nurseHooks.map((hook) => (
-                <MenuItem onClick={hook.onSelect} key={uuidv4()}>
-                  {hook.name}
-                </MenuItem>
-              ))}
-            </>
-          )}
+          {role === "Nurse" && <>{nurseHooks.map(createMenuItem)}</>}
 
           {/* {role === "Nurse" && {
             ...nurseHooks.map((hook) => (
