@@ -116,7 +116,6 @@ const NurseAppointmentInfoPage: React.FC = () => {
             <strong>Day:</strong>{" "}
             {
               [
-                "",
                 "Sunday",
                 "Monday",
                 "Tuesday",
@@ -182,6 +181,9 @@ const NurseAppointmentInfoPage: React.FC = () => {
                 try {
                   await request(`/api/appointments/${appointmentId}/resolve`, {
                     method: "PUT",
+                    body: JSON.stringify({
+                      nurseId: localStorage.getItem("uid"),
+                    }),
                   });
                   alert("Appointment marked as resolved.");
                 } catch (error) {

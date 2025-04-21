@@ -211,9 +211,16 @@ appointmentRouter.put("/:id/resolve", async (req, res) => {
   try {
     const { id } = req.params;
 
+    const { nurseId } = req.body;
+
+    if (!nurseId) {
+      return res.status(400).json({ error: "nurseId is required" });
+    }
+
     const updated = await AppointmentController.update(id, {
       isResolved: true,
       closedDate: new Date(Date.now()),
+      nurseId,
     });
 
     if (!updated) {
