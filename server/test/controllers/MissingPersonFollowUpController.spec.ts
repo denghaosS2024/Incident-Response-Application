@@ -140,6 +140,6 @@ describe("MissingPersonFollowUpController", () => {
     const followUp = await MissingPersonFollowUpController.addFollowUp(newFollowUp);
 
     await expect(MissingPersonFollowUpController.getFollowUpById(followUp._id.toString()))
-    .rejects.toThrow("Error fetching all followups for this reportId");
+    .rejects.toThrow("Error fetching followup for this id");
   })
 })

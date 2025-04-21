@@ -1,5 +1,5 @@
 import MissingFollowUp, {
-  IMissingFollowUpBase,
+    IMissingFollowUpBase,
 } from "../models/MissingFollowUp";
 
 class MissingPersonFollowUpController {
@@ -40,8 +40,13 @@ class MissingPersonFollowUpController {
   }
 
   async getFollowUpById(id: string) {
-    const individualFollowUp = await MissingFollowUp.findById(id).exec();
-    return individualFollowUp;
+    try {
+        const individualFollowUp = await MissingFollowUp.findById(id).exec();
+        return individualFollowUp;
+    } catch (error) {
+        console.error("Error getting follow up for this id", error);
+        throw new Error("Error fetching followup for this id")
+    }
   }
 }
 
