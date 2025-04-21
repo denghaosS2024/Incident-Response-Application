@@ -67,6 +67,11 @@ export default interface IIncident {
   incidentCallGroup?: string | null; // ID of the associated chat channel
   respondersGroup?: string | null; // ID of the responders group
   priority: IncidentPriority; // The priority of the incident
+  fundingHistory: {
+    assignedAmount: number;
+    timestamp: Date;
+    assignedBy: string;
+  }[];
   location?: {
     // Exact coordinates of the incident location
     latitude: number;

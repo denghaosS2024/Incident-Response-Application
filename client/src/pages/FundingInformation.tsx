@@ -2,30 +2,57 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, Button, Stack } from "@mui/material";
 import { useNavigate, useParams } from "react-router";
 import request from "../utils/request";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import { useDispatch } from "react-redux";
+import { updateIncident } from "../redux/incidentSlice";
+import SocketClient from "../utils/Socket";
 
 const FundingInformation: React.FC = () => {
   const navigate = useNavigate();
   const { incidentId } = useParams<{ incidentId: string }>();
   console.log(incidentId);
-  const [alreadyAssignedFunding, setAlreadyAssignedFunding] = useState<number>(0);
+  // const [alreadyAssignedFunding, setAlreadyAssignedFunding] = useState<number>(0);
   const [requestedFunding, setRequestedFunding] = useState<number>(0);
-  const [fundingLeft, setFundingLeft] = useState<number>(0);
+  // const [fundingLeft, setFundingLeft] = useState<number>(0);
+  const i = useSelector((state: RootState) => state.incidentState.incident);
+  console.log(i);
+  const fund_assigned = useSelector(
+    (state: RootState) => state.incidentState.incident.fund_assigned,
+  );
+  // const fund_requested = useSelector((state: RootState) => state.incidentState.incident.fund_requested);
+  const fund_left = useSelector(
+    (state: RootState) => state.incidentState.incident.fund_left,
+  );
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchFundingData = async () => {
-        const incidents = await request(
-            `/api/incidents/?incidentId=${incidentId}`,
-            { method: "GET" }
-          );
-        const incident = incidents[0];
-
-        setAlreadyAssignedFunding(incident.fund_assigned ? incident.fund_assigned : 0);
-        setRequestedFunding(incident.fund_requested ? incident.fund_requested : 0);
-        setFundingLeft(incident.fund_left ? incident.fund_left : 0);
-    }
+      const incidents = await request(
+        `/api/incidents/?incidentId=${incidentId}`,
+        { method: "GET" },
+      );
+      const incident = incidents[0];
+      dispatch(updateIncident(incident));
+      // setAlreadyAssignedFunding(incident.fund_assigned ? incident.fund_assigned : 0);
+      setRequestedFunding(
+        incident.fund_requested ? incident.fund_requested : 0,
+      );
+      // setFundingLeft(incident.fund_left ? incident.fund_left : 0);
+    };
 
     fetchFundingData();
-  }, [incidentId]);
+
+    const socket = SocketClient;
+
+    socket.on("incidentFundingUpdated", () => {
+      fetchFundingData();
+    });
+
+    return () => {
+      socket.off("incidentFundingUpdated");
+    };
+  }, [incidentId, dispatch]);
 
   return (
     <Box
@@ -36,15 +63,20 @@ const FundingInformation: React.FC = () => {
       minHeight="100vh"
       pt={10}
     >
-      <Box display="flex" flexDirection="column" alignItems="flex-start" gap={1}>
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="flex-start"
+        gap={1}
+      >
         <Typography textAlign="left">
-          Amount of already assigned: ${alreadyAssignedFunding.toLocaleString()}
+          Amount of already assigned: ${fund_assigned.toLocaleString()}
         </Typography>
         <Typography textAlign="left">
           Amount of requested funding: ${requestedFunding.toLocaleString()}
         </Typography>
         <Typography textAlign="left">
-          Amount of funding left: ${fundingLeft.toLocaleString()}
+          Amount of funding left: ${fund_left.toLocaleString()}
         </Typography>
       </Box>
 
@@ -63,7 +95,7 @@ const FundingInformation: React.FC = () => {
         <Button
           variant="contained"
           style={{ backgroundColor: "#FF9999" }}
-          onClick={() => navigate("/funding-history")}
+          onClick={() => navigate(`/chief-funding-history/${incidentId}`)}
         >
           Funding History
         </Button>

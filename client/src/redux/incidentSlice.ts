@@ -31,6 +31,10 @@ const initialState: IncidentsState = loadPersistatedState() || {
     questions: {} as EmergencyQuestions,
     incidentCallGroup: "",
     priority: IncidentPriority.Unset,
+    fundingHistory: [],
+    fund_assigned: 0,
+    fund_left: 0,
+    fund_requested: 0,
   },
   loading: false, // Indicates if a incident operation is in progress
   error: null, // Stores any error that occurred during incident operations
@@ -81,6 +85,10 @@ const incidentsSlice = createSlice({
         questions: {} as EmergencyQuestions,
         incidentCallGroup: "",
         priority: IncidentPriority.Unset,
+        fundingHistory: [],
+        fund_assigned: 0,
+        fund_left: 0,
+        fund_requested: 0,
       };
       persistState(state); // Save cleared state to localStorage
     },

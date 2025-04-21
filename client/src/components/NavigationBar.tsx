@@ -107,6 +107,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/nurse-appointment-info": "Appointment Information",
     "/appointment-scheduler": "Appointment Scheduler",
     "/shifts": "Shifts Management",
+    "/chief-funding-history": "Funding History",
   };
 
   const roleTitles: Record<string, string> = {
@@ -221,6 +222,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
 
   if (pathname === "/exercise-library" && role === "Nurse") {
     title = "Exercise Library";
+  }
+
+  if (pathname.startsWith("/chief-funding-history/")) {
+    title = "Funding History";
   }
 
   const openMenuHandler = (anchor: HTMLElement) => {
