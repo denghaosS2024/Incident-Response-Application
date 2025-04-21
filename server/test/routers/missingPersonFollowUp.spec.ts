@@ -100,4 +100,28 @@ describe("Router - MissingPesonFollowUp", () => {
       .send(newFollowUp)
       .expect(500);
   });
+
+  it('should return 200 and all followups for a reportId', async() => {
+    const reportId = await createMissingPersonReport();
+
+    const newFollowUp = {
+        reportId: reportId,
+        isSpotted: true,
+        locationSpotted: "some location",
+        datetimeSpotted: "2025-10-25T19:03",
+        additionalComment: "some comment",
+      };
+
+    const res = await request(app)
+        .post("/api/missing-person-followup/")
+        .send(newFollowUp)
+        .expect(201);
+
+    const getResult = await request(app)
+        .get(`/api/missing-person-followup/report/${reportId}`)
+        .expect(200)
+
+    expect(getResult).toBeDefined();
+    expect(getResult[0].reportId).toStrictEqual(reportId);
+  })
 });
