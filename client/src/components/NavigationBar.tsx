@@ -342,6 +342,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     closeMenu();
   };
 
+  const navigateToAppointment = () => {
+    if (role === "Citizen") {
+      navigate("/appointment-scheduler");
+    }
+    closeMenu();
+  };
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -408,6 +415,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
           )}
           {role === "Nurse" && (
             <MenuItem onClick={exerciseLibrary}>Exercise Library</MenuItem>
+          )}
+          {role === "Citizen" && (
+            <MenuItem onClick={navigateToAppointment}>Appointment</MenuItem>
           )}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
