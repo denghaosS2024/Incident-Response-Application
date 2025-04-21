@@ -38,6 +38,7 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
   ({ isReadOnly = false }, ref) => {
     const [drugs, setDrugs] = useState<DrugItem[]>([]);
     const [open, setOpen] = useState(false);
+    const [openDetailView, setOpenDetailView] = useState(false);
     const [currentDrug, setCurrentDrug] = useState<DrugItem>({
       name: "",
       dosage: "",
@@ -57,6 +58,15 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
 
     const handleClose = () => {
       setOpen(false);
+    };
+
+    const handleDetailClick = (drug: DrugItem) => {
+      setCurrentDrug(drug);
+      setOpenDetailView(true);
+    };
+
+    const handleDetailClose = () => {
+      setOpenDetailView(false);
     };
 
     const handleAdd = () => {
@@ -124,7 +134,7 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
                     edge="end"
                     size="small"
                     aria-label="view"
-                    onClick={() => setOpen(true)}
+                    onClick={() => handleDetailClick(drug)}
                     color="primary"
                     sx={{ ml: "auto" }}
                   >
@@ -211,6 +221,77 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
               }}
             >
               SUBMIT
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog for view drug detail */}
+        <Dialog
+          open={openDetailView}
+          onClose={handleDetailClose}
+          fullWidth
+          maxWidth="xs"
+        >
+          <DialogTitle>Drug Detail</DialogTitle>
+          <DialogContent>
+            <Box className="w-full mb-4 bg-gray-300 border p-3 rounded">
+              <Typography variant="body1" color="textSecondary">
+                This drug detail is read-only.
+              </Typography>
+            </Box>
+            <Box
+              sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              <TextField
+                autoFocus
+                name="name"
+                label="Medication Name"
+                variant="outlined"
+                fullWidth
+                value={drugs[0].name}
+                InputProps={{ readOnly: true }}
+              />
+              <TextField
+                name="dosage"
+                label="Dosage"
+                variant="outlined"
+                fullWidth
+                value={drugs[0].dosage}
+                InputProps={{ readOnly: true }}
+              />
+              <TextField
+                name="route"
+                label="Route"
+                variant="outlined"
+                fullWidth
+                value={drugs[0].route}
+                InputProps={{ readOnly: true }}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions
+            sx={{
+              px: 3,
+              pb: 3,
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <Button
+              onClick={handleDetailClose}
+              variant="contained"
+              sx={{
+                bgcolor: "#4285F4",
+                color: "white",
+                minWidth: "100px",
+                borderRadius: 1,
+                fontWeight: "normal",
+                "&:hover": {
+                  bgcolor: "#3367d6",
+                },
+              }}
+            >
+              DISMISS
             </Button>
           </DialogActions>
         </Dialog>
