@@ -20,10 +20,10 @@ import {
 } from "../models/Profile.ts";
 import IUser from "../models/User";
 import styles from "../styles/Message.module.css";
-import request from "../utils/request.ts";
+import { fetchLanguagePreferenceWithCache } from "../utils/languagePreferenceCache";
+import { convertSavedNamesToDisplayNames } from "../utils/SupportedLanguages.ts";
 import getRoleIcon from "./common/RoleIcon";
 import NurseAlertMessage from "./NurseAlertMessage";
-import { convertSavedNamesToDisplayNames } from "../utils/SupportedLanguages.ts";
 
 export interface IMessageProps {
   /**
@@ -114,14 +114,14 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   };
 
   useEffect(() => {
-    const fetchLanguagePref = async () => {
-      const { languagePreference } = await request<{
-        languagePreference?: ILanguagePreference;
-      }>(`/api/profiles/${message.sender._id}`);
-      setLanguagePreference(languagePreference || defaultLanguagePreference);
+    const loadLanguagePreference = async () => {
+      const preference = await fetchLanguagePreferenceWithCache(
+        message.sender._id,
+      );
+      setLanguagePreference(preference);
     };
 
-    fetchLanguagePref().then();
+    loadLanguagePreference().catch(console.error);
   }, [message.sender._id]);
 
   return (
