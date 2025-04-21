@@ -107,45 +107,45 @@ export default Router()
         .status(error.statusCode || 500)
         .json({ message: error.message });
     }
-  })
-
-  /**
-   * @swagger
-   * /api/first-aid/guidance/{sessionId}:
-   *   get:
-   *     summary: Generate AI guidance steps based on a report
-   *     tags: [First Aid]
-   *     parameters:
-   *       - in: path
-   *         name: sessionId
-   *         required: true
-   *         description: The session ID of the report to generate guidance for
-   *         schema:
-   *           type: string
-   *     responses:
-   *       200:
-   *         description: Guidance steps generated successfully
-   *       404:
-   *         description: Report not found
-   *       500:
-   *         description: Server error
-   */
-  .get("/guidance/:sessionId", async (req, res) => {
-    try {
-      const { sessionId } = req.params;
-
-      if (!sessionId) {
-        return res.status(400).json({ message: "Missing session ID." });
-      }
-
-      const steps =
-        await FirstAidReportController.generateGuidanceSteps(sessionId);
-
-      return res.status(200).json(steps);
-    } catch (e) {
-      const error = e as HttpError;
-      return res
-        .status(error.statusCode || 500)
-        .json({ message: error.message });
-    }
   });
+
+// /**
+//  * @swagger
+//  * /api/first-aid/guidance/{sessionId}:
+//  *   get:
+//  *     summary: Generate AI guidance steps based on a report
+//  *     tags: [First Aid]
+//  *     parameters:
+//  *       - in: path
+//  *         name: sessionId
+//  *         required: true
+//  *         description: The session ID of the report to generate guidance for
+//  *         schema:
+//  *           type: string
+//  *     responses:
+//  *       200:
+//  *         description: Guidance steps generated successfully
+//  *       404:
+//  *         description: Report not found
+//  *       500:
+//  *         description: Server error
+//  */
+// .get("/guidance/:sessionId", async (req, res) => {
+//   try {
+//     const { sessionId } = req.params;
+
+//     if (!sessionId) {
+//       return res.status(400).json({ message: "Missing session ID." });
+//     }
+
+//     const steps =
+//       await FirstAidReportController.generateGuidanceSteps(sessionId);
+
+//     return res.status(200).json(steps);
+//   } catch (e) {
+//     const error = e as HttpError;
+//     return res
+//       .status(error.statusCode || 500)
+//       .json({ message: error.message });
+//   }
+// });
