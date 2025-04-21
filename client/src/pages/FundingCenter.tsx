@@ -34,7 +34,7 @@ const FundingCenter: React.FC = () => {
     const chief = await request(`/api/users/usernames/${username}`, {
       method: "GET",
     });
-    console.log(chief);
+
     const res = await request(
       `/api/users/cities/directors/${chief.assignedCity}`,
       { method: "GET" },
