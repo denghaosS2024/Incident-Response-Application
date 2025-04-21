@@ -6,6 +6,7 @@ import HttpError from "../utils/HttpError";
 
 import HospitalResourceController from "../controllers/HospitalResourceController";
 import { HospitalResourceRequestClient } from "../controllers/HospitalResourceRequestController";
+import { IHospitalResource, IHospitalResourceBase } from "../models/HospitalResource";
 import { IResourceRequestBase } from "../models/HospitalResourceRequest";
 
 export default Router()
@@ -315,4 +316,153 @@ export default Router()
       const error = e as Error;
       return response.status(500).send({ message: error.message });
     }
-  });
+  })
+
+  /**
+   * @swagger
+   * /api/hospital-resources-requests/{requestId}/status/accepted:
+   *   put:
+   *     summary: Update request status to Accepted
+   *     description: Updates the request status to Accepted.
+   *     tags:
+   *       - Hospital Resource Requests
+   *     parameters:
+   *       - in: path
+   *         name: requestId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the resource request.
+   *     responses:
+   *       200:
+   *         description: Requested status updated successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/HospitalResourceRequest'
+   *       404:
+   *         description: Resource request not found.
+   *       500:
+   *         description: Internal server error.
+   */
+  .put("/:requestId/status/accepted", async(request, response) => {
+    const requestId = request.params.requestId;
+    const statusToUpdate = "Accepted";
+    try {
+      // get current resource request
+      const resourceRequest = await HospitalResourceRequestController.getResourceRequestById(new Types.ObjectId(requestId));
+
+      // get the approving hospital's resource document to extract quantity 
+      const hospitalApprovingResource = await HospitalResourceController.getHospitalResourceByIds(resourceRequest.resourceId, resourceRequest.receiverHospitalId);
+
+      if (resourceRequest.requestedQuantity < (hospitalApprovingResource.inStockQuantity - hospitalApprovingResource.inStockAlertThreshold!)){
+        const updatedResourceRequest =
+          await HospitalResourceRequestController.updateResourceRequestStatus(
+            new Types.ObjectId(requestId),
+            statusToUpdate,
+          );
+        
+        // update sender hospital's resource amount 
+        // 1. check if sender hospital has the resource 
+        // 1.1 if they don't then create new resource with this amount 
+        // 1.2 if they do, then update their existing one 
+        const potentialSenderHospitalResource = await HospitalResourceController.getHospitalResourceByIdsNotFoundOk(resourceRequest.resourceId, resourceRequest.senderHospitalId);
+        if  (!potentialSenderHospitalResource) {
+          // create new hospital resource for sender hospital 
+          const hospitalResourceData: IHospitalResourceBase = {
+            resourceId: resourceRequest.resourceId,
+            hospitalId: resourceRequest.senderHospitalId,
+            inStockQuantity: resourceRequest.requestedQuantity,
+            inStockAlertThreshold: 0,
+          };
+  
+          await HospitalResourceController.createHospitalResource(
+              hospitalResourceData,
+            );
+        } else {
+          const senderHospitalResourceToUpdate: Partial<IHospitalResource> = {
+            hospitalId: resourceRequest.senderHospitalId,
+            resourceId: resourceRequest.resourceId,
+            inStockQuantity: potentialSenderHospitalResource.inStockQuantity + resourceRequest.requestedQuantity
+          }
+          await HospitalResourceController.updateHospitalResource(senderHospitalResourceToUpdate);
+        }
+
+        // update receiving hospital's resource amount 
+        const receiverHospitalResourceToUpdate: Partial<IHospitalResource> = {
+          hospitalId: resourceRequest.receiverHospitalId,
+          resourceId: resourceRequest.resourceId,
+          inStockQuantity: hospitalApprovingResource.inStockQuantity - resourceRequest.requestedQuantity
+        }
+        await HospitalResourceController.updateHospitalResource(receiverHospitalResourceToUpdate);
+        
+
+        if (!updatedResourceRequest) {
+          throw new HttpError("HospitalResource not found.", 404);
+        }
+
+        return response.status(200).send(updatedResourceRequest);
+      } else {
+        throw new HttpError("Unable to fulfill because your post-approval quantity would be too low", 400);
+      }
+
+      
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/hospital-resources-requests/{requestId}/status/rejected:
+   *   put:
+   *     summary: Update request status to Rejected
+   *     description: Updates the request status to Rejected.
+   *     tags:
+   *       - Hospital Resource Requests
+   *     parameters:
+   *       - in: path
+   *         name: requestId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The ID of the resource request.
+   *     responses:
+   *       200:
+   *         description: Requested status updated successfully.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/HospitalResourceRequest'
+   *       404:
+   *         description: Resource request not found.
+   *       500:
+   *         description: Internal server error.
+   */
+  .put("/:requestId/status/rejected", async(request, response) => {
+    const requestId = request.params.requestId;
+    const statusToUpdate = "Rejected";
+    try {
+      const updatedResourceRequest =
+        await HospitalResourceRequestController.updateResourceRequestStatus(
+          new Types.ObjectId(requestId),
+          statusToUpdate,
+        );
+
+      if (!updatedResourceRequest) {
+        throw new HttpError("HospitalResource not found.", 404);
+      }
+
+      return response.status(200).send(updatedResourceRequest);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })

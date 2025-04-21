@@ -505,6 +505,33 @@ class HospitalResourceController {
       throw new HttpError("Failed to delete all resources", 500);
     }
   }
+
+  /**
+   * Fetch a specific HospitalResource by resourceId and hospitalId
+   * @param resourceId The ID of the resource
+   * @param hospitalId The ID of the hospital
+   * @returns The hospital resource object
+   * @throws HttpError if the hospital resource is not found
+   */
+  async getHospitalResourceByIdsNotFoundOk(
+    resourceId: Types.ObjectId,
+    hospitalId: Types.ObjectId,
+  ): Promise<LeanDocument<IHospitalResource> | null> {
+    try {
+      const hospitalResource = await HospitalResource.findOne({
+        resourceId,
+        hospitalId,
+      }).exec();
+
+      return hospitalResource;
+    } catch (error) {
+      console.error("Error fetching hospital resource by IDs:", error);
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
+      throw new HttpError("Failed to fetch hospital resource by IDs", 500);
+    }
+  }
 }
 
 export default new HospitalResourceController();
