@@ -388,3 +388,54 @@ appointmentRouter.get("/user/:userId/active", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+/**
+ * @swagger
+ * /api/appointments/user/{userId}/active-one:
+ *   get:
+ *     summary: Get active appointment for a user
+ *     description: Returns the unresolved and valid appointment details
+ *     tags:
+ *       - Appointments
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Active appointment details or null
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Appointment'
+ *       '400':
+ *         description: Invalid request
+ */
+appointmentRouter.get("/user/:userId/active-one", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const appt = await AppointmentController.getActiveAppointment(userId);
+    res.status(200).json(appt); // could be null
+  } catch (err) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
+});
+
+appointmentRouter.delete("/user/:userId/active", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const deleted = await AppointmentController.cancelActiveAppointment(userId);
+
+    if (!deleted) {
+      return res.status(404).json({ error: "No active appointment found" });
+    }
+
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    const error = err as Error;
+    return res.status(500).json({ error: error.message });
+  }
+});

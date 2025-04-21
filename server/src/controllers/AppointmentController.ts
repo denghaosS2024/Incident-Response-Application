@@ -170,6 +170,27 @@ class AppointmentController {
     }).exec();
     return !!existing;
   }
+
+  /**
+   * Get the active (valid + not resolved) appointment for a user
+   */
+  async getActiveAppointment(userId: string): Promise<IAppointment | null> {
+    return await Appointment.findOne({
+      userId,
+      isResolved: false,
+      valid: true,
+    }).exec();
+  }
+
+  async cancelActiveAppointment(userId: string) {
+    const appointment = await Appointment.findOneAndUpdate(
+      { userId, isResolved: false, valid: true },
+      { valid: false },
+      { new: true },
+    );
+
+    return appointment;
+  }
 }
 
 export default new AppointmentController();

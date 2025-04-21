@@ -4,6 +4,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router";
 
 // Pages
 import HospitalResourceForm from "./components/feature/HospitalResources/HospitalResourceForm.tsx";
+import AppointmentSchedulerPage from "./pages/AppointmentSchedulerPage.tsx";
 import ChatRoomPage from "./pages/ChatRoomPage";
 import Contacts from "./pages/Contacts";
 import CreatechartPage from "./pages/CreatechartPage.tsx";
@@ -208,6 +209,10 @@ export default function App() {
             <Route path="/shifts" element={<NurseShiftPage />} />
             <Route path="/past-appointment" element={<PastAppointmentPage />} />
             <Route path="/your-appointment" element={<YourAppointmentPage />} />
+            <Route
+              path="/appointment-scheduler"
+              element={<AppointmentSchedulerPage />}
+            />
           </Route>
 
           <Route element={<RoutedHome showBackButton isSubPage />}>
