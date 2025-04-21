@@ -10,6 +10,7 @@ import { fetchHospitalResourcesForSpecificHospital } from "@/redux/hospitalResou
 import { AppDispatch, RootState } from "@/redux/store";
 import { NavigateNext as Arrow } from "@mui/icons-material";
 import {
+  Alert,
   Box,
   Button,
   Dialog,
@@ -17,6 +18,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Snackbar,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -40,6 +42,11 @@ const HospitalResourceRequestsPage: React.FC = () => {
   const { hospitalId } = useParams<{ hospitalId?: string }>();
   const [hospitalData, setHospitalData] = useState<IHospital>();
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
+    "success",
+  );
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -59,6 +66,48 @@ const HospitalResourceRequestsPage: React.FC = () => {
       return null;
     }
   };
+
+  const handleAcceptIncomingRequest = async (requestId: string) => {
+    try {
+      const response = await request(
+        `/api/hospital-resources-requests/${requestId}/status/accepted`,
+      {
+        method: "PUT"
+      });
+      console.log("Acceptance PUT result", response);
+      setSnackbarMessage("Request Accepted Successfully!");
+      setSnackbarSeverity("success");
+      setIsDialogOpen(false)
+      return;
+    } catch (error) {
+      console.error("Error updating to Accepted status:", error)
+      setSnackbarMessage("Error Accepting Incoming Request");
+      setSnackbarSeverity("error");
+      setIsDialogOpen(false)
+      return;
+    }
+  }
+
+  const handleRejectIncomingRequest = async (requestId: string) => {
+    try {
+      const response = await request(
+        `/api/hospital-resources-requests/${requestId}/status/rejected`,
+      {
+        method: "PUT"
+      });
+      console.log("Acceptance PUT result", response);
+      setSnackbarMessage("Request Rejected Successfully!");
+      setSnackbarSeverity("success");
+      setIsDialogOpen(false)
+      return;
+    } catch (error) {
+      console.error("Error updating to Rejected status:", error)
+      setSnackbarMessage("Error Rejecting Incoming Request");
+      setSnackbarSeverity("error");
+      setIsDialogOpen(false)
+      return;
+    }
+  }
 
   useEffect(() => {
     const getHospital = async () => {
@@ -141,7 +190,10 @@ const HospitalResourceRequestsPage: React.FC = () => {
               <IconButton
                 edge="end"
                 size="large"
-                onClick={() => setIsDialogOpen(true)}
+                onClick={() => {
+                  setSelectedRequestId(__hospitalResourceRequest._id);
+                  setIsDialogOpen(true);
+                }}
               >
                 <Arrow />
               </IconButton>
@@ -159,10 +211,10 @@ const HospitalResourceRequestsPage: React.FC = () => {
           <Button onClick={() => setIsDialogOpen(false)} color="secondary">
             CANCEL
           </Button>
-          <Button onClick={() => console.log("accept")} color="primary">
+          <Button onClick={() => handleAcceptIncomingRequest(selectedRequestId!)} color="primary">
             ACCEPT
           </Button>
-          <Button onClick={() => console.log("reject")} color="primary">
+          <Button onClick={() => handleRejectIncomingRequest(selectedRequestId!)} color="primary">
             REJECT
           </Button>
         </DialogActions>
@@ -240,6 +292,20 @@ const HospitalResourceRequestsPage: React.FC = () => {
           },
         ]}
       />
+      <Snackbar
+        open={!!snackbarMessage}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarMessage(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarMessage(null)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
