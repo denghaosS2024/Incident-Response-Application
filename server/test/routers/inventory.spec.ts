@@ -268,5 +268,42 @@ describe("GET /api/inventories/default/item/:itemName", () => {
       expect(body).toBeDefined();
     });
   });
+
+describe("GET /api/inventories/non-default", () => {
+    it("should return all inventories except the default one", async () => {
+      const { body } = await request(app)
+        .get("/api/inventories/non-default")
+        .expect(200);
+
+      expect(body).toHaveLength(1);
+      
+      expect(body[0].category).toBe("truck1");
+
+    });
+
+    it("should return empty array when only default inventory exists", async () => {
+      // Remove all inventories except default
+      await Inventory.deleteMany({ category: { $ne: "default" } });
+
+      const { body } = await request(app)
+        .get("/api/inventories/non-default")
+        .expect(200);
+
+      expect(body).toEqual([]);
+    });
+
+    it("should return empty array when no inventories exist", async () => {
+      // Remove all inventories
+      await Inventory.deleteMany({});
+
+      const { body } = await request(app)
+        .get("/api/inventories/non-default")
+        .expect(200);
+
+      expect(body).toEqual([]);
+    });
+
+
 });
 
+});

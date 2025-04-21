@@ -1,10 +1,15 @@
 import Inventory from "../../src/models/Inventory";
 
 jest.mock("../../src/models/Inventory", () => ({
-  findOne: jest.fn().mockReturnValue({
-    exec: jest.fn().mockResolvedValue({}),
-  }),
+  __esModule: true,
+  default: {
+    findOne: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue({}),
+    }),
+    find: jest.fn(),
+  },
 }));
+
 
 import InventoryController from "../../src/controllers/InventoryController";
 
@@ -145,4 +150,23 @@ describe("InventoryController - Update Item Quantity", () => {
   });
 });
 
+describe("InventoryController - getAllNonDefaultInventories", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should return all inventories with category not equal to 'default'", async () => {
+    const mockInventories = [
+      { category: "truck1", items: [] },
+      { category: "truck2", items: [] },
+    ];
+
+    (Inventory.find as jest.Mock).mockResolvedValue(mockInventories);
+
+    const result = await InventoryController.getAllNonDefaultInventories();
+
+    expect(Inventory.find).toHaveBeenCalledWith({ category: { $ne: "default" } });
+    expect(result).toEqual(mockInventories);
+  });
+});
 });
