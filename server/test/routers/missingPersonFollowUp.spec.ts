@@ -38,10 +38,10 @@ describe("Router - MissingPesonFollowUp", () => {
             datetimeSpotted: "2025-10-25T19:03",
             additionalComment: "some comment"
         };
-        const res = await request(app)
-            .post("/api/missing-person-followup/")
-            .send(newFollowUp)
-            .expect(404);
+        await request(app)
+        .post("/api/missing-person-followup/")
+        .send(newFollowUp)
+        .expect(404);
     })
 
     it('should return 400 if reportId is not valid format (mongo _id hexstring)', async()=> {
@@ -52,10 +52,10 @@ describe("Router - MissingPesonFollowUp", () => {
             datetimeSpotted: "2025-10-25T19:03",
             additionalComment: "some comment"
         };
-        const res = await request(app)
-            .post("/api/missing-person-followup/")
-            .send(newFollowUp)
-            .expect(400);
+        await request(app)
+        .post("/api/missing-person-followup/")
+        .send(newFollowUp)
+        .expect(400);
     })
 
     it('should add Followup info when reference report exist: 201', async() => {
