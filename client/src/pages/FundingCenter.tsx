@@ -51,13 +51,21 @@ const FundingCenter: React.FC = () => {
         setTotalFunds(policeFunding);
       }
 
+      const threshold = 200;
       const incidents = await request(`/api/incidents/${chief.assignedCity}`, {
         method: "GET",
       });
-      const sortedIncidents = incidents.sort(
-        (a: any, b: any) =>
-          new Date(b.openingDate).getTime() - new Date(a.openingDate).getTime(),
-      );
+      const sortedIncidents = incidents.sort((a: any, b: any) => {
+        const aLow = a.fund_left < threshold;
+        const bLow = b.fund_left < threshold;
+
+        if (aLow && !bLow) return -1;
+        if (!aLow && bLow) return 1;
+
+        return (
+          new Date(b.openingDate).getTime() - new Date(a.openingDate).getTime()
+        );
+      });
       setIncidents(sortedIncidents);
     };
 
