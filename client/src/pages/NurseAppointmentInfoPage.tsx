@@ -116,6 +116,7 @@ const NurseAppointmentInfoPage: React.FC = () => {
             <strong>Day:</strong>{" "}
             {
               [
+                "",
                 "Sunday",
                 "Monday",
                 "Tuesday",
