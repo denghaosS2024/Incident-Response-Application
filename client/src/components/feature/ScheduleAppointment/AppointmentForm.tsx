@@ -39,10 +39,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     "Saturday",
   ];
 
-  const formatDay = (slotDay: number): string => {
-    const today = new Date().getDay();
-    const diff = (slotDay - today + 7) % 7;
+  const now = new Date();
+  const today = now.getDay(); // 0 (Sun) - 6 (Sat)
 
+  const formatDay = (slotDay: number): string => {
+    const diff = (slotDay - 1 - today + 7) % 7;
     if (diff === 0) return "today";
     if (diff === 1) return "tomorrow";
     if (slotDay < today) return `next ${dayNames[slotDay]}`;
@@ -122,6 +123,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                 backgroundColor: "#1976d2",
                 color: "white",
                 textAlign: "center",
+                fontSize: "0.8rem",
               }}
             >
               You selected session: {startHour}:00 -- {endHour}:00 on{" "}

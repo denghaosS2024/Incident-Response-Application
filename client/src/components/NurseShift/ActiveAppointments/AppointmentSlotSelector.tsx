@@ -30,8 +30,7 @@ const now = new Date();
 const today = now.getDay(); // 0 (Sun) - 6 (Sat)
 
 const formatDay = (slotDay: number): string => {
-  const diff = (slotDay - today + 7) % 7;
-
+  const diff = (slotDay - 1 - today + 7) % 7;
   if (diff === 0) return "today";
   if (diff === 1) return "tomorrow";
   if (slotDay < today) return `next ${dayNames[slotDay]}`;
