@@ -125,7 +125,7 @@ describe("Router - MissingPesonFollowUp", () => {
     expect(getResult.body[0].reportId).toStrictEqual(reportId);
   })
 
-  it('should return 500 on server/db error', async() => {
+  it('should return 500 on server/db error for get all followups', async() => {
     const reportId = "notexist";
 
     const fakeQuery: Partial<Query<IMissingFollowUp[], IMissingFollowUp>> = {
@@ -168,5 +168,24 @@ describe("Router - MissingPesonFollowUp", () => {
     
     expect(singleGetResult).toBeDefined();
     expect(singleGetResult.body.reportId).toStrictEqual(reportId);
+  })
+
+  it('should return 500 on server/db error for get single followup', async() => {
+    const id = "someid";
+
+    const fakeQuery: Partial<Query<IMissingFollowUp[], IMissingFollowUp>> = {
+        exec: () => Promise.reject(new Error("Mocked MongoDB error")),
+      };
+  
+      // Mock MissingFollowup.find to return the fake query
+      jest
+        .spyOn(MissingFollowUp, "findOne")
+        .mockReturnValue(
+          fakeQuery as Query<IMissingFollowUp[], IMissingFollowUp>,
+        );
+
+    await request(app)
+        .get(`/api/missing-person-followup/single/${id}`)
+        .expect(500)
   })
 });
