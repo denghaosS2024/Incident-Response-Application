@@ -117,7 +117,6 @@ class AppointmentController {
       const appointments = await Appointment.find({
         valid: true,
         isResolved: false,
-        nurseId,
         dayOfWeek,
         startHour,
       });
