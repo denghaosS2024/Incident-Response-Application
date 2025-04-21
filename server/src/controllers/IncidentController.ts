@@ -11,6 +11,7 @@ import { ROLES } from "../utils/Roles";
 import UserConnections from "../utils/UserConnections";
 import CarController from "./CarController";
 import ChannelController from "./ChannelController";
+import SpendingController from "./SpendingController";
 import TruckController from "./TruckController";
 import UserController from "./UserController";
 async function getCommanderRole(commander: string): Promise<string> {
@@ -565,6 +566,16 @@ class IncidentController {
         name: v.name,
         type: v.type,
       });
+
+      // Record spending for vehicle assignment
+      const assignmentCost = v.type === "Car" ? 100 : 250; // Example costs: $100 for cars, $250 for trucks
+      await SpendingController.createSpending(
+        incidentId,
+        assignmentCost,
+        now,
+        `Assignment of ${v.type} ${v.name} to incident`,
+      );
+
       if (v.type == "Car") {
         await CarController.updateIncident(v.name, incidentId);
       } else {
@@ -599,6 +610,16 @@ class IncidentController {
         name: v.name,
         type: v.type,
       });
+
+      // Record spending for vehicle unassignment (refund or return cost)
+      const returnCredit = v.type === "Car" ? -50 : -100; // Example credits: $50 for cars, $100 for trucks
+      await SpendingController.createSpending(
+        incidentId,
+        returnCredit, // Negative amount to represent a credit/refund
+        now,
+        `Return of ${v.type} ${v.name} from incident`,
+      );
+
       if (v.type == "Car") {
         await CarController.updateIncident(v.name, null);
       } else {
@@ -846,8 +867,7 @@ class IncidentController {
     try {
       const incidents = await Incident.find({ city: cityName }).exec();
       return incidents;
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error fetching incidents by city name:", error);
       throw new Error(`Failed to retrieve incidents: ${error}`);
     }

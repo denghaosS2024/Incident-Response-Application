@@ -1,4 +1,4 @@
-import { Document, model, Model, Schema } from "mongoose";
+import { Document, model, Schema } from "mongoose";
 
 export interface ISpending extends Document {
   incidentId: string; // ID of the incident
@@ -7,16 +7,7 @@ export interface ISpending extends Document {
   reason: string; // Name of the resource
 }
 
-interface SpendingModel extends Model<ISpending> {
-  createForIncidents(
-    incidentIds: string[],
-    amount: number,
-    date: Date,
-    reason: string,
-  ): Promise<ISpending[]>;
-}
-
-const SpendingSchema = new Schema<ISpending, SpendingModel>({
+const SpendingSchema = new Schema<ISpending>({
   incidentId: {
     type: String,
     required: true,
@@ -35,21 +26,4 @@ const SpendingSchema = new Schema<ISpending, SpendingModel>({
   },
 });
 
-// Static method to create spendings for multiple incidents
-SpendingSchema.statics.createForIncidents = async function (
-  incidentIds: string[],
-  amount: number[],
-  date: Date,
-  reason: string,
-) {
-  const records = incidentIds.map((incidentId) => ({
-    incidentId,
-    amount,
-    date,
-    reason,
-  }));
-
-  return this.insertMany(records);
-};
-
-export default model<ISpending, SpendingModel>("Spending", SpendingSchema);
+export default model<ISpending>("Spending", SpendingSchema);
