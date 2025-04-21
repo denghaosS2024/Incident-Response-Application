@@ -1,6 +1,7 @@
 import HospitalResourceCard from "@/components/feature/HospitalResources/HospitalResourceCard";
 import { fetchAllHospitalResources } from "@/redux/hospitalResourceSlice";
 import { AppDispatch, RootState } from "@/redux/store";
+import request from "@/utils/request";
 import { Box, TextField, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,12 +22,36 @@ const HospitalResourcesPage: React.FC = () => {
 
   // Local state for search term (UI only, no functionality yet)
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentHospitalId, setCurrentHospitalId] = useState<string | null>(
+    null,
+  );
 
   // Fetch all hospital resources on component mount
   useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const userId = localStorage.getItem("uid");
+        const role = localStorage.getItem("role"); // Get the role from localStorage
+        if (role !== "Nurse") {
+          console.error("User is not a nurse, redirecting to home page");
+          navigate("/"); // Redirect to home page if the user is not a nurse
+          return;
+        }
+        if (!userId) {
+          console.error("User ID not found in localStorage");
+          return;
+        }
+
+        const user = await request(`/api/users/${userId}`, { method: "GET" });
+        setCurrentHospitalId(user.hospitalId);
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+      }
+    };
+
+    fetchCurrentUser();
     dispatch(fetchAllHospitalResources()); // Fetch all resources
   }, [dispatch]);
-
   return (
     <Box sx={{ padding: 2 }}>
       {/* Search Bar */}
@@ -55,7 +80,7 @@ const HospitalResourcesPage: React.FC = () => {
             hospitals={hospitals} // Pass the resource as an array
             onRequest={(hospitalId: string, hospitalResourceId: string) =>
               navigate(
-                `/hospital-resource-request/${hospitalId}/${hospitalResourceId}/add`,
+                `/hospital-resource-request/${currentHospitalId}/${hospitalResourceId}/add`,
               )
             }
           />

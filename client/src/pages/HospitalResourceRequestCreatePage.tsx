@@ -67,7 +67,6 @@ const HospitalResourceRequestCreatePage: React.FC = () => {
       console.log("Request submitted successfully:", response);
       return true;
     } catch (error) {
-      // 捕获 IRequestError 并提取错误信息
       if ((error as IRequestError).message) {
         console.error(
           "Failed to submit request:",
