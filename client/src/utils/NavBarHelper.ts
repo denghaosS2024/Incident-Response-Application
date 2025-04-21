@@ -186,6 +186,10 @@ export default class NavBarHelper {
       title = "Nurse Shift Selector";
     }
 
+    if (pathname.startsWith("/your-appointment")) {
+      title = "Your Appointment";
+    }
+
     return title;
   }
 }
