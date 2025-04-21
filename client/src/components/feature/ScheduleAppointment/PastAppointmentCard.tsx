@@ -1,4 +1,6 @@
+import { ROLES } from "@/utils/Roles";
 import { Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router";
 
 interface PastAppointmentCardProps {
   appointmentId: string;
@@ -13,6 +15,17 @@ const PastAppointmentCard: React.FC<PastAppointmentCardProps> = ({
   issueName,
   closedDate,
 }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    if (localStorage.getItem("role") === ROLES.NURSE) {
+      // TODO: Direct to nurse's past appointment info page
+      // navigate(`/nurse-appointment-info?appointmentId=${encodeURIComponent(appointmentId)}`);
+    } else if (localStorage.getItem("role") === ROLES.CITIZEN) {
+      // TODO: Direct to citizen's past appointment info page
+      // navigate(`/appointment/${appointmentId}`);
+    }
+  };
   return (
     <Box
       key={index}
@@ -26,7 +39,7 @@ const PastAppointmentCard: React.FC<PastAppointmentCardProps> = ({
           backgroundColor: "#f5f5f5",
         },
       }}
-      onClick={() => (window.location.href = `/appointment/${appointmentId}`)}
+      onClick={handleCardClick}
     >
       <Typography>{issueName}</Typography>
       <Typography>

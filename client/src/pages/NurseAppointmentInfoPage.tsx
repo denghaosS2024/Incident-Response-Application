@@ -9,11 +9,12 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import request from "../utils/request";
 
 const NurseAppointmentInfoPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const appointmentId = searchParams.get("appointmentId") ?? "";
   const [appointmentInfo, setAppointmentInfo] = useState<IAppointment>();
   const severityList: string[] = ["Low", "Medium", "High", "Emergency"];
@@ -30,7 +31,6 @@ const NurseAppointmentInfoPage: React.FC = () => {
         setAppointmentInfo(data);
         setSeverityIndex(data.severityIndex);
         setNote(data.note ?? "");
-        console.log("Fetched appointment info:", data);
       } catch (error) {
         console.error("Error fetching appointment info:", error);
       }
@@ -167,7 +167,6 @@ const NurseAppointmentInfoPage: React.FC = () => {
           </Typography>
 
           <Box display="flex" gap={2}>
-            {/* Mark As Resolved - Primary Button */}
             <button
               style={{
                 flex: 1,
@@ -193,7 +192,6 @@ const NurseAppointmentInfoPage: React.FC = () => {
               Mark As Resolved
             </button>
 
-            {/* Past Records - Secondary Button */}
             <button
               style={{
                 flex: 1,
@@ -205,9 +203,11 @@ const NurseAppointmentInfoPage: React.FC = () => {
                 cursor: "pointer",
               }}
               // TODO: Navigate to past records page
-              // onClick={() => {
-              //   navigate(`/appointments/past?userId=${appointmentInfo?.userId}`);
-              // }}
+              onClick={() => {
+                navigate(
+                  `/past-appointment?userId=${encodeURIComponent(appointmentInfo.userId)}`,
+                );
+              }}
             >
               Past Records
             </button>
