@@ -1,4 +1,4 @@
-import { IAppointment } from "@/models/Appointment";
+import { IAppointment, SeverityIndex } from "@/models/Appointment";
 import request from "@/utils/request";
 import {
   Box,
@@ -7,6 +7,7 @@ import {
   MenuItem,
   Select,
   TextField,
+  Typography,
 } from "@mui/material";
 
 import React, { useState } from "react";
@@ -22,8 +23,61 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   endHour,
 }) => {
   const severityList: string[] = ["Low", "Medium", "High", "Emergency"];
+  const username: string = localStorage.getItem("username");
   const [issueName, setIssueName] = useState<string>("");
   const [severityIndex, setSeverityIndex] = useState<number>(-1);
+  const dayOfWeekMap: { [key: string]: number } = {
+    Sunday: 1,
+    Monday: 2,
+    Tuesday: 3,
+    Wednesday: 4,
+    Thursday: 5,
+    Friday: 6,
+    Saturday: 7,
+  };
+
+  const confirmAppointment = async () => {
+    if (severityIndex === -1) {
+      alert("Please select a valid severity level.");
+      return;
+    }
+
+    if (!issueName.trim()) {
+      alert("Issue name cannot be empty.");
+      return;
+    }
+    const appointmentData: IAppointment = {
+      userId,
+      issueName,
+      isResolved: false,
+      severityIndex: severityIndex as SeverityIndex,
+      startHour,
+      endHour,
+      nurseId: undefined,
+      createDate: new Date(),
+      updateDate: new Date(),
+      note: "",
+      closedDate: undefined,
+      dayOfWeek:
+        dayOfWeekMap[new Date().toLocaleString("en-US", { weekday: "long" })],
+      feedback: undefined,
+      valid: true,
+    };
+    try {
+      const appointments = await request(`/api/appointments`, {
+        method: "POST",
+        body: JSON.stringify(appointmentData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (appointments) {
+        window.location.href = "/appointments";
+      }
+    } catch (error) {
+      console.error("Error sending request:", error);
+    }
+  };
 
   return (
     <>
@@ -34,6 +88,18 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           alignItems="center"
           paddingX="32px"
         >
+          <Box width="100%" maxWidth="500px" my={2}>
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              my={2}
+            >
+              <Typography variant="h3" component="div" fontWeight="bold">
+                {username}
+              </Typography>
+            </Box>
+          </Box>
           <Box width="100%" maxWidth="500px" my={2}>
             <Box
               sx={{
@@ -99,30 +165,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                 borderRadius: "8px",
                 cursor: "pointer",
               }}
-              onClick={async () => {
-                const appointmentData: IAppointment = {
-                  userId,
-                  issueName,
-                  isResolved: false,
-                  severityIndex,
-                  // startHour,
-                  // endHour,
-                };
-                try {
-                  const appointments = await request(`/api/appointments`, {
-                    method: "POST",
-                    body: JSON.stringify(appointmentData),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  });
-                  if (appointments) {
-                    window.location.href = "/appointments";
-                  }
-                } catch (error) {
-                  console.error("Error sending request:", error);
-                }
-              }}
+              onClick={confirmAppointment}
             >
               Looks Good!
             </button>
