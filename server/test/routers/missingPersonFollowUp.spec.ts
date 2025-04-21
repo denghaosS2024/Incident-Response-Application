@@ -1,5 +1,6 @@
 import request from "supertest";
 import app from "../../src/app";
+import MissingFollowUp from "../../src/models/MissingFollowUp";
 import { Gender, Race } from "../../src/models/MissingPerson";
 import * as TestDatabase from "../utils/TestDatabase";
 
@@ -77,5 +78,27 @@ describe("Router - MissingPesonFollowUp", () => {
 
         expect(res.body.isSpotted).toBe(true);
         expect(res.body.additionalComment).toBe("some comment");
+    })
+
+    it('should return 500 on any server error', async() => {
+        // add a reference report 
+        const reportId = await createMissingPersonReport(); 
+
+        jest.spyOn(MissingFollowUp.prototype, 'save').mockRejectedValueOnce(
+            new Error("Simulated database failure")
+        );
+
+        // add follow up
+        const newFollowUp = {
+            reportId: reportId,
+            isSpotted: true, 
+            locationSpotted: "some location", 
+            datetimeSpotted: "2025-10-25T19:03",
+            additionalComment: "some comment"
+        };
+        await request(app)
+            .post("/api/missing-person-followup/")
+            .send(newFollowUp)
+            .expect(500);
     })
 });
