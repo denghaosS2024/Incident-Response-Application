@@ -23,11 +23,12 @@ async function getUserRoleMap(usernames: string[]): Promise<Record<string, strin
  * Function: Get chart data formatted for a Pie Chart
  * Returns total counts per label (Incident Type).
  */
-const getPieChartData = async (
+export async function getPieChartData(
   dataType: ChartDataType,
   startDate: Date,
   endDate: Date,
-) => {
+)
+{
   switch (dataType) {
     case ChartDataType.IncidentType:
       return await Incident.aggregate([
@@ -265,11 +266,11 @@ const getPieChartData = async (
  * Function: Get chart data formatted for a Line Chart
  * Returns counts per day grouped by incident type.
  */
-const getLineChartData = async (
+export async function getLineChartData(
   dataType: ChartDataType,
   startDate: Date,
   endDate: Date,
-) => {
+){
   switch (dataType) {
     // -------------------------------------
     // 1) IncidentType

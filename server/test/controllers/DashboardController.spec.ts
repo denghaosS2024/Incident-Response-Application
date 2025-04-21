@@ -2,11 +2,184 @@ import { Request, Response } from "express";
 import {
   createChart,
   deleteChart,
-  modifyChart,
+  getBarChartData,
+  getCharts,
+  getLineChartData,
+  getPieChartData,
+  modifyChart
 } from "../../../server/src/controllers/DashboardController";
+import User from "../../../server/src/models/User";
 import Chart, { ChartDataType, ChartType } from "../../src/models/Dashboard";
+import Incident from "../../src/models/Incident";
+
 
 jest.mock("../../src/models/Dashboard");
+jest.mock("../../src/models/Incident");
+jest.mock("../../src/models/Message");
+jest.mock("../../src/models/Patient");
+jest.mock("../../src/models/User");
+
+const mockRes = () => {
+  const json = jest.fn();
+  const status = jest.fn(() => ({ json })) as any;
+  return { status, json };
+};
+
+describe("DashboardController Chart Data", () => {
+  const startDate = new Date("2025-03-01");
+  const endDate = new Date("2025-03-10");
+
+  describe("getPieChartData", () => {
+    it("returns incident type data", async () => {
+      (Incident.aggregate as jest.Mock).mockResolvedValue([
+        { _id: "F", count: 5 },
+        { _id: "M", count: 3 },
+      ]);
+      const result = await getPieChartData(ChartDataType.IncidentType, startDate, endDate);
+      expect(result.labels).toEqual(["F", "M"]);
+      expect(result.datasets[0].data).toEqual([5, 3]);
+    });
+
+    it("returns incident priority data", async () => {
+      (Incident.aggregate as jest.Mock).mockResolvedValue([
+        { _id: "E", count: 2 },
+        { _id: "One", count: 4 },
+      ]);
+      const result = await getPieChartData(ChartDataType.IncidentPriority, startDate, endDate);
+      expect(result.labels).toContain("E");
+    });
+
+    it("returns SAR victims data", async () => {
+      const mockIncidentData = [
+        {
+          sarTasks: [
+            { victims: [1, 2, 0, 0, 1] },
+            { victims: [2, 0, 1, 0, 0] },
+          ],
+        },
+      ];
+
+      (Incident.find as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockIncidentData),
+      });
+
+      const data = await getPieChartData(
+        ChartDataType.SARVictims,
+        new Date("2025-03-01"),
+        new Date("2025-04-01"),
+      );
+
+      expect(data.labels).toEqual([
+        "Immediate",
+        "Urgent",
+        "Could Wait",
+        "Dismiss",
+        "Deceased",
+      ]);
+      expect(data.datasets[0].data).toEqual([3, 2, 1, 0, 1]);
+    });
+  });
+
+  describe("getLineChartData", () => {
+    it("returns incident state over time", async () => {
+      (Incident.aggregate as jest.Mock).mockResolvedValue([
+        { _id: { date: "2025-03-01", state: "Waiting" }, count: 1 },
+        { _id: { date: "2025-03-01", state: "Assigned" }, count: 2 },
+      ]);
+      const result = await getLineChartData(ChartDataType.IncidentState, startDate, endDate);
+      expect(result.labels).toContain("2025-03-01");
+      expect(result.datasets.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("getPieChartData", () => {
+    it("returns incident resources data", async () => {
+      const mockIncidents = [
+        {
+          commander: "Commander1",
+          assignedVehicles: [
+            {
+              type: "Car",
+              usernames: ["Police1", "Fire1"],
+            },
+            {
+              type: "Truck",
+              usernames: ["Fire2"],
+            },
+          ],
+        },
+        {
+          commander: "Commander2",
+          assignedVehicles: [
+            {
+              type: "Truck",
+              usernames: ["Police2"],
+            },
+          ],
+        },
+      ];
+
+      const mockUsers = [
+        { username: "Police1", role: "Police" },
+        { username: "Police2", role: "Police" },
+        { username: "Fire1", role: "Fire" },
+        { username: "Fire2", role: "Fire" },
+      ];
+
+      (Incident.find as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockIncidents),
+      });
+      
+      (User.find as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUsers),
+      });
+
+      const data = await getPieChartData(
+        ChartDataType.IncidentResources,
+        new Date("2025-03-01"),
+        new Date("2025-04-01"),
+      );
+
+      expect(data.labels).toEqual([
+        "Commanders",
+        "Police Officers",
+        "Firefighters",
+        "Cars",
+        "Trucks",
+      ]);
+
+      // 2 commanders, 2 police, 2 fire, 1 car, 2 trucks
+      expect(data.datasets[0].data).toEqual([2, 2, 2, 1, 2]);
+    });
+  });
+
+  describe("getBarChartData", () => {
+    it("returns incident state grouped by day", async () => {
+      (Incident.aggregate as jest.Mock).mockResolvedValue([
+        { _id: { date: "2025-03-01", state: "Triage" }, count: 2 },
+        { _id: { date: "2025-03-02", state: "Triage" }, count: 3 },
+      ]);
+      const result = await getBarChartData(ChartDataType.IncidentState, startDate, endDate);
+      expect(result.labels).toContain("Triage");
+      expect(result.datasets.find((d) => d.label === "2025-03-02")).toBeDefined();
+    });
+  });
+
+  describe("getCharts", () => {
+    it("returns all charts for a user", async () => {
+      const mockCharts = [{ name: "Chart A" }, { name: "Chart B" }];
+      (Chart.find as jest.Mock).mockResolvedValue(mockCharts);
+      const req = {
+        params: { userId: "user123" },
+      } as unknown as Request;
+      const res = mockRes();
+
+      await getCharts(req, res as unknown as Response);
+      expect(res.json).toHaveBeenCalledWith({ charts: mockCharts });
+    });
+  });
+});
+
 
 describe("ChartController Unit Tests", () => {
   let req: Partial<Request>;
