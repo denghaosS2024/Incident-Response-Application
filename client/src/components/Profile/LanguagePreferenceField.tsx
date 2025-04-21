@@ -7,30 +7,15 @@ import {
   Switch,
 } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material/Select";
-import { ILanguagePreference } from "../../models/Profile.ts";
 import React from "react";
+import { ILanguagePreference } from "../../models/Profile.ts";
+import { SUPPORTED_LANGUAGES } from "../../utils/SupportedLanguages.ts";
 
 interface LanguagePreferenceFieldProps {
   languagePreference: ILanguagePreference;
   onLanguagePreferenceChange: (newData: ILanguagePreference) => void;
   isReadOnly?: boolean;
 }
-
-// List of common languages - can be updated based on actual supported languages
-const SUPPORTED_LANGUAGES = [
-  "English",
-  "Spanish",
-  "French",
-  "German",
-  "Chinese",
-  "Japanese",
-  "Korean",
-  "Arabic",
-  "Russian",
-  "Portuguese",
-  "Italian",
-  "Hindi",
-];
 
 export default function LanguagePreferenceField({
   languagePreference,
@@ -39,9 +24,11 @@ export default function LanguagePreferenceField({
 }: LanguagePreferenceFieldProps) {
   const handleLanguagesChange = (event: SelectChangeEvent<string[]>) => {
     const value = event.target.value;
+    const selectedLanguages =
+      typeof value === "string" ? value.split(",") : value;
     onLanguagePreferenceChange({
       ...languagePreference,
-      languages: typeof value === "string" ? value.split(",") : value,
+      languages: selectedLanguages,
     });
   };
 
@@ -78,8 +65,8 @@ export default function LanguagePreferenceField({
           disabled={isReadOnly}
         >
           {SUPPORTED_LANGUAGES.map((language) => (
-            <MenuItem key={language} value={language}>
-              {language}
+            <MenuItem key={language.languageCode} value={language.savedName}>
+              {language.displayName}
             </MenuItem>
           ))}
         </Select>
@@ -97,8 +84,8 @@ export default function LanguagePreferenceField({
           disabled={isReadOnly}
         >
           {SUPPORTED_LANGUAGES.map((language) => (
-            <MenuItem key={language} value={language}>
-              {language}
+            <MenuItem key={language.languageCode} value={language.savedName}>
+              {language.displayName}
             </MenuItem>
           ))}
         </Select>
