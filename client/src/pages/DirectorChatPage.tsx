@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router";
 import {
   Box,
@@ -59,8 +59,16 @@ const DirectorChatPage: React.FC = () => {
     setOpen(false);
   };
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [history]);
+
   return (
-    <Box p={2}>
+    <Box p={2} height="100vh" display="flex" flexDirection="column">
       <Box
         display={"flex"}
         sx={{ mb: 2 }}
@@ -79,7 +87,9 @@ const DirectorChatPage: React.FC = () => {
           {currentRole == "City Director" ? "Assign" : "Request"}
         </Button>
       </Box>
-      <FundingHistoryList fundingHistory={history} />
+      <Box flex={1} overflow="auto" sx={{ pr: 1 }} ref={scrollRef}>
+        <FundingHistoryList fundingHistory={history} />
+      </Box>
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
