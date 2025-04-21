@@ -306,6 +306,22 @@ class CityController {
       throw new HttpError("Fail to fetch unassigned funding requests:", 500);
     }
   }
+
+  async updateCityRemainingFunding(cityName: string, amount: number) {
+    try {
+      const city = await City.findOne({ name: cityName });
+      if (!city) {
+        throw new Error(`City '${cityName}' does not exist in the database`);
+      }
+      city.remainingFunding = amount;
+      city.save();
+      console.log(city);
+      return city;
+    } catch (error) {
+      console.log("Error fetching remaining funding:", error);
+      throw new HttpError("Fail to fetch remaining funding:", 500);
+    }
+  }
 }
 
 export default new CityController();

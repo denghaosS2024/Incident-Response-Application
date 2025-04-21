@@ -424,4 +424,22 @@ cityRouter.get(
   },
 );
 
+cityRouter.post(
+  "/remaining-funding/:cityName",
+  async (req: Request, res: Response) => {
+    try {
+      const { cityName } = req.params;
+      const { amount } = req.body;
+      const funding = await CityController.updateCityRemainingFunding(
+        cityName,
+        amount,
+      );
+      res.json(funding);
+    } catch (err) {
+      const error = err as Error;
+      res.status(400).json({ error: error.message });
+    }
+  },
+);
+
 export default cityRouter;

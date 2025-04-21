@@ -23,6 +23,7 @@ const FundingCenter: React.FC = () => {
   const userRole = localStorage.getItem("role");
   const username = localStorage.getItem("username");
   const [totalFunds, setTotalFunds] = useState<number>(0);
+  const [assignedCity, setAssignedCity] = useState<string>("");
   const [incidents, setIncidents] = useState<IIncident[]>([]);
   const [departmentRequests, setDepartmentRequests] = useState<
     IDepartmentFunding[]
@@ -46,10 +47,31 @@ const FundingCenter: React.FC = () => {
     }
   };
 
+  const handleChat = async (chiefName: string, department: string) => {
+    const chief = await request(`/api/users/usernames/${chiefName}`, {
+      method: "GET",
+    });
+    const res = await request(
+      `/api/users/cities/directors/${chief.assignedCity}`,
+      { method: "GET" },
+    );
+
+    if (res.role) {
+      if (department == "Fire") {
+        navigate(`/directorchatroom/${chief.assignedCity}/Fire%20Chief`);
+      } else {
+        navigate(`/directorchatroom/${chief.assignedCity}/Police%20Chief`);
+      }
+    } else {
+      alert(res.message);
+    }
+  };
+
   const fetchData = async () => {
     const user = await request(`/api/users/usernames/${username}`, {
       method: "GET",
     });
+    setAssignedCity(user.assignedCity);
 
     if (userRole === "Fire Chief") {
       const fireFunding = await request(
@@ -151,7 +173,11 @@ const FundingCenter: React.FC = () => {
               Chat With Director
             </Button>
           </Typography>
-          <FundingSummaryCard totalFunds={totalFunds} />
+          <FundingSummaryCard
+            totalFunds={totalFunds}
+            role={userRole}
+            cityName={assignedCity}
+          />
           <IncidentList incidents={incidents} />
         </>
       );
@@ -162,11 +188,15 @@ const FundingCenter: React.FC = () => {
             Funding Center
           </Typography>
 
-          <FundingSummaryCard totalFunds={totalFunds} />
+          <FundingSummaryCard
+            totalFunds={totalFunds}
+            role={userRole}
+            cityName={assignedCity}
+          />
 
           <DepartmentFundingTable
             departmentRequests={departmentRequests}
-            onChatClick={handleChatDirector}
+            onChatClick={handleChat}
           />
         </>
       );
