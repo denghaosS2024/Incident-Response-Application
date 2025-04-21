@@ -32,8 +32,13 @@ const ActiveAppointments = () => {
   }, []);
 
   return (
-    <Box>
-      <Typography variant="h5" fontWeight="bold" gutterBottom>
+    <Box mt={2}>
+      <Typography
+        variant="h5"
+        fontWeight="500"
+        gutterBottom
+        sx={{ mb: 2, paddingX: "4px" }}
+      >
         Active Appointments
       </Typography>
       <Box display="flex" flexDirection="column" gap={2}>

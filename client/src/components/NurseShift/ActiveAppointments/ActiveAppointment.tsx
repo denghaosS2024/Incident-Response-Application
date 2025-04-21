@@ -35,37 +35,75 @@ const ActiveAppointment: React.FC<ActiveAppointmentProps> = ({
     navigate(`/nurse-appointment-info?appointmentId=${appointmentld}`);
   };
 
+  // Format the time better
+  const formatTime = (hour: number) => {
+    const period = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+    return `${displayHour}:00 ${period}`;
+  };
+
+  const timeDisplay = `${formatTime(startHour)} Today`;
+
   return (
-    <Box display="flex">
-      <Box>
-        <Person2Outlined fontSize="small" />
+    <Box
+      sx={{
+        display: "flex",
+        p: 0, // Remove default padding
+        pt: 1.5,
+        pb: 1.5,
+        pl: 0.5,
+        pr: 0.5,
+        borderRadius: 1,
+        border: "1px solid #e0e0e0",
+        boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+        mb: 1,
+        "&:hover": {
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+        },
+        cursor: "pointer",
+      }}
+      onClick={handleClick}
+    >
+      <Box sx={{ mx: 2, mt: 0.5, display: "flex", alignItems: "flex-start" }}>
+        <Person2Outlined fontSize="small" sx={{ color: "text.secondary" }} />
       </Box>
-      <Box>
-        <Typography variant="h6" fontWeight="bold">
-          {/* Patient Name */}
+      <Box sx={{ flexGrow: 1, pr: 2 }}>
+        <Typography
+          variant="subtitle1"
+          fontWeight="500"
+          gutterBottom
+          sx={{ mb: 0.5 }}
+        >
           {patientName}
         </Typography>
-        <Typography variant="body2" color="textSecondary">
-          {/* Issue Name */}
-          {/* Original Issue: Breast Pain from car crash */}
-          Issue: {issueName}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: 0.5, lineHeight: 1.4 }}
+        >
+          Original Issue: {issueName}
         </Typography>
-        <Typography variant="body2" color="textSecondary">
-          {/* Appointment Time */}
-          {/* Time: 7PM Today */}
-          Time: {startHour}:00
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: 0.5, lineHeight: 1.4 }}
+        >
+          Time: {timeDisplay}
         </Typography>
-        <Typography variant="body2" color="textSecondary">
-          {/* Severity Index */}
-          {/* Priority: High */}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ lineHeight: 1.4 }}
+        >
           Priority: {getSeverityLabel(severityIndex)}
         </Typography>
       </Box>
-      <Box>
+      <Box sx={{ display: "flex", alignItems: "center", pr: 2 }}>
         <PlayArrowRounded
-          fontSize="small"
-          sx={{ cursor: "pointer" }}
-          onClick={handleClick}
+          sx={{
+            color: "text.secondary",
+            fontSize: 20,
+          }}
         />
       </Box>
     </Box>

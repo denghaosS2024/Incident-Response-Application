@@ -44,13 +44,13 @@ const NurseShiftStatus: React.FC = () => {
   }
 
   return (
-    <Box display="flex" justifyContent="center" my={2}>
+    <Box display="flex" justifyContent="center" my={2} py={1}>
       <Typography
         variant="h6"
         sx={{
           fontWeight: "bold",
           color: displayColor,
-          fontSize: "20px",
+          fontSize: "24px",
         }}
       >
         {displayText}

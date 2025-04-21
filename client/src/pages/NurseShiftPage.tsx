@@ -1,5 +1,6 @@
 import ActiveAppointments from "@/components/NurseShift/ActiveAppointments";
 import NurseShiftStatus from "@/components/NurseShift/NurseShiftStatus";
+import { ArrowForwardIos } from "@mui/icons-material";
 import { Box, Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router";
 
@@ -15,15 +16,17 @@ export default function NurseShiftPage() {
       sx={{
         maxWidth: "600px",
         marginX: "auto",
-        paddingX: "1.5rem",
-        paddingTop: "1rem",
+        paddingX: "16px",
+        paddingTop: "16px",
+        backgroundColor: "#FFFFFF",
+        minHeight: "100vh",
       }}
     >
       <Typography variant="h5" fontWeight="bold" gutterBottom>
         Nurse Shifts
       </Typography>
 
-      <Typography variant="body1" color="textSecondary">
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
         Don't leave your patients behind!
       </Typography>
 
@@ -34,7 +37,16 @@ export default function NurseShiftPage() {
           variant="contained"
           color="primary"
           fullWidth
-          sx={{ maxWidth: 300 }}
+          endIcon={<ArrowForwardIos sx={{ fontSize: 18, marginLeft: 1 }} />}
+          sx={{
+            maxWidth: "100%",
+            textTransform: "none",
+            py: 1.5,
+            borderRadius: 2,
+            boxShadow: 1,
+            justifyContent: "space-between",
+            padding: "12px 20px", // Increased horizontal padding
+          }}
           onClick={handleMyShiftsClick}
         >
           My Shifts
