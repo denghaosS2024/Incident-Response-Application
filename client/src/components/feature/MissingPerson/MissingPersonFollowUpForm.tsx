@@ -30,6 +30,17 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
   const [dateTime, setDateTime] = useState("");
   const [additionalComment, setAdditionalComment] = useState("");
 
+  function getLocalDateTimeString() {
+    const now = new Date(); 
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  }
+  // get local datetime on render for autopopulate 
+  useEffect(() => {
+    if (!readonly) {
+      setDateTime(getLocalDateTimeString());
+    }
+  }, []);
   // Fetch existing follow-up info if in readonly mode
   useEffect(() => {
     if (readonly && followUpId) {
@@ -169,7 +180,7 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
         />
       )}
       <TextField
-        label="Date & Time Spotted"
+        label="Date & Time Reporting"
         type="datetime-local"
         name="date"
         variant="outlined"
