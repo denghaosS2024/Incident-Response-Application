@@ -1,25 +1,19 @@
 import GenericItemizeContainer from "@/components/GenericItemizeContainer";
 import IHospital from "@/models/Hospital";
 import HospitalResource from "@/models/HospitalResource";
-import { Add, NavigateNext as Arrow } from "@mui/icons-material";
-import {
-  Box,
-  FormControl,
-  IconButton,
-  InputLabel,
-  Select,
-} from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import request from "../utils/request";
-import { AppDispatch, RootState } from "@/redux/store";
-import { useDispatch, useSelector } from "react-redux";
 import { IHospitalResourceRequest } from "@/models/HospitalResourceRequest";
 import {
   fetchIncomingHospitalResourceRequests,
   fetchOutgoingHospitalResourceRequests,
 } from "@/redux/hospitalResourceRequestSlice";
 import { fetchHospitalResourcesForSpecificHospital } from "@/redux/hospitalResourceSlice";
+import { AppDispatch, RootState } from "@/redux/store";
+import { NavigateNext as Arrow } from "@mui/icons-material";
+import { Box, IconButton } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router";
+import request from "../utils/request";
 
 const HospitalResourceRequestsPage: React.FC = () => {
   const incomingRequests: IHospitalResourceRequest[] = useSelector(
@@ -88,10 +82,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
 
   // Handle redirection to see details of an exisiting resource
   const redirectToIncomingHospitalResourceDetails = (requestId: string) => {
-
-    navigate(
-      `/register-hospital/${hospitalId}/requests/${requestId}`
-    );
+    navigate(`/hospital-resource-request//${hospitalId}/${requestId}`);
   };
 
   return (

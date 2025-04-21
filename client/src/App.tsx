@@ -20,6 +20,7 @@ import GroupInformationPage from "./pages/GroupInformationPage";
 import GroupsPage from "./pages/GroupsPage";
 import HomePage from "./pages/HomePage";
 import HospitalResourceDirectoryPage from "./pages/HospitalResourceDirectoryPage.tsx";
+import HospitalResourceRequestCreatePage from "./pages/HospitalResourceRequestCreatePage.tsx";
 import HospitalResourceRequestEditPage from "./pages/HospitalResourceRequestEditPage.tsx";
 import HospitalResourceRequestsPage from "./pages/HospitalResourceRequestsPage.tsx";
 import HospitalResourcesPage from "./pages/HospitalResourcesPage.tsx";
@@ -141,30 +142,34 @@ export default function App() {
               element={<StatisticsPage />}
             />
             <Route
-              path="/register-hospital/resources/directory"
+              path="/hospital-resource/directory"
               element={<HospitalResourceDirectoryPage />}
             />
             <Route
-              path="/register-hospital/:hospitalId/resources"
+              path="/hospital/:hospitalId/resources"
               element={<HospitalResourcesPage />}
             />
             <Route
-              path="/register-hospital/:hospitalId/resources/newResource"
+              path="/hospital/:hospitalId/resource/add"
               element={<HospitalResourceForm />}
             />
 
             <Route
-              path="/register-hospital/:hospitalId/resources/newResource/:resourceId"
+              path="/hospital/:hospitalId/resource/:resourceId/update"
               element={<HospitalResourceForm />}
             />
 
             <Route
-              path="/register-hospital/:hospitalId/requests"
+              path="/hospital/:hospitalId/resource-request/directory"
               element={<HospitalResourceRequestsPage />}
             />
             <Route
-              path="/register-hospital/:hospitalId/requests/:requestId"
+              path="/hospital-resource-request/:hospitalId/:requestId"
               element={<HospitalResourceRequestEditPage />}
+            />
+            <Route
+              path="/hospital-resource-request/:senderHospitalId/:hospitalResourceId/add"
+              element={<HospitalResourceRequestCreatePage />}
             />
 
             <Route

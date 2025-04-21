@@ -286,7 +286,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
   };
 
   const hospitalResources = () => {
-    navigate("/register-hospital/resources/directory");
+    navigate("/hospital-resource/directory");
   };
 
   const findHospital = () => {

@@ -52,8 +52,8 @@ const HospitalResourcesPage: React.FC = () => {
             key={resourceName} // Use a unique key
             resourceName={resourceName} // Assuming hospitalId is the name or ID
             hospitals={hospitals} // Pass the resource as an array
-            onRequest={(hospitalId) =>
-              navigate(`/register-hospital/${hospitalId}/requests`)
+            onRequest={(hospitalId:string, hospitalResourceId:string) =>
+              navigate(`/hospital-resource-request/${hospitalId}/${hospitalResourceId}/add`)
             }
           />
         ))

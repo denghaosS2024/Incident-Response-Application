@@ -64,7 +64,6 @@ const RegisterHospital: React.FC = () => {
     hospitalData.hospitalAddress ?? "",
   );
 
-
   /* ------------------------------ USE EFFECTS ------------------------------ */
 
   useEffect(() => {
@@ -343,11 +342,11 @@ const RegisterHospital: React.FC = () => {
   };
 
   const navigateToResources = () => {
-    navigate('resources');
-  }
+    navigate(`/hospital/${hospitalId}/resources`);
+  };
 
   const navigateToRequests = () => {
-    navigate("requests");
+    navigate(`/hospital/${hospitalId}/resource-request/directory`);
   };
 
   /* Handle deletion of existing hospital (SEM-2565) */
@@ -574,10 +573,9 @@ const RegisterHospital: React.FC = () => {
             className="m-2 w-[45%] self-center"
             variant="contained"
             color="primary"
-     
             onClick={navigateToRequests}
           >
-            Manage Requests 
+            Manage Requests
           </Button>
 
           <Button
