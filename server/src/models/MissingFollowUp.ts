@@ -32,7 +32,7 @@ export const MissingPersonFollowUpSchema = new Schema({
   },
   locationSpotted: {
     type: String,
-    required: true,
+    required: false,
   },
   datetimeSpotted: {
     type: Date,

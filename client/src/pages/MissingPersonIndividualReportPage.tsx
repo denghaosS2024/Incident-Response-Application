@@ -1,5 +1,6 @@
 // src/pages/MissingPersonIndividualReportPage.tsx
 
+import IFollowUpInfo from "@/models/FollowUpInfo";
 import { Box, Button, Container, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -18,6 +19,8 @@ const MissingPersonIndividualReportPage: React.FC = () => {
   const { reportId } = useParams<{ reportId: string }>();
   const [person, setPerson] = useState<IMissingPerson | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [followUps, setFollowUps] = useState<IFollowUpInfo[]>([]);
+
 
   useEffect(() => {
     if (!reportId) return;
@@ -32,6 +35,17 @@ const MissingPersonIndividualReportPage: React.FC = () => {
         const e = err as IRequestError;
         setErrorMessage(e.message ?? "Failed to load report");
       });
+
+    request<IFollowUpInfo[]>(
+      `/api/missing-person-followup/report/${reportId}`
+    )
+    .then((data) => {
+      console.log("followups",data);
+      setFollowUps(data)})
+    .catch((err) => {
+      const e = err as IRequestError;
+      setErrorMessage(e.message ?? "Failed to load followups");
+    });
   }, [reportId]);
 
   // show error if fetch failed
@@ -60,7 +74,7 @@ const MissingPersonIndividualReportPage: React.FC = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => addFollowUp("123")}
+              onClick={() => addFollowUp(reportId!)}
             >
               Add Follow-Up
             </Button>

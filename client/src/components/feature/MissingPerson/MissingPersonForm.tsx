@@ -235,7 +235,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               name="dateLastSeen"
               label="Date Last Seen"
               type="date"
-              value={formData.dateLastSeen.toISOString().split("T")[0]}
+              value={new Date(formData.dateLastSeen).toISOString().split("T")[0]}
               onChange={handleInputChange}
               InputLabelProps={{ shrink: true }}
               fullWidth

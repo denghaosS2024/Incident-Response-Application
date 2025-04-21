@@ -104,8 +104,10 @@ export default class NavBarHelper {
     }
 
     if (pathname.startsWith("/missing-person/report/")) {
-      title = keyName
-        ? `${keyName} Missing Report Overview`
+      const urlParams = new URLSearchParams(window.location.search);
+      const name = urlParams.get('name');
+      title = name
+        ? `${name} Missing Report Overview`
         : "Missing Report Overview";
     }
 

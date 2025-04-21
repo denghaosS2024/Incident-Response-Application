@@ -1,15 +1,19 @@
 import CameraCapture from '@/components/CameraCapture';
 import AlertSnackbar from "@/components/common/AlertSnackbar";
 import IFollowUpInfo from '@/models/FollowUpInfo';
+import request from '@/utils/request';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { Box, Button, Checkbox, Container, Dialog, FormControlLabel, IconButton, Menu, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 interface FollowUpFormProps {
   reportId: string
 }
 
 const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
+  const navigate = useNavigate();
+
   const [physicallySeen, setPhysicallySeen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openCamera, setOpenCamera] = useState(false);
@@ -52,7 +56,7 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
   const handleOpenFileUpload = () => setOpenFileUpload(true);
   const handleCloseFileUpload = () => setOpenFileUpload(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async() => {
     if (physicallySeen && !location.trim() ) {
       setSnackbarMessage("Please fill out Location Spotted");
       setSnackbarSeverity("error");
@@ -68,16 +72,37 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId}) => {
       const followUpInfo: IFollowUpInfo = {
         reportId: reportId,
         isSpotted: physicallySeen ,
-        location: location,
-        dateTimeSpotted: new Date(dateTime),
+        locationSpotted: location,
+        datetimeSpotted: new Date(dateTime),
         additionalComment: additionalComment
       }
 
       console.log(JSON.stringify(followUpInfo));
-    setSnackbarMessage("Follow-up submitted!");
-    setSnackbarSeverity("success");
-    setSnackbarOpen(true);
-    return;
+
+      const postResult = await request<IFollowUpInfo>(
+        "/api/missing-person-followup/",
+        {
+          method: "POST",
+          body: JSON.stringify(followUpInfo),
+        },
+        false,
+      );
+      if (postResult) {
+        setSnackbarMessage("Follow-up submitted!");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
+
+        setTimeout(() => {
+          setSnackbarOpen(false);
+          navigate(-1);
+        }, 2000);
+        return;
+      } else {
+        setSnackbarMessage("Server Error on Follow-up submission");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        return;
+      }
     }
   };
   

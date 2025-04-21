@@ -57,7 +57,7 @@ const MissingPersonDirectoryPage: React.FC = () => {
               key={p._id}
               person={p}
               showAction
-              onActionClick={() => navigate(`/missing-person/report/${p._id}`)}
+              onActionClick={() => navigate(`/missing-person/report/${p._id}?name=${p.name}`)}
             />
           ))
         ) : (

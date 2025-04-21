@@ -2,8 +2,8 @@ export default interface IFollowUpInfo {
     _id?: string; // MongoDB id of the hospital
     reportId: string 
     isSpotted: boolean 
-    location: string 
-    dateTimeSpotted: Date
+    locationSpotted: string 
+    datetimeSpotted: Date
     timestamp?: Date 
     additionalComment: string
 
