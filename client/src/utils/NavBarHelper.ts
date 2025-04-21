@@ -174,6 +174,14 @@ export default class NavBarHelper {
       title = "Funding History";
     }
 
+    if (pathname.startsWith("/shifts")) {
+      title = "Nurse Shifts";
+    }
+
+    if (pathname.startsWith("/shifts/mine")) {
+      title = "Nurse Shift Selector";
+    }
+
     return title;
   }
 }

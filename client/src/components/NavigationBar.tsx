@@ -316,7 +316,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
           )} */}
 
           {/* Nurse-only menu items */}
-          {role === "Nurse" && <>{nurseHooks.map(createMenuItem)}</>}
+          {role === "Nurse" ? nurseHooks.map(createMenuItem) : []}
 
           {/* {role === "Nurse" && {
             ...nurseHooks.map((hook) => (

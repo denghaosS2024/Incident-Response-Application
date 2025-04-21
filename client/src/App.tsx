@@ -6,10 +6,12 @@ import { Route, BrowserRouter as Router, Routes } from "react-router";
 import HospitalResourceForm from "./components/feature/HospitalResources/HospitalResourceForm.tsx";
 import AppointmentSchedulerPage from "./pages/AppointmentSchedulerPage.tsx";
 import ChatRoomPage from "./pages/ChatRoomPage";
+import ChiefFundingHistory from "./pages/ChiefFundingHistory.tsx";
 import Contacts from "./pages/Contacts";
 import CreatechartPage from "./pages/CreatechartPage.tsx";
 import DashboardPage from "./pages/DashboardPage";
 import DefaultTruckInventory from "./pages/DefaultTruckInventory.tsx";
+import DirectorChatPage from "./pages/DirectorChatPage.tsx";
 import ExerciseLibraryPage from "./pages/ExerciseLibraryPage";
 import FindHospital from "./pages/FindHospital";
 import FirstResponderPatientsPage from "./pages/FirstResponderPatientsPage";
@@ -39,6 +41,7 @@ import MissingPersonUpdatePage from "./pages/MissingPersonUpdatePage.tsx";
 import NurseAppointmentInfoPage from "./pages/NurseAppointmentInfoPage.tsx";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
 import NurseShiftPage from "./pages/NurseShiftPage";
+import NurseShiftSelector from "./pages/NurseShiftSelector.tsx";
 import Organization from "./pages/Organization";
 import PastAppointmentPage from "./pages/PastAppointmentPage.tsx";
 import PatientAdmitPage from "./pages/PatientAdmitPage.tsx";
@@ -63,8 +66,6 @@ import YourAppointmentPage from "./pages/YourAppointmentPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
-import DirectorChatPage from "./pages/DirectorChatPage.tsx";
-import ChiefFundingHistory from "./pages/ChiefFundingHistory.tsx";
 
 export default function App() {
   //Feature toggling: show the hospitals directory page only when the flag is enabled
@@ -219,6 +220,7 @@ export default function App() {
             />
             <Route path="/truck-stock" element={<TruckStockPage />} />
             <Route path="/shifts" element={<NurseShiftPage />} />
+            <Route path="/shifts/mine" element={<NurseShiftSelector />} />
             <Route path="/past-appointment" element={<PastAppointmentPage />} />
             <Route path="/your-appointment" element={<YourAppointmentPage />} />
             <Route
