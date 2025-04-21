@@ -24,6 +24,7 @@
     "chart.js": "^4.4.8",
     "classnames": "^2.3.2",
     "date-fns": "^4.1.0",
+    "heic2any": "^0.0.4",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "launchdarkly-react-client-sdk": "^3.6.1",
