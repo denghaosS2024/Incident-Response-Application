@@ -318,4 +318,115 @@ describe("City Routes", () => {
       expect(response.body.error).toMatch(/Invalid type/i);
     });
   });
+
+  describe("POST /api/cities/funding-history/:cityName/:role", () => {
+    beforeAll(async () => {
+      await City.create({ name: "fundingCity" });
+    });
+
+    afterAll(async () => {
+      await City.deleteMany({ name: "fundingCity" });
+      await Personnel.deleteMany({ name: "firechief1" });
+    });
+
+    it("should post a history record successfully", async () => {
+      const sender = new Personnel({
+        username: "firechief1",
+        password: "test123",
+        role: "Fire Chief",
+        assignedCity: "fundingCity",
+      });
+      await sender.save();
+      const res = await request(app)
+        .post("/api/cities/funding-history/fundingCity/Fire Chief")
+        .set("x-application-uid", sender._id.toString())
+        .send({
+          type: "Request",
+          amount: 4000,
+          reason: "need new hose",
+        })
+        .expect(201);
+
+      expect(res.body).toHaveProperty("fireFundingHistory");
+      expect(res.body.fireFundingHistory).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: "Request",
+            reason: "need new hose",
+            amount: 4000,
+          }),
+        ]),
+      );
+    });
+
+    it("should return 400 if city does not exist", async () => {
+      const sender = new Personnel({
+        username: "firechief2",
+        password: "test123",
+        role: "Fire Chief",
+        assignedCity: "fundingCity",
+      });
+      await sender.save();
+      await request(app)
+        .post("/api/cities/funding-history/noCity/Fire Chief")
+        .set("x-application-uid", sender._id.toString())
+        .send({
+          type: "Request",
+          amount: 4000,
+          reason: "need new hose",
+        })
+        .expect(400);
+    });
+  });
+
+  describe("GET /api/cities/funding-history/:cityName/:role", () => {
+    beforeAll(async () => {
+      await City.create({ name: "fundingCity" });
+    });
+
+    afterAll(async () => {
+      await City.deleteMany({ name: "fundingCity" });
+      await Personnel.deleteMany({ name: "firechief3" });
+    });
+
+    it("should post a history record successfully", async () => {
+      const sender = new Personnel({
+        username: "firechief3",
+        password: "test123",
+        role: "Fire Chief",
+        assignedCity: "fundingCity",
+      });
+      await sender.save();
+
+      await City.updateOne(
+        { name: "fundingCity" },
+        {
+          $inc: { fireFunding: 4000 },
+          $push: {
+            fireFundingHistory: {
+              type: "Request",
+              amount: 4000,
+              reason: "need new house",
+              timestamp: new Date(),
+              sender: sender._id,
+            },
+          },
+        },
+      );
+
+      const res = await request(app)
+        .get("/api/cities/funding-history/fundingCity/Fire Chief")
+        .expect(200);
+
+      expect(res.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: "Request",
+            reason: "need new house",
+            amount: 4000,
+          }),
+        ]),
+      );
+    });
+  });
 });

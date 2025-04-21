@@ -24,15 +24,9 @@ const DirectorChatPage: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (role == "Fire Chief") {
-        const res = await request(`/api/cities/fire-funding-history/${city}`, {
-          method: "GET",
-        });
-        console.log(res);
-        setHistory(res);
-      } else if (role == "Police Chief") {
+      if (role == "Fire Chief" || role == "Police Chief") {
         const res = await request(
-          `/api/cities/police-funding-history/${city}`,
+          `/api/cities/funding-history/${city}/${role}`,
           {
             method: "GET",
           },

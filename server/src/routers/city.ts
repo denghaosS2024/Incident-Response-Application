@@ -327,13 +327,58 @@ cityRouter.delete(
   },
 );
 
+/**
+ * @swagger
+ * /api/cities/funding-history/{cityName}/{role}:
+ *   get:
+ *     summary: Get funding history for a specific city
+ *     description: >
+ *       Retrieves the fire or police funding history for a given city, depending on the role provided.
+ *       Use `"Fire Chief"` to retrieve fire funding history, or `"Police Chief"` for police funding history.
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: MountainView
+ *         description: The name of the city.
+ *       - in: path
+ *         name: role
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [Fire Chief, Police Chief]
+ *         example: Fire Chief
+ *         description: The role requesting the funding history.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved funding history records.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/FundingHistory'
+ *       400:
+ *         description: Bad request due to invalid input or internal error.
+ */
 cityRouter.get(
-  "/fire-funding-history/:cityName",
+  "/funding-history/:cityName/:role",
   async (req: Request, res: Response) => {
     try {
-      const { cityName } = req.params;
-      const funding = await CityController.getCityFireFundingHistory(cityName);
-      res.json(funding);
+      const { cityName, role } = req.params;
+      if (role == "Fire Chief") {
+        const funding =
+          await CityController.getCityFireFundingHistory(cityName);
+        res.status(200).json(funding);
+      } else if (role == "Police Chief") {
+        const funding =
+          await CityController.getCityPoliceFundingHistory(cityName);
+        res.status(200).json(funding);
+      }
     } catch (err) {
       const error = err as Error;
       res.status(400).json({ error: error.message });
@@ -341,21 +386,70 @@ cityRouter.get(
   },
 );
 
-cityRouter.get(
-  "/police-funding-history/:cityName",
-  async (req: Request, res: Response) => {
-    try {
-      const { cityName } = req.params;
-      const funding =
-        await CityController.getCityPoliceFundingHistory(cityName);
-      res.json(funding);
-    } catch (err) {
-      const error = err as Error;
-      res.status(400).json({ error: error.message });
-    }
-  },
-);
-
+/**
+ * @swagger
+ * /api/cities/funding-history/{cityName}/{role}:
+ *   post:
+ *     summary: Add a new funding history record for a city
+ *     description: >
+ *       Adds a new funding history record (Assign or Request) for a specific city.
+ *       The operation is based on the requester's role ("Fire Chief" or "Police Chief").
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: MountainView
+ *         description: The name of the city to add funding history to.
+ *       - in: path
+ *         name: role
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [Fire Chief, Police Chief]
+ *         example: Fire Chief
+ *         description: The role of the sender (determines which funding history to add to).
+ *       - in: header
+ *         name: x-application-uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: 6636a21b5e21a5df1c123456
+ *         description: MongoDB ObjectId of the sender (Personnel).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *               - amount
+ *               - reason
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [Assign, Request]
+ *                 example: Request
+ *               amount:
+ *                 type: number
+ *                 example: 5000
+ *               reason:
+ *                 type: string
+ *                 example: Emergency response upgrade
+ *     responses:
+ *       201:
+ *         description: Funding history added successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/City'
+ *       400:
+ *         description: Bad request due to missing parameters or internal error.
+ */
 cityRouter.post(
   "/funding-history/:cityName/:role",
   async (req: Request, res: Response) => {

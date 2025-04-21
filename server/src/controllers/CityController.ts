@@ -207,6 +207,7 @@ class CityController {
 
     if (record.type == "Assign") {
       city.fireFunding += record.amount;
+      city.remainingFunding -= record.amount;
     }
 
     city.fireFundingHistory.push(record);
@@ -220,6 +221,7 @@ class CityController {
     if (!city) {
       throw new Error(`City '${cityName}' does not exist in the database`);
     }
+
     return (await city.populate("policeFundingHistory.sender"))
       .policeFundingHistory;
   }
@@ -253,6 +255,7 @@ class CityController {
 
     if (record.type == "Assign") {
       city.policeFunding += record.amount;
+      city.remainingFunding -= record.amount;
     }
 
     city.policeFundingHistory.push(record);

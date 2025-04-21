@@ -205,4 +205,118 @@ describe("CityController", () => {
       });
     });
   });
+
+  describe("CityFundingHistory", () => {
+    it("should add police funding history successfully", async () => {
+      await CityController.createCity("fundingCity");
+      const personnel = new Personnel({
+        username: "TestPoliceUser",
+        password: "pass123",
+        role: "Police Chief",
+        assignedCity: "fundingCity",
+      });
+      const user = await personnel.save();
+      const city = await CityController.addCityPoliceFundingHistory(
+        "need money",
+        "Request",
+        user.id,
+        5000,
+        "fundingCity",
+      );
+      expect(city.policeFundingHistory).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            reason: "need money",
+            type: "Request",
+            amount: 5000,
+          }),
+        ]),
+      );
+    });
+
+    it("should get police funding history successfully", async () => {
+      await CityController.createCity("fundingCity");
+      const personnel = new Personnel({
+        username: "TestPoliceUser",
+        password: "pass123",
+        role: "Police Chief",
+        assignedCity: "fundingCity",
+      });
+      const user = await personnel.save();
+      await CityController.addCityPoliceFundingHistory(
+        "need money",
+        "Request",
+        user.id,
+        5000,
+        "fundingCity",
+      );
+      const history =
+        await CityController.getCityPoliceFundingHistory("fundingCity");
+      expect(history).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            reason: "need money",
+            type: "Request",
+            amount: 5000,
+          }),
+        ]),
+      );
+    });
+
+    it("should add fire funding history successfully", async () => {
+      await CityController.createCity("fundingCity");
+      const personnel = new Personnel({
+        username: "TestFireUser",
+        password: "pass123",
+        role: "Fire Chief",
+        assignedCity: "fundingCity",
+      });
+      const user = await personnel.save();
+      const city = await CityController.addCityFireFundingHistory(
+        "need money",
+        "Request",
+        user.id,
+        5000,
+        "fundingCity",
+      );
+      expect(city.fireFundingHistory).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            reason: "need money",
+            type: "Request",
+            amount: 5000,
+          }),
+        ]),
+      );
+    });
+
+    it("should get fire funding history successfully", async () => {
+      await CityController.createCity("fundingCity");
+      const personnel = new Personnel({
+        username: "TestFireUser",
+        password: "pass123",
+        role: "Fire Chief",
+        assignedCity: "fundingCity",
+      });
+      const user = await personnel.save();
+      await CityController.addCityFireFundingHistory(
+        "need money",
+        "Request",
+        user.id,
+        5000,
+        "fundingCity",
+      );
+      const history =
+        await CityController.getCityFireFundingHistory("fundingCity");
+      expect(history).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            reason: "need money",
+            type: "Request",
+            amount: 5000,
+          }),
+        ]),
+      );
+    });
+  });
 });
