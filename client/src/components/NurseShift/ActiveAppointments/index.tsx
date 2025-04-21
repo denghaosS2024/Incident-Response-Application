@@ -40,6 +40,7 @@ const ActiveAppointments = () => {
         {activeAppointments.map((appointment) => (
           <ActiveAppointment
             key={appointment._id}
+            appointmentld={appointment._id || ""}
             patientName={appointment.username}
             issueName={appointment.issueName}
             startHour={appointment.startHour}

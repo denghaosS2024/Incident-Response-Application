@@ -1,7 +1,9 @@
 import { Person2Outlined, PlayArrowRounded } from "@mui/icons-material";
 import { Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router";
 
 interface ActiveAppointmentProps {
+  appointmentld: string; // _id of the appointment
   patientName: string;
   issueName: string;
   startHour: number;
@@ -20,11 +22,19 @@ const getSeverityLabel = (severityIndex: number): string => {
 };
 
 const ActiveAppointment: React.FC<ActiveAppointmentProps> = ({
+  appointmentld,
   patientName,
   issueName,
   startHour,
   severityIndex,
 }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    // Navigate to the appointment details page
+    navigate(`/nurse-appointment-info?appointmentId=${appointmentld}`);
+  };
+
   return (
     <Box display="flex">
       <Box>
@@ -52,7 +62,11 @@ const ActiveAppointment: React.FC<ActiveAppointmentProps> = ({
         </Typography>
       </Box>
       <Box>
-        <PlayArrowRounded fontSize="small" />
+        <PlayArrowRounded
+          fontSize="small"
+          sx={{ cursor: "pointer" }}
+          onClick={handleClick}
+        />
       </Box>
     </Box>
   );
