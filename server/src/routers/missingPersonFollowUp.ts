@@ -65,7 +65,11 @@ export default Router()
             if (error instanceof Error && error.message.includes("Failed to fetch missing person record")) {
                 return response.status(400).send({
                     message: "Cannot add Followup due to bad format reference report id"
-                })
+                });
+            } else {
+                return response.status(500).send({
+                    message: "Internal Server Error"
+                });
             }
         }
     })
