@@ -334,7 +334,7 @@ class CityController {
         throw new Error(`City '${cityName}' does not exist in the database`);
       }
       city.remainingFunding = amount;
-      city.save();
+      await city.save();
       console.log(city);
       return city;
     } catch (error) {
