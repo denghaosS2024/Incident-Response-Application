@@ -107,6 +107,61 @@ export default Router()
         .status(error.statusCode || 500)
         .json({ message: error.message });
     }
+  })
+
+  /**
+   * @swagger
+   * /api/first-aid/report/{sessionId}/pdf:
+   *   get:
+   *     summary: Generate and download a PDF version of a report
+   *     tags: [First Aid]
+   *     parameters:
+   *       - in: path
+   *         name: sessionId
+   *         required: true
+   *         description: The session ID of the report to download as PDF
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: PDF generated successfully
+   *         content:
+   *           application/pdf:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       404:
+   *         description: Report not found
+   *       500:
+   *         description: Server error
+   */
+  .get("/report/:sessionId/pdf", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+
+      if (!sessionId) {
+        return res.status(400).json({ message: "Missing session ID." });
+      }
+
+      const pdfBuffer =
+        await FirstAidReportController.generateReportPDF(sessionId);
+
+      // Set appropriate headers for PDF download
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="first-aid-report-${sessionId}.pdf"`,
+      );
+      res.setHeader("Content-Length", pdfBuffer.length);
+
+      // Send the PDF buffer
+      return res.send(pdfBuffer);
+    } catch (e) {
+      const error = e as HttpError;
+      return res
+        .status(error.statusCode || 500)
+        .json({ message: error.message });
+    }
   });
 
 // /**
