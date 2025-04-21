@@ -8,6 +8,7 @@ const YourAppointmentPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const startHour = searchParams.get("startHour");
   const endHour = searchParams.get("endHour");
+  const dayOfWeek = searchParams.get("dayOfWeek");
 
   return (
     <Box sx={{ height: "100%" }}>
@@ -15,6 +16,7 @@ const YourAppointmentPage: React.FC = () => {
         userId={userId}
         startHour={Number(startHour)}
         endHour={Number(endHour)}
+        dayOfWeek={Number(dayOfWeek)}
       ></AppointmentForm>
     </Box>
   );

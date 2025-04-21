@@ -15,12 +15,14 @@ interface AppointmentFormProps {
   userId: string;
   startHour: number;
   endHour: number;
+  dayOfWeek: number;
 }
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({
   userId,
   startHour,
   endHour,
+  dayOfWeek,
 }) => {
   const severityList: string[] = ["Low", "Medium", "High", "Emergency"];
   const username: string = localStorage.getItem("username");
@@ -34,6 +36,26 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     Thursday: 5,
     Friday: 6,
     Saturday: 7,
+  };
+
+  const dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  const formatDay = (slotDay: number): string => {
+    const today = new Date().getDay();
+    const diff = (slotDay - today + 7) % 7;
+
+    if (diff === 0) return "today";
+    if (diff === 1) return "tomorrow";
+    if (slotDay < today) return `next ${dayNames[slotDay]}`;
+    return dayNames[slotDay];
   };
 
   const confirmAppointment = async () => {
@@ -111,7 +133,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                 textAlign: "center",
               }}
             >
-              You selected session: {startHour}:00 -- {endHour}:00
+              You selected session: {startHour}:00 -- {endHour}:00 on{" "}
+              {formatDay(dayOfWeek)}
             </Box>
           </Box>
           {/**Asks the user for Original Issue */}
