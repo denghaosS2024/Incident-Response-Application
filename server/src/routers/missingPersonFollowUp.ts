@@ -1,6 +1,8 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import MissingPersonController from "../controllers/MissingPersonController";
-import { IMissingFollowUpReqBody } from "../models/MissingFollowUp";
+import MissingPersonFollowUpController from "../controllers/MissingPersonFollowUpController";
+import { IMissingFollowUpBase, IMissingFollowUpReqBody } from "../models/MissingFollowUp";
 
 
 export default Router()
@@ -46,6 +48,19 @@ export default Router()
                     message: "Cannot add Followup to non-existent reference report",
                 });
             }
+
+            const newFollowUpInput: IMissingFollowUpBase = {
+                reportId: new mongoose.Types.ObjectId(followUpData.reportId!),
+                isSpotted: followUpData.isSpotted!,
+                locationSpotted: followUpData.locationSpotted!,
+                datetimeSpotted: new Date(followUpData.datetimeSpotted!),
+                additionalComment: followUpData.additionalComment || ""
+            };
+
+            const createdFollowUp = await MissingPersonFollowUpController.addFollowUp(newFollowUpInput);
+  
+            return response.status(201).send(createdFollowUp);
+
         } catch (error) {
             if (error instanceof Error && error.message.includes("Failed to fetch missing person record")) {
                 return response.status(400).send({
