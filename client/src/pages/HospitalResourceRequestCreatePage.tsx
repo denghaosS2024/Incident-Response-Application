@@ -21,7 +21,7 @@ const HospitalResourceRequestCreatePage: React.FC = () => {
         );
         const response = responseData[0];
         console.log("Fetched hospital resource:", response);
-        let resource: HospitalResource = {
+        const resource: HospitalResource = {
           hospitalId: {
             hospitalName: response.hospitalId.hospitalName,
             _id: response.hospitalId._id,
