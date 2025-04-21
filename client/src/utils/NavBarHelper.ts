@@ -30,6 +30,8 @@ export default class NavBarHelper {
     "/appointment-scheduler": "Appointment Scheduler",
     "/shifts": "Shifts Management",
     "/chief-funding-history": "Funding History",
+    "/missing-person/directory": "Missing Persons Directory",
+    "/missing-person/register": "Missing Person Report",
   };
 
   static readonly roleTitles: Record<string, string> = {
@@ -105,7 +107,7 @@ export default class NavBarHelper {
 
     if (pathname.startsWith("/missing-person/report/")) {
       const urlParams = new URLSearchParams(window.location.search);
-      const name = urlParams.get('name');
+      const name = urlParams.get("name");
       title = name
         ? `${name} Missing Report Overview`
         : "Missing Report Overview";

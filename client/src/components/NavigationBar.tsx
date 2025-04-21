@@ -282,11 +282,11 @@ const NavigationBar: FunctionComponent<IProps> = ({
           {(role === "Police" || role === "Fire") && (
             <MenuItem onClick={findHospital}>Find Hospital</MenuItem>
           )}
-          {(role === "Police" || role === "Citizen") && (
+          {
             <MenuItem onClick={missingPersonsDirectory}>
               Missing Persons Directory
             </MenuItem>
-          )}
+          }
           {(role === "Dispatch" || role === "Police" || role === "Fire") && (
             <MenuItem onClick={navigateToDashboard}>Dashboard</MenuItem>
           )}
