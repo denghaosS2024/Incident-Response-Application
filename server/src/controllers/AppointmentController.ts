@@ -18,7 +18,7 @@ class AppointmentController {
     endHour,
   }: IAppointment) {
     // Check for existing user
-    await UserController.getExistingUser(userId);
+    const user = await UserController.getExistingUser(userId);
 
     if (nurseId !== undefined) {
       await UserController.getExistingUser(nurseId);
@@ -26,6 +26,7 @@ class AppointmentController {
 
     const doc = new Appointment({
       userId,
+      username: user.username,
       nurseId,
       issueName,
       severityIndex,

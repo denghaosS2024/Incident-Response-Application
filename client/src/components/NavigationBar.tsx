@@ -105,6 +105,8 @@ const NavigationBar: FunctionComponent<IProps> = ({
     "/funding-information": "Funding Information",
     "/spending-history": "Spending History",
     "/exercise-library": "Exercise Library",
+    "/past-appointment": "Past Appointments",
+    "/nurse-appointment-info": "Appointment Information",
   };
 
   const roleTitles: Record<string, string> = {

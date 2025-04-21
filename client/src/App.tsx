@@ -37,6 +37,7 @@ import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualRe
 import MissingPersonManagePage from "./pages/MissingPersonManagePage";
 import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
 import MissingPersonUpdatePage from "./pages/MissingPersonUpdatePage.tsx";
+import NurseAppointmentInfoPage from "./pages/NurseAppointmentInfoPage.tsx";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
 import NurseShiftPage from "./pages/NurseShiftPage";
 import Organization from "./pages/Organization";
@@ -218,6 +219,10 @@ export default function App() {
             <Route
               path="/appointment-scheduler"
               element={<AppointmentSchedulerPage />}
+            />
+            <Route
+              path="/nurse-appointment-info"
+              element={<NurseAppointmentInfoPage />}
             />
           </Route>
 
