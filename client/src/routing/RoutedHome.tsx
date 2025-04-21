@@ -15,6 +15,7 @@ import {
   setShowIncidentAlert,
 } from "@/redux/notifySlice";
 import request from "@/utils/request";
+import { Alert, Snackbar } from "@mui/material";
 import IrSnackbar from "../components/common/IrSnackbar";
 import GlobalAlertListener from "../components/GlobalAlertListener";
 import IncidentAlert from "../components/IncidentAlert";
@@ -46,6 +47,8 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
   const [textColor, setTextColor] = useState("white");
   const [currentAlertMessageId, setCurrentAlertMessageId] = useState("");
   const [currentChannelId, setCurrentChannelId] = useState("");
+  const [fundingAlertOpen, setFundingAlertOpen] = useState(false);
+  const [fundingAlertMessage, setFundingAlertMessage] = useState("");
 
   // Nurse alert state
   const [nurseAlertVisible, setNurseAlertVisible] = useState(false);
@@ -300,20 +303,47 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
 
     socket.on("missingPerson", (data) => {
       console.log("MIssing Person Received:", data);
-      let amberAlertMessage = 
+      let amberAlertMessage =
         `ATTENTION! A MISSING PERSON HAS BEEN REPORTED\n\n` +
         `${data.age} Years old ${data.race} ${data.gender}\n`;
-      if (data.weight) { amberAlertMessage = amberAlertMessage + `weigh ${data.weight} lbs`;}
-      if (data.height) { amberAlertMessage = amberAlertMessage + ` and ${data.height} cm tall`;}
-      if (data.eyeColor !== "") { amberAlertMessage = amberAlertMessage + ` with ${data.eyeColor} eyes`;}
+      if (data.weight) {
+        amberAlertMessage = amberAlertMessage + `weigh ${data.weight} lbs`;
+      }
+      if (data.height) {
+        amberAlertMessage = amberAlertMessage + ` and ${data.height} cm tall`;
+      }
+      if (data.eyeColor !== "") {
+        amberAlertMessage = amberAlertMessage + ` with ${data.eyeColor} eyes`;
+      }
       amberAlertMessage = amberAlertMessage + `\n`;
-      amberAlertMessage = amberAlertMessage + `LAST SEEN ${new Date(data.dateLastSeen).toLocaleString()}`;
-      if (data.locationLastSeen !== "") { amberAlertMessage = amberAlertMessage + `at ${data.lastSeenLocation}`;}
+      amberAlertMessage =
+        amberAlertMessage +
+        `LAST SEEN ${new Date(data.dateLastSeen).toLocaleString()}`;
+      if (data.locationLastSeen !== "") {
+        amberAlertMessage = amberAlertMessage + `at ${data.lastSeenLocation}`;
+      }
       console.log(amberAlertMessage);
       setAmberAlertMessage(amberAlertMessage);
       setAmberAlertOpen(true);
+    });
 
-    })
+    socket.on(
+      "funding-assigned",
+      (data: { department: string; amount: number }) => {
+        // Check if current user is the chief of the department that received funding
+        const userRole = localStorage.getItem("role");
+
+        if (
+          (userRole === "Fire Chief" && data.department === "Fire Chief") ||
+          (userRole === "Police Chief" && data.department === "Police Chief")
+        ) {
+          setFundingAlertMessage(
+            `Emergency funding assigned: $${data.amount.toLocaleString()}`,
+          );
+          setFundingAlertOpen(true);
+        }
+      },
+    );
 
     return () => {
       socket.off("new-message");
@@ -329,6 +359,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
       socket.off("map-area-delete");
       socket.off("join-new-incident");
       socket.off("missingPerson");
+      socket.off("funding-assigned");
       socket.close();
 
       // Clear any active timeout when unmounting
@@ -465,6 +496,27 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
         <Navigate to="/login" />
       )}
       <IrSnackbar />
+
+      <Snackbar
+        open={fundingAlertOpen}
+        autoHideDuration={10000}
+        onClose={() => setFundingAlertOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setFundingAlertOpen(false)}
+          severity="info"
+          sx={{
+            width: "100%",
+            fontSize: "1rem",
+            backgroundColor: "#f44336",
+            color: "white",
+            "& .MuiAlert-icon": { color: "white" },
+          }}
+        >
+          {fundingAlertMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

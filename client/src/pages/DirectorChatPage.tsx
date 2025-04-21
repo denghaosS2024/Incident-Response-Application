@@ -13,6 +13,7 @@ import {
 import request from "../utils/request";
 import IFundingHistory from "@/models/FundingHistory";
 import FundingHistoryList from "@/components/FundingCenter/FundingHistoryList";
+import SocketClient from "../utils/Socket";
 
 const DirectorChatPage: React.FC = () => {
   const { city, role } = useParams<{ city: string; role: string }>();
@@ -48,6 +49,15 @@ const DirectorChatPage: React.FC = () => {
         type: currentRole == "City Director" ? "Assign" : "Request",
       }),
     });
+
+    // Emit socket event when funding is assigned
+    if (currentRole === "City Director") {
+      SocketClient.emit("funding-assigned", {
+        department: role,
+        amount: amount,
+      });
+    }
+
     //console.log(res)
     if (role == "Fire Chief" && res.fireFundingHistory) {
       const updatedHistory: IFundingHistory[] = await res.fireFundingHistory;
