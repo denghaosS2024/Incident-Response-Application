@@ -35,7 +35,7 @@ const ActiveAppointments = () => {
     <Box mt={2}>
       <Typography
         variant="h5"
-        fontWeight="500"
+        fontWeight="bold"
         gutterBottom
         sx={{ mb: 2, paddingX: "4px" }}
       >
