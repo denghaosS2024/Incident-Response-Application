@@ -28,8 +28,13 @@ class MissingPersonFollowUpController {
     }
 
     async getAllFollowUpsByReportId(reportId: string) {
-        const reportFollowUpList = await MissingFollowUp.find({reportId: reportId});
-        return reportFollowUpList;
+        try {
+            const reportFollowUpList = await MissingFollowUp.find({reportId: reportId}).exec();
+            return reportFollowUpList;
+        } catch (error) {
+            console.error("Error getting all followups for reportId", error)
+            throw new Error("Error fetching all followups for this reportId");
+        }
     }
 }
 

@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Query } from "mongoose";
 import MissingPersonFollowUpController from "../../src/controllers/MissingPersonFollowUpController";
-import MissingFollowUp, { IMissingFollowUpBase } from "../../src/models/MissingFollowUp";
+import MissingFollowUp, { IMissingFollowUp, IMissingFollowUpBase } from "../../src/models/MissingFollowUp";
 import * as TestDatabase from "../utils/TestDatabase";
 
 describe("MissingPersonFollowUpController", () => {
@@ -62,8 +62,15 @@ describe("MissingPersonFollowUpController", () => {
   })
 
   it("should handle error for get all followups for specific report", async() => {
-
-    jest.spyOn(MissingFollowUp.prototype, 'find').mockRejectedValueOnce(new Error("some mongo error"));
+    const fakeQuery: Partial<Query<IMissingFollowUp[], IMissingFollowUp>> = {
+        exec: () => Promise.reject(new Error("Mocked MongoDB error")),
+      };
+  
+    // Mock MissingFollowup.find to return the fake query
+    jest
+    .spyOn(MissingFollowUp, "find")
+    .mockReturnValue(fakeQuery as Query<IMissingFollowUp[], IMissingFollowUp>);
+   
     const newFollowUp: IMissingFollowUpBase = {
         reportId: new mongoose.Types.ObjectId(),
         isSpotted: true, 

@@ -19,7 +19,7 @@ export interface IMissingFollowUpBase {
     // TODO: Add Image URL????
 }
 
-interface IMissingFollowUp extends IMissingFollowUpBase, Document {}
+export interface IMissingFollowUp extends IMissingFollowUpBase, Document {}
 
 export const MissingPersonFollowUpSchema = new Schema({
     reportId: {
