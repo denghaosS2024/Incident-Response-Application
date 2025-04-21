@@ -6,7 +6,6 @@ class MissingPersonFollowUpController {
      * add new follow up information
      * @param IMissingFollowUp
      * @returns The inserted entry 
-     * @throws HttpError if no reportId which the follow up is for, is found.
      */
     async addFollowUp(newFollowUp: Partial<IMissingFollowUpBase>){
         try {
@@ -26,6 +25,11 @@ class MissingPersonFollowUpController {
             throw new Error("Failed to add Follow Up info");
 
         }
+    }
+
+    async getAllFollowUpsByReportId(reportId: string) {
+        const reportFollowUpList = await MissingFollowUp.find({reportId: reportId});
+        return reportFollowUpList;
     }
 }
 
