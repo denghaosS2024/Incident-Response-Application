@@ -33,7 +33,8 @@ export default express()
     next();
   })
   // Parse JSON request bodies
-  .use(bodyParser.json())
+  .use(bodyParser.json({ limit: '50mb' }))
+  .use(bodyParser.urlencoded({ extended: true, limit: '50mb' }))
   // Enable CORS for all routes
   .use(getCorsMiddleware())
   // Mount the API routes

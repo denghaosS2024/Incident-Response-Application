@@ -7,6 +7,8 @@ import {
   Snackbar,
   Typography,
 } from "@mui/material";
+import imageCompression from "browser-image-compression";
+import heic2any from "heic2any";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { MissingPersonForm } from "../components/feature/MissingPerson/MissingPersonForm";
@@ -18,7 +20,7 @@ const PLACEHOLDER = "/images/placeholder.png";
 const MissingPersonRegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [formKey, setFormKey] = useState(0);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoFile, setPhotoFile] = useState<string>("");
   const [previewSrc, setPreviewSrc] = useState<string>(PLACEHOLDER);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -28,15 +30,70 @@ const MissingPersonRegisterPage: React.FC = () => {
       setPreviewSrc(PLACEHOLDER);
       return;
     }
-    const objectUrl = URL.createObjectURL(photoFile);
-    setPreviewSrc(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
+    setPreviewSrc(photoFile);
   }, [photoFile]);
+
+  // Function to convert HEIC to JPG
+  async function convertHEICToJPG(heicFile: File | Blob) {
+    try {
+      const blobs = await heic2any({
+        blob: heicFile,
+        toType: 'image/jpeg',
+      });
+      const blob = Array.isArray(blobs) ? blobs[0] : blobs;
+      
+      const jpgURL = URL.createObjectURL(blob);
+      return jpgURL;
+    } catch (error) {
+      console.error('Error converting HEIC to JPG:', error);
+      return null;
+    }
+  }
+  // Handle file upload for photo
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return;
+    
+    const file = event.target.files[0];
+    const maxSize = 16 * 1024 * 1024; // 16MB in bytes
+
+    // if the file exceeds the 16MB size limit
+    if (file.size > maxSize) {
+      alert("The file is too large. Please select a file smaller than 16MB.");
+      return;
+    }
+
+     // if HEIC iphone image, convert it to JPG 
+    if (file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
+      const jpgURL = await convertHEICToJPG(file);
+      if (!jpgURL) {
+        alert("Error converting HEIC to JPG. Please try again with a different file.");
+        return;
+      }
+
+      setPhotoFile(jpgURL)
+      return; 
+    }
+
+  try {
+    const options = {
+      maxWidthOrHeight: 800,  
+      useWebWorker: true,
+    };
+
+    // compress the image
+    const compressedFile = await imageCompression(file, options);
+    const base64 = await imageCompression.getDataUrlFromFile(compressedFile);
+
+    setPhotoFile(base64 ?? null)
+
+    } catch (error) {
+      console.error("Error compressing the image:", error);
+    }
+  };
 
   const handleSubmit = async (data: IMissingPerson) => {
     let photoUrl: string | undefined;
     if (photoFile) {
-      // TODO: upload photoFile → photoUrl
       photoUrl = previewSrc;
     }
 
@@ -67,7 +124,7 @@ const MissingPersonRegisterPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    setPhotoFile(null);
+    setPhotoFile("");
     setFormKey((k) => k + 1);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -116,14 +173,9 @@ const MissingPersonRegisterPage: React.FC = () => {
             type="file"
             accept="image/*"
             hidden
-            onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+            onChangeCapture={handlePhotoUpload}
           />
         </IconButton>
-        {photoFile && (
-          <Typography variant="body2" sx={{ ml: 2 }}>
-            {photoFile.name}
-          </Typography>
-        )}
       </Box>
 
       {/* Form */}

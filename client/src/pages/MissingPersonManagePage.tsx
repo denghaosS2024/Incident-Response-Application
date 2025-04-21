@@ -1,6 +1,5 @@
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
 import {
   Avatar,
   Box,
@@ -15,10 +14,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import imageCompression from "browser-image-compression";
+import heic2any from "heic2any";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import IMissingPerson, { Gender, Race } from "../models/MissingPersonReport";
 import request, { IRequestError } from "../utils/request";
+
+const PLACEHOLDER = "/images/placeholder.png";
+
+
 
 const MissingPersonManagePage: React.FC = () => {
   const { reportId } = useParams<{ reportId: string }>();
@@ -134,23 +139,70 @@ const MissingPersonManagePage: React.FC = () => {
     navigate(`/missing-person/report/${reportId}`);
   };
 
+  // Function to convert HEIC to JPG
+  async function convertHEICToJPG(heicFile: File | Blob) {
+    try {
+      const blobs = await heic2any({
+        blob: heicFile,
+        toType: 'image/jpeg',
+      });
+      const blob = Array.isArray(blobs) ? blobs[0] : blobs;
+      
+      const jpgURL = URL.createObjectURL(blob);
+      return jpgURL;
+    } catch (error) {
+      console.error('Error converting HEIC to JPG:', error);
+      return null;
+    }
+  }
   // Handle file upload for photo
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) return;
     
     const file = event.target.files[0];
-    const reader = new FileReader();
-    
-    reader.onloadend = () => {
+    const maxSize = 16 * 1024 * 1024; // 16MB in bytes
+
+    // if the file exceeds the 16MB size limit
+    if (file.size > maxSize) {
+      alert("The file is too large. Please select a file smaller than 16MB.");
+      return;
+    }
+
+     // if HEIC iphone image, convert it to JPG 
+    if (file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
+      const jpgURL = await convertHEICToJPG(file);
+      if (!jpgURL) {
+        alert("Error converting HEIC to JPG. Please try again with a different file.");
+        return;
+      }
+
       if (!formData) return;
-      // Store the image as a base64 string
       setFormData({
         ...formData,
-        photo: reader.result as string
+        photo: jpgURL,
       });
+      return; 
+    }
+
+  try {
+    const options = {
+      maxWidthOrHeight: 800,  
+      useWebWorker: true,
     };
-    
-    reader.readAsDataURL(file);
+
+    // compress the image
+    const compressedFile = await imageCompression(file, options);
+    const base64 = await imageCompression.getDataUrlFromFile(compressedFile);
+
+    if (!formData) return;
+  
+    setFormData({
+      ...formData,
+      photo: base64,
+    });
+    } catch (error) {
+      console.error("Error compressing the image:", error);
+    }
   };
 
   // Handle Generate PDF
@@ -283,7 +335,11 @@ const MissingPersonManagePage: React.FC = () => {
                       bgcolor: "grey.500"
                     }}
                   >
-                    {!formData.photo && <QuestionMarkIcon sx={{ fontSize: 60 }} />}
+                    {!formData.photo && 
+                     <img
+                     src={PLACEHOLDER}
+                     alt="placeholder"
+                    />}
                   </Avatar>
                 </Grid>
                 <Grid item xs={8}>
