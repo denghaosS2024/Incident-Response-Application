@@ -7,6 +7,7 @@ import FundingSummaryCard from "../components/FundingCenter/FundingSummaryCard";
 import IncidentList from "../components/FundingCenter/IncidentList";
 import SocketClient from "../utils/Socket";
 import DepartmentFundingTable from "../components/FundingCenter/DepartmentFundingTable";
+import AlertSnackbar from "../components/common/AlertSnackbar";
 
 interface IDepartmentFunding {
   name: string;
@@ -29,41 +30,52 @@ const FundingCenter: React.FC = () => {
     IDepartmentFunding[]
   >([]);
   const navigate = useNavigate();
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const handleChatDirector = async () => {
-    const chief = await request(`/api/users/usernames/${username}`, {
-      method: "GET",
-    });
+    try {
+      const chief = await request(`/api/users/usernames/${username}`, {
+        method: "GET",
+      });
 
-    const res = await request(
-      `/api/users/cities/directors/${chief.assignedCity}`,
-      { method: "GET" },
-    );
+      const res = await request(
+        `/api/users/cities/directors/${chief.assignedCity}`,
+        { method: "GET" },
+      );
 
-    if (res.role) {
-      navigate(`/directorchatroom/${chief.assignedCity}/${chief.role}`);
-    } else {
-      alert(res.message);
+      if (res.role) {
+        navigate(`/directorchatroom/${chief.assignedCity}/${chief.role}`);
+      } else {
+        setOpenSnackbar(true);
+        setSnackbarMessage("No Director Found");
+      }
+    } catch (error) {
+      setOpenSnackbar(true);
+      setSnackbarMessage("City is not Assigned or No Director Found");
     }
   };
 
   const handleChat = async (chiefName: string, department: string) => {
-    const chief = await request(`/api/users/usernames/${chiefName}`, {
-      method: "GET",
-    });
-    const res = await request(
-      `/api/users/cities/directors/${chief.assignedCity}`,
-      { method: "GET" },
-    );
+    try {
+      const chief = await request(`/api/users/usernames/${chiefName}`, {
+        method: "GET",
+      });
+      const res = await request(
+        `/api/users/cities/directors/${chief.assignedCity}`,
+        { method: "GET" },
+      );
 
-    if (res.role) {
-      if (department == "Fire") {
-        navigate(`/directorchatroom/${chief.assignedCity}/Fire%20Chief`);
-      } else {
-        navigate(`/directorchatroom/${chief.assignedCity}/Police%20Chief`);
+      if (res.role) {
+        if (department == "Fire") {
+          navigate(`/directorchatroom/${chief.assignedCity}/Fire%20Chief`);
+        } else {
+          navigate(`/directorchatroom/${chief.assignedCity}/Police%20Chief`);
+        }
       }
-    } else {
-      alert(res.message);
+    } catch (error) {
+      setOpenSnackbar(true);
+      setSnackbarMessage("City is not Assigned or No Chief Found");
     }
   };
 
@@ -179,6 +191,12 @@ const FundingCenter: React.FC = () => {
             cityName={assignedCity}
           />
           <IncidentList incidents={incidents} />
+          <AlertSnackbar
+            open={openSnackbar}
+            onClose={() => setOpenSnackbar(false)}
+            message={snackbarMessage}
+            severity="error"
+          />
         </>
       );
     } else if (userRole === "City Director") {
@@ -197,6 +215,12 @@ const FundingCenter: React.FC = () => {
           <DepartmentFundingTable
             departmentRequests={departmentRequests}
             onChatClick={handleChat}
+          />
+          <AlertSnackbar
+            open={openSnackbar}
+            onClose={() => setOpenSnackbar(false)}
+            message={snackbarMessage}
+            severity="error"
           />
         </>
       );

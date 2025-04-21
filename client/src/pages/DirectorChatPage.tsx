@@ -14,6 +14,7 @@ import request from "../utils/request";
 import IFundingHistory from "@/models/FundingHistory";
 import FundingHistoryList from "@/components/FundingCenter/FundingHistoryList";
 import SocketClient from "../utils/Socket";
+import AlertSnackbar from "../components/common/AlertSnackbar";
 
 const DirectorChatPage: React.FC = () => {
   const { city, role } = useParams<{ city: string; role: string }>();
@@ -22,6 +23,8 @@ const DirectorChatPage: React.FC = () => {
   const [amount, setAmount] = useState<number>(0);
   const [reason, setReason] = useState<string>("");
   const currentRole = localStorage.getItem("role");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,6 +44,11 @@ const DirectorChatPage: React.FC = () => {
   }, []);
 
   const handleSubmit = async () => {
+    if (amount <= 0) {
+      setOpenSnackbar(true);
+      setSnackbarMessage("Please Enter Postive Number");
+      return;
+    }
     const res = await request(`/api/cities/funding-history/${city}/${role}`, {
       method: "POST",
       body: JSON.stringify({
@@ -173,6 +181,13 @@ const DirectorChatPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <AlertSnackbar
+        open={openSnackbar}
+        onClose={() => setOpenSnackbar(false)}
+        message={snackbarMessage}
+        severity="error"
+      />
     </Box>
   );
 };
