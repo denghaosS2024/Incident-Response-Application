@@ -60,4 +60,23 @@ describe("MissingPersonFollowUpController", () => {
     expect(reportFollowUpList.length).toBeGreaterThan(0);
     expect(reportFollowUpList[0].additionalComment).toBe("additional comment");
   })
+
+  it("should handle error for get all followups for specific report", async() => {
+
+    jest.spyOn(MissingFollowUp.prototype, 'find').mockRejectedValueOnce(new Error("some mongo error"));
+    const newFollowUp: IMissingFollowUpBase = {
+        reportId: new mongoose.Types.ObjectId(),
+        isSpotted: true, 
+        locationSpotted: "123 South Akron Rd. Mountain View, CA 94075",
+        datetimeSpotted: new Date("2025-10-27T19:30"),
+        additionalComment: "additional comment"
+
+    };
+
+    const followUp = await MissingPersonFollowUpController.addFollowUp(newFollowUp);
+
+    await expect(MissingPersonFollowUpController.getAllFollowUpsByReportId(followUp.reportId.toString()))
+    .rejects.toThrow("Error fetching all followups for this reportId");
+
+  })
 })
