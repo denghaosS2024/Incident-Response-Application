@@ -22,7 +22,10 @@ router
       if (!callerUid) {
         throw new HttpError("Caller UID is required", 400);
       }
-      const result = await UserController.createTempUserForPatient(hospitalId, callerUid);
+      const result = await UserController.createTempUserForPatient(
+        hospitalId,
+        callerUid,
+      );
       response.status(201).send(result);
     } catch (e) {
       const error = e as Error;

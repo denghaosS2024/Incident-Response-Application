@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import { useNavigate } from "react-router";
 import request from "../utils/request";
 import IIncident from "../models/Incident";
@@ -14,12 +14,17 @@ const FundingCenter: React.FC = () => {
   const navigate = useNavigate();
 
   const handleChatDirector = async () => {
-    const chief = await request(`/api/users/usernames/${username}`, { method: "GET" });
-    const channel = await request(
-      `/api/channels/${chief.assignedCity}/${username}`,
+    const chief = await request(`/api/users/${username}`, { method: "GET" });
+    const res = await request(
+      `/api/users/cities/directors/${chief.assignedCity}`,
       { method: "GET" },
     );
-    navigate(`/messages/${channel._id}`);
+
+    if (res.role) {
+      navigate(`/directorchatroom/${chief.assignedCity}/${chief.role}`);
+    } else {
+      alert(res.message);
+    }
   };
 
   useEffect(() => {
@@ -59,9 +64,17 @@ const FundingCenter: React.FC = () => {
     <Box p={2}>
       <Typography variant="h5" gutterBottom>
         Funding Center
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleChatDirector}
+          sx={{ ml: 1 }}
+        >
+          Chat With Director
+        </Button>
       </Typography>
       <FundingSummaryCard totalFunds={totalFunds} />
-      <IncidentList incidents={incidents} onChat={handleChatDirector} />
+      <IncidentList incidents={incidents} />
     </Box>
   );
 };

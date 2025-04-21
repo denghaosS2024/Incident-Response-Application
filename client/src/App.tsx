@@ -63,6 +63,7 @@ import YourAppointmentPage from "./pages/YourAppointmentPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
+import DirectorChatPage from "./pages/DirectorChatPage.tsx";
 
 export default function App() {
   //Feature toggling: show the hospitals directory page only when the flag is enabled
@@ -79,6 +80,10 @@ export default function App() {
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/funding-center" element={<FundingCenter />} />
+            <Route
+              path="/directorchatroom/:city/:role"
+              element={<DirectorChatPage />}
+            />
             <Route
               path="/funding-information/:incidentId"
               element={<FundingInformation />}

@@ -1,5 +1,6 @@
 import { Request, Response, Router } from "express";
 import CityController from "../controllers/CityController";
+import { Types } from "mongoose";
 
 const cityRouter = Router();
 
@@ -196,13 +197,12 @@ cityRouter.get(
       const { cityName } = req.params;
       const funding = await CityController.getCityFireFunding(cityName);
       res.json(funding);
-    }
-    catch (err) {
+    } catch (err) {
       const error = err as Error;
       res.status(400).json({ error: error.message });
     }
-  }
-)
+  },
+);
 
 cityRouter.get(
   "/police-funding/:cityName",
@@ -211,13 +211,12 @@ cityRouter.get(
       const { cityName } = req.params;
       const funding = await CityController.getCityPoliceFunding(cityName);
       res.json(funding);
-    }
-    catch (err) {
+    } catch (err) {
       const error = err as Error;
       res.status(400).json({ error: error.message });
     }
-  }
-)
+  },
+);
 
 /**
  * @swagger
@@ -321,6 +320,73 @@ cityRouter.delete(
         name,
       );
       res.json(result);
+    } catch (err) {
+      const error = err as Error;
+      res.status(400).json({ error: error.message });
+    }
+  },
+);
+
+cityRouter.get(
+  "/fire-funding-history/:cityName",
+  async (req: Request, res: Response) => {
+    try {
+      const { cityName } = req.params;
+      const funding = await CityController.getCityFireFundingHistory(cityName);
+      res.json(funding);
+    } catch (err) {
+      const error = err as Error;
+      res.status(400).json({ error: error.message });
+    }
+  },
+);
+
+cityRouter.get(
+  "/police-funding-history/:cityName",
+  async (req: Request, res: Response) => {
+    try {
+      const { cityName } = req.params;
+      const funding =
+        await CityController.getCityPoliceFundingHistory(cityName);
+      res.json(funding);
+    } catch (err) {
+      const error = err as Error;
+      res.status(400).json({ error: error.message });
+    }
+  },
+);
+
+cityRouter.post(
+  "/funding-history/:cityName/:role",
+  async (req: Request, res: Response) => {
+    try {
+      const senderId = new Types.ObjectId(
+        req.headers["x-application-uid"] as string,
+      );
+      const { cityName, role } = req.params;
+      const { type, amount, reason } = req.body;
+      if (role == "Fire Chief") {
+        const city = await CityController.addCityFireFundingHistory(
+          reason,
+          type,
+          senderId,
+          amount,
+          cityName,
+        );
+        console.log(city);
+        res.status(201).json(city);
+      } else if (role == "Police Chief") {
+        const city = await CityController.addCityPoliceFundingHistory(
+          reason,
+          type,
+          senderId,
+          amount,
+          cityName,
+        );
+        console.log(city);
+        res.status(201).json(city);
+      }
+      res.status(404);
     } catch (err) {
       const error = err as Error;
       res.status(400).json({ error: error.message });

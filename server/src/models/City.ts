@@ -2,7 +2,7 @@ import { Document, Schema, model } from "mongoose";
 import { IUser } from "./User";
 
 export interface IFundingHistory {
-  type: "assign" | "request";
+  type: "Assign" | "Request";
   sender: IUser;
   timestamp: Date;
   amount: number;
@@ -10,8 +10,12 @@ export interface IFundingHistory {
 }
 const FundingHistorySchema = new Schema<IFundingHistory>(
   {
-    type: { type: String, enum: ["assign", "request"], required: true },
-    sender: { type: String, required: true },
+    type: { type: String, enum: ["Assign", "Request"], required: true },
+    sender: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     amount: { type: Number, required: true },
     reason: { type: String, required: false },
     timestamp: { type: Date, default: Date.now },

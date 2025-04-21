@@ -2,11 +2,13 @@ import { Router } from "express";
 import mongoose from "mongoose";
 import MissingPersonController from "../controllers/MissingPersonController";
 import MissingPersonFollowUpController from "../controllers/MissingPersonFollowUpController";
-import { IMissingFollowUpBase, IMissingFollowUpReqBody } from "../models/MissingFollowUp";
-
+import {
+  IMissingFollowUpBase,
+  IMissingFollowUpReqBody,
+} from "../models/MissingFollowUp";
 
 export default Router()
-/**
+  /**
    * @swagger
    * /api/missing-person-followup:
    *   post:
@@ -38,38 +40,43 @@ export default Router()
    *       500:
    *         description: Server error
    */
-    .post('/', async (request, response) => {
-        try {
-            const followUpData = request.body as Partial<IMissingFollowUpReqBody>;
-            const refReport = await MissingPersonController.getMissingPersonById(followUpData.reportId!);
+  .post("/", async (request, response) => {
+    try {
+      const followUpData = request.body as Partial<IMissingFollowUpReqBody>;
+      const refReport = await MissingPersonController.getMissingPersonById(
+        followUpData.reportId!,
+      );
 
-            if (!refReport) {
-                return response.status(404).send({
-                    message: "Cannot add Followup to non-existent reference report",
-                });
-            }
+      if (!refReport) {
+        return response.status(404).send({
+          message: "Cannot add Followup to non-existent reference report",
+        });
+      }
 
-            const newFollowUpInput: IMissingFollowUpBase = {
-                reportId: new mongoose.Types.ObjectId(followUpData.reportId!),
-                isSpotted: followUpData.isSpotted!,
-                locationSpotted: followUpData.locationSpotted!,
-                datetimeSpotted: new Date(followUpData.datetimeSpotted!),
-                additionalComment: followUpData.additionalComment || ""
-            };
+      const newFollowUpInput: IMissingFollowUpBase = {
+        reportId: new mongoose.Types.ObjectId(followUpData.reportId!),
+        isSpotted: followUpData.isSpotted!,
+        locationSpotted: followUpData.locationSpotted!,
+        datetimeSpotted: new Date(followUpData.datetimeSpotted!),
+        additionalComment: followUpData.additionalComment || "",
+      };
 
-            const createdFollowUp = await MissingPersonFollowUpController.addFollowUp(newFollowUpInput);
-  
-            return response.status(201).send(createdFollowUp);
+      const createdFollowUp =
+        await MissingPersonFollowUpController.addFollowUp(newFollowUpInput);
 
-        } catch (error) {
-            if (error instanceof Error && error.message.includes("Failed to fetch missing person record")) {
-                return response.status(400).send({
-                    message: "Cannot add Followup due to bad format reference report id"
-                });
-            } else {
-                return response.status(500).send({
-                    message: "Internal Server Error"
-                });
-            }
-        }
-    })
+      return response.status(201).send(createdFollowUp);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Failed to fetch missing person record")
+      ) {
+        return response.status(400).send({
+          message: "Cannot add Followup due to bad format reference report id",
+        });
+      } else {
+        return response.status(500).send({
+          message: "Internal Server Error",
+        });
+      }
+    }
+  });

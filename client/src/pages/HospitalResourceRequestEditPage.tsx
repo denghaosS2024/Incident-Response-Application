@@ -6,7 +6,6 @@ import request from "../utils/request";
 import HospitalResource from "@/models/HospitalResource";
 import { Alert, Snackbar, Typography } from "@mui/material";
 
-
 const HospitalResourceRequstEditPage: React.FC = () => {
   const { requestId } = useParams<{ requestId?: string }>();
   const [resourceRequest, setResourceRequest] =
@@ -129,9 +128,8 @@ const HospitalResourceRequstEditPage: React.FC = () => {
 
   /* Function to create or update a new hospital resource on submit*/
   const handleSubmit = async () => {
-   
-    if (resourceRequest.requestedQuantity > resource.inStockQuantity){
-      console.log("ddo")
+    if (resourceRequest.requestedQuantity > resource.inStockQuantity) {
+      console.log("ddo");
       setErrors({
         ...errors,
         quantity: true,
@@ -139,7 +137,7 @@ const HospitalResourceRequstEditPage: React.FC = () => {
       return;
     }
 
-      console.log("Submitting hospital resource:", resourceRequest);
+    console.log("Submitting hospital resource:", resourceRequest);
 
     if (requestId) {
       const response = await updateHospitalResourceRequest(
@@ -153,10 +151,10 @@ const HospitalResourceRequstEditPage: React.FC = () => {
           "success",
         );
 
-         setErrors({
-           ...errors,
-           quantity: false,
-         });
+        setErrors({
+          ...errors,
+          quantity: false,
+        });
 
         setFetchedRequest(resourceRequest);
       }
@@ -203,14 +201,14 @@ const HospitalResourceRequstEditPage: React.FC = () => {
             name: "Requested Quantity",
             value: resourceRequest.requestedQuantity,
             type: "number",
-            onChange: (e) =>{
+            onChange: (e) => {
               if (Number(e.target.value) <= resource.inStockQuantity) {
-              
                 setResourceRequest({
                   ...resourceRequest,
                   requestedQuantity: Number(e.target.value),
                 });
-            }},
+              }
+            },
 
             error: errors.quantity,
             helperText: errors.quantity

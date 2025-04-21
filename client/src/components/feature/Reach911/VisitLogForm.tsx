@@ -58,7 +58,8 @@ const VisitLogForm: React.FC<{
 
   console.log("visitLogId:", visitLogId);
   console.log("active:", active);
-  const isReadOnly = active === false;
+  const [isLocalReadOnly, setIsLocalReadOnly] = useState(active === false);
+  const isReadOnly = active === false || isLocalReadOnly;
 
   const drugEntryRef = useRef<DrugEntryHandle>(null);
 
@@ -250,10 +251,12 @@ const VisitLogForm: React.FC<{
             allergies,
             hospitalId,
             hospitalName,
+            active: visitLogActive,
           } = result;
 
           setVisitTime(dateTime ?? getCurrentDateTime());
           setIncidentId(incidentId ?? "");
+          setIsLocalReadOnly(visitLogActive === false);
 
           setFormData((prev) => ({
             ...prev,
@@ -679,6 +682,18 @@ const VisitLogForm: React.FC<{
             </button>
           </Box>
         </>
+      )}
+
+      {/* Display Patient is discharged if inactive */}
+      {isReadOnly && (
+        <Box
+          display="flex"
+          justifyContent="center"
+          mt={3}
+          sx={{ color: "red" }}
+        >
+          <Typography variant="h6">Patient is discharged</Typography>
+        </Box>
       )}
     </div>
   );
