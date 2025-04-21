@@ -53,6 +53,7 @@ const HospitalResourceRequestCreatePage: React.FC = () => {
       hospitalResourceId,
       ...data,
     };
+
     console.log("Submitted data:", requestData);
     alert("Request submitted successfully!");
   };
