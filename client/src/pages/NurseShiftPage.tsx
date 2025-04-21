@@ -11,7 +11,14 @@ export default function NurseShiftPage() {
   };
 
   return (
-    <Box paddingX="1.5rem" paddingTop="1rem" maxWidth="600px" margin="auto">
+    <Box
+      sx={{
+        maxWidth: "600px",
+        marginX: "auto",
+        paddingX: "1.5rem",
+        paddingTop: "1rem",
+      }}
+    >
       <Typography variant="h5" fontWeight="bold" gutterBottom>
         Nurse Shifts
       </Typography>

@@ -98,7 +98,14 @@ export default function AppointmentSchedulerPage() {
   if (loading) return <CircularProgress sx={{ mt: 4 }} />;
 
   return (
-    <Box padding="1.5rem" maxWidth="600px" margin="auto">
+    <Box
+      sx={{
+        maxWidth: "600px",
+        marginX: "auto",
+        paddingX: "1.5rem",
+        paddingTop: "1rem",
+      }}
+    >
       <Typography variant="h5" fontWeight="bold" mb={2}>
         Appointment Scheduler
       </Typography>
