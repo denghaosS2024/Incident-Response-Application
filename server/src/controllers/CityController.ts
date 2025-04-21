@@ -7,6 +7,7 @@ import PersonnelController from "./PersonnelController";
 import TruckController from "./TruckController";
 import UserController from "./UserController";
 import { Types } from "mongoose";
+import HttpError from "../utils/HttpError";
 
 class CityController {
   async getAllCities() {
@@ -258,6 +259,52 @@ class CityController {
 
     city.save();
     return await city.populate("policeFundingHistory.sender");
+  }
+
+  async getCityRemainingFunding(cityName: string) {
+    try {
+      const city = await City.findOne({ name: cityName });
+      if (!city) {
+        throw new Error(`City '${cityName}' does not exist in the database`);
+      }
+      return city.remainingFunding;
+    } catch (error) {
+      console.log("Error fetching remaining funding:", error);
+      throw new HttpError("Fail to fetch remaining funding:", 500);
+    }
+  }
+
+  async getCityUnassignedFundingRequests(cityName: string, role: string) {
+    try {
+      const city = await City.findOne({ name: cityName });
+      if (!city) {
+        throw new Error(`City '${cityName}' does not exist in the database`);
+      }
+      const fundingHistory =
+        role === "Fire Chief"
+          ? city.fireFundingHistory || []
+          : city.policeFundingHistory || [];
+
+      // Find the index of the last "Assign" entry
+      let lastAssignIndex = -1;
+      for (let i = fundingHistory.length - 1; i >= 0; i--) {
+        if (fundingHistory[i].type === "Assign") {
+          lastAssignIndex = i;
+          break;
+        }
+      }
+
+      // Sum up all "Request" entries that came after the last "Assign"
+      const requestAmount = fundingHistory
+        .slice(lastAssignIndex + 1)
+        .filter((entry) => entry.type === "Request")
+        .reduce((sum, entry) => sum + (entry.amount || 0), 0);
+
+      return requestAmount;
+    } catch (error) {
+      console.error("Error fetching unassigned funding requests:", error);
+      throw new HttpError("Fail to fetch unassigned funding requests:", 500);
+    }
   }
 }
 

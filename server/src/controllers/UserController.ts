@@ -700,6 +700,19 @@ class UserController {
     }
     return { userId: user._id };
   }
+
+  async getChiefsByCity(cityName: string) {
+    const chiefs = await User.find({
+      assignedCity: cityName,
+      role: { $in: [ROLES.FIRE_CHIEF, ROLES.POLICE_CHIEF] },
+    }).exec();
+
+    return chiefs.map((chief) => ({
+      chiefId: chief._id,
+      username: chief.username,
+      role: chief.role,
+    }));
+  }
 }
 
 export default new UserController();

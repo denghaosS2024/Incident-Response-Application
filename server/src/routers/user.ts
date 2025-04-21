@@ -220,5 +220,24 @@ router
       const error = e as HttpError;
       response.status(error.statusCode || 500).send({ message: error.message });
     }
+  })
+
+  .get("/chiefs/:cityName", async (req, res) => {
+    const { cityName } = req.params;
+    if (!cityName) {
+      return res.status(400).json({ error: "City name is required" });
+    }
+    try {
+      const result = await UserController.getChiefsByCity(cityName);
+      if (!result) {
+        return res.status(404).json({ message: "Chiefs not found" });
+      }
+      res.send(result);
+      return;
+    } catch (e) {
+      const error = e as Error;
+      return res.status(500).send({ message: error.message });
+    }
   });
+
 export default router;

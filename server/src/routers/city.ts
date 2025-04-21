@@ -394,4 +394,34 @@ cityRouter.post(
   },
 );
 
+cityRouter.get(
+  "/remaining-funding/:cityName",
+  async (req: Request, res: Response) => {
+    try {
+      const { cityName } = req.params;
+      const funding = await CityController.getCityRemainingFunding(cityName);
+      res.json(funding);
+    } catch (err) {
+      const error = err as Error;
+      res.status(400).json({ error: error.message });
+    }
+  },
+);
+cityRouter.get(
+  "/:cityName/unassigned-funding-requests/:role",
+  async (req: Request, res: Response) => {
+    try {
+      const { cityName, role } = req.params;
+      const funding = await CityController.getCityUnassignedFundingRequests(
+        cityName,
+        role,
+      );
+      res.json(funding);
+    } catch (err) {
+      const error = err as Error;
+      res.status(400).json({ error: error.message });
+    }
+  },
+);
+
 export default cityRouter;
