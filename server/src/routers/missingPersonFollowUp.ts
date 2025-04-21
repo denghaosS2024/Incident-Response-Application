@@ -136,8 +136,15 @@ export default Router()
    *         description: Server error
    */
   .get("/single/:id", async (request, response)=> {
-    const {id} = request.params;
+    try {
+        const {id} = request.params;
 
-    const singleFollowUp = await MissingPersonFollowUpController.getFollowUpById(id);
-    return response.status(200).send(singleFollowUp)
+        const singleFollowUp = await MissingPersonFollowUpController.getFollowUpById(id);
+        return response.status(200).send(singleFollowUp)
+    } catch (e) {
+        const error = e as Error;
+        return response.status(500).send({
+            message: `Internal Server Error: ${error.message}`,
+          });
+    }
   })
