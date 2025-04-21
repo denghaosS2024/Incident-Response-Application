@@ -1,6 +1,6 @@
 import IHospital from "@/models/Hospital";
 import { fetchAndSetHospital } from "@/redux/hospitalSlice";
-import { AppDispatch } from "@/redux/store";
+import { AppDispatch, RootState } from "@/redux/store";
 import { ArrowBack, MoreVert as More } from "@mui/icons-material";
 import {
   AppBar,
@@ -18,6 +18,8 @@ import {
   useParams,
   useSearchParams,
 } from "react-router";
+import { v4 as uuidv4 } from "uuid";
+import NavBarHelper, { IPageHook } from "../utils/NavBarHelper";
 import request from "../utils/request";
 
 export interface IProps {
@@ -56,7 +58,15 @@ const NavigationBar: FunctionComponent<IProps> = ({
   const pathname = location.pathname;
 
   const hospitalFromSlice: IHospital = useSelector(
-    (state: any) => state.hospital.hospitalData,
+    (state: RootState) => state.hospital.hospitalData as IHospital,
+  );
+
+  // Get the page title
+  const title = NavBarHelper.getPageTitle(
+    pathname,
+    role,
+    name,
+    hospitalFromSlice?.hospitalName,
   );
 
   // Get the hospital name to include it in the page title
@@ -76,175 +86,6 @@ const NavigationBar: FunctionComponent<IProps> = ({
   }, [hospitalId]);
 
   console.log(hospitalFromSlice);
-
-  // Add "/organization" here to display "Organization"
-  const pageTitles: Record<string, string> = {
-    "/messages": "Messages",
-    "/contacts": "Contacts",
-    "/groups": "Groups",
-    "/reach911": "911 Call",
-    "/incidents": "Incidents",
-    "/patients/first-responder": "Patient",
-    "/patients/nurse": "Patient",
-    "/patient-visit": "Patient Visit",
-    "/organization": "Organization",
-    "/organization/view": "Organization",
-    "/map": "Map",
-    "/register-hospital": "Hospital",
-    "/hospitals": "Hospitals",
-    "/resources": "Resources",
-    "/find-hospital": "Find Hospital",
-    "/dashboard": "Dashboard",
-    "/sar-incident": "SAR Incident",
-    "/defaulttruckinventory": "Default Truck Inventory",
-    "/defaulttruckadditem": "Add Truck Item",
-    "/funding-center": "Funding Center",
-    "/directorchatroom": "Chat with Directory",
-    "/funding-information": "Funding Information",
-    "/spending-history": "Spending History",
-    "/exercise-library": "Exercise Library",
-    "/past-appointment": "Past Appointments",
-    "/nurse-appointment-info": "Appointment Information",
-    "/appointment-scheduler": "Appointment Scheduler",
-    "/shifts": "Shifts Management",
-    "/chief-funding-history": "Funding History",
-  };
-
-  const roleTitles: Record<string, string> = {
-    Citizen: "IR Citizen",
-    Dispatch: "IR Dispatch",
-    Police: "IR Police",
-    Fire: "IR Fire",
-    Nurse: "IR Nurse",
-    "City Director": "IR City Director",
-    "Police Chief": "IR Police Chief",
-    "Fire Chief": "IR Fire Chief",
-  };
-
-  let title = pageTitles[pathname] || "Incident Response";
-
-  // If user is Fire or Police and path is /reach911, override title to "Incidents"
-  if (pathname.startsWith("/directorchatroom/")) {
-    title = "Chat with Directory";
-  }
-
-  if (pathname.startsWith("/truck-inventory/")) {
-    const truckName = pathname.split("/")[2];
-    title = `Truck ${truckName} Inventory`;
-  }
-
-  if (
-    pathname.startsWith("/register-hospital/") &&
-    pathname.endsWith("/requests")
-  ) {
-    title = "Manage Hospital Requests";
-  } else if (pathname.startsWith("/register-hospital/")) {
-    title = "Hospital";
-  }
-
-  if (
-    pathname === "/reach911" &&
-    (role === "Fire" || role === "Police" || role === "Dispatch")
-  ) {
-    title = "Incidents";
-  }
-  if (pathname === "/incidents/report") {
-    title = "Incident Report";
-  }
-
-  if (pathname.startsWith("/sar-task")) {
-    title = "SAR Task";
-  }
-
-  if (pathname.startsWith("/messages/") && name) {
-    title = `${name} Messages`;
-  }
-  if (pathname.startsWith("/profile")) {
-    title = "Profile";
-  }
-
-  if (pathname.startsWith("/map")) {
-    title = "Map";
-  }
-
-  if (pathname.startsWith("/groups/")) {
-    title = "Group";
-  }
-
-  if (pathname === "/") {
-    title = roleTitles[role] || "IR Citizen";
-  }
-
-  if (pathname.startsWith("/missing-person/report/")) {
-    title = name
-      ? `${name} Missing Report Overview`
-      : "Missing Report Overview";
-  }
-
-  if (pathname.startsWith("/missing-person/followUp/")) {
-    title = name ? `${name} Follow-Up Information` : "Follow-Up Information";
-  }
-
-  if (pathname === "/register-hospital/resources/directory") {
-    title = "Hospital Resources";
-  }
-
-  if (
-    pathname.startsWith("/hospital") &&
-    (pathname.endsWith("/resource/add") || pathname.endsWith("/update"))
-  ) {
-    title = "Hospital Resource";
-  }
-  if (pathname.startsWith("/hospital") && pathname.endsWith("/resources")) {
-    title = hospitalFromSlice?.hospitalName
-      ? `${hospitalFromSlice?.hospitalName} Resources`
-      : "Hospital Resources";
-  }
-
-  if (pathname.startsWith("/hospital-resource/directory")) {
-    title = "Hospital Resource";
-  }
-
-  if (
-    pathname.startsWith("/hospital") &&
-    pathname.endsWith("/resource-request/directory")
-  ) {
-    title = hospitalFromSlice?.hospitalName
-      ? `${hospitalFromSlice?.hospitalName} Resources Requests`
-      : "Hospital Resources Requests";
-  }
-
-  if (pathname.startsWith("/hospital-resource-request")) {
-    title = hospitalFromSlice?.hospitalName
-      ? `${hospitalFromSlice?.hospitalName} Resources Request`
-      : "Hospital Resources Request";
-  }
-
-  // override for Medical Report page
-  if (pathname.startsWith("/patients/report") && name) {
-    title = `${name} Medical Report`;
-  }
-
-  // override for Patient Visit Detail page
-  if (pathname.startsWith("/patients/visit/view") && name) {
-    title = `${name} Patient Visit`;
-  }
-
-  if (pathname.startsWith("/funding-information/")) {
-    title = "Funding Information";
-  }
-
-  if (pathname.startsWith("/spending-history/")) {
-    title = "Spending History";
-  }
-
-  if (pathname === "/exercise-library" && role === "Nurse") {
-    title = "Exercise Library";
-  }
-
-  if (pathname.startsWith("/chief-funding-history/")) {
-    title = "Funding History";
-  }
 
   const openMenuHandler = (anchor: HTMLElement) => {
     setOpenMenu(true);
@@ -369,6 +210,27 @@ const NavigationBar: FunctionComponent<IProps> = ({
     closeMenu();
   };
 
+  const navigateToNurseShifts = () => {
+    if (role === "Nurse") {
+      navigate("/shifts");
+    }
+    closeMenu();
+  };
+
+  const nurseHooks: IPageHook[] = [
+    {
+      onSelect: hospitalResources,
+      name: "Hospital Resources",
+    },
+    {
+      onSelect: exerciseLibrary,
+      name: "Exercise Library",
+    },
+    {
+      onSelect: navigateToNurseShifts,
+      name: "Nurse Shifts",
+    },
+  ];
   return (
     <AppBar position="static">
       <Toolbar>
@@ -406,9 +268,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
           {(role === "Nurse" || role === "Police" || role === "Fire") && (
             <MenuItem onClick={hospitalsDirectory}>Hospital Directory</MenuItem>
           )}
-          {role === "Nurse" && (
+          {/* {role === "Nurse" && (
             <MenuItem onClick={hospitalResources}>Hospital Resources</MenuItem>
-          )}
+          )} */}
           {(role === "Police" || role === "Fire") && (
             <MenuItem onClick={findHospital}>Find Hospital</MenuItem>
           )}
@@ -435,12 +297,34 @@ const NavigationBar: FunctionComponent<IProps> = ({
               Funding Center
             </MenuItem>
           )}
-          {role === "Nurse" && (
+          {/* {role === "Nurse" && (
             <MenuItem onClick={exerciseLibrary}>Exercise Library</MenuItem>
-          )}
+          )} */}
           {role === "Citizen" && (
             <MenuItem onClick={navigateToAppointment}>Appointment</MenuItem>
           )}
+          {/* {role === "Nurse" && (
+            <MenuItem onClick={navigateToNurseShifts}>Nurse Shifts</MenuItem>
+          )} */}
+
+          {/* Nurse-only menu items */}
+          {role === "Nurse" && (
+            <>
+              {nurseHooks.map((hook) => (
+                <MenuItem onClick={hook.onSelect} key={uuidv4()}>
+                  {hook.name}
+                </MenuItem>
+              ))}
+            </>
+          )}
+
+          {/* {role === "Nurse" && {
+            ...nurseHooks.map((hook) => (
+              <MenuItem onClick={hook.onSelect} key={uuidv4()}>
+                {hook.name}
+              </MenuItem>
+            )),
+          }} */}
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
         </Menu>
