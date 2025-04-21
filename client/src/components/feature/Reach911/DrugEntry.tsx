@@ -44,6 +44,7 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
       dosage: "",
       route: "",
     });
+    const [viewingDrug, setViewingDrug] = useState<DrugItem | null>(null);
 
     // Expose methods to parent
     useImperativeHandle(ref, () => ({
@@ -61,7 +62,7 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
     };
 
     const handleDetailClick = (drug: DrugItem) => {
-      setCurrentDrug(drug);
+      setViewingDrug(drug);
       setOpenDetailView(true);
     };
 
@@ -239,35 +240,37 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
                 This drug detail is read-only.
               </Typography>
             </Box>
-            <Box
-              sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 2 }}
-            >
-              <TextField
-                autoFocus
-                name="name"
-                label="Medication Name"
-                variant="outlined"
-                fullWidth
-                value={drugs[0].name}
-                InputProps={{ readOnly: true }}
-              />
-              <TextField
-                name="dosage"
-                label="Dosage"
-                variant="outlined"
-                fullWidth
-                value={drugs[0].dosage}
-                InputProps={{ readOnly: true }}
-              />
-              <TextField
-                name="route"
-                label="Route"
-                variant="outlined"
-                fullWidth
-                value={drugs[0].route}
-                InputProps={{ readOnly: true }}
-              />
-            </Box>
+            {viewingDrug && (
+              <Box
+                sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 2 }}
+              >
+                <TextField
+                  autoFocus
+                  name="name"
+                  label="Medication Name"
+                  variant="outlined"
+                  fullWidth
+                  value={viewingDrug.name}
+                  InputProps={{ readOnly: true }}
+                />
+                <TextField
+                  name="dosage"
+                  label="Dosage"
+                  variant="outlined"
+                  fullWidth
+                  value={viewingDrug.dosage}
+                  InputProps={{ readOnly: true }}
+                />
+                <TextField
+                  name="route"
+                  label="Route"
+                  variant="outlined"
+                  fullWidth
+                  value={viewingDrug.route}
+                  InputProps={{ readOnly: true }}
+                />
+              </Box>
+            )}
           </DialogContent>
           <DialogActions
             sx={{
