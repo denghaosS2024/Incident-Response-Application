@@ -14,7 +14,10 @@ const FundingCenter: React.FC = () => {
   const navigate = useNavigate();
 
   const handleChatDirector = async () => {
-    const chief = await request(`/api/users/${username}`, { method: "GET" });
+    const chief = await request(`/api/users/usernames/${username}`, {
+      method: "GET",
+    });
+    console.log(chief);
     const res = await request(
       `/api/users/cities/directors/${chief.assignedCity}`,
       { method: "GET" },
