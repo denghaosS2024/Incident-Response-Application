@@ -1,13 +1,29 @@
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
-import { Box, Typography } from "@mui/material";
+import LanguageIcon from "@mui/icons-material/Language";
+import TranslateIcon from "@mui/icons-material/Translate";
+import {
+  Box,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  Modal,
+  Typography,
+} from "@mui/material";
 import moment from "moment";
-import { FunctionComponent } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import Linkify from "react-linkify";
 import IMessage from "../models/Message";
+import {
+  defaultLanguagePreference,
+  ILanguagePreference,
+} from "../models/Profile.ts";
 import IUser from "../models/User";
 import styles from "../styles/Message.module.css";
+import request from "../utils/request.ts";
 import getRoleIcon from "./common/RoleIcon";
 import NurseAlertMessage from "./NurseAlertMessage";
+import { convertSavedNamesToDisplayNames } from "../utils/SupportedLanguages.ts";
 
 export interface IMessageProps {
   /**
@@ -18,6 +34,10 @@ export interface IMessageProps {
 
 const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   const currentUserId = localStorage.getItem("uid");
+  const [languagePreference, setLanguagePreference] =
+    useState<ILanguagePreference>(defaultLanguagePreference);
+  const [showLanguagesModal, setShowLanguagesModal] = useState(false);
+
   // Check if the message content looks like a video url from bucket
   const videoUrlPrefix =
     "https://storage.googleapis.com/sem-video-bucket/videos/";
@@ -72,6 +92,38 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
     return <NurseAlertMessage message={message} />;
   }
 
+  const getPrimaryLangCode = (langPref: ILanguagePreference) => {
+    if (langPref.translateTarget.trim()) {
+      return langPref.translateTarget.trim();
+    }
+    if (langPref.languages.length > 0) {
+      return langPref.languages[0];
+    }
+    return "";
+  };
+
+  const getAllDisplayedLang = (langPref: ILanguagePreference) => {
+    let languages = [...langPref.languages];
+    const { translateTarget } = langPref;
+    // Combine translateTarget and languages
+    if (translateTarget.trim()) {
+      languages = languages.filter((lang) => lang !== translateTarget); // Remove redundant
+      languages = [translateTarget, ...languages]; // Place at the front
+    }
+    return convertSavedNamesToDisplayNames(languages);
+  };
+
+  useEffect(() => {
+    const fetchLanguagePref = async () => {
+      const { languagePreference } = await request<{
+        languagePreference?: ILanguagePreference;
+      }>(`/api/profiles/${message.sender._id}`);
+      setLanguagePreference(languagePreference || defaultLanguagePreference);
+    };
+
+    fetchLanguagePref().then();
+  }, [message.sender._id]);
+
   return (
     <Box className={styles.root}>
       <Box display="flex" alignItems="center">
@@ -82,7 +134,64 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
         <Typography variant="caption" className={styles.timestamp}>
           {message.timestamp}
         </Typography>
+
+        <Box ml="auto" display="flex" alignItems="center" gap={0.5}>
+          <Button
+            size="small"
+            startIcon={<TranslateIcon />}
+            onClick={() => alert("To be implemented")}
+            sx={{ minWidth: "auto", p: 0.5 }}
+          ></Button>
+          {getPrimaryLangCode(languagePreference) && (
+            <Button
+              size="small"
+              startIcon={<LanguageIcon />}
+              onClick={() => setShowLanguagesModal(true)}
+              sx={{ minWidth: "auto", p: 0.5 }}
+            >
+              {getPrimaryLangCode(languagePreference)}
+            </Button>
+          )}
+        </Box>
       </Box>
+
+      {/* Model to display all preference languages of sender */}
+      <Modal
+        open={showLanguagesModal}
+        onClose={() => setShowLanguagesModal(false)}
+        aria-labelledby="languages-modal-title"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 1,
+          }}
+        >
+          <Typography
+            id="languages-modal-title"
+            variant="h6"
+            component="h2"
+            gutterBottom
+          >
+            {message.sender.username}'s Known Languages
+          </Typography>
+          <List>
+            {getAllDisplayedLang(languagePreference).map((language, index) => (
+              <ListItem key={index}>
+                <ListItemText primary={language} />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Modal>
+
       {isVideo ? (
         <video controls width="300" style={{ maxWidth: "100%" }}>
           <source src={message.content} type="video/webm" />

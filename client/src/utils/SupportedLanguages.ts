@@ -19,3 +19,16 @@ export const SUPPORTED_LANGUAGES: ISupportedLanguage[] = [
   { displayName: "Italian", languageCode: "it", savedName: "it" },
   { displayName: "Hindi", languageCode: "hi", savedName: "hi" },
 ];
+
+const SAVED_NAMED_TO_DISPLAY_NAME: Map<string, string> = new Map(
+  SUPPORTED_LANGUAGES.map((lang) => [lang.savedName, lang.displayName]),
+);
+
+export function convertSavedNamesToDisplayNames(
+  savedNames: string[],
+): string[] {
+  return savedNames.map((savedName) => {
+    const displayName = SAVED_NAMED_TO_DISPLAY_NAME.get(savedName);
+    return displayName || savedName;
+  });
+}
