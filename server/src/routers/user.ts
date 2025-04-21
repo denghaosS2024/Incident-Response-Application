@@ -93,11 +93,33 @@ router
   })
 
   /**
-   * get a user by username
-   * @route GET /api/users/usernames/:username
-   * @param {string} request.body.username - The username of the user to retrieve
-   * @returns {Object} The user object
-   * @throws {500} If no username matches
+   * @swagger
+   * /api/users/usernames/:username:
+   *   get:
+   *     summary: Get a user by username
+   *     description: Retrieve a user based on the username.
+   *     parameters:
+   *       - name: username
+   *         in: path
+   *         required: true
+   *         description: The name of the city to retrieve chiefs from.
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: A user object.
+   *         schema:
+   *           type: array
+   *       500:
+   *         description: No username mataches.
+   *         schema:
+   *           type: object
+   *           properties:
+   *             message:
+   *               type: string
+   *               description: Error message.
+   *     tags:
+   *       - Users
    */
   .get("/usernames/:username", async (req, res) => {
     const { username } = req.params;
@@ -118,11 +140,33 @@ router
   })
 
   /**
-   * get the director user by city name
-   * @route GET /api/users/cities/directors/:cityName
-   * @param {string} request.body.cityName - The name of the city to retrieve the director from
-   * @returns {Object} The user object
-   * @throws {500} If no user matches
+   * @swagger
+   * /api/users/cities/directors/{cityName}:
+   *   get:
+   *     summary: Get the director of a city
+   *     description: Retrieve a director user object in a specified city.
+   *     parameters:
+   *       - name: cityName
+   *         in: path
+   *         required: true
+   *         description: The name of the city to retrieve director from.
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: A director in the specified city.
+   *         schema:
+   *           type: Object
+   *       500:
+   *         description: No city name matches.
+   *         schema:
+   *           type: object
+   *           properties:
+   *             message:
+   *               type: string
+   *               description: Error message.
+   *     tags:
+   *       - Users
    */
   .get("/cities/directors/:cityName", async (req, res) => {
     const { cityName } = req.params;
