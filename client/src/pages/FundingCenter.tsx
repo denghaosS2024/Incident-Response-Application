@@ -5,6 +5,7 @@ import request from "../utils/request";
 import IIncident from "../models/Incident";
 import FundingSummaryCard from "../components/FundingCenter/FundingSummaryCard";
 import IncidentList from "../components/FundingCenter/IncidentList";
+import SocketClient from "../utils/Socket";
 
 const FundingCenter: React.FC = () => {
   const userRole = localStorage.getItem("role");
@@ -61,6 +62,16 @@ const FundingCenter: React.FC = () => {
     };
 
     fetchData();
+
+    const socket = SocketClient;
+
+    socket.on("incidentFundingUpdated", () => {
+      fetchData();
+    });
+
+    return () => {
+      socket.off("incidentFundingUpdated");
+    };
   }, []);
 
   return (

@@ -20,6 +20,7 @@ const FundingHistory: React.FC = () => {
   const [fundingHistory, setFundingHistory] = useState<
     { assignedAmount: number; timestamp: Date; assignedBy: string }[]
   >([]);
+  const [incidentName, setIncidentName] = useState<string>("");
   const [newFundingAmount, setNewFundingAmount] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [fundingLeft, setFundingLeft] = useState<number>(0);
@@ -34,7 +35,7 @@ const FundingHistory: React.FC = () => {
           { method: "GET" },
         );
         const incident = incidents[0];
-
+        setIncidentName(incident.incidentId);
         setFundingHistory(incident.fundingHistory);
         setFundingLeft(incident.fund_left);
         setFundAssigned(incident.fund_assigned);
@@ -107,33 +108,36 @@ const FundingHistory: React.FC = () => {
     <Box
       display="flex"
       flexDirection="column"
-      alignItems="center"
-      justifyContent="flex-start"
+      sx={{ width: "100%", maxWidth: 360, mx: "auto", marginTop: 2 }}
     >
-      {fundingHistory.length === 0 ? (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight={100}
-        >
-          <Typography variant="body1" color="textSecondary">
-            No funding history
-          </Typography>
-        </Box>
-      ) : (
-        <List>
-          {fundingHistory.map((item, index) => (
-            <ListItem key={index} divider>
-              <ListItemText
-                primary={`$${item.assignedAmount.toLocaleString()}`}
-                secondary={`Assigned by ${item.assignedBy} on ${new Date(item.timestamp).toLocaleString()}`}
-                primaryTypographyProps={{ fontWeight: "bold" }}
-              />
-            </ListItem>
-          ))}
-        </List>
-      )}
+      <Box sx={{ textAlign: "left", width: "100%" }}>
+        <Typography variant="h5">{incidentName}</Typography>
+
+        {fundingHistory.length === 0 ? (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            minHeight={100}
+          >
+            <Typography variant="body1" color="textSecondary">
+              No funding history
+            </Typography>
+          </Box>
+        ) : (
+          <List sx={{ width: "100%" }}>
+            {fundingHistory.map((item, index) => (
+              <ListItem key={index} divider>
+                <ListItemText
+                  primary={`$${item.assignedAmount.toLocaleString()}`}
+                  secondary={`Assigned by ${item.assignedBy} on ${new Date(item.timestamp).toLocaleString()}`}
+                  primaryTypographyProps={{ fontWeight: "bold" }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Box>
 
       <Box
         mt={4}
@@ -150,6 +154,7 @@ const FundingHistory: React.FC = () => {
           onChange={(e) => setNewFundingAmount(e.target.value)}
           error={!!error}
           helperText={error}
+          sx={{ flexGrow: 1 }}
         />
         <Button
           variant="contained"
