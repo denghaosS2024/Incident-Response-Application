@@ -1,12 +1,16 @@
 import AlertSnackbar from "@/components/common/AlertSnackbar";
 import IFollowUpInfo from '@/models/FollowUpInfo';
 import request from '@/utils/request';
+import { AddressAutofillRetrieveResponse } from "@mapbox/search-js-core";
+import { AddressAutofill } from "@mapbox/search-js-react";
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { Box, Button, Checkbox, Container, FormControlLabel, IconButton, Stack, TextField, Typography } from '@mui/material';
 import imageCompression from "browser-image-compression";
 import heic2any from "heic2any";
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import Globals from "../../../utils/Globals";
+
 
 interface FollowUpFormProps {
   reportId: string
@@ -31,12 +35,17 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
     "success",
   );
   const [location, setLocation] = useState("");
+  const [fullAddress, setFullAddress] = useState("");
   const [dateTime, setDateTime] = useState("");
   const [additionalComment, setAdditionalComment] = useState("");
 
   const [formKey, setFormKey] = useState(0);
   const [photoFile, setPhotoFile] = useState<string>("");
   const [previewSrc, setPreviewSrc] = useState<string>(PLACEHOLDER);
+
+  const [errors, setErrors] = useState({
+    location: false,
+  });
   
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,6 +70,7 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
           console.log(data)
           setPhysicallySeen(data.isSpotted);
           setLocation(data.locationSpotted ?? "");
+          setFullAddress(data.locationSpotted ?? "");
           const date = new Date(data.datetimeSpotted);
           const pad = (n: number) => n.toString().padStart(2, '0');
           const localDateTime =
@@ -198,7 +208,7 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
       }
 
       console.log(photoFile)
-      console.log(photoUrl)
+      console.log("LOCATION", location)
 
       const followUpInfo: IFollowUpInfo = {
         reportId: reportId,
@@ -237,8 +247,22 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
       }
     }
   };
-  
 
+  async function onRetrieve(res: AddressAutofillRetrieveResponse) {
+    const newAddress = res.features[0].properties.full_address ?? "";
+    console.log(newAddress);
+    setFullAddress(newAddress);
+    setLocation(newAddress);
+  }
+
+  // When user clicks out of the input, we revert it back to the original location
+  // function onBlur() {
+  //   setLocation(location ?? "")
+  // }
+
+  useEffect(() => {
+    console.log("Current location state:", location);
+  }, [location]);
   
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
@@ -258,18 +282,36 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
       />
 
       {physicallySeen && (
-        <TextField
-          label="Location Spotted"
-          variant="outlined"
-          fullWidth
-          placeholder="Enter The Location Where You Spotted The Person"
-          InputLabelProps={{
-            shrink: true,
-          }}
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          disabled={readonly}
-        />
+        <form>
+        <AddressAutofill
+          onRetrieve={onRetrieve}
+          options={{ streets: false }}
+          accessToken={Globals.getMapboxToken()}
+        >
+          <TextField
+            label="Location Spotted"
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            value={fullAddress || location}
+            onChange={(e) => setFullAddress(e.target.value)}
+            disabled={readonly}
+            placeholder="Enter The Location Where You Spotted The Person"
+            InputLabelProps={{
+              shrink: true,
+            }}
+            // onBlur={onBlur}
+            error={errors.location}
+            helperText={errors.location ? "Address is required" : ""}
+            sx={{
+              "& .MuiOutlinedInput-input": {
+                padding: "25px",
+              },
+            }}
+          />
+        </AddressAutofill>
+      </form>
+        
       )}
       <TextField
         label="Date & Time Reporting"

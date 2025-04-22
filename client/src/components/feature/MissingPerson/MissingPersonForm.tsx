@@ -1,3 +1,5 @@
+import { AddressAutofillRetrieveResponse } from "@mapbox/search-js-core";
+import { AddressAutofill } from "@mapbox/search-js-react";
 import {
   Box,
   Button,
@@ -15,6 +17,7 @@ import IMissingPerson, {
   Gender,
   Race,
 } from "../../../models/MissingPersonReport";
+import Globals from "../../../utils/Globals";
 
 export interface MissingPersonFormProps {
   /** Optional initial values for editing */
@@ -52,12 +55,19 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
   };
 
   const [formData, setFormData] = useState<IMissingPerson>(initialFormState);
+  const [localAddress, setLocalAddress] = useState(formData.locationLastSeen);
+
+  useEffect(() => {
+    setLocalAddress(formData.locationLastSeen);
+    console.log("LOCAL", localAddress)
+  }, [formData.locationLastSeen]);
 
   // Text inputs
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+    console.log(`Input change: ${name} = ${value}`);
     let parsedValue: string | number | Date = value;
 
     if (name === "dateLastSeen") {
@@ -89,6 +99,23 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
       setFormData({ ...initialFormState });
     }
   }, [initialData]);
+
+  async function onRetrieve(res: AddressAutofillRetrieveResponse) {
+    const newAddress = res.features[0].properties.full_address ?? "";
+    console.log(newAddress);
+    setLocalAddress(newAddress);
+    setFormData(prev => ({
+      ...prev,
+      locationLastSeen: newAddress
+    }));
+    
+  }
+
+  const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log("VALUE", value)
+    setLocalAddress(value);
+  };
 
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
@@ -275,14 +302,27 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
 
           {/* Location Last Seen */}
           <Grid item xs={12} sm={6}>
-            <TextField
-              name="locationLastSeen"
-              label="Location Last Seen"
-              value={formData.locationLastSeen}
-              onChange={handleInputChange}
-              fullWidth
-              disabled={readonly}
-            />
+          
+            <AddressAutofill
+              onRetrieve={onRetrieve}
+              options={{ streets: false }}
+              accessToken={Globals.getMapboxToken()}
+            >
+              <TextField
+                name="locationLastSeen"
+                label="Location Last Seen"
+                fullWidth
+                value={localAddress}
+                onChange={handleAddressChange}
+                disabled={readonly}
+                sx={{
+                  "& .MuiOutlinedInput-input": {
+                    padding: "25px",
+                  },
+                }}
+              />
+            </AddressAutofill>
+            
           </Grid>
 
           {/* Action Buttons (centered) */}
