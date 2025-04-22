@@ -39,6 +39,7 @@ import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualRe
 import MissingPersonManagePage from "./pages/MissingPersonManagePage.tsx";
 import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage.tsx";
 import MissingPersonUpdatePage from "./pages/MissingPersonUpdatePage.tsx";
+import NotFoundPage from "./pages/NotFoundPage.tsx";
 import NurseAppointmentInfoPage from "./pages/NurseAppointmentInfoPage.tsx";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
 import NurseShiftPage from "./pages/NurseShiftPage";
@@ -239,6 +240,9 @@ export default function App() {
             <Route path="/messages/:id" element={<ChatRoomPage />} />
             <Route path="/groups/:id" element={<GroupInformationPage />} />
           </Route>
+
+          {/* Catch-all route for 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
     </StyledEngineProvider>
