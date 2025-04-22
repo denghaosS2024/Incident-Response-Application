@@ -21,7 +21,7 @@ import {
 } from "../models/Profile.ts";
 import IUser from "../models/User";
 import styles from "../styles/Message.module.css";
-import { fetchLanguagePreferenceWithCache } from "../utils/languagePreferenceCache";
+import { fetchLanguagePreferenceWithCache, fetchPrimaryLangCode, fetchAutotranslate } from "../utils/languagePreferenceCache";
 import request from "../utils/request";
 import { convertSavedNamesToDisplayNames } from "../utils/SupportedLanguages.ts";
 import getRoleIcon from "./common/RoleIcon";
@@ -39,8 +39,10 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   const [languagePreference, setLanguagePreference] =
     useState<ILanguagePreference>(defaultLanguagePreference);
   const [showLanguagesModal, setShowLanguagesModal] = useState(false);
+  const [currentUserPrimaryLangCode, setCurrentUserPrimaryLangCode] = useState("");
   const [primaryMessage, setPrimaryMessage] = useState("");
   const [secondaryMessage, setSecondaryMessage] = useState("");
+  const [isAutoTranslated, setIsAutoTranslated] = useState(false);
 
   // Check if the message content looks like a video url from bucket
   const videoUrlPrefix =
@@ -96,15 +98,6 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
     return <NurseAlertMessage message={message} />;
   }
 
-  const getPrimaryLangCode = (langPref: ILanguagePreference) => {
-    if (langPref.translateTarget.trim()) {
-      return langPref.translateTarget.trim();
-    }
-    if (langPref.languages.length > 0) {
-      return langPref.languages[0];
-    }
-    return "";
-  };
 
   const getAllDisplayedLang = (langPref: ILanguagePreference) => {
     let languages = [...langPref.languages];
@@ -118,53 +111,81 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   };
   
   const requestTranslate = async (langCode: string) => {
-    if (message.content_translation.get(langCode)) {
+    // Check if content_translation exists and has the requested language
+    if (message.content_translation && message.content_translation.get && message.content_translation.get(langCode)) {
       return message.content_translation.get(langCode);
     }
-    const result = await request("/api/channel/translate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        _id: message._id,
-        text: message.content,
-        langCode,
-      }),
-    });      
-    return result;
+  
+    // If not found in translations or translations don't exist, request from API
+    try {
+      const result = await request("/api/channels/translate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          _id: message._id,
+          text: message.content,
+          targetLang: langCode, // Server expects 'targetLang' not 'langCode'
+        }),
+      });      
+      return result.translation;
+    } catch (error) {
+      console.error("Error translating message:", error);
+      console.error("LangCode:", langCode);
+      console.error("Message:", message.content);
+      return message.content; // Return original content if translation fails
+    }
   }
 
   const revealSecondaryMessage = async () => {
-    const primaryLangCode = getPrimaryLangCode(languagePreference);
     // If no primary language is set, show an alert
-    if (!primaryLangCode) {
+    if (!currentUserPrimaryLangCode) {
       alert("Please set your primary language in Profile settings");
       return;
     }
 
-    const isAutoTranslate = languagePreference.autoTranslate;
+    // Get the current user's auto-translate preference
+    const userId = localStorage.getItem("uid");
+    const isAutoTranslate = userId ? await fetchAutotranslate(userId) : false;
+    
     if (isAutoTranslate) {
       setSecondaryMessage(message.content);
     }
-    else{
-      const primaryLangCode = getPrimaryLangCode(languagePreference);
-      const translatedMessage = await requestTranslate(primaryLangCode);
+    else {
+      const translatedMessage = await requestTranslate(currentUserPrimaryLangCode);
       setSecondaryMessage(translatedMessage);
     }
   }
 
   useEffect(() => {
     const load = async () => {
-      const preference = await fetchLanguagePreferenceWithCache(message.sender._id);
-      setLanguagePreference(preference);
+      // Get sender's language preference (for the language button display)
+      const senderPreference = await fetchLanguagePreferenceWithCache(message.sender._id);
+      setLanguagePreference(senderPreference);
+      
+      // Get current user's language preference (for translation)
+      const userId = localStorage.getItem("uid");
+      if (!userId) {
+        console.warn("[Message] No userId found in localStorage");
+        return;
+      }
+      
+      // Use centralized utility functions to get language preferences
+      const primaryLangCode = await fetchPrimaryLangCode(userId);
+      setCurrentUserPrimaryLangCode(primaryLangCode);
+      
+      // Check if auto-translation is enabled for the current user
+      const autoTranslateEnabled = await fetchAutotranslate(userId);
   
-      if (preference.autoTranslate) {
-        const primaryLangCode = getPrimaryLangCode(preference);
+      // Use the current user's preference to decide if auto-translation should happen
+      if (autoTranslateEnabled && primaryLangCode) {
         const translatedMessage = await requestTranslate(primaryLangCode);
         setPrimaryMessage(translatedMessage);
+        setIsAutoTranslated(true);
       } else {
         setPrimaryMessage(message.content);
+        setIsAutoTranslated(false);
       }
     };
     load().catch(console.error);
@@ -188,14 +209,14 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
             onClick={revealSecondaryMessage}
             sx={{ minWidth: "auto", p: 0.5 }}
           ></Button>
-          {getPrimaryLangCode(languagePreference) && (
+          {languagePreference.translateTarget && (
             <Button
               size="small"
               startIcon={<LanguageIcon />}
               onClick={() => setShowLanguagesModal(true)}
               sx={{ minWidth: "auto", p: 0.5 }}
             >
-              {getPrimaryLangCode(languagePreference)}
+              {languagePreference.translateTarget || (languagePreference.languages.length > 0 ? languagePreference.languages[0] : "")}
             </Button>
           )}
         </Box>
@@ -365,7 +386,11 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
           )}
         </Box>
       ) : (
-        <Typography variant="body2" className={styles.content}>
+        <Typography 
+          variant="body2" 
+          className={styles.content}
+          sx={isAutoTranslated ? { bgcolor: '#e8f5e9', p: 1, borderRadius: 1 } : {}}
+        >
           <Linkify>{primaryMessage}</Linkify>
         </Typography>
       )}
