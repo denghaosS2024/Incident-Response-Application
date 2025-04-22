@@ -60,6 +60,11 @@ const FindHospital: React.FC = () => {
               if (!matchedPatient) {
                 console.warn(`No match found for patientId: ${patientId}`);
               }
+              // Exclude ER patients for Remove Patient From Find Hospital
+              if (matchedPatient?.location === "ER") {
+                return undefined;
+              }
+              
               return matchedPatient;
             })
             .filter((patient): patient is IPatient => !!patient) // Filter out undefined patients
