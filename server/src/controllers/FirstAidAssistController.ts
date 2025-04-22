@@ -25,52 +25,52 @@ class FirstAidReportController {
     answers: string[];
   }) {
     try {
-      // Generate sessionId if not provided
       const sessionId = data.sessionId || uuidv4();
-
-      // Map the Q&A to the structured fields based on question content
-      // This assumes the questions array maintains a consistent order
-      const primarySymptomIndex = data.questions.findIndex((q) =>
-        q.includes("primary symptoms"),
-      );
-      const onsetTimeIndex = data.questions.findIndex((q) =>
-        q.includes("first start showing these symptoms"),
-      );
-      const severityIndex = data.questions.findIndex(
-        (q) => q.includes("scale from 1 to 10") || q.includes("how severe"),
-      );
-      const additionalSymptomsIndex = data.questions.findIndex((q) =>
-        q.includes("other symptoms"),
-      );
-      const remediesTakenIndex = data.questions.findIndex(
-        (q) =>
-          q.includes("alleviate these symptoms") ||
-          q.includes("medication or home remedies"),
-      );
-
-      // Create the new report with mapped fields
+      const openai = getOpenAIClient();
+  
+      const prompt = `
+  You are a medical assistant AI. Given the following Q&A, extract and summarize key patient information into a structured format.
+  
+  Respond only in valid JSON with the following fields:
+  - primarySymptom
+  - onsetTime
+  - severity
+  - additionalSymptoms
+  - remediesTaken
+  
+  Q&A:
+  ${data.questions.map((q, i) => `Q: ${q}\nA: ${data.answers[i]}`).join("\n\n")}
+  
+  Example Output:
+  {
+    "primarySymptom": "...",
+    "onsetTime": "...",
+    "severity": "...",
+    "additionalSymptoms": "...",
+    "remediesTaken": "..."
+  }
+      `.trim();
+  
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.5,
+      });
+  
+      const content = completion.choices[0].message?.content;
+      const parsed = JSON.parse(content || "{}");
+  
       const newReport = new FirstAidReport({
         sessionId,
         questions: data.questions,
         answers: data.answers,
-        primarySymptom:
-          primarySymptomIndex >= 0
-            ? data.answers[primarySymptomIndex]
-            : "Not provided",
-        onsetTime:
-          onsetTimeIndex >= 0 ? data.answers[onsetTimeIndex] : "Not provided",
-        severity:
-          severityIndex >= 0 ? data.answers[severityIndex] : "Not provided",
-        additionalSymptoms:
-          additionalSymptomsIndex >= 0
-            ? data.answers[additionalSymptomsIndex]
-            : "Not provided",
-        remediesTaken:
-          remediesTakenIndex >= 0
-            ? data.answers[remediesTakenIndex]
-            : "Not provided",
+        primarySymptom: parsed.primarySymptom || "Not provided",
+        onsetTime: parsed.onsetTime || "Not provided",
+        severity: parsed.severity || "Not provided",
+        additionalSymptoms: parsed.additionalSymptoms || "Not provided",
+        remediesTaken: parsed.remediesTaken || "Not provided",
       });
-
+  
       await newReport.save();
       return newReport;
     } catch (error) {
@@ -78,6 +78,7 @@ class FirstAidReportController {
       throw new HttpError("Failed to generate report", 500);
     }
   }
+  
 
   // The rest of the controller methods stay the same
   async getReportBySessionId(sessionId: string) {
