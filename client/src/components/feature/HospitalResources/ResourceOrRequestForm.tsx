@@ -1,8 +1,8 @@
 import {
-    Box,
-    Button,
-    Paper,
-    TextField
+  Box,
+  Button,
+  Paper,
+  TextField
 } from "@mui/material";
 
 type InputField = {
@@ -54,7 +54,12 @@ const ResourceOrRequestForm: React.FC<ResourceOrRequestFormProps> = ({
                     : undefined
             }  
             error={inputField.error}    
-            helperText={inputField.helperText}     
+            helperText={inputField.helperText}   
+            onKeyDown={(e) => {
+              if (["e", "E", "-"].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}  
             />
           ))}
 
