@@ -367,7 +367,7 @@ export default Router()
         );
 
       if (
-        resourceRequest.requestedQuantity <
+        resourceRequest.requestedQuantity <=
         hospitalApprovingResource.inStockQuantity
       ) {
         const updatedResourceRequest =

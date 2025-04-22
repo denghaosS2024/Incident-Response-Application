@@ -115,6 +115,11 @@ const HospitalResourceRequestsPage: React.FC = () => {
     }
   };
 
+  const isReceiverHaveEnoughResource = (request: IHospitalResourceRequest): boolean => {
+    const inStock = searchForResource(request.resourceId.resourceName);
+    return inStock! >= request.requestedQuantity;
+  };
+
   useEffect(() => {
     const getHospital = async () => {
       if (hospitalId) {
@@ -195,7 +200,10 @@ const HospitalResourceRequestsPage: React.FC = () => {
             align: "center",
             label: "",
 
-            render: (__hospitalResourceRequest: IHospitalResourceRequest) => (
+            render: (__hospitalResourceRequest: IHospitalResourceRequest) => 
+              {
+                const isDisabled = !isReceiverHaveEnoughResource(__hospitalResourceRequest);
+                return (
               <Button
                 variant="contained"
                 color="primary"
@@ -205,6 +213,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
                   minWidth: "60px",
                   fontSize: "0.7rem",
                 }}
+                disabled = {isDisabled}
                 onClick={() => {
                   setSelectedRequestId(__hospitalResourceRequest._id);
                   setIsDialogOpen(true);
@@ -212,8 +221,9 @@ const HospitalResourceRequestsPage: React.FC = () => {
               >
                 Respond
               </Button>
-            ),
+            );
           },
+          }
         ]}
       />
 
