@@ -47,6 +47,23 @@ export const fetchAllHospitalResources = createAsyncThunk(
   },
 );
 
+export const searchHospitalResourcesByName = createAsyncThunk(
+  "hospitalResources/searchHospitalResourcesByName",
+  async (resourceName: string) => {
+    try {
+      const response = await request(
+        `/api/hospital-resource/search/${resourceName}`,
+        {
+          method: "GET",
+        },
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching all hospital resources:", error);
+      throw error;
+    }
+  },
+);
 const hospitalResourceRequestSlice = createSlice({
   name: "hospitalReasourceRequests",
   initialState,
@@ -79,7 +96,14 @@ const hospitalResourceRequestSlice = createSlice({
         state.loading = false;
         state.error =
           action.error.message || "Failed to fetch hospital resources";
-      });
+      })
+      .addCase(
+        searchHospitalResourcesByName.fulfilled,
+        (state, action: PayloadAction<Record<string, HospitalResource[]>>) => {
+          state.hospitalResourceGroupedByResource = action.payload; // Update the resources in the state
+          state.loading = false;
+        },
+      );
   },
 });
 
