@@ -6,6 +6,7 @@ export interface IMissingFollowUpReqBody {
   locationSpotted: string;
   datetimeSpotted: Date;
   additionalComment: string;
+  photo?: string;
 }
 
 export interface IMissingFollowUpBase {
@@ -16,6 +17,7 @@ export interface IMissingFollowUpBase {
   additionalComment: string;
 
   // TODO: Add Image URL????
+  photo?: string;
 }
 
 export interface IMissingFollowUp extends IMissingFollowUpBase, Document {}
@@ -41,7 +43,10 @@ export const MissingPersonFollowUpSchema = new Schema({
   additionalComment: {
     type: String,
     required: false,
-  }
+  },
+  photo: {
+    type: String,
+  },
 },
 {
     timestamps: {
