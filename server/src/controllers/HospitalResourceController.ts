@@ -43,7 +43,7 @@ class HospitalResourceController {
 
       // check if resource is already exist, using text index for fuzzy search
       const existingResource = await Resource.findOne({
-        $text: { $search: resourceName },
+        $text: { $search: `"${resourceName}"` },
       }).exec();
 
       if (existingResource) {
