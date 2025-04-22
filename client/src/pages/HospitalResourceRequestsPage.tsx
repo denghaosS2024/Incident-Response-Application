@@ -305,19 +305,20 @@ const HospitalResourceRequestsPage: React.FC = () => {
             key: "hospitalResourceId",
             align: "center",
             label: "",
-            render: (hospitalResourceRequest) => (
-              <IconButton
-                edge="end"
-                size="large"
-                onClick={() =>
-                  redirectToIncomingHospitalResourceDetails(
-                    hospitalResourceRequest._id,
-                  )
-                }
-              >
-                <Arrow />
-              </IconButton>
-            ),
+            render: (hospitalResourceRequest) =>
+              (hospitalResourceRequest.status == "Pending" && (
+                <IconButton
+                  edge="end"
+                  size="large"
+                  onClick={() =>
+                    redirectToIncomingHospitalResourceDetails(
+                      hospitalResourceRequest._id,
+                    )
+                  }
+                >
+                  <Arrow />
+                </IconButton>
+              )),
           },
         ]}
       />

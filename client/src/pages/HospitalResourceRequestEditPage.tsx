@@ -200,6 +200,7 @@ const HospitalResourceRequstEditPage: React.FC = () => {
             label: "Requested Quantity",
             name: "Requested Quantity",
             value: resourceRequest.requestedQuantity,
+            disabled: resourceRequest.status !== "Pending",
             type: "number",
             onChange: (e) => {
               if (Number(e.target.value) <= resource.inStockQuantity) {
