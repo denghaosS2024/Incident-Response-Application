@@ -67,6 +67,7 @@ import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
 import YourAppointmentPage from "./pages/YourAppointmentPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
 import FirstAidAssistancePage from "./pages/FirstAidAssistancePage.tsx";
+import AIChatPage from "./pages/AIChatPage.tsx";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
 
@@ -81,6 +82,13 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route element={<RoutedHome showBackButton />}>
+            <Route
+              path="/first-aid-assistance"
+              element={<FirstAidAssistancePage />}
+            />
+
+            <Route path="/ai-chat" element={<AIChatPage />} />
+
             <Route path="/" element={<HomePage />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/messages" element={<Messages />} />
@@ -139,10 +147,6 @@ export default function App() {
             <Route
               path="/register-hospital/:hospitalId"
               element={<RegisterHospital />}
-            />
-            <Route
-              path="/first-aid-assistance"
-              element={<FirstAidAssistancePage />}
             />
             <Route path="/resources" element={<ResourcesPage />} />
             {hospitalsDirectory && (

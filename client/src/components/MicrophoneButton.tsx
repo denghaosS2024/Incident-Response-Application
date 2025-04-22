@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 interface MicrophoneButtonProps {
   onTranscriptionComplete: (text: string) => void;
   onSendMessage?: (text: string) => void;
+  onTextChange?: (text: string) => void;
   isListening?: boolean;
   apiKey?: string; // AssemblyAI API key
 }
@@ -10,6 +11,7 @@ interface MicrophoneButtonProps {
 const MicrophoneButton: React.FC<MicrophoneButtonProps> = ({
   onTranscriptionComplete,
   onSendMessage,
+  onTextChange,
   isListening = false,
   apiKey, // You can pass this as a prop or use an environment variable
 }) => {
@@ -23,7 +25,7 @@ const MicrophoneButton: React.FC<MicrophoneButtonProps> = ({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get API key from environment variable if not provided as prop
-  const assemblyAIKey = "29b41848f2f54540ac089822ef8e1230";
+  const assemblyAIKey = apiKey || "29b41848f2f54540ac089822ef8e1230";
 
   useEffect(() => {
     // Clean up resources when component unmounts
@@ -203,6 +205,7 @@ const MicrophoneButton: React.FC<MicrophoneButtonProps> = ({
 
   const handleSend = () => {
     if (onSendMessage && transcribedText.trim()) {
+      // This is the key fix - ensure we call the onSendMessage prop with the current text
       onSendMessage(transcribedText);
     }
     setShowTextbox(false);
@@ -230,12 +233,11 @@ const MicrophoneButton: React.FC<MicrophoneButtonProps> = ({
           flex-direction: column;
           align-items: center;
           width: 100%;
-          position: fixed;
-          bottom: 35px;
+          position: absolute;
+          bottom: 36px;
           left: 0;
           z-index: 1000;
           pointer-events: none; /* Make container transparent to mouse events */
-          
         }
         
         .microphone-button-wrapper {
@@ -453,7 +455,12 @@ const MicrophoneButton: React.FC<MicrophoneButtonProps> = ({
             ref={textAreaRef}
             className="transcription-textarea"
             value={transcribedText}
-            onChange={(e) => setTranscribedText(e.target.value)}
+            onChange={(e) => {
+              setTranscribedText(e.target.value);
+              if (onTextChange) {
+                onTextChange(e.target.value);
+              }
+            }}
             placeholder="Edit your transcribed text here..."
           />
           <div className="button-container">
