@@ -3,6 +3,7 @@
 
 import { FilterQuery, Types } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
+import { Translate } from '@google-cloud/translate/build/src/v2';
 import Channel, { IChannel, PUBLIC_CHANNEL_NAME } from "../models/Channel";
 import Message from "../models/Message";
 import Profile from "../models/Profile";
@@ -704,6 +705,51 @@ class ChannelController {
     }).save();
   
     return channel;
+  };
+
+  /**
+   * Translates a message to the target language using Google Translate API
+   * @param messageId - The ID of the message to translate
+   * @param text - The text to translate
+   * @param targetLang - The target language code (e.g., 'es', 'fr', 'zh')
+   * @returns The translated text
+   */
+  translateMessage = async (messageId: string, text: string, targetLang: string) => {
+    try {
+      // Initialize the Google Translate API client
+      const translate = new Translate({
+        key: process.env.GOOGLE_TRANSLATE_API_KEY
+      });
+
+      // Translate the text
+      const [translation] = await translate.translate(text, targetLang);
+      
+      // Find the message by ID and update its content_translation map
+      // We don't await this operation to make it non-blocking
+      if (messageId) {
+        Message.findById(messageId).then(message => {
+          if (message) {
+            // Initialize content_translation if it doesn't exist
+            if (!message.content_translation) {
+              message.content_translation = new Map<string, string>();
+            }
+            
+            // Save the translation with the target language as the key
+            message.content_translation.set(targetLang, translation);
+            message.markModified('content_translation'); // Required for Map modifications
+            message.save();
+          }
+        }).catch(err => {
+          console.error('Error saving translation:', err);
+        });
+      }
+
+      return translation;
+    } catch (error) {
+      console.error('Translation error:', error);
+      // Return the original text if translation fails
+      return text;
+    }
   };
 }
 

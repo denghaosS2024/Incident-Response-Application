@@ -37,6 +37,7 @@
     }
   },
   "dependencies": {
+    "@google-cloud/translate": "^9.0.1",
     "@mui/icons-material": "^5.15.14",
     "@mui/lab": "^5.0.0-alpha.162",
     "@mui/material": "^5.15.14",
