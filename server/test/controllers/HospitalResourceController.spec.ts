@@ -71,7 +71,7 @@ describe("HospitalResourceController", () => {
       resourceName: "Ventilator",
     });
 
-    let newHospitalId = new mongoose.Types.ObjectId();
+    const newHospitalId = new mongoose.Types.ObjectId();
     // Act
     const hospitalResource =
       await HospitalResourceController.createHospitalResource({
@@ -212,7 +212,7 @@ describe("HospitalResourceController", () => {
       resourceName: "Mask",
     });
 
-    let newHospitalId = new mongoose.Types.ObjectId();
+    const newHospitalId = new mongoose.Types.ObjectId();
 
     const hospitalResource =
       await HospitalResourceController.createHospitalResource({
@@ -240,7 +240,7 @@ describe("HospitalResourceController", () => {
       resourceName: "Needle",
     });
 
-    let newHospitalId = new mongoose.Types.ObjectId();
+    const newHospitalId = new mongoose.Types.ObjectId();
 
     await HospitalResourceController.createHospitalResource({
       hospitalId: newHospitalId,
@@ -275,7 +275,7 @@ describe("HospitalResourceController", () => {
       resourceName: "Mask",
     });
 
-    let newHospitalId = new mongoose.Types.ObjectId();
+    const newHospitalId = new mongoose.Types.ObjectId();
 
     const originalHospitalResource =
       await HospitalResourceController.createHospitalResource({

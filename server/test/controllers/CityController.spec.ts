@@ -318,6 +318,51 @@ describe("CityController", () => {
         ]),
       );
     });
+
+    it("should get unassigned funding history successfully", async () => {
+      await CityController.createCity("fundingCity");
+      const personnel = new Personnel({
+        username: "TestUser",
+        password: "pass123",
+        role: "Fire Chief",
+        assignedCity: "fundingCity",
+      });
+      const user = await personnel.save();
+      const director = new Personnel({
+        username: "DirectorUser",
+        password: "pass123",
+        role: "City Director",
+        assignedCity: "fundingCity",
+      });
+      const directorUser = await director.save();
+      await CityController.addCityFireFundingHistory(
+        "need money",
+        "Request",
+        user.id,
+        5000,
+        "fundingCity",
+      );
+      await CityController.addCityFireFundingHistory(
+        "give money",
+        "Assign",
+        directorUser.id,
+        2000,
+        "fundingCity",
+      );
+      await CityController.addCityFireFundingHistory(
+        "need money",
+        "Request",
+        user.id,
+        3000,
+        "fundingCity",
+      );
+      const requestAmount =
+        await CityController.getCityUnassignedFundingRequests(
+          "fundingCity",
+          "Fire Chief",
+        );
+      expect(requestAmount).toEqual(3000);
+    });
   });
 
   describe("FundingRemaining", () => {
@@ -328,6 +373,17 @@ describe("CityController", () => {
         1000,
       );
       expect(city.remainingFunding).toEqual(1000);
+    });
+
+    it("should get remaining funding successfully", async () => {
+      await CityController.createCity("fundingCity");
+      const city = await CityController.updateCityRemainingFunding(
+        "fundingCity",
+        1000,
+      );
+      const funding =
+        await CityController.getCityRemainingFunding("fundingCity");
+      expect(funding).toEqual(city.remainingFunding);
     });
   });
 });

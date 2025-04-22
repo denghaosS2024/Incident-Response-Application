@@ -12,34 +12,40 @@ import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import SocketClient from "../../../utils/Socket";
 
-interface NurseRequestDialogProps {
+interface NurseRequestAnswerDialogProps {
   hospitalId: string;
 }
 
-const NurseRequestDialog: React.FC<NurseRequestDialogProps> = ({
+const NurseRequestAnswerDialog: React.FC<NurseRequestAnswerDialogProps> = ({
   hospitalId,
 }) => {
   const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState<string>(""); // Message to display in the dialog
+  const [accepted, setAccepted] = useState<boolean | null>(null); // Whether the request was accepted or rejected
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
-
   useEffect(() => {
     console.log(
-      "NurseRequestDialog: Listening for nurse-specific request messages",
+      "NurseRequestAnswerDialog: Listening for request proceeded messages",
     );
 
-    const handleSocketMessage = (data: string) => {
-      console.log("NurseRequestDialog: Received socket message:", data);
+    const handleSocketMessage = (data: {
+      message: string;
+      accepted: boolean;
+    }) => {
+      console.log("NurseRequestAnswerDialog: Received socket message:", data);
+      setMessage(data.message);
+      setAccepted(data.accepted);
       setOpen(true); // Open the dialog when a message is received
     };
 
-    // Listen for the "hospital-nurse-new-request" event
-    SocketClient.on("hospital-nurse-new-request", handleSocketMessage);
+    // Listen for the "hospital-nurse-request-proceeded" event
+    SocketClient.on("hospital-nurse-request-anwsered", handleSocketMessage);
 
     // Cleanup the listener when the component is unmounted
     return () => {
-      SocketClient.off("hospital-nurse-new-request");
+      SocketClient.off("hospital-nurse-request-anwsered");
     };
   }, []);
 
@@ -68,10 +74,10 @@ const NurseRequestDialog: React.FC<NurseRequestDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
-      <DialogTitle>New Request</DialogTitle>
-      <DialogContent>
-        {"A new request has been made for your hospital. Please review it."}
-      </DialogContent>
+      <DialogTitle>
+        {accepted ? "Request Accepted" : "Request Rejected"}
+      </DialogTitle>
+      <DialogContent>{message}</DialogContent>
       <DialogActions>
         <Button onClick={handleOK} color="secondary">
           OK
@@ -84,4 +90,4 @@ const NurseRequestDialog: React.FC<NurseRequestDialogProps> = ({
   );
 };
 
-export default NurseRequestDialog;
+export default NurseRequestAnswerDialog;

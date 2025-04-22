@@ -18,7 +18,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  Snackbar
+  Snackbar,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -46,7 +46,9 @@ const HospitalResourceRequestsPage: React.FC = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
     "success",
   );
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null,
+  );
 
   const navigate = useNavigate();
 
@@ -71,43 +73,47 @@ const HospitalResourceRequestsPage: React.FC = () => {
     try {
       const response = await request(
         `/api/hospital-resources-requests/${requestId}/status/accepted`,
-      {
-        method: "PUT"
-      });
+        {
+          method: "PUT",
+        },
+      );
       console.log("Acceptance PUT result", response);
       setSnackbarMessage("Request Accepted Successfully!");
       setSnackbarSeverity("success");
-      setIsDialogOpen(false)
+      setIsDialogOpen(false);
+      dispatch(fetchIncomingHospitalResourceRequests(hospitalData?._id!));
       return;
     } catch (error) {
-      console.error("Error updating to Accepted status:", error)
+      console.error("Error updating to Accepted status:", error);
       setSnackbarMessage("Error Accepting Incoming Request");
       setSnackbarSeverity("error");
-      setIsDialogOpen(false)
+      setIsDialogOpen(false);
       return;
     }
-  }
+  };
 
   const handleRejectIncomingRequest = async (requestId: string) => {
     try {
       const response = await request(
         `/api/hospital-resources-requests/${requestId}/status/rejected`,
-      {
-        method: "PUT"
-      });
+        {
+          method: "PUT",
+        },
+      );
       console.log("Acceptance PUT result", response);
       setSnackbarMessage("Request Rejected Successfully!");
       setSnackbarSeverity("success");
-      setIsDialogOpen(false)
+      dispatch(fetchIncomingHospitalResourceRequests(hospitalData?._id!));
+      setIsDialogOpen(false);
       return;
     } catch (error) {
-      console.error("Error updating to Rejected status:", error)
+      console.error("Error updating to Rejected status:", error);
       setSnackbarMessage("Error Rejecting Incoming Request");
       setSnackbarSeverity("error");
-      setIsDialogOpen(false)
+      setIsDialogOpen(false);
       return;
     }
-  }
+  };
 
   useEffect(() => {
     const getHospital = async () => {
@@ -159,6 +165,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
             key: "resourceId",
             align: "center",
             label: "Resource Name",
+            width: 90,
             render: (
               hospitalResourceRequest: IHospitalResourceRequest,
             ): string => hospitalResourceRequest.resourceId.resourceName,
@@ -176,6 +183,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
             key: "receiverHospitalId",
             align: "center",
             label: "Resource Name",
+            width: 70,
             render: (
               hospitalResourceRequest: IHospitalResourceRequest,
             ): string => {
@@ -186,15 +194,16 @@ const HospitalResourceRequestsPage: React.FC = () => {
             key: "status",
             align: "center",
             label: "",
+
             render: (__hospitalResourceRequest: IHospitalResourceRequest) => (
               <Button
                 variant="contained"
-                color="primary"  
+                color="primary"
                 size="small"
-                sx={{ 
-                  padding: '2px 8px',
-                  minWidth: '60px',
-                  fontSize: '0.7rem'
+                sx={{
+                  padding: "2px 8px",
+                  minWidth: "60px",
+                  fontSize: "0.7rem",
                 }}
                 onClick={() => {
                   setSelectedRequestId(__hospitalResourceRequest._id);
@@ -217,10 +226,16 @@ const HospitalResourceRequestsPage: React.FC = () => {
           <Button onClick={() => setIsDialogOpen(false)} color="secondary">
             CANCEL
           </Button>
-          <Button onClick={() => handleAcceptIncomingRequest(selectedRequestId!)} color="primary">
+          <Button
+            onClick={() => handleAcceptIncomingRequest(selectedRequestId!)}
+            color="primary"
+          >
             ACCEPT
           </Button>
-          <Button onClick={() => handleRejectIncomingRequest(selectedRequestId!)} color="primary">
+          <Button
+            onClick={() => handleRejectIncomingRequest(selectedRequestId!)}
+            color="primary"
+          >
             REJECT
           </Button>
         </DialogActions>
@@ -277,6 +292,14 @@ const HospitalResourceRequestsPage: React.FC = () => {
               hospitalResourceRequest: IHospitalResourceRequest,
             ): string =>
               `Requested Quantity: ${hospitalResourceRequest.requestedQuantity}`,
+          },
+          {
+            key: "status",
+            align: "center",
+            label: "Status",
+            render: (
+              hospitalResourceRequest: IHospitalResourceRequest,
+            ): string => `Status: ${hospitalResourceRequest.status}`,
           },
           {
             key: "hospitalResourceId",

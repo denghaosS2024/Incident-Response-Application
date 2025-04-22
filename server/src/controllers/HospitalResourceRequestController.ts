@@ -138,7 +138,7 @@ class ResourceRequestController {
   }
 
   /**
-   * Fetch all ResourceRequests by receiverHospitalId
+   * Fetch all ResourceRequests by receiverHospitalId which is pending
    * @param receiverHospitalId The ID of the receiver hospital
    * @returns An array of resource request objects
    */
@@ -148,6 +148,7 @@ class ResourceRequestController {
     try {
       const resourceRequests = await ResourceRequest.find({
         receiverHospitalId,
+        status: "Pending",
       })
         .populate("senderHospitalId")
         .populate("receiverHospitalId")

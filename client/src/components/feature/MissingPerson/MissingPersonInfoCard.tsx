@@ -39,9 +39,8 @@ const MissingPersonCard: React.FC<MissingPersonCardProps> = ({
   // Format MM/DD/YYYY
   const formattedDate = new Date(dateLastSeen).toLocaleDateString("en-US");
 
-  // Determine status
-  // Prioritize reportStatus - if it's "closed", the person is found regardless of personStatus
-  const isMissing = person.reportStatus?.toLowerCase() === "open";
+  // Determine person status based on personStatus field, completely decoupled from reportStatus
+  const isMissing = person.personStatus?.toLowerCase() === "missing";
   const statusLabel = isMissing ? "MISSING" : "FOUND";
   const statusColor = isMissing ? "error" : "success";
 

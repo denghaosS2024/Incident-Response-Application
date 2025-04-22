@@ -142,14 +142,14 @@ export default class NavBarHelper {
       pathname.endsWith("/resource-request/directory")
     ) {
       title = hospitalName
-        ? `${hospitalName} Resources Requests`
-        : "Hospital Resources Requests";
+        ? `${hospitalName} Resource Requests`
+        : "Hospital Resource Requests";
     }
 
     if (pathname.startsWith("/hospital-resource-request")) {
       title = hospitalName
-        ? `${hospitalName} Resources Request`
-        : "Hospital Resources Request";
+        ? `${hospitalName} Resource Requests`
+        : "Hospital Resource Requests";
     }
 
     // override for Medical Report page
