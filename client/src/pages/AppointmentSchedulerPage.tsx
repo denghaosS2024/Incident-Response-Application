@@ -32,14 +32,15 @@ export default function AppointmentSchedulerPage() {
     "Friday",
     "Saturday",
   ];
+  const now = new Date();
+  const today = now.getDay(); // 0 (Sun) - 6 (Sat)
 
   const formatDay = (slotDay: number): string => {
-    const today = new Date().getDay();
     const diff = (slotDay - 1 - today + 7) % 7;
-
     if (diff === 0) return "today";
     if (diff === 1) return "tomorrow";
-    else return `next ${dayNames[slotDay]}`;
+    if (slotDay < today) return `next ${dayNames[slotDay]}`;
+    return dayNames[slotDay];
   };
 
   useEffect(() => {
@@ -118,6 +119,7 @@ export default function AppointmentSchedulerPage() {
           color: "white",
           textAlign: "center",
           mb: 2,
+          fontSize: "0.8rem",
         }}
       >
         {hasAppointment ? (
@@ -139,6 +141,7 @@ export default function AppointmentSchedulerPage() {
                 color="secondary"
                 fullWidth
                 onClick={handleCancel}
+                sx={{ fontSize: "0.8rem" }}
               >
                 Cancel your current appointment
               </Button>

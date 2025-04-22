@@ -190,6 +190,29 @@ cityRouter.get(
   },
 );
 
+/**
+ * @swagger
+ * /api/cities/fire-funding/{cityName}:
+ *   get:
+ *     summary: Get the fire funding for a city
+ *     description: Retrieves remaining fire funding for a specified city.
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the city to fetch fire funding for.
+ *     responses:
+ *       200:
+ *         description: fire funding retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: Number
+ */
 cityRouter.get(
   "/fire-funding/:cityName",
   async (req: Request, res: Response) => {
@@ -204,6 +227,29 @@ cityRouter.get(
   },
 );
 
+/**
+ * @swagger
+ * /api/cities/police-funding/{cityName}:
+ *   get:
+ *     summary: Get the police funding for a city
+ *     description: Retrieves remaining police funding for a specified city.
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the city to fetch police funding for.
+ *     responses:
+ *       200:
+ *         description: police funding retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: Number
+ */
 cityRouter.get(
   "/police-funding/:cityName",
   async (req: Request, res: Response) => {

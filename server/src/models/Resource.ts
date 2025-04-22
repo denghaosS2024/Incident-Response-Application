@@ -19,6 +19,6 @@ const ResourceSchema = new Schema<IResource>({
 });
 
 // create index for text search on resourceName
-ResourceSchema.index({ resourceName: "text" });
+ResourceSchema.index({ resourceName: "text" }, { default_language: "none" });
 
 export default mongoose.model<IResource>("Resource", ResourceSchema);

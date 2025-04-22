@@ -4,6 +4,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router";
 
 // Pages
 import HospitalResourceForm from "./components/feature/HospitalResources/HospitalResourceForm.tsx";
+import AddExercisePage from "./pages/AddExercisePage.tsx";
 import AppointmentSchedulerPage from "./pages/AppointmentSchedulerPage.tsx";
 import ChatRoomPage from "./pages/ChatRoomPage";
 import ChiefFundingHistory from "./pages/ChiefFundingHistory.tsx";
@@ -32,12 +33,13 @@ import IncidentSpendHistory from "./pages/IncidentSpendHistoryPage.tsx";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import Messages from "./pages/Messages";
-import MissingPersonDirectoryPage from "./pages/MissingPersonDirectoryPage";
+import MissingPersonDirectoryPage from "./pages/MissingPersonDirectoryPage.tsx";
 import MissingPersonFollowUpPage from "./pages/MissingPersonFollowUpPage.tsx";
-import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualReportPage";
-import MissingPersonManagePage from "./pages/MissingPersonManagePage";
-import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage";
+import MissingPersonIndividualReportPage from "./pages/MissingPersonIndividualReportPage.tsx";
+import MissingPersonManagePage from "./pages/MissingPersonManagePage.tsx";
+import MissingPersonRegisterPage from "./pages/MissingPersonRegisterPage.tsx";
 import MissingPersonUpdatePage from "./pages/MissingPersonUpdatePage.tsx";
+import NotFoundPage from "./pages/NotFoundPage.tsx";
 import NurseAppointmentInfoPage from "./pages/NurseAppointmentInfoPage.tsx";
 import NursePatientsPage from "./pages/NursePatientsPage.tsx";
 import NurseShiftPage from "./pages/NurseShiftPage";
@@ -64,6 +66,8 @@ import ViewOrganization from "./pages/ViewOrganization";
 import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
 import YourAppointmentPage from "./pages/YourAppointmentPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
+import FirstAidAssistancePage from "./pages/FirstAidAssistancePage.tsx";
+import AIChatPage from "./pages/AIChatPage.tsx";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
 
@@ -78,6 +82,13 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route element={<RoutedHome showBackButton />}>
+            <Route
+              path="/first-aid-assistance"
+              element={<FirstAidAssistancePage />}
+            />
+
+            <Route path="/ai-chat" element={<AIChatPage />} />
+
             <Route path="/" element={<HomePage />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/messages" element={<Messages />} />
@@ -130,6 +141,7 @@ export default function App() {
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile/:userId" element={<ProfilePage />} />
             <Route path="/exercise-library" element={<ExerciseLibraryPage />} />
+            <Route path="/exercise-library/:id" element={<AddExercisePage />} />
 
             <Route path="/register-hospital" element={<RegisterHospital />} />
             <Route
@@ -237,6 +249,9 @@ export default function App() {
             <Route path="/messages/:id" element={<ChatRoomPage />} />
             <Route path="/groups/:id" element={<GroupInformationPage />} />
           </Route>
+
+          {/* Catch-all route for 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
     </StyledEngineProvider>

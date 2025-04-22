@@ -92,6 +92,35 @@ router
     }
   })
 
+  /**
+   * @swagger
+   * /api/users/usernames/:username:
+   *   get:
+   *     summary: Get a user by username
+   *     description: Retrieve a user based on the username.
+   *     parameters:
+   *       - name: username
+   *         in: path
+   *         required: true
+   *         description: The name of the city to retrieve chiefs from.
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: A user object.
+   *         schema:
+   *           type: array
+   *       500:
+   *         description: No username mataches.
+   *         schema:
+   *           type: object
+   *           properties:
+   *             message:
+   *               type: string
+   *               description: Error message.
+   *     tags:
+   *       - Users
+   */
   .get("/usernames/:username", async (req, res) => {
     const { username } = req.params;
     if (!username) {
@@ -110,6 +139,35 @@ router
     }
   })
 
+  /**
+   * @swagger
+   * /api/users/cities/directors/{cityName}:
+   *   get:
+   *     summary: Get the director of a city
+   *     description: Retrieve a director user object in a specified city.
+   *     parameters:
+   *       - name: cityName
+   *         in: path
+   *         required: true
+   *         description: The name of the city to retrieve director from.
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: A director in the specified city.
+   *         schema:
+   *           type: Object
+   *       500:
+   *         description: No city name matches.
+   *         schema:
+   *           type: object
+   *           properties:
+   *             message:
+   *               type: string
+   *               description: Error message.
+   *     tags:
+   *       - Users
+   */
   .get("/cities/directors/:cityName", async (req, res) => {
     const { cityName } = req.params;
     if (!cityName) {

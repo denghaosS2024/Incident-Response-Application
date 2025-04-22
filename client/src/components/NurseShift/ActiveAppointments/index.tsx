@@ -10,12 +10,12 @@ const ActiveAppointments = () => {
   );
 
   // use the citizenid as the nurseId, according to the team meeting
-  // const nurseId = localStorage.getItem("uid");
+  const nurseId = localStorage.getItem("uid");
+  console.log("Nurse ID:", nurseId);
   const fetchActiveAppointmentsInCurrentShiftHour = async () => {
     try {
       const response = await request(
-        // `/api/appointments/status/active?nurseId=${nurseId}`,
-        `/api/appointments/status/active`,
+        `/api/appointments/status/active?nurseId=${nurseId}`,
         {
           method: "GET",
         },

@@ -13,6 +13,7 @@ import Incident, {
 import Truck from "../../src/models/Truck";
 import ROLES from "../../src/utils/Roles";
 import * as TestDatabase from "../utils/TestDatabase";
+import UserConnections from "../../src/utils/UserConnections";
 
 describe("Incident Controller", () => {
   jest.setTimeout(30000);
@@ -532,6 +533,70 @@ describe("Incident Controller", () => {
     expect(waitingResults).toBeDefined();
     expect(waitingResults.length).toBe(1);
     expect(waitingResults[0].incidentId).toBe(waitingIncident.incidentId);
+  });
+
+  it("should broadcast funding update events when funding fields are updated", async () => {
+    // Mock UserConnections.broadcaseToRole
+    const mockBroadcast = jest
+      .spyOn(UserConnections, "broadcaseToRole")
+      .mockImplementation(() => {});
+
+    // Create test incident
+    const username = "test-funding-update";
+    const incident = await createTestIncident(username);
+
+    // Update with funding changes
+    const updateData = {
+      incidentId: incident.incidentId,
+      fundingHistory: [
+        { assignedAmount: 500, timestamp: new Date(), assignedBy: "chief" },
+      ],
+      fund_assigned: 500,
+      fund_left: 500,
+    };
+
+    const updatedIncident = await IncidentController.updateIncident(updateData);
+
+    expect(updatedIncident).toBeDefined();
+    expect(mockBroadcast).toHaveBeenCalledTimes(2);
+    expect(mockBroadcast).toHaveBeenCalledWith(
+      ROLES.FIRE_CHIEF,
+      "incidentFundingUpdated",
+      {},
+    );
+    expect(mockBroadcast).toHaveBeenCalledWith(
+      ROLES.POLICE_CHIEF,
+      "incidentFundingUpdated",
+      {},
+    );
+
+    // Clean up
+    mockBroadcast.mockRestore();
+  });
+
+  it("should not broadcast funding update events when no funding fields are updated", async () => {
+    // Mock UserConnections.broadcaseToRole
+    const mockBroadcast = jest
+      .spyOn(UserConnections, "broadcaseToRole")
+      .mockImplementation(() => {});
+
+    // Create test incident
+    const username = "test-no-funding-update";
+    const incident = await createTestIncident(username);
+
+    // Update without funding changes
+    const updateData = {
+      incidentId: incident.incidentId,
+      owner: "NewOwner",
+    };
+
+    const updatedIncident = await IncidentController.updateIncident(updateData);
+
+    expect(updatedIncident).toBeDefined();
+    expect(mockBroadcast).not.toHaveBeenCalled();
+
+    // Clean up
+    mockBroadcast.mockRestore();
   });
 
   // it('should remove assigned incident from deallocated vehicles', async () => {

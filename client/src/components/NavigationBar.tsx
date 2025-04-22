@@ -126,12 +126,17 @@ const NavigationBar: FunctionComponent<IProps> = ({
       console.error("Logout error:", error);
       // Handle error (e.g., show a notification)
     } finally {
-      localStorage.removeItem("token");
-      localStorage.removeItem("uid");
-      localStorage.removeItem("incidentState");
-      localStorage.removeItem("911Step");
-      localStorage.removeItem("username");
-      localStorage.removeItem("role");
+      // Remove all the keys from localStorage
+      Array.from([
+        "token",
+        "uid",
+        "incidentState",
+        "911Step",
+        "username",
+        "role",
+      ]).forEach((key) => {
+        localStorage.removeItem(key);
+      });
       localStorage.clear();
       navigate("/login");
     }

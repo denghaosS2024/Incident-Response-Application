@@ -13,17 +13,25 @@ const FundingInformation: React.FC = () => {
   const { incidentId } = useParams<{ incidentId: string }>();
   console.log(incidentId);
   // const [alreadyAssignedFunding, setAlreadyAssignedFunding] = useState<number>(0);
-  const [requestedFunding, setRequestedFunding] = useState<number>(0);
+  // const [requestedFunding, setRequestedFunding] = useState<number>(0);
   // const [fundingLeft, setFundingLeft] = useState<number>(0);
   const i = useSelector((state: RootState) => state.incidentState.incident);
   console.log(i);
-  const fund_assigned = useSelector(
+  let fund_assigned = useSelector(
     (state: RootState) => state.incidentState.incident.fund_assigned,
   );
+
+  if (!fund_assigned) {
+    fund_assigned = 0;
+  }
   // const fund_requested = useSelector((state: RootState) => state.incidentState.incident.fund_requested);
-  const fund_left = useSelector(
+  let fund_left = useSelector(
     (state: RootState) => state.incidentState.incident.fund_left,
   );
+
+  if (!fund_left) {
+    fund_left = 0;
+  }
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -35,9 +43,9 @@ const FundingInformation: React.FC = () => {
       const incident = incidents[0];
       dispatch(updateIncident(incident));
       // setAlreadyAssignedFunding(incident.fund_assigned ? incident.fund_assigned : 0);
-      setRequestedFunding(
-        incident.fund_requested ? incident.fund_requested : 0,
-      );
+      // setRequestedFunding(
+      //   incident.fund_requested ? incident.fund_requested : 0,
+      // );
       // setFundingLeft(incident.fund_left ? incident.fund_left : 0);
     };
 
@@ -72,9 +80,7 @@ const FundingInformation: React.FC = () => {
         <Typography textAlign="left">
           Amount of already assigned: ${fund_assigned.toLocaleString()}
         </Typography>
-        <Typography textAlign="left">
-          Amount of requested funding: ${requestedFunding.toLocaleString()}
-        </Typography>
+
         <Typography textAlign="left">
           Amount of funding left: ${fund_left.toLocaleString()}
         </Typography>

@@ -1,6 +1,7 @@
 import NurseShift, { INurseShift } from "../models/NurseShift";
 import User from "../models/User";
 import ROLES from "../utils/Roles";
+import UserController from "./UserController";
 
 class NurseShiftController {
   /**
@@ -89,6 +90,77 @@ class NurseShiftController {
     return await NurseShift.find({ nurseId, valid: true })
       .sort({ dayOfWeek: 1, startHour: 1 })
       .lean();
+  }
+
+  /**
+   * Get the aggregated shifts of a nurse across the week (shows which hours and days are covered)
+   * @param nurseId - Nurse's user ID
+   * @returns {days: number[], startHours: number[]}
+   */
+  async getActiveHours(nurseId: string) {
+    await this.ensureValidNurse(nurseId);
+
+    const shifts = await NurseShift.find({ nurseId, valid: true }).lean();
+    const days = Array(7).fill(false);
+    const hours = Array(24).fill(false);
+
+    for (const shift of shifts) {
+      days[shift.dayOfWeek] = true;
+      hours[shift.startHour] = true;
+    }
+
+    const ret = {
+      startHours: [] as number[],
+      days: [] as number[],
+    };
+
+    for (let i = 0; i < 24; i++) {
+      if (hours[i]) {
+        ret.startHours.push(i);
+      }
+    }
+
+    for (let i = 0; i < 7; i++) {
+      if (days[i]) {
+        ret.days.push(i);
+      }
+    }
+
+    return ret;
+  }
+
+  async ensureValidNurse(nurseId: string) {
+    const nurse = await UserController.getExistingUser(nurseId);
+    if (!nurse) throw new Error("Nurse not found");
+    if (nurse.role !== ROLES.NURSE) throw new Error("User is not a nurse");
+  }
+
+  /**
+   * Update the active hours for a nurse (Automatically set the shifts to invalid first, and then create new ones)
+   * @param nurseId - Nurse's user ID
+   * @param days - Array of day numbers (0–6)
+   * @param hours - Array of hour numbers (0–23)
+   * @returns The newly added shift entries
+   */
+  async updateActiveHours(nurseId: string, days: number[], hours: number[]) {
+    await this.ensureValidNurse(nurseId);
+
+    // Clear existing shifts
+    await NurseShift.updateMany({ nurseId }, { $set: { valid: false } });
+
+    // Create new shifts
+    const shiftDocs = days.flatMap((day) =>
+      hours.map((hour) => ({
+        nurseId,
+        dayOfWeek: day,
+        startHour: hour,
+        endHour: hour + 1,
+        valid: true,
+      })),
+    );
+
+    await NurseShift.insertMany(shiftDocs);
+    return true;
   }
 
   /**

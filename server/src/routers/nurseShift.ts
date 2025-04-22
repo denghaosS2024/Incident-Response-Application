@@ -5,9 +5,7 @@ import { Router } from "express";
 import NurseShiftController from "../controllers/NurseShiftController";
 import HttpError from "../utils/HttpError";
 
-const router = Router();
-
-router
+export default Router()
   /**
    * Check if the nurse is currently on shift
    * @route GET /api/nurse-shifts/:nurseId/on-shift
@@ -22,6 +20,93 @@ router
     } catch (e) {
       const error = e as Error;
       response.status(400).send({ message: error.message });
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/nurse-shifts/active:
+   *   get:
+   *     summary: Get the active hours and days for a nurse
+   *     description: Get the active hours and days for a nurse
+   *     tags: [NurseShift]
+   *     parameters:
+   *       - name: nurseId
+   *         in: query
+   *         required: true
+   *         type: string
+   *     responses:
+   *       200:
+   *         description: Active hours and days for the nurse
+   *       400:
+   *         description: Bad request
+   */
+  .get("/active", async (request, response) => {
+    try {
+      if (!request.query.nurseId) {
+        throw new HttpError("Nurse ID is required", 400);
+      }
+
+      const nurseId = request.query.nurseId as string;
+      const activeHours = await NurseShiftController.getActiveHours(nurseId);
+      response.send(activeHours);
+    } catch (e) {
+      const error = e as Error;
+      response.status(400).send({ message: error.message });
+    }
+  })
+
+  /**
+   * @swagger
+   * /api/nurse-shifts/active:
+   *   post:
+   *     summary: Update the active hours and days for a nurse
+   *     description: Update the active hours and days for a nurse
+   *     tags: [NurseShift]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               nurseId:
+   *                 type: string
+   *               days:
+   *                 type: array
+   *                 items:
+   *                   type: number
+   *               hours:
+   *                 type: array
+   *                 items:
+   *                   type: number
+   *     responses:
+   *       200:
+   *         description: Active hours updated successfully
+   *       400:
+   *         description: Bad request
+   */
+  .post("/active", async (request, response) => {
+    try {
+      if (!request.body.nurseId) {
+        throw new HttpError("Nurse ID is required", 400);
+      }
+
+      const { nurseId, days, hours } = request.body;
+      const result = await NurseShiftController.updateActiveHours(
+        nurseId,
+        days,
+        hours,
+      );
+
+      if (!result) {
+        throw new HttpError("Failed to update active hours", 400);
+      }
+
+      response.status(200).send({ message: "Active hours updated" });
+    } catch (e) {
+      const error = e as HttpError;
+      response.status(error.statusCode || 400).send({ message: error.message });
     }
   })
 
@@ -118,5 +203,3 @@ router
       response.status(error.statusCode || 400).send({ message: error.message });
     }
   });
-
-export default router;

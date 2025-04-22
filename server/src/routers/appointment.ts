@@ -131,15 +131,48 @@ appointmentRouter.get("/:id", async (req, res) => {
   }
 });
 
-appointmentRouter.get("/status/active", async (_, res) => {
+/**
+ * @swagger
+ * /api/appointments/status/active:
+ *   get:
+ *     summary: Get active appointments by nurse ID
+ *     description: Retrieves active appointments for a specific nurse based on their current shift hour.
+ *     tags:
+ *       - Appointments
+ *     parameters:
+ *       - in: query
+ *         name: nurseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The nurse ID to fetch active appointments for
+ *     responses:
+ *       '200':
+ *         description: A list of active appointments for the specified nurse during their shift
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Appointment'
+ *       '400':
+ *         description: Bad request, invalid nurseId or other error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+appointmentRouter.get("/status/active", async (req, res) => {
   try {
-    // const dayOfWeek = new Date().getDay() + 1;
-    // const hour = new Date().getHours();
-    const appointments = await AppointmentController
-      .findActiveAppointmentsByShiftHour
-      // dayOfWeek,
-      // hour,
-      ();
+    const { nurseId } = req.query;
+    const appointments =
+      await AppointmentController.findActiveAppointmentsByShiftHour(
+        nurseId as string,
+      );
     res.status(200).json(appointments);
   } catch (err) {
     const error = err as Error;
@@ -178,9 +211,16 @@ appointmentRouter.put("/:id/resolve", async (req, res) => {
   try {
     const { id } = req.params;
 
+    const { nurseId } = req.body;
+
+    if (!nurseId) {
+      return res.status(400).json({ error: "nurseId is required" });
+    }
+
     const updated = await AppointmentController.update(id, {
       isResolved: true,
       closedDate: new Date(Date.now()),
+      nurseId,
     });
 
     if (!updated) {

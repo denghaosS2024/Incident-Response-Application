@@ -299,6 +299,72 @@ export default Router()
 
   /**
    * @swagger
+   * /api/hospital-resource/search/{resourceName}:
+   *   get:
+   *     summary: Search HospitalResources by resourceName
+   *     description: Perform a fuzzy search for HospitalResources by resourceName and group them by resourceName.
+   *     tags: [HospitalResource]
+   *     parameters:
+   *       - in: path
+   *         name: resourceName
+   *         description: The name of the resource to search for
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: HospitalResources grouped by resourceName retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               additionalProperties:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     hospitalId:
+   *                       type: string
+   *                     resourceName:
+   *                       type: string
+   *                     inStockQuantity:
+   *                       type: number
+   *                     inStockAlertThreshold:
+   *                       type: number
+   *       400:
+   *         description: Bad request
+   *       404:
+   *         description: No resources found
+   *       500:
+   *         description: Server error
+   */
+  .get("/search/:resourceName", async (request, response) => {
+    try {
+      const { resourceName } = request.params;
+
+      // Validate the resourceName parameter
+      if (!resourceName) {
+        throw new HttpError("resourceName parameter is required.", 400);
+      }
+
+      // Fetch hospital resources by fuzzy resourceName
+      const groupedResources =
+        await HospitalResourceController.getHospitalResourcesByFuzzyResourceName(
+          resourceName,
+        );
+
+      return response.status(200).send(groupedResources);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        return response.status(e.statusCode).send({ message: e.message });
+      }
+      const error = e as Error;
+      return response.status(500).send({ message: error.message });
+    }
+  })
+
+  /**
+   * @swagger
    * /api/hospital-resource/id/{_id}:
    *   get:
    *     summary: Get an individual hospital resource by _id

@@ -1,9 +1,21 @@
 import HospitalResourceCard from "@/components/feature/HospitalResources/HospitalResourceCard";
 import HospitalResource from "@/models/HospitalResource";
-import { fetchAllHospitalResources } from "@/redux/hospitalResourceSlice";
+import {
+  fetchAllHospitalResources,
+  searchHospitalResourcesByName,
+} from "@/redux/hospitalResourceSlice";
 import { AppDispatch, RootState } from "@/redux/store";
 import request from "@/utils/request";
-import { Box, TextField, Typography } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+  Alert,
+  Box,
+  IconButton,
+  InputAdornment,
+  Snackbar,
+  TextField,
+  Typography,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
@@ -26,6 +38,9 @@ const HospitalResourcesPage: React.FC = () => {
   const [currentHospitalId, setCurrentHospitalId] = useState<string | null>(
     null,
   );
+
+  const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false); // Snackbar visibility
+  const [snackbarMessage, setSnackbarMessage] = useState<string>(""); // Snackbar message
 
   // Fetch all hospital resources on component mount
   useEffect(() => {
@@ -53,6 +68,25 @@ const HospitalResourcesPage: React.FC = () => {
     fetchCurrentUser();
     dispatch(fetchAllHospitalResources()); // Fetch all resources
   }, [dispatch]);
+
+  // Handle search
+  const handleSearch = async () => {
+    if (searchTerm.trim() === "") {
+      // If search term is empty, fetch all resources
+      dispatch(fetchAllHospitalResources());
+    } else {
+      try {
+        // Perform search
+        await dispatch(searchHospitalResourcesByName(searchTerm)).unwrap();
+      } catch (error) {
+        // Show snackbar if search fails (e.g., 404 error)
+        setSnackbarMessage(
+          `No resources found matching the name "${searchTerm}".`,
+        );
+        setSnackbarOpen(true);
+      }
+    }
+  };
   return (
     <Box sx={{ padding: 2 }}>
       {/* Search Bar */}
@@ -62,7 +96,21 @@ const HospitalResourcesPage: React.FC = () => {
           variant="outlined"
           fullWidth
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)} // temp implamentation, will finish later
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            if (e.target.value.trim() === "") {
+              dispatch(fetchAllHospitalResources()); // Fetch all resources if search term is empty
+            }
+          }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={handleSearch}>
+                  <SearchIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
       </Box>
 
@@ -95,6 +143,22 @@ const HospitalResourcesPage: React.FC = () => {
       ) : (
         <Typography>No resources available.</Typography>
       )}
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

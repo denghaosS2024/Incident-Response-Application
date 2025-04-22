@@ -12,6 +12,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import request from "../../utils/request";
+import AlertSnackbar from "../common/AlertSnackbar";
 
 interface Props {
   totalFunds: number;
@@ -27,13 +28,19 @@ const FundingSummaryCard: React.FC<Props> = ({
   const [open, setOpen] = useState<boolean>(false);
   const [amount, setAmount] = useState<number>(0);
   const [fund, setFunds] = useState<number>(totalFunds);
-  console.log(totalFunds);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   useEffect(() => {
     setFunds(totalFunds);
   }, [totalFunds]);
 
   const handleSubmit = async () => {
+    if (amount <= 0) {
+      setOpenSnackbar(true);
+      setSnackbarMessage("Please Enter Postive Number");
+      return;
+    }
     const res = await request(`/api/cities/remaining-funding/${cityName}`, {
       method: "POST",
       body: JSON.stringify({
@@ -56,7 +63,7 @@ const FundingSummaryCard: React.FC<Props> = ({
             alignItems="center"
           >
             <Typography variant="h6">Total Remaining Funds</Typography>
-            {role == "City Director" && (
+            {role == "City Director" && cityName && (
               <Button
                 variant="outlined"
                 color="primary"
@@ -135,6 +142,12 @@ const FundingSummaryCard: React.FC<Props> = ({
           </Button>
         </DialogActions>
       </Dialog>
+      <AlertSnackbar
+        open={openSnackbar}
+        onClose={() => setOpenSnackbar(false)}
+        message={snackbarMessage}
+        severity="error"
+      />
     </Box>
   );
 };

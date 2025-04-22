@@ -90,7 +90,10 @@ class Socket {
       socket.on("patientUpdated", (data) => {
         console.log("Patient updated", data);
         socket.broadcast.emit("patientUpdated", data);
+      });
 
+      socket.on("funding-assigned", (data) => {
+        socket.broadcast.emit("funding-assigned", data);
       });
 
       // Handle user disconnection
