@@ -3,7 +3,9 @@ import IFollowUpInfo from '@/models/FollowUpInfo';
 import request from '@/utils/request';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { Box, Button, Checkbox, Container, FormControlLabel, IconButton, Stack, TextField, Typography } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import imageCompression from "browser-image-compression";
+import heic2any from "heic2any";
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 interface FollowUpFormProps {
@@ -11,6 +13,8 @@ interface FollowUpFormProps {
   readonly: boolean
   followUpId?: string
 }
+
+const PLACEHOLDER = "/images/placeholder.png";
 
 const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, readonly, followUpId}) => {
   const navigate = useNavigate();
@@ -30,6 +34,13 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
   const [dateTime, setDateTime] = useState("");
   const [additionalComment, setAdditionalComment] = useState("");
 
+  const [formKey, setFormKey] = useState(0);
+  const [photoFile, setPhotoFile] = useState<string>("");
+  const [previewSrc, setPreviewSrc] = useState<string>(PLACEHOLDER);
+  
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   function getLocalDateTimeString() {
     const now = new Date(); 
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -60,6 +71,12 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
             pad(date.getMinutes());
           setDateTime(localDateTime);
           setAdditionalComment(data.additionalComment ?? "");
+
+          if (data.photo) {
+            setPhotoFile(data.photo);
+            setPreviewSrc(data.photo);
+          }
+
         })
         .catch(() => {
           setSnackbarMessage("Failed to load follow-up data.");
@@ -68,6 +85,72 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
         });
     }
   }, [readonly, followUpId]);
+
+  // Function to convert HEIC to JPG
+  async function convertHEICToJPG(heicFile: File | Blob) {
+    try {
+      const blobs = await heic2any({
+        blob: heicFile,
+        toType: 'image/jpeg',
+      });
+      const blob = Array.isArray(blobs) ? blobs[0] : blobs;
+      
+      const jpgURL = URL.createObjectURL(blob);
+      return jpgURL;
+    } catch (error) {
+      console.error('Error converting HEIC to JPG:', error);
+      return null;
+    }
+  }
+  // Handle file upload for photo
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return;
+    
+    const file = event.target.files[0];
+    const maxSize = 16 * 1024 * 1024; // 16MB in bytes
+
+    // if the file exceeds the 16MB size limit
+    if (file.size > maxSize) {
+      alert("The file is too large. Please select a file smaller than 16MB.");
+      return;
+    }
+
+    // if HEIC iphone image, convert it to JPG 
+    if (file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
+      const jpgURL = await convertHEICToJPG(file);
+      if (!jpgURL) {
+        alert("Error converting HEIC to JPG. Please try again with a different file.");
+        return;
+      }
+
+      setPhotoFile(jpgURL)
+      return; 
+    }
+
+    try {
+      const options = {
+        maxWidthOrHeight: 800,  
+        useWebWorker: true,
+      };
+
+      // compress the image
+      const compressedFile = await imageCompression(file, options);
+      const base64 = await imageCompression.getDataUrlFromFile(compressedFile);
+
+      setPhotoFile(base64 ?? null)
+
+      } catch (error) {
+        console.error("Error compressing the image:", error);
+      }
+  };
+
+  useEffect(() => {
+    if (!photoFile) {
+      setPreviewSrc(PLACEHOLDER);
+      return;
+    }
+    setPreviewSrc(photoFile);
+  }, [photoFile]);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files && event.target.files[0];
@@ -109,12 +192,21 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
       setSnackbarOpen(true);
       return;
     } else {
+      let photoUrl: string | undefined;
+      if (photoFile) {
+        photoUrl = previewSrc;
+      }
+
+      console.log(photoFile)
+      console.log(photoUrl)
+
       const followUpInfo: IFollowUpInfo = {
         reportId: reportId,
         isSpotted: physicallySeen ,
         locationSpotted: location,
         datetimeSpotted: new Date(dateTime),
-        additionalComment: additionalComment
+        additionalComment: additionalComment,
+        photo: photoUrl
       }
 
       console.log(JSON.stringify(followUpInfo));
@@ -212,14 +304,21 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
             <Box display="flex" alignItems="center" flexDirection="row" gap={1}>
               <Typography>Upload a Photo:</Typography>
               <IconButton color="primary" component="label" onClick={(e) => setAnchorEl(e.currentTarget)}>
-                <input hidden accept="image/*" type="file" onChange={handleImageChange} />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChangeCapture={handlePhotoUpload}
+                  onChange={handleImageChange}
+                />
                 <AddPhotoAlternateIcon />
               </IconButton>
             </Box>
 
             {imageUrl && (
               <Box display="flex" flexDirection="column" mt={2}>
-                <img src={imageUrl} alt="Preview" style={{ width: "auto", height: "auto" }} />
+                <img src={previewSrc} alt="Preview" style={{ width: "auto", height: "auto" }} />
               </Box>
             )}
           </>
@@ -228,6 +327,12 @@ const MissingPersonFollowUpForm: React.FC<FollowUpFormProps> = ({reportId, reado
         {!readonly && (
           <Box display="flex" justifyContent="center" mt={2}>
             <Button variant="contained" color="primary" onClick={handleSubmit}>Submit</Button>
+          </Box>
+        )}
+
+        {((readonly && previewSrc !== PLACEHOLDER)) && (
+          <Box display="flex" flexDirection="column" mt={2}>
+            <img src={previewSrc} alt="Preview" style={{ width: "auto", height: "auto" }} />
           </Box>
         )}
     </Stack>

@@ -2,7 +2,6 @@
 // It interacts with the Channel and User models and manages user connections.
 import { Router } from "express";
 import { Types } from "mongoose";
-
 import ChannelController from "../controllers/ChannelController";
 import Channel from "../models/Channel";
 
@@ -969,6 +968,9 @@ export default Router()
    *               - text
    *               - targetLang
    *             properties:
+   *               _id:
+   *                 type: string
+   *                 description: The ID of the channel
    *               text:
    *                 type: string
    *                 description: The message text to translate
@@ -991,8 +993,19 @@ export default Router()
       if (!text || !targetLang) {
         return response.status(400).json({ message: "Both text and targetLang are required." });
       }
-      // Stub: Just return the text with [translated to <lang>] appended
-      const translation = `${text} [translated to ${targetLang}]`;
-      return response.json({ translation });
+      
+      try {
+        // Use the ChannelController to translate the message
+        const translation = await ChannelController.translateMessage(_id, text, targetLang);
+        
+        // Return the translated text
+        return response.json({ translation });
+      } catch (error) {
+        console.error('Translation API error:', error);
+        return response.status(500).json({ 
+          message: "Translation service error", 
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
     })
 

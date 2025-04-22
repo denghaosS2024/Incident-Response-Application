@@ -8,5 +8,6 @@ export default interface IFollowUpInfo {
     additionalComment: string
 
     // TODO: Add Image URL????
+    photo?: string
   }
   
