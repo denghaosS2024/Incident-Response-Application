@@ -78,8 +78,7 @@ describe("Router - Inventory", () => {
     );
   });
 
-
-describe("PATCH /api/inventories/category/:category/item/:itemName", () => {
+  describe("PATCH /api/inventories/category/:category/item/:itemName", () => {
     it("should update quantity for an existing item in truck1 inventory", async () => {
       const { body } = await request(app)
         .patch("/api/inventories/category/truck1/item/Medical Kit")
@@ -89,7 +88,9 @@ describe("PATCH /api/inventories/category/:category/item/:itemName", () => {
       expect(body).toHaveProperty("result");
 
       const updatedInventory = await Inventory.findOne({ category: "truck1" });
-      const medicalKit = updatedInventory?.items.find(item => item.name === "Medical Kit");
+      const medicalKit = updatedInventory?.items.find(
+        (item) => item.name === "Medical Kit",
+      );
       expect(medicalKit?.quantity).toBe(8);
     });
 
@@ -103,7 +104,9 @@ describe("PATCH /api/inventories/category/:category/item/:itemName", () => {
 
       // Verify the update in database
       const updatedInventory = await Inventory.findOne({ category: "truck1" });
-      const repairTools = updatedInventory?.items.find(item => item.name === "Repair Tools");
+      const repairTools = updatedInventory?.items.find(
+        (item) => item.name === "Repair Tools",
+      );
       expect(repairTools?.quantity).toBe(0);
     });
 
@@ -114,7 +117,7 @@ describe("PATCH /api/inventories/category/:category/item/:itemName", () => {
         .expect(400);
 
       expect(body).toEqual({
-        error: "A valid non-negative integer quantity is required"
+        error: "A valid non-negative integer quantity is required",
       });
     });
 
@@ -125,7 +128,7 @@ describe("PATCH /api/inventories/category/:category/item/:itemName", () => {
         .expect(400);
 
       expect(body).toEqual({
-        error: "A valid non-negative integer quantity is required"
+        error: "A valid non-negative integer quantity is required",
       });
     });
 
@@ -136,7 +139,7 @@ describe("PATCH /api/inventories/category/:category/item/:itemName", () => {
         .expect(400);
 
       expect(body).toEqual({
-        error: "A valid non-negative integer quantity is required"
+        error: "A valid non-negative integer quantity is required",
       });
     });
 
@@ -176,12 +179,14 @@ describe("PATCH /api/inventories/category/:category/item/:itemName", () => {
 
       // Verify the update in database
       const updatedInventory = await Inventory.findOne({ category: "truck1" });
-      const firstAidKit = updatedInventory?.items.find(item => item.name === "First Aid Kit");
+      const firstAidKit = updatedInventory?.items.find(
+        (item) => item.name === "First Aid Kit",
+      );
       expect(firstAidKit?.quantity).toBe(20);
     });
   });
 
-describe("GET /api/inventories/default/item/:itemName", () => {
+  describe("GET /api/inventories/default/item/:itemName", () => {
     it("should return quantity for an existing item in default inventory", async () => {
       const { body } = await request(app)
         .get("/api/inventories/default/item/Medical Kit")
@@ -217,7 +222,16 @@ describe("GET /api/inventories/default/item/:itemName", () => {
       // Add an item with space in name first
       await Inventory.findOneAndUpdate(
         { category: "default" },
-        { $push: { items: { name: "First Aid Kit", quantity: 15, description: "", icon: "Emergency" } } },
+        {
+          $push: {
+            items: {
+              name: "First Aid Kit",
+              quantity: 15,
+              description: "",
+              icon: "Emergency",
+            },
+          },
+        },
       );
 
       const { body } = await request(app)
@@ -233,7 +247,16 @@ describe("GET /api/inventories/default/item/:itemName", () => {
       // Add an item with space in name first
       await Inventory.findOneAndUpdate(
         { category: "default" },
-        { $push: { items: { name: "First Aid Kit", quantity: 15, description: "", icon: "Emergency" } } },
+        {
+          $push: {
+            items: {
+              name: "First Aid Kit",
+              quantity: 15,
+              description: "",
+              icon: "Emergency",
+            },
+          },
+        },
       );
 
       const { body } = await request(app)
@@ -244,7 +267,6 @@ describe("GET /api/inventories/default/item/:itemName", () => {
       expect(body.quantity).toBe(15);
       expect(body.description).toBe("");
     });
-
 
     it("should return case-sensitive item match", async () => {
       const { body } = await request(app)
@@ -258,7 +280,6 @@ describe("GET /api/inventories/default/item/:itemName", () => {
       });
     });
 
-
     it("should handle empty item name parameter", async () => {
       const { body } = await request(app)
         .get("/api/inventories/default/item/")
@@ -269,16 +290,15 @@ describe("GET /api/inventories/default/item/:itemName", () => {
     });
   });
 
-describe("GET /api/inventories/non-default", () => {
+  describe("GET /api/inventories/non-default", () => {
     it("should return all inventories except the default one", async () => {
       const { body } = await request(app)
         .get("/api/inventories/non-default")
         .expect(200);
 
       expect(body).toHaveLength(1);
-      
-      expect(body[0].category).toBe("truck1");
 
+      expect(body[0].category).toBe("truck1");
     });
 
     it("should return empty array when only default inventory exists", async () => {
@@ -302,8 +322,80 @@ describe("GET /api/inventories/non-default", () => {
 
       expect(body).toEqual([]);
     });
+  });
+  describe("PUT /api/inventories/default/item", () => {
+    it("should add a new item to the default inventory", async () => {
+      const newItem = {
+        name: "Flashlight",
+        quantity: 3,
+        description: "Bright LED flashlight",
+        icon: "Hardware",
+      };
 
+      const { body } = await request(app)
+        .put("/api/inventories/default/item")
+        .send(newItem)
+        .expect(200);
 
-});
+      expect(body).toHaveProperty("category", "default");
+      expect(body.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: "Flashlight",
+            quantity: 3,
+            description: "Bright LED flashlight",
+            icon: "Hardware",
+          }),
+        ]),
+      );
 
+      const updatedInventory = await Inventory.findOne({ category: "default" });
+      const addedItem = updatedInventory?.items.find(
+        (i) => i.name === "Flashlight",
+      );
+      expect(addedItem).toBeDefined();
+      expect(addedItem?.quantity).toBe(3);
+    });
+  });
+
+  describe("DELETE /api/inventories/deleteitem", () => {
+    beforeEach(async () => {
+      // Reset to known state before each test
+      await Inventory.deleteMany({});
+      await Inventory.create({
+        category: "default",
+        items: [
+          { name: "Medical Kit", quantity: 10 },
+          { name: "Repair Tools", quantity: 5 },
+        ],
+      });
+      await Inventory.create({
+        category: "truck1",
+        items: [
+          { name: "Medical Kit", quantity: 3 },
+          { name: "Flashlight", quantity: 7 },
+        ],
+      });
+    });
+
+    it("should delete the item from all inventories", async () => {
+      const { body } = await request(app)
+        .delete("/api/inventories/deleteitem")
+        .send({ name: "Medical Kit" })
+        .expect(200);
+
+      expect(body).toHaveProperty(
+        "message",
+        "Item 'Medical Kit' removed from all inventories.",
+      );
+      expect(body.matchedCount).toBeGreaterThan(0);
+      expect(body.modifiedCount).toBeGreaterThan(0);
+
+      const updatedInventories = await Inventory.find({});
+      for (const inv of updatedInventories) {
+        const exists = inv.items.find((item) => item.name === "Medical Kit");
+        expect(exists).toBeUndefined();
+      }
+    });
+  });
 });

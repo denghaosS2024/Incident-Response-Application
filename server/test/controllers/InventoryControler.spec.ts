@@ -7,9 +7,9 @@ jest.mock("../../src/models/Inventory", () => ({
       exec: jest.fn().mockResolvedValue({}),
     }),
     find: jest.fn(),
+    updateMany: jest.fn(),
   },
 }));
-
 
 import InventoryController from "../../src/controllers/InventoryController";
 
@@ -72,101 +72,198 @@ describe("InventoryController - Get Inventory by Category", () => {
     });
   });
 
-describe("InventoryController - Update Item Quantity", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  describe("InventoryController - Update Item Quantity", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
 
-    // Mock `Inventory.findOne` specifically for updateItemQuantity
-    (Inventory.findOne as jest.Mock).mockImplementation(({ category }) => {
-      if (category === "truck1") {
-        return Promise.resolve({
-          category: "truck1",
-          items: [
-            { name: "Medical Kit", quantity: 5 },
-            { name: "Repair Tools", quantity: 2 },
-          ],
-          save: jest.fn().mockResolvedValue(true),
-        });
-      }
-      return Promise.resolve(null);
+      // Mock `Inventory.findOne` specifically for updateItemQuantity
+      (Inventory.findOne as jest.Mock).mockImplementation(({ category }) => {
+        if (category === "truck1") {
+          return Promise.resolve({
+            category: "truck1",
+            items: [
+              { name: "Medical Kit", quantity: 5 },
+              { name: "Repair Tools", quantity: 2 },
+            ],
+            save: jest.fn().mockResolvedValue(true),
+          });
+        }
+        return Promise.resolve(null);
+      });
+    });
+
+    it("should successfully update item quantity", async () => {
+      const result = await InventoryController.updateItemQuantity(
+        "truck1",
+        "Medical Kit",
+        10,
+      );
+
+      expect(Inventory.findOne).toHaveBeenCalledWith({ category: "truck1" });
+      expect(result.items[0].quantity).toBe(10);
+      expect(result.save).toHaveBeenCalled();
+    });
+
+    it("should throw error if category is not provided", async () => {
+      await expect(
+        InventoryController.updateItemQuantity(null, "Medical Kit", 10),
+      ).rejects.toThrow("Category and item name are required");
+    });
+
+    it("should throw error if item name is not provided", async () => {
+      await expect(
+        InventoryController.updateItemQuantity("truck1", null, 10),
+      ).rejects.toThrow("Category and item name are required");
+    });
+
+    it("should throw error if quantity is undefined", async () => {
+      await expect(
+        InventoryController.updateItemQuantity(
+          "truck1",
+          "Medical Kit",
+          undefined,
+        ),
+      ).rejects.toThrow("A valid non-negative integer quantity is required");
+    });
+
+    it("should throw error if quantity is not an integer", async () => {
+      await expect(
+        InventoryController.updateItemQuantity("truck1", "Medical Kit", 10.5),
+      ).rejects.toThrow("A valid non-negative integer quantity is required");
+    });
+
+    it("should throw error if quantity is negative", async () => {
+      await expect(
+        InventoryController.updateItemQuantity("truck1", "Medical Kit", -5),
+      ).rejects.toThrow("A valid non-negative integer quantity is required");
+    });
+
+    it("should throw error if inventory with category not found", async () => {
+      await expect(
+        InventoryController.updateItemQuantity(
+          "nonexistent",
+          "Medical Kit",
+          10,
+        ),
+      ).rejects.toThrow("Inventory with category 'nonexistent' not found");
+    });
+
+    it("should throw error if item not found in inventory", async () => {
+      await expect(
+        InventoryController.updateItemQuantity(
+          "truck1",
+          "Nonexistent Item",
+          10,
+        ),
+      ).rejects.toThrow(
+        "Item 'Nonexistent Item' not found in category 'truck1'",
+      );
+    });
+
+    it("should update quantity to 0 successfully", async () => {
+      const result = await InventoryController.updateItemQuantity(
+        "truck1",
+        "Medical Kit",
+        0,
+      );
+
+      expect(result.items[0].quantity).toBe(0);
+      expect(result.save).toHaveBeenCalled();
     });
   });
 
-  it("should successfully update item quantity", async () => {
-    const result = await InventoryController.updateItemQuantity("truck1", "Medical Kit", 10);
-    
-    expect(Inventory.findOne).toHaveBeenCalledWith({ category: "truck1" });
-    expect(result.items[0].quantity).toBe(10);
-    expect(result.save).toHaveBeenCalled();
+  describe("InventoryController - getAllNonDefaultInventories", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should return all inventories with category not equal to 'default'", async () => {
+      const mockInventories = [
+        { category: "truck1", items: [] },
+        { category: "truck2", items: [] },
+      ];
+
+      (Inventory.find as jest.Mock).mockResolvedValue(mockInventories);
+
+      const result = await InventoryController.getAllNonDefaultInventories();
+
+      expect(Inventory.find).toHaveBeenCalledWith({
+        category: { $ne: "default" },
+      });
+      expect(result).toEqual(mockInventories);
+    });
   });
 
-  it("should throw error if category is not provided", async () => {
-    await expect(
-      InventoryController.updateItemQuantity(null, "Medical Kit", 10)
-    ).rejects.toThrow("Category and item name are required");
+  describe("InventoryController - addOrUpdateItemInDefaultCategory", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should add a new item to all categories", async () => {
+      const mockSave = jest.fn().mockResolvedValue(true);
+
+      // Mock findOne for 'default' category to return an existing inventory with items array
+      (Inventory.findOne as jest.Mock).mockResolvedValue({
+        category: "default",
+        items: [],
+        save: mockSave,
+      });
+
+      // Mock other inventories (non-default)
+      const mockTruckInventory = {
+        category: "truck2",
+        items: [],
+        save: jest.fn().mockResolvedValue(true),
+      };
+
+      (Inventory.find as jest.Mock).mockResolvedValue([mockTruckInventory]);
+
+      const result = await InventoryController.addOrUpdateItemInDefaultCategory(
+        {
+          name: "hammer",
+          quantity: 2,
+          icon: "Hardware",
+        },
+      );
+
+      // Optional: assert the result or that save was called
+      expect(mockSave).toHaveBeenCalled();
+      expect(mockTruckInventory.items).toContainEqual({
+        name: "hammer",
+        quantity: 2,
+        icon: "Hardware",
+        description: undefined,
+      });
+    });
   });
 
-  it("should throw error if item name is not provided", async () => {
-    await expect(
-      InventoryController.updateItemQuantity("truck1", null, 10)
-    ).rejects.toThrow("Category and item name are required");
+  describe("InventoryController - deleteItemFromAllCategories", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should remove the item from all inventories and return the result summary", async () => {
+      const mockUpdateResult = {
+        matchedCount: 3,
+        modifiedCount: 2,
+      };
+
+      (Inventory.updateMany as jest.Mock).mockResolvedValue(mockUpdateResult);
+
+      const itemName = "Medical Kit";
+      const result =
+        await InventoryController.deleteItemFromAllCategories(itemName);
+
+      expect(Inventory.updateMany).toHaveBeenCalledWith(
+        {},
+        { $pull: { items: { name: itemName } } },
+      );
+
+      expect(result).toEqual({
+        message: `Item '${itemName}' removed from all inventories.`,
+        matchedCount: 3,
+        modifiedCount: 2,
+      });
+    });
   });
-
-  it("should throw error if quantity is undefined", async () => {
-    await expect(
-      InventoryController.updateItemQuantity("truck1", "Medical Kit", undefined)
-    ).rejects.toThrow("A valid non-negative integer quantity is required");
-  });
-
-  it("should throw error if quantity is not an integer", async () => {
-    await expect(
-      InventoryController.updateItemQuantity("truck1", "Medical Kit", 10.5)
-    ).rejects.toThrow("A valid non-negative integer quantity is required");
-  });
-
-  it("should throw error if quantity is negative", async () => {
-    await expect(
-      InventoryController.updateItemQuantity("truck1", "Medical Kit", -5)
-    ).rejects.toThrow("A valid non-negative integer quantity is required");
-  });
-
-  it("should throw error if inventory with category not found", async () => {
-    await expect(
-      InventoryController.updateItemQuantity("nonexistent", "Medical Kit", 10)
-    ).rejects.toThrow("Inventory with category 'nonexistent' not found");
-  });
-
-  it("should throw error if item not found in inventory", async () => {
-    await expect(
-      InventoryController.updateItemQuantity("truck1", "Nonexistent Item", 10)
-    ).rejects.toThrow("Item 'Nonexistent Item' not found in category 'truck1'");
-  });
-
-  it("should update quantity to 0 successfully", async () => {
-    const result = await InventoryController.updateItemQuantity("truck1", "Medical Kit", 0);
-    
-    expect(result.items[0].quantity).toBe(0);
-    expect(result.save).toHaveBeenCalled();
-  });
-});
-
-describe("InventoryController - getAllNonDefaultInventories", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("should return all inventories with category not equal to 'default'", async () => {
-    const mockInventories = [
-      { category: "truck1", items: [] },
-      { category: "truck2", items: [] },
-    ];
-
-    (Inventory.find as jest.Mock).mockResolvedValue(mockInventories);
-
-    const result = await InventoryController.getAllNonDefaultInventories();
-
-    expect(Inventory.find).toHaveBeenCalledWith({ category: { $ne: "default" } });
-    expect(result).toEqual(mockInventories);
-  });
-});
 });
