@@ -31,7 +31,7 @@ const MissingPersonManagePage: React.FC = () => {
   const [formData, setFormData] = useState<IMissingPerson | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Get current user role from localStorage
   const currentUserRole = localStorage.getItem("role") || "";
 
@@ -70,7 +70,7 @@ const MissingPersonManagePage: React.FC = () => {
       const payload = {
         ...updatedData,
         reportStatus: updatedData.reportStatus || "open",
-        personStatus: updatedData.personStatus || "missing"
+        personStatus: updatedData.personStatus || "missing",
       };
 
       // Make API call to update the record using the request utility
@@ -122,12 +122,12 @@ const MissingPersonManagePage: React.FC = () => {
         ...formData,
         personStatus: newPersonStatus,
         // Keep current reportStatus (open/closed) unchanged
-        reportStatus: formData.reportStatus
+        reportStatus: formData.reportStatus,
       };
 
       // Then update in the database
       const updateUrl = `/api/missingPerson/${reportId}`;
-      
+
       await request<IMissingPerson>(
         updateUrl,
         {
@@ -143,7 +143,7 @@ const MissingPersonManagePage: React.FC = () => {
       const e = err as IRequestError;
       console.error("Error updating person status:", e);
       setError(e.message ?? "Failed to update person status");
-      
+
       // Revert the local state if update failed
       if (formData) {
         setFormData({
@@ -168,7 +168,7 @@ const MissingPersonManagePage: React.FC = () => {
         ...formData,
         reportStatus: "closed",
         // Explicitly keep the current personStatus value
-        personStatus: formData.personStatus
+        personStatus: formData.personStatus,
       };
 
       // Make API call to update the record using the request utility
@@ -435,6 +435,10 @@ const MissingPersonManagePage: React.FC = () => {
                       setFormData({ ...formData, name: e.target.value })
                     }
                     InputLabelProps={{ shrink: false }}
+                    disabled={
+                      currentUserRole.toLowerCase() !== "police" ||
+                      formData.reportStatus?.toLowerCase() !== "open"
+                    }
                   />
 
                   {/* Age field */}
@@ -470,6 +474,10 @@ const MissingPersonManagePage: React.FC = () => {
                           e.preventDefault();
                         }
                       }}
+                      disabled={
+                        currentUserRole.toLowerCase() !== "police" ||
+                        formData.reportStatus?.toLowerCase() !== "open"
+                      }
                     />
                   </Box>
                 </Grid>
@@ -507,6 +515,10 @@ const MissingPersonManagePage: React.FC = () => {
                         e.preventDefault();
                       }
                     }}
+                    disabled={
+                      currentUserRole.toLowerCase() !== "police" ||
+                      formData.reportStatus?.toLowerCase() !== "open"
+                    }
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -553,6 +565,10 @@ const MissingPersonManagePage: React.FC = () => {
                     }}
                     placeholder="e.g., 5'7"
                     InputLabelProps={{ shrink: false }}
+                    disabled={
+                      currentUserRole.toLowerCase() !== "police" ||
+                      formData.reportStatus?.toLowerCase() !== "open"
+                    }
                   />
                 </Grid>
               </Grid>
@@ -574,6 +590,10 @@ const MissingPersonManagePage: React.FC = () => {
                   }
                   displayEmpty
                   inputProps={{ "aria-label": "Race" }}
+                  disabled={
+                    currentUserRole.toLowerCase() !== "police" ||
+                    formData.reportStatus?.toLowerCase() !== "open"
+                  }
                 >
                   {Object.values(Race).map((race) => (
                     <MenuItem key={race} value={race}>
@@ -599,6 +619,10 @@ const MissingPersonManagePage: React.FC = () => {
                       setFormData({ ...formData, eyeColor: e.target.value })
                     }
                     InputLabelProps={{ shrink: false }}
+                    disabled={
+                      currentUserRole.toLowerCase() !== "police" ||
+                      formData.reportStatus?.toLowerCase() !== "open"
+                    }
                   />
                 </Grid>
 
@@ -619,6 +643,10 @@ const MissingPersonManagePage: React.FC = () => {
                       }
                       displayEmpty
                       inputProps={{ "aria-label": "Gender" }}
+                      disabled={
+                        currentUserRole.toLowerCase() !== "police" ||
+                        formData.reportStatus?.toLowerCase() !== "open"
+                      }
                     >
                       {Object.values(Gender).map((gender) => (
                         <MenuItem key={gender} value={gender}>
@@ -651,82 +679,104 @@ const MissingPersonManagePage: React.FC = () => {
                   setFormData({ ...formData, description: e.target.value })
                 }
                 InputLabelProps={{ shrink: false }}
+                disabled={
+                  currentUserRole.toLowerCase() !== "police" ||
+                  formData.reportStatus?.toLowerCase() !== "open"
+                }
               />
 
               {/* Upload photo and Generate PDF row */}
-              <Box sx={{ display: "flex", alignItems: "center", mt: 3, mb: 2 }}>
-                <Typography variant="body1" sx={{ mr: 1 }}>
-                  Upload a New Photo:
-                </Typography>
-                <IconButton
-                  color="primary"
-                  component="label"
-                  aria-label="upload photo"
-                >
-                  <PhotoCameraIcon />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={handlePhotoUpload}
-                  />
-                </IconButton>
-                <Box sx={{ flexGrow: 1 }} />
 
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleGeneratePDF}
-                  sx={{ mr: 2 }}
+              {(currentUserRole.toLowerCase() === "police" &&
+                formData.reportStatus?.toLowerCase() == "open") && (
+                <Box
+                  sx={{ display: "flex", alignItems: "center", mt: 3, mb: 2 }}
                 >
-                  GENERATE PDF
-                </Button>
-              </Box>
+                  <Typography variant="body1" sx={{ mr: 1 }}>
+                    Upload a New Photo:
+                  </Typography>
+
+                  <IconButton
+                    color="primary"
+                    component="label"
+                    aria-label="upload photo"
+                  >
+                    <PhotoCameraIcon />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handlePhotoUpload}
+                    />
+                  </IconButton>
+
+                  <Box sx={{ flexGrow: 1 }} />
+
+                  {(currentUserRole.toLowerCase() == "police" &&
+                    formData.reportStatus?.toLowerCase() == "open") && (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleGeneratePDF}
+                        sx={{ mr: 2 }}
+                      >
+                        GENERATE PDF
+                      </Button>
+                    )}
+                </Box>
+              )}
 
               {/* Mark person as found checkbox */}
-              <Box sx={{ display: "flex", alignItems: "center", mt: 1, mb: 2 }}>
-                <input
-                  type="checkbox"
-                  id="foundCheckbox"
-                  checked={formData.personStatus === "found"}
-                  onChange={handleFoundStatusChange}
-                  style={{ transform: "scale(1.5)", marginRight: "10px" }}
-                />
-                <label htmlFor="foundCheckbox">
-                  <Typography variant="body1">Mark Person as Found</Typography>
-                </label>
-              </Box>
+              {(currentUserRole.toLowerCase() == "police" &&
+                formData.reportStatus?.toLowerCase() == "open") && (
+                <Box
+                  sx={{ display: "flex", alignItems: "center", mt: 1, mb: 2 }}
+                >
+                  <input
+                    type="checkbox"
+                    id="foundCheckbox"
+                    checked={formData.personStatus === "found"}
+                    onChange={handleFoundStatusChange}
+                    style={{ transform: "scale(1.5)", marginRight: "10px" }}
+                  />
+                  <label htmlFor="foundCheckbox">
+                    <Typography variant="body1">
+                      Mark Person as Found
+                    </Typography>
+                  </label>
+                </Box>
+              )}
 
               {/* Action buttons row */}
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 2,
-                  mt: 3,
-                }}
-              >
-                <Button
-                  variant="outlined"
-                  onClick={handleCancel}
-                  sx={{ minWidth: 100 }}
-                >
-                  CANCEL
-                </Button>
-
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => {
-                    if (formData) handleUpdate(formData);
+              {(currentUserRole.toLowerCase() == "police" &&
+                formData.reportStatus?.toLowerCase() == "open") && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 2,
+                    mt: 3,
                   }}
-                  sx={{ minWidth: 100 }}
                 >
-                  UPDATE
-                </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={handleCancel}
+                    sx={{ minWidth: 100 }}
+                  >
+                    CANCEL
+                  </Button>
 
-                {/* Only show CLOSE button for police users */}
-                {currentUserRole.toLowerCase() === "police" && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => {
+                      if (formData) handleUpdate(formData);
+                    }}
+                    sx={{ minWidth: 100 }}
+                  >
+                    UPDATE
+                  </Button>
+
                   <Button
                     variant="contained"
                     color="error"
@@ -736,8 +786,8 @@ const MissingPersonManagePage: React.FC = () => {
                   >
                     CLOSE
                   </Button>
-                )}
-              </Box>
+                </Box>
+              )}
             </Box>
           )}
         </Grid>
