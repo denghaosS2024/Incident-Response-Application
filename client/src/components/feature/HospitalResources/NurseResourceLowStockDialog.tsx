@@ -1,4 +1,3 @@
-import { AppDispatch } from "@/redux/store";
 import {
   Button,
   Dialog,
@@ -7,8 +6,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import SocketClient from "../../../utils/Socket";
 
 interface NurseResourceLowStockProps {
@@ -22,8 +20,6 @@ const NurseResourceLowStock: React.FC<NurseResourceLowStockProps> = ({
   const [message, setMessage] = useState<string>(""); // Message to display in the dialog
   const [resourceId, setResourceId] = useState<string | null>(null); // Whether the request was accepted or rejected
   const navigate = useNavigate();
-  const location = useLocation();
-  const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
     const handleSocketMessage = (data: {
       message: string;
@@ -35,6 +31,9 @@ const NurseResourceLowStock: React.FC<NurseResourceLowStockProps> = ({
       setOpen(true); // Open the dialog when a message is received
     };
 
+    console.log(
+      "NurseResourceLowStock: Listening for resource low stock messages",
+    );
     // Listen for the "hospital-nurse-request-proceeded" event
     SocketClient.on("hospital-resource-low-quantity", handleSocketMessage);
 

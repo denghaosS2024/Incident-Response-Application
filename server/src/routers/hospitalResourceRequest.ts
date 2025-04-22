@@ -434,11 +434,11 @@ export default Router()
           newResource?.inStockQuantity <= newResource?.inStockAlertThreshold
         ) {
           UserConnections.broadcastToHospitalRoom(
-            resourceRequest.senderHospitalId._id.toString(),
+            resourceRequest.receiverHospitalId._id.toString(),
             "hospital-resource-low-quantity",
             {
               message: `One of your resource is low in stock.`,
-              resourceId: resourceRequest.resourceId,
+              resourceId: resourceRequest.hospitalResourceId._id.toString(),
             },
           );
         }
