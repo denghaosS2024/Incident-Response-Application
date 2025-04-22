@@ -125,6 +125,16 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               onChange={handleInputChange}
               fullWidth
               disabled={readonly}
+              inputProps={{ 
+                inputMode: "numeric",
+                pattern: "[0-9]*",
+                min: 1
+              }}
+              onKeyDown={(e) => {
+                if (["e", "E",  "-"].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
             />
           </Grid>
 
@@ -138,6 +148,16 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               onChange={handleInputChange}
               fullWidth
               disabled={readonly}
+              inputProps={{ 
+                inputMode: "numeric",
+                pattern: "[0-9]*",
+                min: 1
+              }}
+              onKeyDown={(e) => {
+                if (["e", "E",  "-"].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
             />
           </Grid>
 
@@ -151,6 +171,16 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               onChange={handleInputChange}
               fullWidth
               disabled={readonly}
+              inputProps={{ 
+                inputMode: "numeric",
+                pattern: "[0-9]*",
+                min: 1
+              }}
+              onKeyDown={(e) => {
+                if (["e", "E", "-"].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
             />
           </Grid>
 

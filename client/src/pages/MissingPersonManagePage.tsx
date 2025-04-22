@@ -375,6 +375,16 @@ const MissingPersonManagePage: React.FC = () => {
                         setFormData({ ...formData, age: Number(e.target.value) })
                       }
                       InputLabelProps={{ shrink: false }}
+                      inputProps={{ 
+                        inputMode: "numeric",
+                        pattern: "[0-9]*",
+                        min: 1
+                      }}
+                      onKeyDown={(e) => {
+                        if (["e", "E", "-"].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </Box>
                 </Grid>
@@ -402,6 +412,16 @@ const MissingPersonManagePage: React.FC = () => {
                       })
                     }
                     InputLabelProps={{ shrink: false }}
+                    inputProps={{ 
+                      inputMode: "numeric",
+                      pattern: "[0-9]*",
+                      min: 1
+                    }}
+                    onKeyDown={(e) => {
+                      if (["e", "E", "-"].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
