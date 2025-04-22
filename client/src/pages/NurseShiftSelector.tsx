@@ -132,6 +132,9 @@ export default function NurseShiftSelector() {
   const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
 
+  /**
+   * Initial fetch the active hours for the nurse
+   */
   useEffect(() => {
     fetchActiveHours().then((response) => {
       const newDays = response.days as number[];
