@@ -1,6 +1,7 @@
 import { Router } from "express";
 import MissingPersonController from "../controllers/MissingPersonController";
 import type { IMissingPerson } from "../models/MissingPerson";
+import UserConnections from "../utils/UserConnections";
 
 export default Router()
   .post("/register", async (request, response) => {
@@ -13,7 +14,10 @@ export default Router()
         });
       }
       const result = await MissingPersonController.create(missingPersonData);
-      // UserConnections.broadcast("missingPerson", result);
+      const plainResult = result.toObject();
+
+      const { photo, ...resultWithoutPhoto } = plainResult;
+      UserConnections.broadcast("missingPerson", resultWithoutPhoto);
       return response.status(201).send(result);
     } catch (e) {
       const error = e as Error;
