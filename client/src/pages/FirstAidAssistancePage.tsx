@@ -1,15 +1,8 @@
 import React, { useState } from "react";
 import MicrophoneButton from "../components/MicrophoneButton";
+import RedirectMicButton from "../components/RedirectMicButton";
 
 const FirstAidAssistancePage: React.FC = () => {
-  const [transcript, setTranscript] = useState<string>("");
-
-  const handleTranscriptionComplete = (text: string) => {
-    setTranscript(text);
-    // Handle transitioning to the next page or updating UI based on transcription
-    console.log("Transcribed text:", text);
-  };
-
   return (
     <div className="first-aid-page">
       <style>{`
@@ -180,7 +173,7 @@ const FirstAidAssistancePage: React.FC = () => {
           </div>
         </div>
       </div>
-      <MicrophoneButton onTranscriptionComplete={handleTranscriptionComplete} />
+      <RedirectMicButton />
     </div>
   );
 };

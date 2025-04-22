@@ -602,7 +602,7 @@ const VisitLogForm: React.FC<{
                 variant="contained"
                 color="primary"
                 onClick={() => {
-                  // TODO: Navigate to the First Aid Assistance page
+                  navigate("/first-aid-assistance");
                 }}
               >
                 First Aid Assist

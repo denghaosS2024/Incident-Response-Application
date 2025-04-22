@@ -1,16 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import request from "../utils/request";
 import MicrophoneButton from "../components/MicrophoneButton";
 
 // Define the interface for the report response
 interface ReportResponse {
-  report: string;
+  sessionId: string;
+  questions: string[];
+  answers: string[];
+  primarySymptom: string;
+  onsetTime: string;
+  severity: string;
+  additionalSymptoms: string;
+  remediesTaken: string;
+  status: string;
+  _id: string;
+  reportId: string;
+  createdAt: string;
+  __v: number;
 }
 
 const AIChatPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [answers, setAnswers] = useState<string[]>(["", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [report, setReport] = useState<string>("");
+  const [report, setReport] = useState<ReportResponse | null>(null);
   const [showReport, setShowReport] = useState<boolean>(false);
 
   // Calculate how many questions have been answered
@@ -89,8 +102,9 @@ const AIChatPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Replace with your actual API endpoint
-      const response = await fetch("https://api.example.com/generate-report", {
+      // Use the actual API endpoint
+
+      const response = await request("/api/first-aid/report", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -101,16 +115,15 @@ const AIChatPage: React.FC = () => {
         }),
       });
 
-      if (!response.ok) {
+      if (response.status !== "generated") {
         throw new Error("Failed to generate report");
       }
 
-      const data: ReportResponse = await response.json();
-      setReport(data.report);
+      //   const data: ReportResponse = await response.json();
+      setReport(response);
       setShowReport(true);
     } catch (error) {
       console.error("Error generating report:", error);
-      alert("There was an error generating the report. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -118,6 +131,19 @@ const AIChatPage: React.FC = () => {
 
   // If all questions are answered and we're on the last question, show the submit button
   const showSubmitButton = allQuestionsAnswered && isLastQuestion;
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
+  };
 
   // Render loading screen when generating report
   if (isLoading) {
@@ -198,7 +224,16 @@ const AIChatPage: React.FC = () => {
   }
 
   // Render report screen when report is generated
-  if (showReport) {
+  // Simplified report view that only shows data from the backend
+  // Replace the entire report rendering section with this:
+
+  // Add this function to your component for printing functionality
+  const handlePrintReport = () => {
+    window.print();
+  };
+
+  // Replace your report rendering section with this updated version:
+  if (showReport && report) {
     return (
       <div className="report-page">
         <style>{`
@@ -213,134 +248,242 @@ const AIChatPage: React.FC = () => {
             flex-direction: column;
           }
           
-          .report-header {
-            background-color: #4285F4;
-            color: white;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-          }
-          
-          .back-button {
-            background: none;
-            border: none;
-            color: white;
-            margin-right: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-          }
-          
-          .header-title {
-            font-size: 20px;
-            font-weight: 500;
-          }
-          
-          .header-menu {
-            margin-left: auto;
-            cursor: pointer;
-          }
-          
-          .navigation-tabs {
-            display: flex;
-            justify-content: space-around;
-            border-bottom: 1px solid #e0e0e0;
-          }
-          
-          .tab {
-            padding: 16px 0;
-            flex: 1;
-            text-align: center;
-            color: #5f6368;
-            cursor: pointer;
-          }
-          
-          .tab.active {
-            color: #4285F4;
-            border-bottom: 2px solid #4285F4;
-          }
-          
           .report-container {
             padding: 24px 16px;
             flex-grow: 1;
             overflow-y: auto;
           }
           
-          .report-title {
+          .top-navigation {
             display: flex;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
           }
           
-          .report-icon {
-            margin-right: 12px;
+          .back-button {
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            color: #4285F4;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0;
           }
           
-          .report-content {
-            white-space: pre-wrap;
-            line-height: 1.5;
+          .download-button {
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+          }
+          
+          .download-button svg {
+            margin-right: 6px;
+          }
+          
+          .metadata-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #5f6368;
+          }
+          
+          .metadata-item {
+            margin-bottom: 8px;
+          }
+          
+          .section-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 16px;
             color: #202124;
+          }
+          
+          .assessment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+          }
+          
+          .assessment-table tr {
+            border-bottom: 1px solid #e0e0e0;
+          }
+          
+          .assessment-table td {
+            padding: 12px 8px;
+          }
+          
+          .assessment-table td:first-child {
+            font-weight: 500;
+            color: #5f6368;
+            width: 40%;
+          }
+          
+          .qa-record {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+          }
+          
+          .qa-item {
+            margin-bottom: 16px;
+          }
+          
+          .question-text {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #202124;
+          }
+          
+          .answer-text {
+            padding-left: 16px;
+            border-left: 2px solid #e0e0e0;
+            color: #5f6368;
+          }
+          
+          .action-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+          }
+          
+          .action-button {
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 160px;
+          }
+          
+          .action-button svg {
+            margin-right: 8px;
+          }
+          
+          .action-button.ai-support {
+            background-color: #34A853;
+            color: white;
+          }
+          
+          .action-button.nurse-support {
+            background-color: #EA4335;
+            color: white;
+          }
+          
+          @media print {
+            .top-navigation,
+            .action-buttons {
+              display: none;
+            }
+            
+            .report-container {
+              padding: 0;
+            }
+            
+            .report-page {
+              height: auto;
+            }
           }
         `}</style>
 
-        <div className="report-header">
-          <button className="back-button" onClick={() => setShowReport(false)}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-            </svg>
-          </button>
-          <div className="header-title">First-Aid Assistance</div>
-          <div className="header-menu">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-              <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-            </svg>
-          </div>
-        </div>
-
-        <div className="navigation-tabs">
-          <div className="tab">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#5f6368">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 16H7V5h10v14z" />
-            </svg>
-          </div>
-          <div className="tab">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#5f6368">
-              <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
-            </svg>
-          </div>
-          <div className="tab">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#5f6368">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
-          </div>
-          <div className="tab">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#5f6368">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-            </svg>
-          </div>
-          <div className="tab">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#5f6368">
-              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-            </svg>
-          </div>
-          <div className="tab active">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#4285F4">
-              <path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z" />
-            </svg>
-          </div>
-        </div>
-
         <div className="report-container">
-          <div className="report-title">
-            <div className="report-icon">
+          <div className="top-navigation">
+            <button
+              className="back-button"
+              onClick={() => setShowReport(false)}
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="#4285F4">
-                <path d="M15 9H9v6h6V9zm-2 4h-2v-2h2v2zm8-2V9h-2V7c0-1.1-.9-2-2-2h-2V3h-2v2h-2V3H9v2H7c-1.1 0-2 .9-2 2v2H3v2h2v2H3v2h2v2c0 1.1.9 2 2 2h2v2h2v-2h2v2h2v-2h2c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2zm-4 6H7V7h10v10z" />
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
               </svg>
-            </div>
-            <h2>Report</h2>
+              Back to Questions
+            </button>
+
+            <button className="download-button" onClick={handlePrintReport}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+              </svg>
+              Download PDF
+            </button>
           </div>
 
-          <div className="report-content">{report}</div>
+          <div className="section-title">First Aid Report</div>
+
+          <div className="metadata-box">
+            <div className="metadata-item">Report ID: {report.reportId}</div>
+            <div className="metadata-item">Session ID: {report.sessionId}</div>
+            <div className="metadata-item">
+              Generated: {formatDate(report.createdAt)}
+            </div>
+          </div>
+
+          <div className="section-title">Patient Assessment</div>
+          <table className="assessment-table">
+            <tbody>
+              <tr>
+                <td>Primary Symptoms</td>
+                <td>{report.primarySymptom}</td>
+              </tr>
+              <tr>
+                <td>Onset Time</td>
+                <td>{report.onsetTime}</td>
+              </tr>
+              <tr>
+                <td>Severity</td>
+                <td>{report.severity}</td>
+              </tr>
+              <tr>
+                <td>Additional Symptoms</td>
+                <td>{report.additionalSymptoms}</td>
+              </tr>
+              <tr>
+                <td>Remedies Taken</td>
+                <td>{report.remediesTaken}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="section-title">Question and Answer Record</div>
+          <div className="qa-record">
+            {report.questions.map((question, index) => (
+              <div key={index} className="qa-item">
+                <div className="question-text">{question}</div>
+                <div className="answer-text">{report.answers[index]}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="action-buttons">
+            <button className="action-button ai-support">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+              </svg>
+              AI Support
+            </button>
+
+            <button className="action-button nurse-support">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z" />
+              </svg>
+              Nurse Support
+            </button>
+          </div>
         </div>
       </div>
     );

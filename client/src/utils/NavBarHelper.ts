@@ -32,6 +32,8 @@ export default class NavBarHelper {
     "/chief-funding-history": "Funding History",
     "/missing-person/directory": "Missing Persons Directory",
     "/missing-person/register": "Missing Person Report",
+    "/first-aid-assistance": "First Aid Assistance",
+    "/ai-chat": "First Aid Assistance",
   };
 
   static readonly roleTitles: Record<string, string> = {
