@@ -7,7 +7,7 @@ export default Router()
    * @swagger
    * /api/first-aid/report:
    *   post:
-   *     summary: Generate a patient report from responses
+   *     summary: Generate a patient report from Q&A responses
    *     tags: [First Aid]
    *     requestBody:
    *       required: true
@@ -18,25 +18,21 @@ export default Router()
    *             required:
    *               - sessionId
    *               - responderId
-   *               - responses
+   *               - questions
+   *               - answers
    *             properties:
    *               sessionId:
    *                 type: string
    *               responderId:
    *                 type: string
-   *               responses:
-   *                 type: object
-   *                 properties:
-   *                   primarySymptom:
-   *                     type: string
-   *                   onsetTime:
-   *                     type: string
-   *                   severity:
-   *                     type: string
-   *                   additionalSymptoms:
-   *                     type: string
-   *                   remediesTaken:
-   *                     type: string
+   *               questions:
+   *                 type: array
+   *                 items:
+   *                   type: string
+   *               answers:
+   *                 type: array
+   *                 items:
+   *                   type: string
    *     responses:
    *       201:
    *         description: Report created successfully
@@ -45,16 +41,24 @@ export default Router()
    */
   .post("/report", async (req, res) => {
     try {
-      const { sessionId, responderId, responses } = req.body;
+      const { sessionId, responderId, questions, answers } = req.body;
 
-      if (!sessionId || !responderId || !responses) {
+      if (!sessionId || !responderId || !questions || !answers) {
         return res.status(400).json({ message: "Missing required fields." });
+      }
+
+      // Validate that questions and answers arrays have matching lengths
+      if (questions.length !== answers.length) {
+        return res.status(400).json({
+          message: "Questions and answers arrays must have the same length.",
+        });
       }
 
       const report = await FirstAidReportController.createReport({
         sessionId,
         responderId,
-        responses,
+        questions,
+        answers,
       });
 
       return res.status(201).json(report);

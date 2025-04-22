@@ -16,25 +16,59 @@ function getOpenAIClient() {
 
 class FirstAidReportController {
   /**
-   * Create a structured first aid report from user responses
+   * Create a structured first aid report from user Q&A responses
    */
   async createReport(data: {
     sessionId: string;
     responderId: string;
-    responses: {
-      primarySymptom: string;
-      onsetTime: string;
-      severity: string;
-      additionalSymptoms: string;
-      remediesTaken: string;
-    };
+    questions: string[];
+    answers: string[];
   }) {
     try {
+      // Map the Q&A to the structured fields based on question content
+      // This assumes the questions array maintains a consistent order
+      const primarySymptomIndex = data.questions.findIndex((q) =>
+        q.includes("primary symptoms"),
+      );
+      const onsetTimeIndex = data.questions.findIndex((q) =>
+        q.includes("first start showing these symptoms"),
+      );
+      const severityIndex = data.questions.findIndex(
+        (q) => q.includes("scale from 1 to 10") || q.includes("how severe"),
+      );
+      const additionalSymptomsIndex = data.questions.findIndex((q) =>
+        q.includes("other symptoms"),
+      );
+      const remediesTakenIndex = data.questions.findIndex(
+        (q) =>
+          q.includes("alleviate these symptoms") ||
+          q.includes("medication or home remedies"),
+      );
+
+      // Create the new report with mapped fields
       const newReport = new FirstAidReport({
         sessionId: data.sessionId,
         responderId: data.responderId,
-        ...data.responses,
+        questions: data.questions,
+        answers: data.answers,
+        primarySymptom:
+          primarySymptomIndex >= 0
+            ? data.answers[primarySymptomIndex]
+            : "Not provided",
+        onsetTime:
+          onsetTimeIndex >= 0 ? data.answers[onsetTimeIndex] : "Not provided",
+        severity:
+          severityIndex >= 0 ? data.answers[severityIndex] : "Not provided",
+        additionalSymptoms:
+          additionalSymptomsIndex >= 0
+            ? data.answers[additionalSymptomsIndex]
+            : "Not provided",
+        remediesTaken:
+          remediesTakenIndex >= 0
+            ? data.answers[remediesTakenIndex]
+            : "Not provided",
       });
+
       await newReport.save();
       return newReport;
     } catch (error) {
@@ -54,11 +88,10 @@ class FirstAidReportController {
   }
 
   /**
-   * Generate AI guidance steps based on a report (mocked)
+   * Generate AI guidance steps based on a report
    * @param sessionId string
    * @returns An array of step-by-step guidance instructions
    */
-
   async generateGuidanceSteps(sessionId: string) {
     const report = await this.getReportBySessionId(sessionId);
     if (!report) {
@@ -95,11 +128,6 @@ class FirstAidReportController {
     }
   }
 
-  /**
-   * Generate a PDF version of the first aid report
-   * @param sessionId The session ID of the report to generate PDF for
-   * @returns PDF document as a Buffer
-   */
   async generateReportPDF(sessionId: string): Promise<Buffer> {
     try {
       const report = await this.getReportBySessionId(sessionId);
@@ -139,8 +167,25 @@ class FirstAidReportController {
           doc.text(`Created: ${new Date(report.createdAt).toLocaleString()}`);
           doc.moveDown();
 
+          // Q&A Section
+          doc.fontSize(16).font("Helvetica-Bold").text("Assessment Responses");
+          doc.moveDown(0.5);
+
+          // Display each question and answer pair
+          report.questions.forEach((question, index) => {
+            const answer = report.answers[index] || "Not answered";
+
+            doc.fontSize(12).font("Helvetica-Bold").text(`Q: ${question}`);
+            doc.fontSize(12).font("Helvetica").text(`A: ${answer}`);
+            doc.moveDown(0.5);
+          });
+          doc.moveDown();
+
           // Patient Symptoms Section
-          doc.fontSize(16).font("Helvetica-Bold").text("Patient Symptoms");
+          doc
+            .fontSize(16)
+            .font("Helvetica-Bold")
+            .text("Interpretation Summary");
           doc.moveDown(0.5);
 
           doc.fontSize(12).font("Helvetica-Bold").text("Primary Symptom:");
@@ -180,16 +225,39 @@ class FirstAidReportController {
           let recommendedAction =
             "Monitor symptoms and seek medical attention if condition worsens";
 
-          if (parseInt(report.severity) >= 8) {
+          // Try to parse the severity - handle cases where it might be textual
+          let severityValue = 0;
+          try {
+            // Try to find a number in the severity response
+            const severityMatch = report.severity.match(/\d+/);
+            if (severityMatch) {
+              severityValue = parseInt(severityMatch[0]);
+            } else if (
+              report.severity.toLowerCase().includes("severe") ||
+              report.severity.toLowerCase().includes("extreme") ||
+              report.severity.toLowerCase().includes("bad")
+            ) {
+              severityValue = 8; // Treat as high severity
+            } else if (
+              report.severity.toLowerCase().includes("moderate") ||
+              report.severity.toLowerCase().includes("medium")
+            ) {
+              severityValue = 5; // Treat as medium severity
+            }
+          } catch (e) {
+            console.error("Error parsing severity:", e);
+          }
+
+          if (severityValue >= 8) {
             recommendedAction = "Call emergency services (911) immediately";
-          } else if (parseInt(report.severity) >= 5) {
+          } else if (severityValue >= 5) {
             recommendedAction = "Seek medical attention as soon as possible";
           }
 
           doc.fontSize(12).font("Helvetica-Bold").text("Immediate Action:");
 
           // Highlight critical recommendations
-          if (parseInt(report.severity) >= 8) {
+          if (severityValue >= 8) {
             doc.fillColor("red").font("Helvetica").text(recommendedAction);
             doc.fillColor("black");
           } else {
@@ -197,26 +265,14 @@ class FirstAidReportController {
           }
 
           // Add footer
-          const pageCount = doc.bufferedPageRange().count;
-          for (let i = 0; i < pageCount; i++) {
-            doc.switchToPage(i);
-
-            // Save the current y position
-            const originalY = doc.y;
-
-            // Move to the bottom of the page
-            doc
-              .fontSize(10)
-              .text(
-                `First Aid Report - Generated on ${new Date().toLocaleString()}`,
-                doc.page.margins.left,
-                doc.page.height - 50,
-                { align: "center" },
-              );
-
-            // Move back to the saved y position
-            doc.y = originalY;
-          }
+          doc
+            .fontSize(10)
+            .text(
+              `First Aid Report - Generated on ${new Date().toLocaleString()}`,
+              doc.page.margins.left,
+              doc.page.height - 50,
+              { align: "center" },
+            );
 
           // Finalize the PDF
           doc.end();

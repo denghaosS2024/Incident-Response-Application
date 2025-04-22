@@ -5,6 +5,8 @@ export interface IFirstAidReport extends Document {
   reportId: string;
   sessionId: string;
   responderId: string;
+  questions: string[];
+  answers: string[];
   primarySymptom: string;
   onsetTime: string;
   severity: string;
@@ -27,6 +29,14 @@ const FirstAidReportSchema = new Schema({
   },
   responderId: {
     type: String,
+    required: true,
+  },
+  questions: {
+    type: [String],
+    required: true,
+  },
+  answers: {
+    type: [String],
     required: true,
   },
   primarySymptom: {
