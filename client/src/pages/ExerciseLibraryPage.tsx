@@ -1,7 +1,9 @@
 import request from "@/utils/request";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Stack } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ConfirmationDialog from "../components/common/ConfirmationDialog";
 import ExerciseItem from "../components/Exercise/ExerciseItem";
 import { IExercise } from "../models/Exercise";
@@ -13,6 +15,7 @@ const ExerciseLibraryPage = () => {
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
     null,
   );
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExerciseList = async () => {
@@ -27,7 +30,6 @@ const ExerciseLibraryPage = () => {
         );
 
         setExerciseList(exerciseList);
-        console.log(" exercise list:", exerciseList);
       } catch (error) {
         console.error("Failed to fetch exercise list:", error);
       }
@@ -66,7 +68,7 @@ const ExerciseLibraryPage = () => {
 
   const handleAddExercise = () => {
     // Handle add exercise logic here
-    console.log("Adding new exercise");
+    navigate(`/exercise-library/${currentUserId}`);
   };
 
   return (
@@ -79,14 +81,23 @@ const ExerciseLibraryPage = () => {
       }}
     >
       <Stack spacing={1}>
-        {exerciseList.map((exercise, idx) => (
-          <ExerciseItem
-            key={idx}
-            exercise={exercise}
-            onDelete={openDialog}
-            onView={handleView}
-          />
-        ))}
+        {exerciseList.length > 0 ? (
+          exerciseList.map((exercise, idx) => (
+            <ExerciseItem
+              key={idx}
+              exercise={exercise}
+              onDelete={openDialog}
+              onView={handleView}
+            />
+          ))
+        ) : (
+          <Typography
+            variant="body1"
+            sx={{ color: "gray", mt: 4, mb: 2, textAlign: "center" }}
+          >
+            No exercises found. Click + to add a new one!
+          </Typography>
+        )}
       </Stack>
 
       <ConfirmationDialog

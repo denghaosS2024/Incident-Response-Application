@@ -4,6 +4,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router";
 
 // Pages
 import HospitalResourceForm from "./components/feature/HospitalResources/HospitalResourceForm.tsx";
+import AddExercisePage from "./pages/AddExercisePage.tsx";
 import AppointmentSchedulerPage from "./pages/AppointmentSchedulerPage.tsx";
 import ChatRoomPage from "./pages/ChatRoomPage";
 import ChiefFundingHistory from "./pages/ChiefFundingHistory.tsx";
@@ -130,6 +131,7 @@ export default function App() {
             <Route path="/organization/view" element={<ViewOrganization />} />
             <Route path="/profile/:userId" element={<ProfilePage />} />
             <Route path="/exercise-library" element={<ExerciseLibraryPage />} />
+            <Route path="/exercise-library/:id" element={<AddExercisePage />} />
 
             <Route path="/register-hospital" element={<RegisterHospital />} />
             <Route
