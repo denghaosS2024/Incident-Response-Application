@@ -422,11 +422,26 @@ export default Router()
             hospitalApprovingResource.inStockQuantity -
             resourceRequest.requestedQuantity,
         };
-        await HospitalResourceController.updateHospitalResource(
-          receiverHospitalResourceToUpdate,
-        );
 
-        console.log("ResourceRequest", resourceRequest);
+        let newResource =
+          await HospitalResourceController.updateHospitalResource(
+            receiverHospitalResourceToUpdate,
+          );
+
+        if (
+          newResource?.inStockQuantity != undefined &&
+          newResource.inStockAlertThreshold &&
+          newResource?.inStockQuantity <= newResource?.inStockAlertThreshold
+        ) {
+          UserConnections.broadcastToHospitalRoom(
+            resourceRequest.senderHospitalId._id.toString(),
+            "hospital-resource-low-quantity",
+            {
+              message: `One of your resource is low in stock.`,
+              resourceId: resourceRequest.resourceId,
+            },
+          );
+        }
         // send notification to sender hospital
         UserConnections.broadcastToHospitalRoom(
           resourceRequest.senderHospitalId._id.toString(),

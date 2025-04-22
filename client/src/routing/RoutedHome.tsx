@@ -9,6 +9,7 @@ import AlertSnackbar from "@/components/common/AlertSnackbar";
 import NurseActionDialog from "@/components/feature/FindHospital/NurseActionDialog";
 import NurseRequestAnswerDialog from "@/components/feature/HospitalResources/NurseRequestAnwserDialog";
 import NurseRequestDialog from "@/components/feature/HospitalResources/NurseRequestDialog";
+import NurseResourceLowStock from "@/components/feature/HospitalResources/NurseResourceLowStockDialog";
 import {
   setHasGroupNotification,
   setHasNewIncident,
@@ -410,6 +411,7 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
             <>
               <NurseRequestDialog hospitalId={currentHospitalId} />
               <NurseRequestAnswerDialog hospitalId={currentHospitalId} />
+              <NurseResourceLowStock hospitalId={currentHospitalId} />
             </>
           ) : null}
 
