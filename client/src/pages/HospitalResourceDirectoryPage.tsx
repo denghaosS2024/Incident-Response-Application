@@ -124,7 +124,7 @@ const HospitalResourcesPage: React.FC = () => {
           );
 
           if (filteredHospitals.length === 0) {
-            return <Typography>No resources available.</Typography>;
+            return null;
           }
 
           return (
@@ -140,9 +140,7 @@ const HospitalResourcesPage: React.FC = () => {
             />
           );
         })
-      ) : (
-        <Typography>No resources available.</Typography>
-      )}
+      ) : null}
 
       {/* Snackbar for feedback */}
       <Snackbar

@@ -134,7 +134,7 @@ class HospitalResourceController {
     try {
       // use text index for fuzzy search
       const resource = await Resource.findOne({
-        $text: { $search: resourceName },
+        $text: { $search: `"${resourceName}"` },
       }).exec();
       console.log("Resource fetched by name:", resourceName, resource);
       if (!resource) {
@@ -414,88 +414,90 @@ class HospitalResourceController {
     }
   }
 
-
   /**
- * Fetch hospital resources by fuzzy resource name
- * @param resourceName The fuzzy name of the resource
- * @returns An object where keys are resourceNames and values are arrays of HospitalResourceWithPopulateData
- */
-async getHospitalResourcesByFuzzyResourceName(
-  resourceName: string,
-): Promise<Record<string, HospitalResourceWithPopulateData[]>> {
-  try {
-    // Step 1: Perform a fuzzy search using $text
-    const resources = await Resource.find({
-      $text: { $search: resourceName }, // Fuzzy search using text index
-    }).exec();
+   * Fetch hospital resources by fuzzy resource name
+   * @param resourceName The fuzzy name of the resource
+   * @returns An object where keys are resourceNames and values are arrays of HospitalResourceWithPopulateData
+   */
+  async getHospitalResourcesByFuzzyResourceName(
+    resourceName: string,
+  ): Promise<Record<string, HospitalResourceWithPopulateData[]>> {
+    try {
+      // Step 1: Perform a fuzzy search using $text
+      const resources = await Resource.find({
+        resourceName: { $regex: resourceName, $options: "i" }, // Fuzzy search using text index
+      }).exec();
 
-    if (!resources || resources.length === 0) {
-      throw new HttpError(
-        `No resources found matching the name "${resourceName}".`,
-        404,
-      );
-    }
-
-    // Step 2: Extract resource IDs from the matched resources
-    const resourceIds = resources.map((resource) => resource._id);
-
-    // Step 3: Fetch all hospital resources with the matched resource IDs
-    const hospitalResources = await HospitalResource.find({
-      resourceId: { $in: resourceIds },
-    })
-      .populate<{ resourceId: IResource }>("resourceId") // Populate resourceId with IResource type
-      .populate<{ hospitalId: IHospital }>("hospitalId") // Populate hospitalId with IHospital type
-      .exec();
-
-    if (!hospitalResources || hospitalResources.length === 0) {
-      throw new HttpError(
-        `No hospital resources found for the given resource name "${resourceName}".`,
-        404,
-      );
-    }
-
-    // Step 4: Group hospital resources by resourceName
-    const groupedResources: Record<
-      string,
-      HospitalResourceWithPopulateData[]
-    > = {};
-
-    hospitalResources.forEach((hospitalResource) => {
-      const resource = hospitalResource.resourceId as LeanDocument<IResource>;
-      if (!resource || !resource.resourceName) {
+      if (!resources || resources.length === 0) {
         throw new HttpError(
-          `Resource data is incomplete or not populated. ${hospitalResources}`,
-          500,
+          `No resources found matching the name "${resourceName}".`,
+          404,
         );
       }
 
-      const resourceName = resource.resourceName;
+      // Step 2: Extract resource IDs from the matched resources
+      const resourceIds = resources.map((resource) => resource._id);
 
-      if (!groupedResources[resourceName]) {
-        groupedResources[resourceName] = [];
+      // Step 3: Fetch all hospital resources with the matched resource IDs
+      const hospitalResources = await HospitalResource.find({
+        resourceId: { $in: resourceIds },
+      })
+        .populate<{ resourceId: IResource }>("resourceId") // Populate resourceId with IResource type
+        .populate<{ hospitalId: IHospital }>("hospitalId") // Populate hospitalId with IHospital type
+        .exec();
+
+      if (!hospitalResources || hospitalResources.length === 0) {
+        throw new HttpError(
+          `No hospital resources found for the given resource name "${resourceName}".`,
+          404,
+        );
       }
 
-      groupedResources[resourceName].push({
-        _id: hospitalResource._id.toString(),
-        hospitalId: hospitalResource.hospitalId,
-        resourceId: hospitalResource.resourceId,
-        inStockQuantity: hospitalResource.inStockQuantity,
-        inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
-      });
-    });
+      // Step 4: Group hospital resources by resourceName
+      const groupedResources: Record<
+        string,
+        HospitalResourceWithPopulateData[]
+      > = {};
 
-    return groupedResources;
-  } catch (error) {
-    console.error("Error fetching hospital resources by fuzzy resource name:", error);
-    if (error instanceof HttpError) {
-      throw error; // Re-throw if it's already an HttpError
+      hospitalResources.forEach((hospitalResource) => {
+        const resource = hospitalResource.resourceId as LeanDocument<IResource>;
+        if (!resource || !resource.resourceName) {
+          throw new HttpError(
+            `Resource data is incomplete or not populated. ${hospitalResources}`,
+            500,
+          );
+        }
+
+        const resourceName = resource.resourceName;
+
+        if (!groupedResources[resourceName]) {
+          groupedResources[resourceName] = [];
+        }
+
+        groupedResources[resourceName].push({
+          _id: hospitalResource._id.toString(),
+          hospitalId: hospitalResource.hospitalId,
+          resourceId: hospitalResource.resourceId,
+          inStockQuantity: hospitalResource.inStockQuantity,
+          inStockAlertThreshold: hospitalResource.inStockAlertThreshold,
+        });
+      });
+
+      return groupedResources;
+    } catch (error) {
+      console.error(
+        "Error fetching hospital resources by fuzzy resource name:",
+        error,
+      );
+      if (error instanceof HttpError) {
+        throw error; // Re-throw if it's already an HttpError
+      }
+      throw new HttpError(
+        `Failed to fetch hospital resources by fuzzy resource name: ${error}`,
+        500,
+      );
     }
-    throw new HttpError(
-      `Failed to fetch hospital resources by fuzzy resource name: ${error}`,
-      500,
-    );
   }
-}
 
   /**
    * Update a HospitalResource
