@@ -66,6 +66,7 @@ import ViewOrganization from "./pages/ViewOrganization";
 import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
 import YourAppointmentPage from "./pages/YourAppointmentPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
+import FirstAidAssistancePage from "./pages/FirstAidAssistancePage.tsx";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
 
@@ -138,6 +139,10 @@ export default function App() {
             <Route
               path="/register-hospital/:hospitalId"
               element={<RegisterHospital />}
+            />
+            <Route
+              path="/first-aid-assistance"
+              element={<FirstAidAssistancePage />}
             />
             <Route path="/resources" element={<ResourcesPage />} />
             {hospitalsDirectory && (
