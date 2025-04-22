@@ -159,6 +159,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
             key: "resourceId",
             align: "center",
             label: "Resource Name",
+            width: 90,
             render: (
               hospitalResourceRequest: IHospitalResourceRequest,
             ): string => hospitalResourceRequest.resourceId.resourceName,
@@ -176,6 +177,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
             key: "receiverHospitalId",
             align: "center",
             label: "Resource Name",
+            width: 70,
             render: (
               hospitalResourceRequest: IHospitalResourceRequest,
             ): string => {
@@ -186,15 +188,16 @@ const HospitalResourceRequestsPage: React.FC = () => {
             key: "status",
             align: "center",
             label: "",
+
             render: (__hospitalResourceRequest: IHospitalResourceRequest) => (
               <Button
                 variant="contained"
-                color="primary"  
+                color="primary"
                 size="small"
-                sx={{ 
-                  padding: '2px 8px',
-                  minWidth: '60px',
-                  fontSize: '0.7rem'
+                sx={{
+                  padding: "2px 8px",
+                  minWidth: "60px",
+                  fontSize: "0.7rem",
                 }}
                 onClick={() => {
                   setSelectedRequestId(__hospitalResourceRequest._id);
@@ -217,10 +220,16 @@ const HospitalResourceRequestsPage: React.FC = () => {
           <Button onClick={() => setIsDialogOpen(false)} color="secondary">
             CANCEL
           </Button>
-          <Button onClick={() => handleAcceptIncomingRequest(selectedRequestId!)} color="primary">
+          <Button
+            onClick={() => handleAcceptIncomingRequest(selectedRequestId!)}
+            color="primary"
+          >
             ACCEPT
           </Button>
-          <Button onClick={() => handleRejectIncomingRequest(selectedRequestId!)} color="primary">
+          <Button
+            onClick={() => handleRejectIncomingRequest(selectedRequestId!)}
+            color="primary"
+          >
             REJECT
           </Button>
         </DialogActions>
@@ -277,6 +286,14 @@ const HospitalResourceRequestsPage: React.FC = () => {
               hospitalResourceRequest: IHospitalResourceRequest,
             ): string =>
               `Requested Quantity: ${hospitalResourceRequest.requestedQuantity}`,
+          },
+          {
+            key: "status",
+            align: "center",
+            label: "Status",
+            render: (
+              hospitalResourceRequest: IHospitalResourceRequest,
+            ): string => `Status: ${hospitalResourceRequest.status}`,
           },
           {
             key: "hospitalResourceId",
