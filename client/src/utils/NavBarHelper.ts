@@ -121,6 +121,13 @@ export default class NavBarHelper {
         : "Follow-Up Information";
     }
 
+    if (
+      pathname.startsWith("/missing-person/manage/") ||
+      pathname.startsWith("/missing-person/update/")
+    ) {
+      title = "Missing Person Report";
+    }
+
     if (pathname === "/register-hospital/resources/directory") {
       title = "Hospital Resources";
     }
