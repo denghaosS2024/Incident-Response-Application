@@ -20,4 +20,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    esbuild: {
+      pure: ['console.log']
+    }
+  },
 });
