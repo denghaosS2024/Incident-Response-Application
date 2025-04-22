@@ -81,7 +81,9 @@ const HospitalResourceRequestsPage: React.FC = () => {
       setSnackbarMessage("Request Accepted Successfully!");
       setSnackbarSeverity("success");
       setIsDialogOpen(false);
-      dispatch(fetchIncomingHospitalResourceRequests(hospitalData?._id!));
+      if (hospitalData?._id) {
+        dispatch(fetchIncomingHospitalResourceRequests(hospitalData._id));
+      }
       return;
     } catch (error) {
       console.error("Error updating to Accepted status:", error);
@@ -103,7 +105,9 @@ const HospitalResourceRequestsPage: React.FC = () => {
       console.log("Acceptance PUT result", response);
       setSnackbarMessage("Request Rejected Successfully!");
       setSnackbarSeverity("success");
-      dispatch(fetchIncomingHospitalResourceRequests(hospitalData?._id!));
+      if (hospitalData?._id) {
+        dispatch(fetchIncomingHospitalResourceRequests(hospitalData._id));
+      }
       setIsDialogOpen(false);
       return;
     } catch (error) {
@@ -115,7 +119,9 @@ const HospitalResourceRequestsPage: React.FC = () => {
     }
   };
 
-  const isReceiverHaveEnoughResource = (request: IHospitalResourceRequest): boolean => {
+  const isReceiverHaveEnoughResource = (
+    request: IHospitalResourceRequest,
+  ): boolean => {
     const inStock = searchForResource(request.resourceId.resourceName);
     return inStock! >= request.requestedQuantity;
   };
@@ -200,30 +206,31 @@ const HospitalResourceRequestsPage: React.FC = () => {
             align: "center",
             label: "",
 
-            render: (__hospitalResourceRequest: IHospitalResourceRequest) => 
-              {
-                const isDisabled = !isReceiverHaveEnoughResource(__hospitalResourceRequest);
-                return (
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                sx={{
-                  padding: "2px 8px",
-                  minWidth: "60px",
-                  fontSize: "0.7rem",
-                }}
-                disabled = {isDisabled}
-                onClick={() => {
-                  setSelectedRequestId(__hospitalResourceRequest._id);
-                  setIsDialogOpen(true);
-                }}
-              >
-                Respond
-              </Button>
-            );
+            render: (__hospitalResourceRequest: IHospitalResourceRequest) => {
+              const isDisabled = !isReceiverHaveEnoughResource(
+                __hospitalResourceRequest,
+              );
+              return (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  sx={{
+                    padding: "2px 8px",
+                    minWidth: "60px",
+                    fontSize: "0.7rem",
+                  }}
+                  disabled={isDisabled}
+                  onClick={() => {
+                    setSelectedRequestId(__hospitalResourceRequest._id);
+                    setIsDialogOpen(true);
+                  }}
+                >
+                  Respond
+                </Button>
+              );
+            },
           },
-          }
         ]}
       />
 
@@ -316,7 +323,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
             align: "center",
             label: "",
             render: (hospitalResourceRequest) =>
-              (hospitalResourceRequest.status == "Pending" && (
+              hospitalResourceRequest.status == "Pending" && (
                 <IconButton
                   edge="end"
                   size="large"
@@ -328,7 +335,7 @@ const HospitalResourceRequestsPage: React.FC = () => {
                 >
                   <Arrow />
                 </IconButton>
-              )),
+              ),
           },
         ]}
       />
