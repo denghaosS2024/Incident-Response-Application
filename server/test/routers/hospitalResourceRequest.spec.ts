@@ -1,17 +1,10 @@
-//mport mongoose from "mongoose";
 import request from "supertest";
-
 import app from "../../src/app";
-//import HospitalResourceController from "../../src/controllers/HospitalResourceController";
 import * as TestDatabase from "../utils/TestDatabase";
 import HospitalResourceRequestController, {
   HospitalResourceRequestClient,
 } from "../../src/controllers/HospitalResourceRequestController";
 import { IHospital } from "../../src/models/Hospital";
-//import HospitalResourceController from "../../src/controllers/HospitalResourceController";
-//import { IHospitalResourceBase } from "../../src/models/HospitalResource";
-// import HospitalResource from "../../src/models/HospitalResource";
-// import HospitalResourceController from "../../src/controllers/HospitalResourceController";
 
 describe("Router - HospitalResource", () => {
   beforeAll(TestDatabase.connect);
@@ -178,48 +171,7 @@ describe("Router - HospitalResource", () => {
     const requester = await request(app)
       .get(`/api/hospital-resources-requests/${hospitalId}/incoming`)
       .expect(200);
-    
-    const response = await request(app)
-      .put(
-        `/api/hospital-resources-requests/${requester.body[0]._id}/requested-quantity`,
-      )
-      .send({ requestedQuantity: 6 })
-      .expect(200);
 
-    expect(response.body).toBeDefined();
-    expect(response.body.senderHospitalId).toBe(hospitalId);
-    expect(response.body.receiverHospitalId).toBe(hospitalId);
-    expect(response.body.requestedQuantity).toBe(6);
-    expect(response.body.status).toBe("Pending");
-
-    const gottenRequest =
-      await HospitalResourceRequestController.getAllResourceRequests();
-
-    expect(gottenRequest[3].requestedQuantity).toBe(6);
-  });
-
-  it("should be able to get update the requested quantity", async () => {
-    const hospitalId = await createHospital("123");
-    const resourceName = "Ventilator";
-
-    // Create a resource first
-    await createResource(resourceName, hospitalId);
-
-    const resourceRequest: HospitalResourceRequestClient = {
-      senderHospitalId: hospitalId,
-      receiverHospitalId: hospitalId,
-      hospitalResourceId: hospitalId,
-      resourceName,
-      requestedQuantity: 5,
-      status: "Pending",
-    };
-
-    await createHospitalResourceRequest(resourceRequest);
-
-    const requester = await request(app)
-      .get(`/api/hospital-resources-requests/${hospitalId}/incoming`)
-      .expect(200);
-    
     const response = await request(app)
       .put(
         `/api/hospital-resources-requests/${requester.body[0]._id}/requested-quantity`,

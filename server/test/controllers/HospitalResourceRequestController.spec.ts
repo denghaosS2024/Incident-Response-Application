@@ -96,7 +96,7 @@ describe("HospitalResourceController", () => {
     expect(requests[1].status).toBe("Pending");
   });
 
-  it("should get all the resource requests", async () => {
+  it("should get resource requests by id", async () => {
     const hospitalData = createHospital();
 
     const hospital = await HospitalController.create(hospitalData);
