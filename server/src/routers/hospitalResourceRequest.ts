@@ -368,8 +368,7 @@ export default Router()
 
       if (
         resourceRequest.requestedQuantity <
-        hospitalApprovingResource.inStockQuantity -
-          hospitalApprovingResource.inStockAlertThreshold!
+        hospitalApprovingResource.inStockQuantity
       ) {
         const updatedResourceRequest =
           await HospitalResourceRequestController.updateResourceRequestStatus(
