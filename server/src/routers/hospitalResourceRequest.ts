@@ -423,7 +423,7 @@ export default Router()
             resourceRequest.requestedQuantity,
         };
 
-        let newResource =
+        const newResource =
           await HospitalResourceController.updateHospitalResource(
             receiverHospitalResourceToUpdate,
           );
