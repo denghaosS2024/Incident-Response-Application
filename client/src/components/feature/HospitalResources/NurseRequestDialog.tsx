@@ -1,3 +1,5 @@
+import { fetchIncomingHospitalResourceRequests } from "@/redux/hospitalResourceRequestSlice";
+import { AppDispatch } from "@/redux/store";
 import {
   Button,
   Dialog,
@@ -6,7 +8,8 @@ import {
   DialogTitle,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { useLocation, useNavigate } from "react-router";
 import SocketClient from "../../../utils/Socket";
 
 interface NurseRequestDialogProps {
@@ -18,6 +21,8 @@ const NurseRequestDialog: React.FC<NurseRequestDialogProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     console.log(
@@ -38,13 +43,27 @@ const NurseRequestDialog: React.FC<NurseRequestDialogProps> = ({
     };
   }, []);
 
-  const handleOK = () => {
+  const handleOK = async () => {
+    const targetPath = `/hospital/${hospitalId}/resource-request/directory`;
+    if (location.pathname === targetPath) {
+      // If already on the target route, dispatch fetchIncomingRequests
+      await dispatch(fetchIncomingHospitalResourceRequests(hospitalId));
+    }
+
     setOpen(false);
   };
 
-  const handleGOSEE = () => {
+  const handleGOSEE = async () => {
     setOpen(false);
-    navigate(`/hospital/${hospitalId}/resource-request/directory`); // Navigate to the nurse's request page
+    const targetPath = `/hospital/${hospitalId}/resource-request/directory`;
+
+    if (location.pathname === targetPath) {
+      // If already on the target route, dispatch fetchIncomingRequests
+      await dispatch(fetchIncomingHospitalResourceRequests(hospitalId));
+    } else {
+      // Otherwise, navigate to the target route
+      navigate(targetPath);
+    }
   };
 
   return (

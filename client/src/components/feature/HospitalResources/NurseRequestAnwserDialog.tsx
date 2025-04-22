@@ -1,3 +1,5 @@
+import { fetchIncomingHospitalResourceRequests } from "@/redux/hospitalResourceRequestSlice";
+import { AppDispatch } from "@/redux/store";
 import {
   Button,
   Dialog,
@@ -6,7 +8,8 @@ import {
   DialogTitle,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { useLocation, useNavigate } from "react-router";
 import SocketClient from "../../../utils/Socket";
 
 interface NurseRequestAnswerDialogProps {
@@ -20,6 +23,8 @@ const NurseRequestAnswerDialog: React.FC<NurseRequestAnswerDialogProps> = ({
   const [message, setMessage] = useState<string>(""); // Message to display in the dialog
   const [accepted, setAccepted] = useState<boolean | null>(null); // Whether the request was accepted or rejected
   const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
     console.log(
       "NurseRequestAnswerDialog: Listening for request proceeded messages",
@@ -44,13 +49,27 @@ const NurseRequestAnswerDialog: React.FC<NurseRequestAnswerDialogProps> = ({
     };
   }, []);
 
-  const handleOK = () => {
+  const handleOK = async () => {
+    const targetPath = `/hospital/${hospitalId}/resource-request/directory`;
+    if (location.pathname === targetPath) {
+      // If already on the target route, dispatch fetchIncomingRequests
+      await dispatch(fetchIncomingHospitalResourceRequests(hospitalId));
+    }
+
     setOpen(false);
   };
 
-  const handleGOSEE = () => {
+  const handleGOSEE = async () => {
     setOpen(false);
-    navigate(`/hospital/${hospitalId}/resource-request/directory`); // Navigate to the nurse's request page
+    const targetPath = `/hospital/${hospitalId}/resource-request/directory`;
+
+    if (location.pathname === targetPath) {
+      // If already on the target route, dispatch fetchIncomingRequests
+      await dispatch(fetchIncomingHospitalResourceRequests(hospitalId));
+    } else {
+      // Otherwise, navigate to the target route
+      navigate(targetPath);
+    }
   };
 
   return (

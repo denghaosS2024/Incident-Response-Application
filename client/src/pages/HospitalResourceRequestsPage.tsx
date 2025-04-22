@@ -103,13 +103,13 @@ const HospitalResourceRequestsPage: React.FC = () => {
       console.log("Acceptance PUT result", response);
       setSnackbarMessage("Request Rejected Successfully!");
       setSnackbarSeverity("success");
+      dispatch(fetchIncomingHospitalResourceRequests(hospitalData?._id!));
       setIsDialogOpen(false);
       return;
     } catch (error) {
       console.error("Error updating to Rejected status:", error);
       setSnackbarMessage("Error Rejecting Incoming Request");
       setSnackbarSeverity("error");
-      dispatch(fetchIncomingHospitalResourceRequests(hospitalData?._id!));
       setIsDialogOpen(false);
       return;
     }
