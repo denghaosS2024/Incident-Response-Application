@@ -25,7 +25,6 @@ class ResourceRequestController {
     resourceRequest: IResourceRequestBase,
   ): Promise<LeanDocument<IResourceRequest>> {
     try {
-      
       const newResourceRequest = new ResourceRequest({
         senderHospitalId: resourceRequest.senderHospitalId,
         receiverHospitalId: resourceRequest.receiverHospitalId,
@@ -139,7 +138,7 @@ class ResourceRequestController {
   }
 
   /**
-   * Fetch all ResourceRequests by receiverHospitalId
+   * Fetch all ResourceRequests by receiverHospitalId which is pending
    * @param receiverHospitalId The ID of the receiver hospital
    * @returns An array of resource request objects
    */
@@ -148,8 +147,8 @@ class ResourceRequestController {
   ): Promise<LeanDocument<IResourceRequest>[]> {
     try {
       const resourceRequests = await ResourceRequest.find({
-        receiverHospitalId: receiverHospitalId,
-        status: "Pending"
+        receiverHospitalId,
+        status: "Pending",
       })
         .populate("senderHospitalId")
         .populate("receiverHospitalId")

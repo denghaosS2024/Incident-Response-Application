@@ -7,6 +7,7 @@ import IMessage from "../models/Message";
 // IR App
 import AlertSnackbar from "@/components/common/AlertSnackbar";
 import NurseActionDialog from "@/components/feature/FindHospital/NurseActionDialog";
+import NurseRequestAnswerDialog from "@/components/feature/HospitalResources/NurseRequestAnwserDialog";
 import NurseRequestDialog from "@/components/feature/HospitalResources/NurseRequestDialog";
 import {
   setHasGroupNotification,
@@ -406,7 +407,10 @@ export default function RoutedHome({ showBackButton, isSubPage }: IProps) {
 
           <NurseActionDialog />
           {isLoggedInAsWorkingNurse && currentHospitalId ? (
-            <NurseRequestDialog hospitalId={currentHospitalId} />
+            <>
+              <NurseRequestDialog hospitalId={currentHospitalId} />
+              <NurseRequestAnswerDialog hospitalId={currentHospitalId} />
+            </>
           ) : null}
 
           {!alertOpen && <Outlet />}
