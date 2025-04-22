@@ -298,4 +298,54 @@ describe("HospitalResourceController", () => {
       updatedData.inStockQuantity,
     );
   });
+
+  it('should return null if no hospital resource for hospitalId and resourceId', async () => {
+    const resource = await HospitalResourceController.createResource({
+      resourceName: "Mask",
+    });
+
+    const newHospitalId = new mongoose.Types.ObjectId();
+
+    
+    await HospitalResourceController.createHospitalResource({
+      hospitalId: newHospitalId,
+      resourceId: resource._id,
+      inStockQuantity: 10,
+      inStockAlertThreshold: 5,
+    });
+
+    const nonExistResourceId = new mongoose.Types.ObjectId();
+    const fetchedHospitalResource =
+    await HospitalResourceController.getHospitalResourceByIdsNotFoundOk(
+      nonExistResourceId,
+      newHospitalId, 
+    );
+
+    expect(fetchedHospitalResource).toBeNull();
+  })
+
+  it('should return single documenent if hospital resource found for hospitalId and resourceId', async () => {
+    const resource = await HospitalResourceController.createResource({
+      resourceName: "Mask",
+    });
+
+    const newHospitalId = new mongoose.Types.ObjectId();
+
+    
+    const hospitalResource = await HospitalResourceController.createHospitalResource({
+      hospitalId: newHospitalId,
+      resourceId: resource._id,
+      inStockQuantity: 10,
+      inStockAlertThreshold: 5,
+    });
+
+    const fetchedHospitalResource =
+    await HospitalResourceController.getHospitalResourceByIdsNotFoundOk(
+      hospitalResource.resourceId,
+      hospitalResource.hospitalId, 
+    );
+
+    expect(fetchedHospitalResource).toBeDefined();
+    expect(fetchedHospitalResource?.inStockQuantity).toStrictEqual(10);
+  })
 });

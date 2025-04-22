@@ -1,10 +1,10 @@
 import request from "supertest";
 import app from "../../src/app";
-import * as TestDatabase from "../utils/TestDatabase";
 import HospitalResourceRequestController, {
   HospitalResourceRequestClient,
 } from "../../src/controllers/HospitalResourceRequestController";
 import { IHospital } from "../../src/models/Hospital";
+import * as TestDatabase from "../utils/TestDatabase";
 
 describe("Router - HospitalResource", () => {
   beforeAll(TestDatabase.connect);
@@ -190,4 +190,119 @@ describe("Router - HospitalResource", () => {
 
     expect(gottenRequest[3].requestedQuantity).toBe(6);
   });
+
+  it('should not allow update accept resource request when request DNE; return 404', async() => {
+    const faultyRequestId = "661f8c7e2c2a4a8f4b1d7e9a";
+    await request(app)
+    .put(
+      `/api/hospital-resources-requests/${faultyRequestId}/status/accepted/`,
+    )
+    .expect(404);
+  })
+
+  it('should allow update accept reource request; return 200', async() => {
+    const hospitalId = await createHospital("123");
+    const resourceName = "Ventilator";
+
+    // Create a resource first
+    await createResource(resourceName, hospitalId);
+
+    const resourceRequest: HospitalResourceRequestClient = {
+      senderHospitalId: hospitalId,
+      receiverHospitalId: hospitalId,
+      hospitalResourceId: hospitalId,
+      resourceName,
+      requestedQuantity: 5,
+      status: "Pending",
+    };
+
+    await createHospitalResourceRequest(resourceRequest);
+
+    const requester = await request(app)
+      .get(`/api/hospital-resources-requests/${hospitalId}/incoming`)
+      .expect(200);
+
+    const response = await request(app)
+    .put(
+      `/api/hospital-resources-requests/${requester.body[0]._id}/status/accepted/`,
+    )
+    .expect(200);
+
+    expect(response.body).toBeDefined();
+    expect(response.body.senderHospitalId).toBe(hospitalId);
+    expect(response.body.receiverHospitalId).toBe(hospitalId);
+    expect(response.body.status).toBe("Accepted");
+  })
+
+  it('should not allow update reject resource request when request DNE; return 404', async() => {
+    const faultyRequestId = "661f8c7e2c2a4a8f4b1d7e9a";
+    await request(app)
+    .put(
+      `/api/hospital-resources-requests/${faultyRequestId}/status/rejected/`,
+    )
+    .expect(404);
+  })
+
+  it('should allow update reject resource request; return 200', async() => {
+    const hospitalId = await createHospital("123");
+    const resourceName = "Ventilator";
+
+    // Create a resource first
+    await createResource(resourceName, hospitalId);
+
+    const resourceRequest: HospitalResourceRequestClient = {
+      senderHospitalId: hospitalId,
+      receiverHospitalId: hospitalId,
+      hospitalResourceId: hospitalId,
+      resourceName,
+      requestedQuantity: 5,
+      status: "Pending",
+    };
+
+    await createHospitalResourceRequest(resourceRequest);
+
+    const requester = await request(app)
+      .get(`/api/hospital-resources-requests/${hospitalId}/incoming`)
+      .expect(200);
+
+    const response = await request(app)
+      .put(
+        `/api/hospital-resources-requests/${requester.body[0]._id}/status/rejected/`,
+      )
+      .expect(200);
+
+    expect(response.body).toBeDefined();
+    expect(response.body.senderHospitalId).toBe(hospitalId);
+    expect(response.body.receiverHospitalId).toBe(hospitalId);
+    expect(response.body.status).toBe("Rejected");
+  })
+
+  it('should return 400 if requestQuantity less than receiver instock quantity', async() => {
+    const hospitalId = await createHospital("123");
+    const resourceName = "Ventilator";
+
+    // Create a resource first
+    await createResource(resourceName, hospitalId);
+
+    const resourceRequest: HospitalResourceRequestClient = {
+      senderHospitalId: hospitalId,
+      receiverHospitalId: hospitalId,
+      hospitalResourceId: hospitalId,
+      resourceName,
+      requestedQuantity: 15,
+      status: "Pending",
+    };
+
+    await createHospitalResourceRequest(resourceRequest);
+
+    const requester = await request(app)
+      .get(`/api/hospital-resources-requests/${hospitalId}/incoming`)
+      .expect(200);
+
+    await request(app)
+      .put(
+        `/api/hospital-resources-requests/${requester.body[0]._id}/status/accepted/`,
+      )
+      .expect(400);
+  })
 });
