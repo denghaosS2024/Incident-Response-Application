@@ -183,8 +183,17 @@ const HospitalResourceForm: React.FC = () => {
         quantity: !hospitalResourceData.inStockQuantity,
         inStockAlertThreshold: false
       }); 
+      showSnackbar("The form has errors.", "error"
+      );
       return;
     }
+
+    if (errors.inStockAlertThreshold) {
+      showSnackbar("The threshold has to be smaller than quantity.", "error"
+      );
+      return;
+    } 
+
 
     console.log("Submitting hospital resource:", hospitalResourceData);
     let response;
