@@ -11,6 +11,7 @@ export default interface IMessage {
   timestamp: string; // Timestamp of when the message was sent
   channelId: string; // Identifier of the channel the message belongs to
   content: string; // The actual text content of the message
+  content_translation: Map<string, string>; // Translated content of the message, with language code as key
   isAlert: boolean; //whether is alert
   responders?: IUser[]; // List of user IDs who have responded to the message
   acknowledgedBy?: IUser[]; // List of user IDs who have acknowledged the message

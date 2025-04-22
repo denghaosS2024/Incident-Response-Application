@@ -18,6 +18,7 @@ export interface IMessage extends Document {
   timestamp: string;
   channelId: Types.ObjectId;
   isAlert: boolean;
+  content_translation: Map<string, string>;
   // responders: Types.ObjectId[]
   responders: IUser[];
   acknowledgedBy: IUser[];

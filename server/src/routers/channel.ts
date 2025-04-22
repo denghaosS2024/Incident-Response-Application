@@ -7,6 +7,7 @@ import ChannelController from "../controllers/ChannelController";
 import Channel from "../models/Channel";
 
 export default Router()
+
   /**
    * @swagger
    * /api/channels:
@@ -950,3 +951,48 @@ export default Router()
       return response.status(500).send({ message: error.message });
     }
   })
+
+    /**
+   * @swagger
+   * /api/channels/translate:
+   *   post:
+   *     summary: Translate a chat message
+   *     description: Translates a chat message to a target language (stub endpoint)
+   *     tags: [Channels]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - text
+   *               - targetLang
+   *             properties:
+   *               text:
+   *                 type: string
+   *                 description: The message text to translate
+   *               targetLang:
+   *                 type: string
+   *                 description: The target language code
+   *     responses:
+   *       200:
+   *         description: Translation result
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 translation:
+   *                   type: string
+   */
+    .post("/translate", async (request, response) => {
+      const { _id, text, targetLang } = request.body;
+      if (!text || !targetLang) {
+        return response.status(400).json({ message: "Both text and targetLang are required." });
+      }
+      // Stub: Just return the text with [translated to <lang>] appended
+      const translation = `${text} [translated to ${targetLang}]`;
+      return response.json({ translation });
+    })
+

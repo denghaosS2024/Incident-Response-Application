@@ -10,6 +10,7 @@ import {
   Modal,
   Typography,
 } from "@mui/material";
+import Divider from "@mui/material/Divider";
 import moment from "moment";
 import { FunctionComponent, useEffect, useState } from "react";
 import Linkify from "react-linkify";
@@ -21,6 +22,7 @@ import {
 import IUser from "../models/User";
 import styles from "../styles/Message.module.css";
 import { fetchLanguagePreferenceWithCache } from "../utils/languagePreferenceCache";
+import request from "../utils/request";
 import { convertSavedNamesToDisplayNames } from "../utils/SupportedLanguages.ts";
 import getRoleIcon from "./common/RoleIcon";
 import NurseAlertMessage from "./NurseAlertMessage";
@@ -37,6 +39,8 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
   const [languagePreference, setLanguagePreference] =
     useState<ILanguagePreference>(defaultLanguagePreference);
   const [showLanguagesModal, setShowLanguagesModal] = useState(false);
+  const [primaryMessage, setPrimaryMessage] = useState("");
+  const [secondaryMessage, setSecondaryMessage] = useState("");
 
   // Check if the message content looks like a video url from bucket
   const videoUrlPrefix =
@@ -112,16 +116,58 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
     }
     return convertSavedNamesToDisplayNames(languages);
   };
+  
+  const requestTranslate = async (langCode: string) => {
+    if (message.content_translation.get(langCode)) {
+      return message.content_translation.get(langCode);
+    }
+    const result = await request("/api/channel/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        _id: message._id,
+        text: message.content,
+        langCode,
+      }),
+    });      
+    return result;
+  }
+
+  const revealSecondaryMessage = async () => {
+    const primaryLangCode = getPrimaryLangCode(languagePreference);
+    // If no primary language is set, show an alert
+    if (!primaryLangCode) {
+      alert("Please set your primary language in Profile settings");
+      return;
+    }
+
+    const isAutoTranslate = languagePreference.autoTranslate;
+    if (isAutoTranslate) {
+      setSecondaryMessage(message.content);
+    }
+    else{
+      const primaryLangCode = getPrimaryLangCode(languagePreference);
+      const translatedMessage = await requestTranslate(primaryLangCode);
+      setSecondaryMessage(translatedMessage);
+    }
+  }
 
   useEffect(() => {
-    const loadLanguagePreference = async () => {
-      const preference = await fetchLanguagePreferenceWithCache(
-        message.sender._id,
-      );
+    const load = async () => {
+      const preference = await fetchLanguagePreferenceWithCache(message.sender._id);
       setLanguagePreference(preference);
+  
+      if (preference.autoTranslate) {
+        const primaryLangCode = getPrimaryLangCode(preference);
+        const translatedMessage = await requestTranslate(primaryLangCode);
+        setPrimaryMessage(translatedMessage);
+      } else {
+        setPrimaryMessage(message.content);
+      }
     };
-
-    loadLanguagePreference().catch(console.error);
+    load().catch(console.error);
   }, [message.sender._id]);
 
   return (
@@ -139,7 +185,7 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
           <Button
             size="small"
             startIcon={<TranslateIcon />}
-            onClick={() => alert("To be implemented")}
+            onClick={revealSecondaryMessage}
             sx={{ minWidth: "auto", p: 0.5 }}
           ></Button>
           {getPrimaryLangCode(languagePreference) && (
@@ -320,8 +366,17 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
         </Box>
       ) : (
         <Typography variant="body2" className={styles.content}>
-          <Linkify>{message.content}</Linkify>
+          <Linkify>{primaryMessage}</Linkify>
         </Typography>
+      )}
+      
+      {secondaryMessage !== "" && (
+        <>
+          <Divider sx={{ my: 1 }} />
+          <Typography variant="body2" color="primary" className={styles.content}>
+            <Linkify>{secondaryMessage}</Linkify>
+          </Typography>
+        </>
       )}
     </Box>
   );
