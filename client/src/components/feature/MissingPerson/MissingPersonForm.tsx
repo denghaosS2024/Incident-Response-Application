@@ -19,6 +19,8 @@ import IMissingPerson, {
 } from "../../../models/MissingPersonReport";
 import Globals from "../../../utils/Globals";
 
+const today = new Date().toISOString().split("T")[0];
+
 export interface MissingPersonFormProps {
   /** Optional initial values for editing */
   initialData?: IMissingPerson;
@@ -59,7 +61,7 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
 
   useEffect(() => {
     setLocalAddress(formData.locationLastSeen);
-    console.log("LOCAL", localAddress)
+    console.log("LOCAL", localAddress);
   }, [formData.locationLastSeen]);
 
   // Text inputs
@@ -104,16 +106,15 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
     const newAddress = res.features[0].properties.full_address ?? "";
     console.log(newAddress);
     setLocalAddress(newAddress);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      locationLastSeen: newAddress
+      locationLastSeen: newAddress,
     }));
-    
   }
 
   const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    console.log("VALUE", value)
+    console.log("VALUE", value);
     setLocalAddress(value);
   };
 
@@ -152,13 +153,13 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               onChange={handleInputChange}
               fullWidth
               disabled={readonly}
-              inputProps={{ 
+              inputProps={{
                 inputMode: "numeric",
                 pattern: "[0-9]*",
-                min: 1
+                min: 1,
               }}
               onKeyDown={(e) => {
-                if (["e", "E",  "-"].includes(e.key)) {
+                if (["e", "E", "-"].includes(e.key)) {
                   e.preventDefault();
                 }
               }}
@@ -175,13 +176,13 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               onChange={handleInputChange}
               fullWidth
               disabled={readonly}
-              inputProps={{ 
+              inputProps={{
                 inputMode: "numeric",
                 pattern: "[0-9]*",
-                min: 1
+                min: 1,
               }}
               onKeyDown={(e) => {
-                if (["e", "E",  "-"].includes(e.key)) {
+                if (["e", "E", "-"].includes(e.key)) {
                   e.preventDefault();
                 }
               }}
@@ -198,10 +199,10 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               onChange={handleInputChange}
               fullWidth
               disabled={readonly}
-              inputProps={{ 
+              inputProps={{
                 inputMode: "numeric",
                 pattern: "[0-9]*",
-                min: 1
+                min: 1,
               }}
               onKeyDown={(e) => {
                 if (["e", "E", "-"].includes(e.key)) {
@@ -292,17 +293,19 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
               name="dateLastSeen"
               label="Date Last Seen"
               type="date"
-              value={new Date(formData.dateLastSeen).toISOString().split("T")[0]}
+              value={
+                new Date(formData.dateLastSeen).toISOString().split("T")[0]
+              }
               onChange={handleInputChange}
               InputLabelProps={{ shrink: true }}
               fullWidth
               disabled={readonly}
+              inputProps={{ max: today }}
             />
           </Grid>
 
           {/* Location Last Seen */}
           <Grid item xs={12} sm={6}>
-          
             <AddressAutofill
               onRetrieve={onRetrieve}
               options={{ streets: false }}
@@ -322,7 +325,6 @@ export const MissingPersonForm: React.FC<MissingPersonFormProps> = ({
                 }}
               />
             </AddressAutofill>
-            
           </Grid>
 
           {/* Action Buttons (centered) */}
