@@ -56,7 +56,7 @@ const ResourceOrRequestForm: React.FC<ResourceOrRequestFormProps> = ({
             error={inputField.error}    
             helperText={inputField.helperText}   
             onKeyDown={(e) => {
-              if (["e", "E", "-"].includes(e.key)) {
+              if (inputField.type==="number" && ["e", "E", "-"].includes(e.key)) {
                 e.preventDefault();
               }
             }}  
