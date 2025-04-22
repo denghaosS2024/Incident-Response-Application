@@ -13,20 +13,9 @@ const MissingPersonFollowUpPage: React.FC = () => {
     const { reportId } = useParams<{ reportId: string }>();
     const [person, setPerson] = useState<IMissingPerson | null>(null);
     const [previewSrc, setPreviewSrc] = useState<string>(PLACEHOLDER);
-    const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [followUpReadOnly, setFollowUpReadOnly] = useState<boolean>(false);
     const [followUpId, setFollowUpId] = useState<string>("");
-
-    useEffect(() => {
-        if (!photoFile) {
-          setPreviewSrc(PLACEHOLDER);
-          return;
-        }
-        const objectUrl = URL.createObjectURL(photoFile);
-        setPreviewSrc(objectUrl);
-        return () => URL.revokeObjectURL(objectUrl);
-      }, [photoFile]);
 
     useEffect(() => {
         if (!reportId) return;
@@ -71,7 +60,7 @@ const MissingPersonFollowUpPage: React.FC = () => {
             {/* Preview */}
         <Box
             component="img"
-            src={previewSrc}
+            src={person?.photo ? person.photo : previewSrc}
             alt="Missing person preview"
             sx={{
             width: 160,
