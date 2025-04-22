@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 import MissingPersonController from "../controllers/MissingPersonController";
 import MissingPersonFollowUpController from "../controllers/MissingPersonFollowUpController";
 import {
-    IMissingFollowUpBase,
-    IMissingFollowUpReqBody,
+  IMissingFollowUpBase,
+  IMissingFollowUpReqBody,
 } from "../models/MissingFollowUp";
 
 export default Router()
@@ -60,6 +60,10 @@ export default Router()
         datetimeSpotted: new Date(followUpData.datetimeSpotted!),
         additionalComment: followUpData.additionalComment || "",
       };
+
+      if (followUpData.photo) {
+        newFollowUpInput.photo = followUpData.photo;
+      }
 
       const createdFollowUp =
         await MissingPersonFollowUpController.addFollowUp(newFollowUpInput);

@@ -1,5 +1,5 @@
 import MissingFollowUp, {
-    IMissingFollowUpBase,
+  IMissingFollowUpBase,
 } from "../models/MissingFollowUp";
 
 class MissingPersonFollowUpController {
@@ -17,6 +17,7 @@ class MissingPersonFollowUpController {
         locationSpotted: newFollowUp.locationSpotted,
         datetimeSpotted: newFollowUp.datetimeSpotted,
         additionalComment: newFollowUp.additionalComment,
+        ...(newFollowUp.photo && { photo: newFollowUp.photo })
       });
       // add it to db
       await newMissingFollowUp.save();
