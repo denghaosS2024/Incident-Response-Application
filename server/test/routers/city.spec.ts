@@ -459,4 +459,68 @@ describe("City Routes", () => {
         .expect(400);
     });
   });
+
+  describe("GET /api/cities//:cityName/unassigned-funding-requests/:role", () => {
+    beforeAll(async () => {
+      await City.create({ name: "fundingCity" });
+    });
+
+    afterAll(async () => {
+      await City.deleteMany({ name: "fundingCity" });
+    });
+
+    it("should get unassigned funding requests successfully", async () => {
+      const sender = new Personnel({
+        username: "firechief4",
+        password: "test123",
+        role: "Fire Chief",
+        assignedCity: "fundingCity",
+      });
+      await sender.save();
+      await request(app)
+        .post("/api/cities/funding-history/fundingCity/Fire Chief")
+        .set("x-application-uid", sender._id.toString())
+        .send({
+          type: "Request",
+          amount: 4000,
+          reason: "need new hose",
+        })
+        .expect(201);
+      const res = await request(app)
+        .get("/api/cities/fundingCity/unassigned-funding-requests/Fire Chief")
+        .expect(200);
+
+      expect(res.body).toEqual(4000);
+    });
+
+    it("should return 400 if city not existed", async () => {
+      await request(app)
+        .get("/api/cities/mofundingCity/unassigned-funding-requests/Fire Chief")
+        .expect(400);
+    });
+  });
+
+  describe("GET /api/cities/remaining-funding/:cityName", () => {
+    beforeAll(async () => {
+      await City.create({ name: "fundingCity" });
+    });
+
+    afterAll(async () => {
+      await City.deleteMany({ name: "fundingCity" });
+    });
+
+    it("should get remaining funding successfully", async () => {
+      const res = await request(app)
+        .get("/api/cities/remaining-funding/fundingCity")
+        .expect(200);
+
+      expect(res.body).toEqual(50000);
+    });
+
+    it("should return 400 if city not existed", async () => {
+      await request(app)
+        .get("/api/cities/remaining-funding/mofundingCity")
+        .expect(400);
+    });
+  });
 });
