@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from "uuid";
 export interface IFirstAidReport extends Document {
   reportId: string;
   sessionId: string;
-  responderId: string;
   questions: string[];
   answers: string[];
   primarySymptom: string;
@@ -26,10 +25,8 @@ const FirstAidReportSchema = new Schema({
   sessionId: {
     type: String,
     required: true,
-  },
-  responderId: {
-    type: String,
-    required: true,
+    unique: true,
+    default: uuidv4,
   },
   questions: {
     type: [String],
@@ -65,7 +62,7 @@ const FirstAidReportSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ["generated"], // TODO: Add more statuses as needed
+    enum: ["generated"],
     default: "generated",
   },
 });

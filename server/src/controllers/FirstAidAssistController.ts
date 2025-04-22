@@ -1,5 +1,6 @@
 import { OpenAI } from "openai";
 import PDFDocument from "pdfkit";
+import { v4 as uuidv4 } from "uuid";
 import FirstAidReport from "../models/FirstAidReport";
 import HttpError from "../utils/HttpError";
 
@@ -19,12 +20,14 @@ class FirstAidReportController {
    * Create a structured first aid report from user Q&A responses
    */
   async createReport(data: {
-    sessionId: string;
-    responderId: string;
+    sessionId?: string;
     questions: string[];
     answers: string[];
   }) {
     try {
+      // Generate sessionId if not provided
+      const sessionId = data.sessionId || uuidv4();
+
       // Map the Q&A to the structured fields based on question content
       // This assumes the questions array maintains a consistent order
       const primarySymptomIndex = data.questions.findIndex((q) =>
@@ -47,8 +50,7 @@ class FirstAidReportController {
 
       // Create the new report with mapped fields
       const newReport = new FirstAidReport({
-        sessionId: data.sessionId,
-        responderId: data.responderId,
+        sessionId,
         questions: data.questions,
         answers: data.answers,
         primarySymptom:
@@ -77,6 +79,7 @@ class FirstAidReportController {
     }
   }
 
+  // The rest of the controller methods stay the same
   async getReportBySessionId(sessionId: string) {
     try {
       const report = await FirstAidReport.findOne({ sessionId });
