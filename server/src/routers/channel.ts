@@ -991,6 +991,8 @@ export default Router()
     .post("/translate", async (request, response) => {
       const { _id, text, targetLang } = request.body;
       if (!text || !targetLang) {
+        if (!text) console.error("Missing text parameter");
+        if (!targetLang) console.error("Missing targetLang parameter");
         return response.status(400).json({ message: "Both text and targetLang are required." });
       }
       

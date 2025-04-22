@@ -37,7 +37,7 @@ class LanguagePreferenceCache {
     const preference = languagePreference || defaultLanguagePreference;
     // Store in cache
     this.cache.set(userId, preference);
-    // console.log("[fetchLanguagePreference] Newly Fetched, User:", userId, preference);
+    // console.log("[fetchLanguagePreference] Newly Fetched, User:", preference);
     return preference;
   }
 
@@ -50,5 +50,36 @@ class LanguagePreferenceCache {
 export const languagePreferenceCache = LanguagePreferenceCache.getInstance();
 
 export const fetchLanguagePreferenceWithCache = async (userId: string) => {
-  return languagePreferenceCache.fetchLanguagePreference(userId);
+  if (!userId) {
+    console.warn("[fetchLanguagePreferenceWithCache] No userId provided");
+    return defaultLanguagePreference;
+  }
+  try {
+    const preference = await languagePreferenceCache.fetchLanguagePreference(userId);
+    console.log("[fetchLanguagePreferenceWithCache] Fetched preference:", preference);
+    return preference;
+  } catch (error) {
+    console.error("[fetchLanguagePreferenceWithCache] Error fetching language preference:", error);
+    return defaultLanguagePreference;
+  }
+};
+
+const getPrimaryLangCode = (langPref: ILanguagePreference) => {
+  if (langPref.translateTarget.trim()) {
+    return langPref.translateTarget.trim();
+  }
+  if (langPref.languages.length > 0) {
+    return langPref.languages[0];
+  }
+  return "";
+};
+
+export const fetchPrimaryLangCode = async (userId: string) => {
+  const preference = await fetchLanguagePreferenceWithCache(userId);
+  return getPrimaryLangCode(preference);
+};
+
+export const fetchAutotranslate = async (userId: string) => {
+  const preference = await fetchLanguagePreferenceWithCache(userId);
+  return preference.autoTranslate;
 };
