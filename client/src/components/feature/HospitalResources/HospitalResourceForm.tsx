@@ -26,6 +26,7 @@ const HospitalResourceForm: React.FC = () => {
   const [errors, setErrors] = useState({
     resourceName: false,
     quantity: false,
+    inStockAlertThreshold: false
   });
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -180,7 +181,8 @@ const HospitalResourceForm: React.FC = () => {
       setErrors({
         resourceName: !hospitalResourceData.resourceId.resourceName,
         quantity: !hospitalResourceData.inStockQuantity,
-      });
+        inStockAlertThreshold: false
+      }); 
       return;
     }
 
@@ -242,11 +244,17 @@ const HospitalResourceForm: React.FC = () => {
             name: "Quantity",
             value: hospitalResourceData.inStockQuantity,
             type: "number",
-            onChange: (e) =>
+            onChange: (e) => {
+              const inStockQuantity = Number(e.target.value);
+              setErrors({
+              resourceName: !hospitalResourceData.resourceId.resourceName,
+              quantity: !inStockQuantity,
+              inStockAlertThreshold: hospitalResourceData?.inStockAlertThreshold ? (hospitalResourceData?.inStockAlertThreshold >= inStockQuantity) : false
+              })
               setHospitalResourceData({
                 ...hospitalResourceData,
-                inStockQuantity: Number(e.target.value),
-              }),
+                inStockQuantity
+              })},
             error: errors.quantity,
             helperText: errors.quantity ? "Quantity is required" : "",
           },
@@ -255,11 +263,19 @@ const HospitalResourceForm: React.FC = () => {
             name: "Stock Alert Threshold",
             value: hospitalResourceData.inStockAlertThreshold,
             type: "number",
-            onChange: (e) =>
+            onChange: (e) => {
+              const inStockAlertThreshold = Number(e.target.value);
+              setErrors({
+              resourceName: !hospitalResourceData.resourceId.resourceName,
+              quantity: !hospitalResourceData.inStockQuantity,
+              inStockAlertThreshold: inStockAlertThreshold ? (inStockAlertThreshold >= hospitalResourceData.inStockQuantity) : false
+              })
               setHospitalResourceData({
                 ...hospitalResourceData,
-                inStockAlertThreshold: Number(e.target.value),
-              }),
+                inStockAlertThreshold
+              })},
+            error: errors.inStockAlertThreshold,
+            helperText: errors.inStockAlertThreshold ? "The threshold has to be smaller than quantity." : "",
           },
         ]}
         submitButtonText="Submit"
