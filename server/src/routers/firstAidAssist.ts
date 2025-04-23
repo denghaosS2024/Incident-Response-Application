@@ -66,7 +66,7 @@ export default Router()
     }
   })
 
-  /**
+/**
    * @swagger
    * /api/first-aid/report/{sessionId}:
    *   get:
@@ -85,7 +85,52 @@ export default Router()
    *       404:
    *         description: Report not found
    */
-  .get("/report/:sessionId", async (req, res) => {
+.get("/report/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+
+    if (!sessionId) {
+      return res.status(400).json({ message: "Missing session ID." });
+    }
+
+    const report =
+      await FirstAidReportController.getReportBySessionId(sessionId);
+
+    if (!report) {
+      return res.status(404).json({ message: "Report not found." });
+    }
+
+    return res.status(200).json(report);
+  } catch (e) {
+    const error = e as HttpError;
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message });
+  }
+})
+
+  /**
+   * @swagger
+   * /api/first-aid/guidance/{sessionId}:
+   *   get:
+   *     summary: Generate AI guidance steps based on a report
+   *     tags: [First Aid]
+   *     parameters:
+   *       - in: path
+   *         name: sessionId
+   *         required: true
+   *         description: The session ID of the report to generate guidance for
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Guidance steps generated successfully
+   *       404:
+   *         description: Report not found
+   *       500:
+   *         description: Server error
+   */
+  .get("/guidance/:sessionId", async (req, res) => {
     try {
       const { sessionId } = req.params;
 
@@ -93,14 +138,10 @@ export default Router()
         return res.status(400).json({ message: "Missing session ID." });
       }
 
-      const report =
-        await FirstAidReportController.getReportBySessionId(sessionId);
+      const steps =
+        await FirstAidReportController.generateGuidanceSteps(sessionId);
 
-      if (!report) {
-        return res.status(404).json({ message: "Report not found." });
-      }
-
-      return res.status(200).json(report);
+      return res.status(200).json(steps);
     } catch (e) {
       const error = e as HttpError;
       return res
@@ -111,51 +152,35 @@ export default Router()
 
   /**
    * @swagger
-   * /api/first-aid/report/{sessionId}/pdf:
+   * /api/first-aid/generate-pdf/{sessionId}:
    *   get:
-   *     summary: Generate and download a PDF version of a report
+   *     summary: Generate a PDF report from a first aid report
    *     tags: [First Aid]
    *     parameters:
    *       - in: path
    *         name: sessionId
    *         required: true
-   *         description: The session ID of the report to download as PDF
+   *         description: The session ID of the report to generate PDF for
    *         schema:
    *           type: string
    *     responses:
    *       200:
    *         description: PDF generated successfully
-   *         content:
-   *           application/pdf:
-   *             schema:
-   *               type: string
-   *               format: binary
    *       404:
    *         description: Report not found
    *       500:
    *         description: Server error
    */
-  .get("/report/:sessionId/pdf", async (req, res) => {
+  .get("/generate-pdf/:sessionId", async (req, res) => {
     try {
       const { sessionId } = req.params;
-
+  
       if (!sessionId) {
         return res.status(400).json({ message: "Missing session ID." });
       }
-
-      const pdfBuffer =
-        await FirstAidReportController.generateReportPDF(sessionId);
-
-      // Set appropriate headers for PDF download
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="first-aid-report-${sessionId}.pdf"`,
-      );
-      res.setHeader("Content-Length", pdfBuffer.length);
-
-      // Send the PDF buffer
-      return res.send(pdfBuffer);
+  
+      const pdfData = await FirstAidReportController.generateReportPDF(sessionId);
+      return res.status(200).json(pdfData);
     } catch (e) {
       const error = e as HttpError;
       return res
@@ -164,96 +189,58 @@ export default Router()
     }
   })
 
-/**
- * @swagger
- * /api/first-aid/guidance/{sessionId}:
- *   get:
- *     summary: Generate AI guidance steps based on a report
- *     tags: [First Aid]
- *     parameters:
- *       - in: path
- *         name: sessionId
- *         required: true
- *         description: The session ID of the report to generate guidance for
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Guidance steps generated successfully
- *       404:
- *         description: Report not found
- *       500:
- *         description: Server error
- */
-.get("/guidance/:sessionId", async (req, res) => {
-  try {
-    const { sessionId } = req.params;
+  /**
+   * @swagger
+   * /api/first-aid/download/{filename}:
+   *   get:
+   *     summary: Download a generated PDF report
+   *     tags: [First Aid]
+   *     parameters:
+   *       - in: path
+   *         name: filename
+   *         required: true
+   *         description: The filename of the PDF to download
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: PDF file
+   *         content:
+   *           application/pdf:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       404:
+   *         description: PDF not found
+   *       500:
+   *         description: Server error
+   */
+  .get("/download/:filename", async (req, res) => {
+    try {
+      const { filename } = req.params;
 
-    if (!sessionId) {
-      return res.status(400).json({ message: "Missing session ID." });
+      if (!filename) {
+        return res.status(400).json({ message: "Missing filename." });
+      }
+
+      const pdfPath = FirstAidReportController.getReportPDFPath(filename);
+      
+      // Set the appropriate headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+      
+      // Send the file
+      return res.download(pdfPath, filename, (err) => {
+        if (err) {
+          console.error("Error downloading file:", err);
+          res.status(500).json({ message: "Failed to download file" });
+          return; 
+        }
+      });
+    } catch (e) {
+      const error = e as HttpError;
+      return res
+        .status(error.statusCode || 500)
+        .json({ message: error.message });
     }
-
-    const steps =
-      await FirstAidReportController.generateGuidanceSteps(sessionId);
-
-    return res.status(200).json(steps);
-  } catch (e) {
-    const error = e as HttpError;
-    return res
-      .status(error.statusCode || 500)
-      .json({ message: error.message });
-  }
-})
-
-/**
- * @swagger
- * /api/first-aid/conversation:
- *   post:
- *     summary: Continue a conversation with the AI based on session context
- *     tags: [First Aid]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - sessionId
- *               - content
- *             properties:
- *               sessionId:
- *                 type: string
- *                 description: The session ID of the conversation
- *               content:
- *                 type: string
- *                 description: The user message to send to the AI
- *     responses:
- *       200:
- *         description: AI response returned successfully
- *       400:
- *         description: Missing session or message content
- *       500:
- *         description: Server error
- */
-.post("/conversation", async (req, res) => {
-  try {
-    const { sessionId, content } = req.body;
-
-    if (!sessionId || !content) {
-      return res.status(400).json({ message: "Missing sessionId or content." });
-    }
-
-    const result = await FirstAidReportController.sendMessage({
-      sessionId,
-      sender: "user",
-      content,
-    });
-
-    return res.status(200).json(result);
-  } catch (e) {
-    const error = e as HttpError;
-    return res
-      .status(error.statusCode || 500)
-      .json({ message: error.message });
-  }
-});
+  });

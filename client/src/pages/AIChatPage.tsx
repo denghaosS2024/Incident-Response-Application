@@ -1,6 +1,8 @@
+import { Alert, Snackbar } from "@mui/material";
 import React, { useState } from "react";
-import request from "../utils/request";
+import { useNavigate } from "react-router-dom";
 import MicrophoneButton from "../components/MicrophoneButton";
+import request from "../utils/request";
 
 // Define the interface for the report response
 interface ReportResponse {
@@ -20,11 +22,14 @@ interface ReportResponse {
 }
 
 const AIChatPage: React.FC = () => {
+  const navigate = useNavigate(); 
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [answers, setAnswers] = useState<string[]>(["", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [report, setReport] = useState<ReportResponse | null>(null);
   const [showReport, setShowReport] = useState<boolean>(false);
+  const [notifOpen, setNotifOpen] = useState<boolean>(false);
+  const [targetChannel, setTargetChannel] = useState<string | null>(null);
 
   // Calculate how many questions have been answered
   const answeredQuestions = answers.filter(
@@ -103,7 +108,6 @@ const AIChatPage: React.FC = () => {
 
     try {
       // Use the actual API endpoint
-
       const response = await request("/api/first-aid/report", {
         method: "POST",
         headers: {
@@ -119,7 +123,6 @@ const AIChatPage: React.FC = () => {
         throw new Error("Failed to generate report");
       }
 
-      //   const data: ReportResponse = await response.json();
       setReport(response);
       setShowReport(true);
     } catch (error) {
@@ -128,6 +131,67 @@ const AIChatPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // Function to redirect to nurse support and send the report
+  // This function is called when the user clicks the "Nurse Support" button
+  // It generates a PDF of the report and sends it to the Medic channel
+  // It also navigates to the messages page for the Medic channel
+  const redirectToNurseSupport = async () => {
+    if (!report?.sessionId) {
+      console.error("No report data available");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      // 1) PDF
+      const pdfResponse = await request(
+        `/api/first-aid/generate-pdf/${report.sessionId}`
+      );
+      if (!pdfResponse?.pdfDataUrl) {
+        throw new Error("Failed to generate PDF");
+      }
+
+      // 2) Find Medic
+      const channels: { name: string; _id: string }[] = await request(
+        "/api/channels"
+      );
+      const medic = channels.find((c) => c.name === "Medic");
+      if (!medic) throw new Error("Medic channel not found");
+
+      // 3) Video conference
+      const vcMsg = await request(
+        `/api/channels/${medic._id}/video-conference`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-application-uid": localStorage.getItem("uid") || "",
+          },
+          body: JSON.stringify({}),
+        }
+      );
+
+      // 4) Combined content
+      const combined = 
+        `This is the patient report: ${pdfResponse.pdfDataUrl}`;
+
+      // 5) Send message
+      await request(`/api/channels/${medic._id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: combined, isAlert: false }),
+      });
+
+      setTargetChannel(medic._id);
+      setNotifOpen(true);
+    } catch (e) {
+      console.error("Error redirecting to nurse support:", e);
+      alert("Failed to connect with Nurse Support. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
 
   // If all questions are answered and we're on the last question, show the submit button
   const showSubmitButton = allQuestionsAnswered && isLastQuestion;
@@ -223,18 +287,15 @@ const AIChatPage: React.FC = () => {
     );
   }
 
-  // Render report screen when report is generated
-  // Simplified report view that only shows data from the backend
-  // Replace the entire report rendering section with this:
-
-  // Add this function to your component for printing functionality
+  // Function to handle printing functionality
   const handlePrintReport = () => {
     window.print();
   };
 
-  // Replace your report rendering section with this updated version:
+  // Render report screen when report is generated
   if (showReport && report) {
     return (
+      <>
       <div className="report-page">
         <style>{`
           .report-page {
@@ -477,7 +538,7 @@ const AIChatPage: React.FC = () => {
               AI Support
             </button>
 
-            <button className="action-button nurse-support">
+            <button className="action-button nurse-support" onClick={redirectToNurseSupport}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                 <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z" />
               </svg>
@@ -485,7 +546,28 @@ const AIChatPage: React.FC = () => {
             </button>
           </div>
         </div>
+        <Snackbar
+          open={notifOpen}
+          autoHideDuration={4000}
+          onClose={() => {
+            setNotifOpen(false);
+            if (targetChannel) navigate(`/messages/${targetChannel}`);
+          }}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert
+            onClose={() => {
+              setNotifOpen(false);
+              if (targetChannel) navigate(`/messages/${targetChannel}`);
+            }}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            Report and conference link sent to Medic group! Close this to go to chatroom.
+          </Alert>
+        </Snackbar>
       </div>
+      </>
     );
   }
 

@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import Divider from "@mui/material/Divider";
 import moment from "moment";
-import { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import Linkify from "react-linkify";
 import IMessage from "../models/Message";
 import {
@@ -21,7 +21,7 @@ import {
 } from "../models/Profile.ts";
 import IUser from "../models/User";
 import styles from "../styles/Message.module.css";
-import { fetchLanguagePreferenceWithCache, fetchPrimaryLangCode, fetchAutotranslate } from "../utils/languagePreferenceCache";
+import { fetchAutotranslate, fetchLanguagePreferenceWithCache, fetchPrimaryLangCode } from "../utils/languagePreferenceCache";
 import request from "../utils/request";
 import { convertSavedNamesToDisplayNames } from "../utils/SupportedLanguages.ts";
 import getRoleIcon from "./common/RoleIcon";
@@ -157,6 +157,82 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
       setSecondaryMessage(translatedMessage);
     }
   }
+
+/**
+ * Given any string containing a data:application/pdf;base64 payload,
+ * extract the clean URL, decode it, and trigger a download.
+ */
+function downloadPdfFromDataUrl(raw: string, filename = "report.pdf") {
+  // 1) Pull out exactly the “data:application/pdf;base64,…” part
+  const match = raw.match(/data:application\/pdf;base64,[A-Za-z0-9+/=]+/);
+  if (!match) {
+    console.error("Invalid PDF data URL:", raw);
+    return;
+  }
+  const dataUrl = match[0];
+
+  // 2) Split off header, keep only base64 payload
+  const base64 = dataUrl.split(",")[1];
+
+  // 3) atob → Uint8Array
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  // 4) Build blob + objectURL
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const blobUrl = URL.createObjectURL(blob);
+
+  // 5) Trigger download
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  // 6) Cleanup
+  URL.revokeObjectURL(blobUrl);
+}
+
+const renderTextWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+|data:application\/pdf;base64,[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, i) => {
+    if (!urlRegex.test(part)) {
+      return <span key={i}>{part}</span>;
+    }
+if (part.startsWith("data:application/pdf")) {
+  return (
+    <React.Fragment key={i}>
+      <span>(</span>
+      <a
+        onClick={() => downloadPdfFromDataUrl(part)}
+        style={{ color: "#4285F4", textDecoration: "underline", cursor: "pointer" }}
+      >
+        Download PDF Report
+      </a>
+      <span>)</span>
+    </React.Fragment>
+  );
+}
+    return (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: "#4285F4", textDecoration: "underline" }}
+      >
+        {part}
+      </a>
+    );
+  });
+};
 
   useEffect(() => {
     const load = async () => {
@@ -386,13 +462,14 @@ const Message: FunctionComponent<IMessageProps> = ({ message }) => {
           )}
         </Box>
       ) : (
-        <Typography 
-          variant="body2" 
-          className={styles.content}
-          sx={isAutoTranslated ? { bgcolor: '#e8f5e9', p: 1, borderRadius: 1 } : {}}
-        >
-          <Linkify>{primaryMessage}</Linkify>
-        </Typography>
+<Typography 
+  variant="body2" 
+  className={styles.content}
+  sx={isAutoTranslated ? { bgcolor: '#e8f5e9', p: 1, borderRadius: 1 } : {}}
+>
+  {renderTextWithLinks(primaryMessage)}
+</Typography>
+
       )}
       
       {secondaryMessage !== "" && (

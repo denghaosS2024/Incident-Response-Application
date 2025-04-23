@@ -4,13 +4,13 @@ import {
   ChatCompletionSystemMessageParam,
   ChatCompletionUserMessageParam,
 } from "openai/resources/chat/completions";
+import path from "path";
 import PDFDocument from "pdfkit";
 import { v4 as uuidv4 } from "uuid";
 import AiSession from "../models/AiSession";
 import FirstAidReport from "../models/FirstAidReport";
 import HttpError from "../utils/HttpError";
 import { getOpenAIClient } from "../utils/openAiClient";
-
 
 class FirstAidReportController {
   /**
@@ -24,50 +24,57 @@ class FirstAidReportController {
     try {
       const sessionId = data.sessionId || uuidv4();
       const openai = getOpenAIClient();
-  
+
       const prompt = `
-  You are a medical assistant AI. Given the following Q&A, extract and summarize key patient information into a structured format.
-  
-  Respond only in valid JSON with the following fields:
-  - primarySymptom
-  - onsetTime
-  - severity
-  - additionalSymptoms
-  - remediesTaken
-  
-  Q&A:
-  ${data.questions.map((q, i) => `Q: ${q}\nA: ${data.answers[i]}`).join("\n\n")}
-  
-  Example Output:
-  {
-    "primarySymptom": "...",
-    "onsetTime": "...",
-    "severity": "...",
-    "additionalSymptoms": "...",
-    "remediesTaken": "..."
-  }
+You are a medical assistant AI. Given the following Q&A, extract and summarize key patient information into a structured format.
+
+Respond only in valid JSON with the following fields:
+- primarySymptom
+- onsetTime
+- severity
+- additionalSymptoms
+- remediesTaken
+
+Q&A:
+${data.questions.map((q, i) => `Q: ${q}\nA: ${data.answers[i]}`).join("\n\n")}
+
+Example Output:
+{
+  "primarySymptom": "...",
+  "onsetTime": "...",
+  "severity": "...",
+  "additionalSymptoms": "...",
+  "remediesTaken": "..."
+}
       `.trim();
-  
+
       const completion = await openai.chat.completions.create({
         model: "gpt-4",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.5,
       });
-  
-      const content = completion.choices[0].message?.content;
-      const parsed = JSON.parse(content || "{}");
-  
+
+      const content = completion.choices[0].message?.content ?? "{}";
+      const parsed = JSON.parse(content);
+
+      // Ensure array↔string normalization
+      const primarySymptom    = this.ensureString(parsed.primarySymptom, "Not provided");
+      const onsetTime         = this.ensureString(parsed.onsetTime,      "Not provided");
+      const severity          = this.ensureString(parsed.severity,       "Not provided");
+      const additionalSymptoms= this.ensureString(parsed.additionalSymptoms, "Not provided");
+      const remediesTaken     = this.ensureString(parsed.remediesTaken,  "Not provided");
+
       const newReport = new FirstAidReport({
         sessionId,
         questions: data.questions,
-        answers: data.answers,
-        primarySymptom: parsed.primarySymptom || "Not provided",
-        onsetTime: parsed.onsetTime || "Not provided",
-        severity: parsed.severity || "Not provided",
-        additionalSymptoms: parsed.additionalSymptoms || "Not provided",
-        remediesTaken: parsed.remediesTaken || "Not provided",
+        answers:   data.answers,
+        primarySymptom,
+        onsetTime,
+        severity,
+        additionalSymptoms,
+        remediesTaken,
       });
-  
+
       await newReport.save();
       return newReport;
     } catch (error) {
@@ -75,15 +82,19 @@ class FirstAidReportController {
       throw new HttpError("Failed to generate report", 500);
     }
   }
-  
 
-  // The rest of the controller methods stay the same
+  /** Convert arrays → comma-lists and all other values → strings */
+  private ensureString(value: any, defaultValue: string): string {
+    if (value == null) return defaultValue;
+    return Array.isArray(value) ? value.join(", ") : String(value);
+  }
+
+  /** Fetch a saved report by its sessionId */
   async getReportBySessionId(sessionId: string) {
     try {
-      const report = await FirstAidReport.findOne({ sessionId });
-      return report;
+      return await FirstAidReport.findOne({ sessionId });
     } catch (error) {
-      console.error("Error fetching report by sessionId:", error);
+      console.error("Error fetching report:", error);
       throw new HttpError("Failed to retrieve report", 500);
     }
   }
@@ -160,197 +171,233 @@ Respond in JSON format as an array of objects with fields: id and text.`,
       throw new HttpError("Failed to generate AI guidance steps", 500);
     }
   }
-  
 
-  async generateReportPDF(sessionId: string): Promise<Buffer> {
+  /**
+   * Generate a PDF and return it as a Base64 data URL + a filename
+   */
+  async generateReportPDF(sessionId: string) {
     try {
       const report = await this.getReportBySessionId(sessionId);
-
+      
       if (!report) {
         throw new HttpError("No report found for this session", 404);
       }
-
-      // Create a promise to handle the asynchronous PDF generation
-      return new Promise((resolve, reject) => {
-        try {
-          // Create a PDF document
-          const doc = new PDFDocument();
-          const buffers: Buffer[] = [];
-
-          // Collect data chunks
-          doc.on("data", (chunk) => buffers.push(chunk));
-
-          // Resolve promise with the complete PDF data
-          doc.on("end", () => {
-            const pdfData = Buffer.concat(buffers);
-            resolve(pdfData);
-          });
-
-          // Add content to the PDF
-          // Header
-          doc
-            .fontSize(20)
-            .font("Helvetica-Bold")
-            .text("First Aid Report", { align: "center" });
-          doc.moveDown();
-
-          // Report metadata
-          doc.fontSize(12).font("Helvetica");
-          doc.text(`Report ID: ${report.reportId}`);
-          doc.text(`Session ID: ${report.sessionId}`);
-          doc.text(`Created: ${new Date(report.createdAt).toLocaleString()}`);
-          doc.moveDown();
-
-          // Q&A Section
-          doc.fontSize(16).font("Helvetica-Bold").text("Assessment Responses");
-          doc.moveDown(0.5);
-
-          // Display each question and answer pair
-          report.questions.forEach((question, index) => {
-            const answer = report.answers[index] || "Not answered";
-
-            doc.fontSize(12).font("Helvetica-Bold").text(`Q: ${question}`);
-            doc.fontSize(12).font("Helvetica").text(`A: ${answer}`);
-            doc.moveDown(0.5);
-          });
-          doc.moveDown();
-
-          // Patient Symptoms Section
-          doc
-            .fontSize(16)
-            .font("Helvetica-Bold")
-            .text("Interpretation Summary");
-          doc.moveDown(0.5);
-
-          doc.fontSize(12).font("Helvetica-Bold").text("Primary Symptom:");
-          doc.font("Helvetica").text(report.primarySymptom);
-          doc.moveDown(0.5);
-
-          doc.fontSize(12).font("Helvetica-Bold").text("Onset Time:");
-          doc.font("Helvetica").text(report.onsetTime);
-          doc.moveDown(0.5);
-
-          doc.fontSize(12).font("Helvetica-Bold").text("Severity Level:");
-          doc.font("Helvetica").text(report.severity);
-          doc.moveDown(0.5);
-
-          // Additional Information Section
-          doc
-            .fontSize(16)
-            .font("Helvetica-Bold")
-            .text("Additional Information");
-          doc.moveDown(0.5);
-
-          doc.fontSize(12).font("Helvetica-Bold").text("Additional Symptoms:");
-          doc
-            .font("Helvetica")
-            .text(report.additionalSymptoms || "Not provided");
-          doc.moveDown(0.5);
-
-          doc.fontSize(12).font("Helvetica-Bold").text("Remedies Taken:");
-          doc.font("Helvetica").text(report.remediesTaken || "Not provided");
-          doc.moveDown();
-
-          // Recommended Actions Section
-          doc.fontSize(16).font("Helvetica-Bold").text("Recommended Actions");
-          doc.moveDown(0.5);
-
-          // Determine recommended action based on severity
-          let recommendedAction =
-            "Monitor symptoms and seek medical attention if condition worsens";
-
-          // Try to parse the severity - handle cases where it might be textual
-          let severityValue = 0;
-          try {
-            // Try to find a number in the severity response
-            const severityMatch = report.severity.match(/\d+/);
-            if (severityMatch) {
-              severityValue = parseInt(severityMatch[0]);
-            } else if (
-              report.severity.toLowerCase().includes("severe") ||
-              report.severity.toLowerCase().includes("extreme") ||
-              report.severity.toLowerCase().includes("bad")
-            ) {
-              severityValue = 8; // Treat as high severity
-            } else if (
-              report.severity.toLowerCase().includes("moderate") ||
-              report.severity.toLowerCase().includes("medium")
-            ) {
-              severityValue = 5; // Treat as medium severity
-            }
-          } catch (e) {
-            console.error("Error parsing severity:", e);
-          }
-
-          if (severityValue >= 8) {
-            recommendedAction = "Call emergency services (911) immediately";
-          } else if (severityValue >= 5) {
-            recommendedAction = "Seek medical attention as soon as possible";
-          }
-
-          doc.fontSize(12).font("Helvetica-Bold").text("Immediate Action:");
-
-          // Highlight critical recommendations
-          if (severityValue >= 8) {
-            doc.fillColor("red").font("Helvetica").text(recommendedAction);
-            doc.fillColor("black");
-          } else {
-            doc.font("Helvetica").text(recommendedAction);
-          }
-
-          // Add footer
-          doc
-            .fontSize(10)
-            .text(
-              `First Aid Report - Generated on ${new Date().toLocaleString()}`,
-              doc.page.margins.left,
-              doc.page.height - 50,
-              { align: "center" },
-            );
-
-          // Finalize the PDF
-          doc.end();
-        } catch (error) {
-          reject(error);
-        }
-      });
+      
+      // Generate PDF in memory as a buffer
+      const pdfBuffer = await this.createPDFBuffer(report);
+      
+      // Convert to Base64
+      const base64Pdf = pdfBuffer.toString('base64');
+      
+      // Create a data URL for direct downloading
+      const dataUrl = `data:application/pdf;base64,${base64Pdf}`;
+      
+      return {
+        pdfDataUrl: dataUrl,
+        filename: `report-${report.reportId}.pdf`
+      };
     } catch (error) {
-      console.error("Error generating PDF report:", error);
+      console.error("Error generating PDF:", error);
       throw new HttpError("Failed to generate PDF report", 500);
     }
   }
 
+/**
+   * Create a PDF document as a buffer in memory
+   */
+private createPDFBuffer(report: any): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    try {
+      // Create a PDF document with an in-memory buffer
+      const doc = new PDFDocument({ margin: 50 });
+      const chunks: Buffer[] = [];
+      
+      // Capture chunks of data
+      doc.on('data', (chunk) => chunks.push(chunk));
+      
+      // When document is finished, resolve with the complete buffer
+      doc.on('end', () => {
+        const result = Buffer.concat(chunks);
+        resolve(result);
+      });
+      
+      // Add content to the PDF
+      this.addHeader(doc);
+      this.addMetadata(doc, report);
+      this.addAssessment(doc, report);
+      this.addQAndA(doc, report);
+      
+      // Finalize the PDF
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+  /**
+   * Add header to the PDF
+   */
+  private addHeader(doc: typeof PDFDocument.prototype): void {
+    doc.fontSize(24)
+       .fillColor('#202124')
+       .text('First Aid Report', { align: 'center' })
+       .moveDown();
+  }
+  
+  /**
+   * Add metadata to the PDF
+   */
+  private addMetadata(doc: typeof PDFDocument.prototype, report: any): void {
+    doc.fontSize(12)
+       .fillColor('#5f6368')
+       .text(`Report ID: ${report.reportId}`)
+       .text(`Session ID: ${report.sessionId}`)
+       .text(`Generated: ${this.formatDate(report.createdAt)}`)
+       .moveDown();
+  }
+  
+  /**
+   * Add patient assessment to the PDF
+   */
+  private addAssessment(doc: typeof PDFDocument.prototype, report: any): void {
+    doc.fontSize(16)
+       .fillColor('#202124')
+       .text('Patient Assessment', { underline: true })
+       .moveDown(0.5);
+       
+    // Create a simple table for assessment data
+    const assessmentData = [
+      { label: 'Primary Symptoms', value: report.primarySymptom },
+      { label: 'Onset Time', value: report.onsetTime },
+      { label: 'Severity', value: report.severity },
+      { label: 'Additional Symptoms', value: report.additionalSymptoms },
+      { label: 'Remedies Taken', value: report.remediesTaken }
+    ];
+    
+    // Table settings
+    const startX = 50;
+    const startY = doc.y;
+    const rowHeight = 30;
+    const colWidth = 450 / 3; 
+    
+    // Draw table
+    assessmentData.forEach((row, i) => {
+      const y = startY + i * rowHeight;
+      
+      // Add a light background for even rows
+      if (i % 2 === 0) {
+        doc.rect(startX, y, 450, rowHeight)
+           .fillAndStroke('#f8f9fa', '#e0e0e0');
+      }
+      
+      // Add label
+      doc.fontSize(10)
+         .fillColor('#5f6368')
+         .text(row.label, startX + 10, y + 10, { width: colWidth });
+      
+      // Add value
+      doc.fontSize(10)
+         .fillColor('#202124')
+         .text(row.value, startX + colWidth + 10, y + 10, { width: colWidth * 2 });
+    });
+    
+    // Add some space after the table
+    doc.moveDown(2);
+  }
+  
+/**
+ * Add Q&A record to the PDF, flush‐left to the page margins
+ */
+private addQAndA(doc: typeof PDFDocument.prototype, report: any): void {
+  // grab your PDF margins
+  const startX = doc.page.margins.left;
+  const pageWidth =
+    doc.page.width - doc.page.margins.left - doc.page.margins.right;
+
+  // Section title, underlined, at left margin
+  doc
+    .fontSize(16)
+    .fillColor('#202124')
+    .text('Question and Answer Record', startX, doc.y, {
+      width: pageWidth,
+      underline: true,
+    })
+    .moveDown(0.5);
+
+  report.questions.forEach((question: string, index: number) => {
+    // Question line
+    doc
+      .fontSize(12)
+      .fillColor('#202124')
+      .text(`Q: ${question}`, startX, doc.y, {
+        width: pageWidth,
+        align: 'left',
+      })
+      .moveDown(0.2);
+
+    // Answer line
+    doc
+      .fontSize(10)
+      .fillColor('#5f6368')
+      .text(`A: ${report.answers[index]}`, startX + 10, doc.y, {
+        width: pageWidth - 10,
+        align: 'left',
+      })
+      .moveDown(0.8);
+  });
+}
+
+  /**
+   * Format date for display
+   */
+  private formatDate(date: Date): string {
+    return new Date(date).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    });
+  }
+  
+  /**
+   * Get the path to a generated PDF file
+   * @param filename string
+   * @returns Path to the PDF file
+   */
+  getReportPDFPath(filename: string) {
+    try {
+      const pdfPath = path.join(process.cwd(), 'uploads', filename);
+      return pdfPath;
+    } catch (error) {
+      console.error("Error getting PDF path:", error);
+      throw new HttpError("Failed to get PDF path", 500);
+    }
+  }
+
+  /**
+   * Push a user message into the session and get AI’s next reply
+   */
   async sendMessage(data: {
     sessionId: string;
     sender: "user";
     content: string;
   }) {
     const { sessionId, sender, content } = data;
-
     const session = await AiSession.findOne({ sessionId });
-    if (!session) {
-      throw new HttpError("Session not found. Generate guidance first.", 400);
-    }
+    if (!session) throw new HttpError("Session not found. Generate guidance first.", 400);
 
     session.messages.push({ role: sender, content });
     await session.save();
 
-    const messages: ChatCompletionMessageParam[] = session.messages.map((msg) => {
-      if (msg.role === "system") {
-        return {
-          role: "system",
-          content: msg.content as string,
-        } satisfies ChatCompletionSystemMessageParam;
-      } else if (msg.role === "user") {
-        return {
-          role: "user",
-          content: msg.content as string,
-        } satisfies ChatCompletionUserMessageParam;
-      } else {
-        return {
-          role: "assistant",
-          content: msg.content as string,
-        } satisfies ChatCompletionAssistantMessageParam;
+    const messages = session.messages.map((m) => {
+      const base = { role: m.role as any, content: m.content as string };
+      switch (m.role) {
+        case "system":    return base as ChatCompletionSystemMessageParam;
+        case "user":      return base as ChatCompletionUserMessageParam;
+        default:          return base as ChatCompletionAssistantMessageParam;
       }
     });
 
@@ -362,9 +409,7 @@ Respond in JSON format as an array of objects with fields: id and text.`,
         temperature: 0.7,
       });
 
-      const aiResponse = completion.choices[0].message?.content;
-      if (!aiResponse) throw new Error("Empty response from OpenAI");
-
+      const aiResponse = completion.choices[0].message?.content ?? "";
       session.messages.push({ role: "assistant", content: aiResponse });
       session.lastUpdated = new Date();
       await session.save();
