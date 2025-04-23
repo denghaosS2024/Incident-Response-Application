@@ -243,4 +243,57 @@ export default Router()
         .status(error.statusCode || 500)
         .json({ message: error.message });
     }
-  });
+  })
+
+  /**
+ * @swagger
+ * /api/first-aid/conversation:
+ *   post:
+ *     summary: Continue a conversation with the AI based on session context
+ *     tags: [First Aid]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sessionId
+ *               - content
+ *             properties:
+ *               sessionId:
+ *                 type: string
+ *                 description: The session ID of the conversation
+ *               content:
+ *                 type: string
+ *                 description: The user message to send to the AI
+ *     responses:
+ *       200:
+ *         description: AI response returned successfully
+ *       400:
+ *         description: Missing session or message content
+ *       500:
+ *         description: Server error
+ */
+.post("/conversation", async (req, res) => {
+  try {
+    const { sessionId, content } = req.body;
+
+    if (!sessionId || !content) {
+      return res.status(400).json({ message: "Missing sessionId or content." });
+    }
+
+    const result = await FirstAidReportController.sendMessage({
+      sessionId,
+      sender: "user",
+      content,
+    });
+
+    return res.status(200).json(result);
+  } catch (e) {
+    const error = e as HttpError;
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message });
+  }
+});
