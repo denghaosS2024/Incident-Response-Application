@@ -150,7 +150,15 @@ export default function AppointmentSchedulerPage() {
       />
 
       <Box mt={4}>
-        <Button fullWidth variant="contained" sx={{ mb: 2 }}>
+        <Button
+          fullWidth
+          variant="contained"
+          sx={{ mb: 2 }}
+          onClick={() => {
+            const uid = localStorage.getItem("uid");
+            navigate(`/past-appointment?userId=${uid}`);
+          }}
+        >
           Review your past appointments
         </Button>
         <Button
