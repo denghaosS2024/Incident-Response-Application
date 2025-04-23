@@ -389,47 +389,59 @@ describe("CityController", () => {
 
   describe("updateCityDepartmentFunding", () => {
     it("should update police funding when role is Police Chief", async () => {
-      await City.create({name: "FundingTestCity", policeFunding: 10000, fireFunding: 15000,});
+      await City.create({
+        name: "FundingTestCity",
+        policeFunding: 10000,
+        fireFunding: 15000,
+      });
       const updatedCity = await CityController.updateCityDepartmentFunding(
         "FundingTestCity",
         8000,
-        "Police Chief"
+        "Police Chief",
       );
-  
+
       expect(updatedCity.policeFunding).toBe(8000);
       expect(updatedCity.fireFunding).toBe(15000); // Should remain unchanged
-  
+
       // Verify in database
       const dbCity = await City.findOne({ name: "FundingTestCity" });
       expect(dbCity?.policeFunding).toBe(8000);
       expect(dbCity?.fireFunding).toBe(15000);
     });
-  
+
     it("should update fire funding when role is Fire Chief", async () => {
-      await City.create({name: "FundingTestCity", policeFunding: 10000, fireFunding: 15000,});
+      await City.create({
+        name: "FundingTestCity",
+        policeFunding: 10000,
+        fireFunding: 15000,
+      });
       const updatedCity = await CityController.updateCityDepartmentFunding(
         "FundingTestCity",
         12000,
-        "Fire Chief"
+        "Fire Chief",
       );
-  
+
       expect(updatedCity.fireFunding).toBe(12000);
       expect(updatedCity.policeFunding).toBe(10000); // Should remain unchanged
-  
+
       // Verify in database
       const dbCity = await City.findOne({ name: "FundingTestCity" });
       expect(dbCity?.fireFunding).toBe(12000);
       expect(dbCity?.policeFunding).toBe(10000);
     });
-  
+
     it("should throw error when city does not exist", async () => {
-      await City.create({name: "FundingTestCity", policeFunding: 10000, fireFunding: 15000,});
+      await City.create({
+        name: "FundingTestCity",
+        policeFunding: 10000,
+        fireFunding: 15000,
+      });
       await expect(
         CityController.updateCityDepartmentFunding(
           "NonExistentCity",
           5000,
-          "Police Chief"
-        )
+          "Police Chief",
+        ),
       ).rejects.toThrow(`Fail to fetch department funding:`);
     });
   });

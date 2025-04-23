@@ -48,7 +48,7 @@ const FundingHistory: React.FC = () => {
         const user = await request(`/api/users/usernames/${username}`, {
           method: "GET",
         });
-        
+
         if (userRole === "Fire Chief") {
           const fireFunding = await request(
             `/api/cities/fire-funding/${user.assignedCity}`,
@@ -78,7 +78,9 @@ const FundingHistory: React.FC = () => {
     }
 
     if (amount > totalRemainingFunds) {
-      setError(`Cannot assign more than the remaining funds ($${totalRemainingFunds})`);
+      setError(
+        `Cannot assign more than the remaining funds ($${totalRemainingFunds})`,
+      );
       return;
     }
 
@@ -129,10 +131,14 @@ const FundingHistory: React.FC = () => {
     });
 
     // Update funding center remaining amount
-    await request(`/api/cities/department-remaining-funding/${currentIncident.city}`,
+    await request(
+      `/api/cities/department-remaining-funding/${currentIncident.city}`,
       {
         method: "PUT",
-        body: JSON.stringify({ amount: totalRemainingFunds - amount , role: userRole}), 
+        body: JSON.stringify({
+          amount: totalRemainingFunds - amount,
+          role: userRole,
+        }),
       },
     );
 

@@ -526,7 +526,7 @@ describe("City Routes", () => {
 
   describe("PUT /api/cities/department-remaining-funding/:cityName", () => {
     const cityName = "FundingCity";
-  
+
     beforeAll(async () => {
       // Create a city with initial funding values
       await City.create({
@@ -535,11 +535,11 @@ describe("City Routes", () => {
         fireFunding: 15000,
       });
     });
-  
+
     afterAll(async () => {
       await City.deleteMany({ name: cityName });
     });
-  
+
     it("should update police department funding successfully", async () => {
       const response = await request(app)
         .put(`/api/cities/department-remaining-funding/${cityName}`)
@@ -548,14 +548,14 @@ describe("City Routes", () => {
           role: "Police Chief",
         })
         .expect(200);
-  
+
       expect(response.body.policeFunding).toEqual(5000);
-      
+
       // Verify in the database
       const updatedCity = await City.findOne({ name: cityName });
       expect(updatedCity?.policeFunding).toBe(5000);
     });
-  
+
     it("should update fire department funding successfully", async () => {
       const response = await request(app)
         .put(`/api/cities/department-remaining-funding/${cityName}`)
@@ -564,14 +564,14 @@ describe("City Routes", () => {
           role: "Fire Chief",
         })
         .expect(200);
-  
+
       expect(response.body.fireFunding).toEqual(10000);
-      
+
       // Verify in the database
       const updatedCity = await City.findOne({ name: cityName });
       expect(updatedCity?.fireFunding).toBe(10000);
     });
-  
+
     it("should return 400 if city does not exist", async () => {
       const response = await request(app)
         .put("/api/cities/department-remaining-funding/NonExistentCity")
@@ -580,9 +580,9 @@ describe("City Routes", () => {
           role: "Police",
         })
         .expect(400);
-  
+
       expect(response.body).toHaveProperty("error");
       expect(response.body.error).toMatch("Fail to fetch department funding:");
     });
-  });  
+  });
 });

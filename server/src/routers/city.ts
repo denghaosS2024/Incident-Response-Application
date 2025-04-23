@@ -732,7 +732,7 @@ cityRouter.post(
  *                 description: The new remaining funding amount.
  *               role:
  *                 type: string
- *                 example: Fire Chief 
+ *                 example: Fire Chief
  *                 description: The department name of the funding update for.
  *     responses:
  *       200:
