@@ -189,6 +189,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     closeMenu();
   };
 
+  const navigateToTruckInventory = () => {
+    if (["Fire", "Police", "Dispatch"].includes(role)) {
+      navigate("/truck-stock");
+    }
+    closeMenu();
+  };
+
   const navigateToDashboard = () => {
     if (["Dispatch", "Police", "Fire"].includes(role)) {
       navigate("/dashboard");
@@ -312,6 +319,9 @@ const NavigationBar: FunctionComponent<IProps> = ({
             <MenuItem onClick={navigateToResource}>
               Resource Allocation
             </MenuItem>
+          )}
+          {(role === "Fire" || role === "Police" || role === "Dispatch") && (
+            <MenuItem onClick={navigateToTruckInventory}>Truck Inventory</MenuItem>
           )}
           {(role === "Fire" || role === "Police" || role === "Nurse") && (
             <MenuItem onClick={navigateToPatientsPage}>Patients</MenuItem>
