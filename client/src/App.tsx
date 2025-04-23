@@ -73,6 +73,7 @@ import PlanViewPage from "./pages/PlanViewPage.tsx";
 import ExerciseDetailPage from "./pages/ExerciseDetailPage.tsx"
 import FirstAidAssistancePage from "./pages/FirstAidAssistancePage.tsx";
 import AIChatPage from "./pages/AIChatPage.tsx";
+import AISupportPage from "./pages/AISupportPage.tsx";
 import "./styles/globals.css";
 import "./styles/tailwind.css";
 
@@ -93,6 +94,9 @@ export default function App() {
             />
 
             <Route path="/ai-chat" element={<AIChatPage />} />
+
+            <Route path="/ai-support/:sessionId" element={<AISupportPage />} />
+            <Route path="/ai-support" element={<AISupportPage />} />
 
             <Route path="/" element={<HomePage />} />
             <Route path="/contacts" element={<Contacts />} />

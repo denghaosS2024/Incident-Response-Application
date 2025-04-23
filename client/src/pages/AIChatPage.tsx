@@ -1,5 +1,5 @@
 import { Alert, Snackbar } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MicrophoneButton from "../components/MicrophoneButton";
 import request from "../utils/request";
@@ -21,6 +21,8 @@ interface ReportResponse {
   __v: number;
 }
 
+
+
 const AIChatPage: React.FC = () => {
   const navigate = useNavigate(); 
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -30,6 +32,31 @@ const AIChatPage: React.FC = () => {
   const [showReport, setShowReport] = useState<boolean>(false);
   const [notifOpen, setNotifOpen] = useState<boolean>(false);
   const [targetChannel, setTargetChannel] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkExistingReport = async () => {
+      const savedSessionId = localStorage.getItem("reportSessionId");
+      
+      if (savedSessionId && !report) {
+        setIsLoading(true);
+        try {
+          // Fetch the report using the session ID
+          const existingReport = await request(`/api/first-aid/report/${savedSessionId}`);
+          
+          if (existingReport) {
+            setReport(existingReport);
+            setShowReport(true);
+          }
+        } catch (error) {
+          console.error("Error fetching existing report:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    checkExistingReport();
+  }, []);
 
   // Calculate how many questions have been answered
   const answeredQuestions = answers.filter(
@@ -131,6 +158,7 @@ const AIChatPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+  
 
   // Function to redirect to nurse support and send the report
   // This function is called when the user clicks the "Nurse Support" button
@@ -141,6 +169,9 @@ const AIChatPage: React.FC = () => {
       console.error("No report data available");
       return;
     }
+    // Store the session ID in localStorage for persistence
+    localStorage.setItem("reportSessionId", report.sessionId);
+    
     setIsLoading(true);
     try {
       // 1) PDF
@@ -290,6 +321,19 @@ const AIChatPage: React.FC = () => {
   // Function to handle printing functionality
   const handlePrintReport = () => {
     window.print();
+  };
+
+  const redirectToAISupport = () => {
+    if (!report?.sessionId) {
+      console.error("No session ID available");
+      return;
+    }
+    
+    // Store the session ID in localStorage for persistence
+    localStorage.setItem("reportSessionId", report.sessionId);
+    
+    // Navigate to the AI Support page with the session ID
+    navigate(`/ai-support/${report.sessionId}`);
   };
 
   // Render report screen when report is generated
@@ -531,7 +575,7 @@ const AIChatPage: React.FC = () => {
           </div>
 
           <div className="action-buttons">
-            <button className="action-button ai-support">
+            <button className="action-button ai-support" onClick={redirectToAISupport}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                 <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
               </svg>
