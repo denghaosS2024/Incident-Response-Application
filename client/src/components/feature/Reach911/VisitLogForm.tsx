@@ -676,6 +676,7 @@ const VisitLogForm: React.FC<{
               onClick={async () => {
                 await dischargePatient();
                 alert("Patient discharged successfully!");
+                navigate(`/patients/report?patientId=${getCurrentPatientId()}`);
               }}
             >
               Discharge Patient
