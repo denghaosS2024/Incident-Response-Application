@@ -701,4 +701,62 @@ cityRouter.post(
   },
 );
 
+/**
+ * @swagger
+ * /api/cities/department-remaining-funding/{cityName}:
+ *   put:
+ *     summary: Update department remaining funding for a city
+ *     description: Updates the `fireFunding` or `policeFunding` field for a specified city by name.
+ *     tags:
+ *       - Cities
+ *     parameters:
+ *       - in: path
+ *         name: cityName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the city to update for.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *               - role
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 example: 12000
+ *                 description: The new remaining funding amount.
+ *               role:
+ *                 type: string
+ *                 example: Fire Chief 
+ *                 description: The department name of the funding update for.
+ *     responses:
+ *       200:
+ *         description: Remaining funding updated successfully.
+ *       400:
+ *         description: Bad request due to invalid input or internal error.
+ */
+cityRouter.put(
+  "/department-remaining-funding/:cityName",
+  async (req: Request, res: Response) => {
+    try {
+      const { cityName } = req.params;
+      const { amount, role } = req.body;
+      const funding = await CityController.updateCityDepartmentFunding(
+        cityName,
+        amount,
+        role,
+      );
+      res.json(funding);
+    } catch (err) {
+      const error = err as Error;
+      res.status(400).json({ error: error.message });
+    }
+  },
+);
+
 export default cityRouter;

@@ -342,6 +342,26 @@ class CityController {
       throw new HttpError("Fail to fetch remaining funding:", 500);
     }
   }
+
+  async updateCityDepartmentFunding(cityName: string, amount: number, role: string) {
+    try {
+      const city = await City.findOne({ name: cityName });
+      if (!city) {
+        throw new Error(`City '${cityName}' does not exist in the database`);
+      }
+      if (role == 'Fire Chief'){
+        city.fireFunding = amount;
+      }
+      if (role == 'Police Chief'){
+        city.policeFunding = amount;
+      }
+      await city.save();
+      return city;
+    } catch (error) {
+      console.log("Error fetching department funding:", error);
+      throw new HttpError("Fail to fetch department funding:", 500);
+    }
+  }
 }
 
 export default new CityController();

@@ -13,6 +13,7 @@ import { useNavigate, useParams } from "react-router";
 import { IIncident } from "../models/Incident";
 import { updateIncident } from "../redux/incidentSlice";
 import request from "../utils/request";
+import { ISpending } from "@/models/Spending";
 
 const FundingHistory: React.FC = () => {
   const navigate = useNavigate();
@@ -25,7 +26,10 @@ const FundingHistory: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [fundingLeft, setFundingLeft] = useState<number>(0);
   const [fundAssigned, setFundAssigned] = useState<number>(0);
+  const [totalRemainingFunds, setTotalRemainingFunds] = useState<number>(0);
   const dispatch = useDispatch();
+  const userRole = localStorage.getItem("role");
+  const username = localStorage.getItem("username");
 
   useEffect(() => {
     const fetchFundingHistory = async () => {
@@ -39,6 +43,25 @@ const FundingHistory: React.FC = () => {
         setFundingHistory(incident.fundingHistory);
         setFundingLeft(incident.fund_left);
         setFundAssigned(incident.fund_assigned);
+
+        // Fetch total remaining funds from funding center
+        const user = await request(`/api/users/usernames/${username}`, {
+          method: "GET",
+        });
+        
+        if (userRole === "Fire Chief") {
+          const fireFunding = await request(
+            `/api/cities/fire-funding/${user.assignedCity}`,
+            { method: "GET" },
+          );
+          setTotalRemainingFunds(fireFunding);
+        } else if (userRole === "Police Chief") {
+          const policeFunding = await request(
+            `/api/cities/police-funding/${user.assignedCity}`,
+            { method: "GET" },
+          );
+          setTotalRemainingFunds(policeFunding);
+        }
       } catch (err) {
         console.error("Error fetching funding history:", err);
       }
@@ -54,8 +77,8 @@ const FundingHistory: React.FC = () => {
       return;
     }
 
-    if (amount > fundingLeft) {
-      setError(`Cannot assign more than the remaining funds ($${fundingLeft})`);
+    if (amount > totalRemainingFunds) {
+      setError(`Cannot assign more than the remaining funds ($${totalRemainingFunds})`);
       return;
     }
 
@@ -78,11 +101,22 @@ const FundingHistory: React.FC = () => {
     );
     const currentIncident = incidents[0];
 
+    const spendings = await request(
+      `/api/spendings/?incidentId=${incidentId}`,
+      { method: "GET" },
+    );
+
+    // Calculate total spending
+    const total_spending = spendings.reduce(
+      (sum: number, spending: ISpending) => sum + spending.amount,
+      0,
+    );
+
     const newIncident: IIncident = {
       ...currentIncident,
       fundingHistory: [...fundingHistory, newFundingEntryRedux],
       fund_assigned: fundAssigned + amount,
-      fund_left: fundingLeft - amount,
+      fund_left: fundAssigned + amount - total_spending,
     };
 
     const url = `${import.meta.env.VITE_BACKEND_URL}/api/incidents/update`;
@@ -94,10 +128,19 @@ const FundingHistory: React.FC = () => {
       body: JSON.stringify(newIncident),
     });
 
+    // Update funding center remaining amount
+    await request(`/api/cities/department-remaining-funding/${currentIncident.city}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ amount: totalRemainingFunds - amount , role: userRole}), 
+      },
+    );
+
     const updatedFundingHistory = [...fundingHistory, newFundingEntry];
     setFundingHistory(updatedFundingHistory);
     setFundAssigned(fundAssigned + amount);
     setFundingLeft(fundingLeft - amount);
+    setTotalRemainingFunds(totalRemainingFunds - amount);
     setNewFundingAmount("");
     setError("");
 
