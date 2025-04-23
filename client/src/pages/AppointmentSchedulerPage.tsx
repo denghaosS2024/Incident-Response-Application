@@ -4,13 +4,7 @@ import AppointmentSlotSelector, {
   Slot,
 } from "@/components/NurseShift/ActiveAppointments/AppointmentSlotSelector";
 import request from "@/utils/request";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Paper } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -107,10 +101,6 @@ export default function AppointmentSchedulerPage() {
         paddingTop: "1rem",
       }}
     >
-      <Typography variant="h5" fontWeight="bold" mb={2}>
-        Appointment Scheduler
-      </Typography>
-
       <Paper
         elevation={3}
         sx={{

@@ -53,16 +53,15 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
   }, [dispatch]);
   const [isPatientAdded, setIsPatientAdded] = useState(false);
 
-
-  // hopitalId of the currently logged in nurse 
+  // hopitalId of the currently logged in nurse
   const [hospitalId, setHospitalId] = useState<string>("");
- 
+
   useEffect(() => {
     const nurseId = localStorage.getItem("uid");
     const role = localStorage.getItem("role");
-  
+
     if (!nurseId || role !== ROLES.NURSE) return;
-  
+
     const fetchNurseHospital = async () => {
       try {
         const response = await request(`/api/users/${nurseId}`, {
@@ -76,7 +75,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
         console.error("Error fetching nurse hospital ID:", error);
       }
     };
-  
+
     fetchNurseHospital();
   }, []);
 
@@ -141,7 +140,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
           const response = await request("/api/users/createTemp", {
             method: "POST",
             headers: {
-              "Content-Type": "application/json", 
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({ hospitalId }),
           });
@@ -154,7 +153,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
                 name: "",
                 sex: propSex ?? "",
                 dob: "",
-                hospitalId: hospitalId, 
+                hospitalId: hospitalId,
               }),
             );
 
@@ -201,7 +200,8 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
           name: "",
           sex: propSex ?? "",
           dob: "",
-          hospitalId: hospitalId,         };
+          hospitalId: hospitalId,
+        };
         dispatch(addPatient(newPatient as IPatient));
       }
 
