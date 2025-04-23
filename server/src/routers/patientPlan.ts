@@ -9,6 +9,46 @@ const router = Router();
  *   name: PatientPlan
  *   description: Manage medication and exercise plans for discharged patients
  */
+
+/**
+ * @swagger
+ * /api/patientPlan/by-user/{username}:
+ *   get:
+ *     summary: Get a patient's plan by their username
+ *     tags: [PatientPlan]
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The username of the patient
+ *     responses:
+ *       200:
+ *         description: Patient plan retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 patientId:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 medications:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Medication'
+ *                 exercises:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *       404:
+ *         description: Patient plan not found
+ *       500:
+ *         description: Server error
+ */
+
 router.get("/by-user/:username", PatientPlanController.getPatientByUsername);
 
 /**
