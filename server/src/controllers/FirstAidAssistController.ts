@@ -1,19 +1,16 @@
-import { OpenAI } from "openai";
+import {
+  ChatCompletionAssistantMessageParam,
+  ChatCompletionMessageParam,
+  ChatCompletionSystemMessageParam,
+  ChatCompletionUserMessageParam,
+} from "openai/resources/chat/completions";
 import PDFDocument from "pdfkit";
 import { v4 as uuidv4 } from "uuid";
+import AiSession from "../models/AiSession";
 import FirstAidReport from "../models/FirstAidReport";
 import HttpError from "../utils/HttpError";
+import { getOpenAIClient } from "../utils/openAiClient";
 
-let openaiInstance: OpenAI | null = null;
-
-function getOpenAIClient() {
-  if (!openaiInstance) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
-    openaiInstance = new OpenAI({ apiKey });
-  }
-  return openaiInstance;
-}
 
 class FirstAidReportController {
   /**
@@ -102,28 +99,60 @@ class FirstAidReportController {
       throw new HttpError("No report found for this session", 404);
     }
 
-    const prompt = `Given the following patient report, provide step-by-step first aid guidance.
-    \nPrimary Symptom: ${report.primarySymptom}
-    \nOnset Time: ${report.onsetTime}
-    \nSeverity: ${report.severity}
-    \nAdditional Symptoms: ${report.additionalSymptoms}
-    \nRemedies Taken: ${report.remediesTaken}
-    \nRespond in JSON format as an array of objects with fields: id and text.`;
+    const systemPrompt: ChatCompletionMessageParam = {
+      role: "system",
+      content: "You are a medical assistant guiding a responder through first aid.",
+    };
+
+    const userPrompt: ChatCompletionMessageParam = {
+      role: "user",
+      content: `Given the following patient report, provide step-by-step first aid guidance.
+Primary Symptom: ${report.primarySymptom}
+Onset Time: ${report.onsetTime}
+Severity: ${report.severity}
+Additional Symptoms: ${report.additionalSymptoms}
+Remedies Taken: ${report.remediesTaken}
+Respond in JSON format as an array of objects with fields: id and text.`,
+    };
 
     try {
       const openai = getOpenAIClient();
+
+      const messages: ChatCompletionMessageParam[] = [systemPrompt, userPrompt];
+
       const completion = await openai.chat.completions.create({
         model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
+        messages,
         temperature: 0.7,
       });
 
-      const content = completion.choices[0].message?.content;
+      const content = completion.choices[0].message?.content ?? "";
       const parsed = JSON.parse(content || "[]");
 
       if (!Array.isArray(parsed)) {
         throw new Error("Invalid AI response format");
       }
+
+      await AiSession.findOneAndUpdate(
+        { sessionId },
+        {
+          $setOnInsert: {
+            sessionId,
+            startedAt: new Date(),
+          },
+          $set: { lastUpdated: new Date() },
+          $push: {
+            messages: {
+              $each: [
+                systemPrompt,
+                userPrompt,
+                { role: "assistant", content: content },
+              ],
+            },
+          },
+        },
+        { upsert: true, new: true }
+      );
 
       return parsed;
     } catch (error) {
@@ -131,6 +160,7 @@ class FirstAidReportController {
       throw new HttpError("Failed to generate AI guidance steps", 500);
     }
   }
+  
 
   async generateReportPDF(sessionId: string): Promise<Buffer> {
     try {
@@ -287,6 +317,62 @@ class FirstAidReportController {
     } catch (error) {
       console.error("Error generating PDF report:", error);
       throw new HttpError("Failed to generate PDF report", 500);
+    }
+  }
+
+  async sendMessage(data: {
+    sessionId: string;
+    sender: "user";
+    content: string;
+  }) {
+    const { sessionId, sender, content } = data;
+
+    const session = await AiSession.findOne({ sessionId });
+    if (!session) {
+      throw new HttpError("Session not found. Generate guidance first.", 400);
+    }
+
+    session.messages.push({ role: sender, content });
+    await session.save();
+
+    const messages: ChatCompletionMessageParam[] = session.messages.map((msg) => {
+      if (msg.role === "system") {
+        return {
+          role: "system",
+          content: msg.content as string,
+        } satisfies ChatCompletionSystemMessageParam;
+      } else if (msg.role === "user") {
+        return {
+          role: "user",
+          content: msg.content as string,
+        } satisfies ChatCompletionUserMessageParam;
+      } else {
+        return {
+          role: "assistant",
+          content: msg.content as string,
+        } satisfies ChatCompletionAssistantMessageParam;
+      }
+    });
+
+    try {
+      const openai = getOpenAIClient();
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages,
+        temperature: 0.7,
+      });
+
+      const aiResponse = completion.choices[0].message?.content;
+      if (!aiResponse) throw new Error("Empty response from OpenAI");
+
+      session.messages.push({ role: "assistant", content: aiResponse });
+      session.lastUpdated = new Date();
+      await session.save();
+
+      return { response: aiResponse };
+    } catch (error) {
+      console.error("Error sending message to AI:", error);
+      throw new HttpError("Failed to get response from AI", 500);
     }
   }
 }
