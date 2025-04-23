@@ -39,7 +39,7 @@ const CitySchema = new Schema<ICity>({
   policeFunding: { type: Number, default: 0 },
   fireFundingHistory: { type: [FundingHistorySchema], default: [] },
   policeFundingHistory: { type: [FundingHistorySchema], default: [] },
-  remainingFunding: { type: Number, default: 50000 },
+  remainingFunding: { type: Number, default: 0 },
 });
 
 export default model<ICity>("City", CitySchema);
