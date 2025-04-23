@@ -66,6 +66,11 @@ import ViewOrganization from "./pages/ViewOrganization";
 import ViewPatientVisitPage from "./pages/ViewPatientVisitPage";
 import YourAppointmentPage from "./pages/YourAppointmentPage.tsx";
 import RoutedHome from "./routing/RoutedHome";
+import PatientPlanPage from './pages/PatientPlanPage.tsx'
+import MedicationFormPage from "./pages/MedicationFormPage.tsx";
+import MedicationDetailPage from "./pages/MedicationDetailPage.tsx";
+import PlanViewPage from "./pages/PlanViewPage.tsx";
+import ExerciseDetailPage from "./pages/ExerciseDetailPage.tsx"
 import FirstAidAssistancePage from "./pages/FirstAidAssistancePage.tsx";
 import AIChatPage from "./pages/AIChatPage.tsx";
 import "./styles/globals.css";
@@ -126,6 +131,11 @@ export default function App() {
               element={<FirstResponderPatientsPage />}
             />
             <Route path="/patients/nurse" element={<NursePatientsPage />} />
+            <Route path="/patients/plan" element={<PatientPlanPage />} />
+            <Route path="/patients/plan/add-medication" element={<MedicationFormPage />} />
+            <Route path="/patients/plan/medication/:index" element={<MedicationDetailPage />} />
+            <Route path="/patients/plan/view" element={<PlanViewPage />} />
+            <Route path="/exercise/:id" element={<ExerciseDetailPage />} />
             <Route path="/patients/admit" element={<PatientAdmitPage />} />
             <Route path="/patient-visit" element={<PatientVisitPage />} />
             <Route

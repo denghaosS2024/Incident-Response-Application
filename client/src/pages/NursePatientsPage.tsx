@@ -2,17 +2,17 @@ import AddIcon from "@mui/icons-material/Add";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import DescriptionIcon from "@mui/icons-material/Description";
 import {
-  Box,
-  CircularProgress,
-  Fab,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Snackbar,
-  styled,
-  Typography,
+    Box,
+    CircularProgress,
+    Fab,
+    IconButton,
+    List,
+    ListItem,
+    ListItemText,
+    Paper,
+    Snackbar,
+    styled,
+    Typography,
 } from "@mui/material";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
@@ -22,516 +22,536 @@ import SocketClient from "../utils/Socket";
 
 // Define hospital interface
 interface Hospital {
-  _id: string;
-  hospitalId: string;
-  hospitalName: string;
-  nurses: string[];
+    _id: string;
+    hospitalId: string;
+    hospitalName: string;
+    nurses: string[];
 }
 
 // Define patient types based on categories
 interface PatientItem {
-  patientId: string;
-  name: string;
-  priority: string;
-  bedId: string;
+    patientId: string;
+    name: string;
+    priority: string;
+    bedId: string;
 }
 
 interface PatientsByCategory {
-  requesting: PatientItem[];
-  ready: PatientItem[];
-  inUse: PatientItem[];
-  discharged: PatientItem[];
+    requesting: PatientItem[];
+    ready: PatientItem[];
+    inUse: PatientItem[];
+    discharged: PatientItem[];
 }
 
 // Styled components
 const CategoryHeader = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.primary.main,
-  padding: theme.spacing(1.5),
-  marginTop: theme.spacing(2),
-  marginBottom: theme.spacing(1),
-  width: "100%",
-  boxShadow: theme.shadows[1],
-  borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.primary.main,
+    padding: theme.spacing(1.5),
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+    width: "100%",
+    boxShadow: theme.shadows[1],
+    borderRadius: theme.shape.borderRadius,
 }));
 
 const PatientListItem = styled(ListItem)(({ theme }) => ({
-  padding: theme.spacing(1.5),
-  marginBottom: theme.spacing(0.5),
-  border: "1px solid #e0e0e0",
-  cursor: "pointer",
-  "&:hover": {
-    backgroundColor: "#f0f7ff",
-  },
+    padding: theme.spacing(1.5),
+    marginBottom: theme.spacing(0.5),
+    border: "1px solid #e0e0e0",
+    cursor: "pointer",
+    "&:hover": {
+        backgroundColor: "#f0f7ff",
+    },
 }));
 
 const DraggablePatientItem = styled(PatientListItem)(({ theme }) => ({
-  "&.dragging": {
-    opacity: 0.5,
-    backgroundColor: "#e3f2fd",
-  },
+    "&.dragging": {
+        opacity: 0.5,
+        backgroundColor: "#e3f2fd",
+    },
 }));
 
 const NursePatientsPage: React.FC = () => {
-  const [patients, setPatients] = useState<PatientsByCategory>({
-    requesting: [],
-    ready: [],
-    inUse: [],
-    discharged: [],
-  });
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [hospitalId, setHospitalId] = useState<string | null>(null);
-  const [hospitalName, setHospitalName] = useState<string>("");
-  const [notification, setNotification] = useState<string | null>(null);
-  const [draggedPatient, setDraggedPatient] = useState<PatientItem | null>(
-    null,
-  );
-  const [dragCategory, setDragCategory] = useState<string | null>(null);
-  const socketRef = useRef(SocketClient);
+    const [patients, setPatients] = useState<PatientsByCategory>({
+        requesting: [],
+        ready: [],
+        inUse: [],
+        discharged: [],
+    });
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [hospitalId, setHospitalId] = useState<string | null>(null);
+    const [hospitalName, setHospitalName] = useState<string>("");
+    const [notification, setNotification] = useState<string | null>(null);
+    const [draggedPatient, setDraggedPatient] = useState<PatientItem | null>(
+        null,
+    );
+    const [dragCategory, setDragCategory] = useState<string | null>(null);
+    const socketRef = useRef(SocketClient);
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  // Get user information from localStorage
-  const userRole = localStorage.getItem("role");
-  const userId = localStorage.getItem("uid");
+    // Get user information from localStorage
+    const userRole = localStorage.getItem("role");
+    const userId = localStorage.getItem("uid");
 
-  // Only allow nurses to access this page
-  useEffect(() => {
-    if (userRole !== ROLES.NURSE) {
-      navigate("/");
-    }
-  }, [userRole, navigate]);
-
-  // Fetch the nurse's hospital information
-  useEffect(() => {
-    const fetchHospitalInfo = async () => {
-      if (!userId) {
-        setError("User not logged in");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        // Get all hospitals and find the one where this nurse is assigned
-        const hospitals = (await request("/api/hospital", {
-          method: "GET",
-        })) as Hospital[];
-
-        const nurseHospital = hospitals.find((hospital) =>
-          hospital.nurses.includes(userId),
-        );
-
-        if (nurseHospital) {
-          setHospitalId(nurseHospital.hospitalId);
-          setHospitalName(nurseHospital.hospitalName);
-        } else {
-          setError("Nurse is not assigned to any hospital");
-          setLoading(false);
+    // Only allow nurses to access this page
+    useEffect(() => {
+        if (userRole !== ROLES.NURSE) {
+            navigate("/");
         }
-      } catch (err) {
-        console.error("Error fetching hospital info:", err);
-        setError("Failed to load hospital information");
-        setLoading(false);
-      }
-    };
+    }, [userRole, navigate]);
 
-    fetchHospitalInfo();
-  }, [userId]);
+    // Fetch the nurse's hospital information
+    useEffect(() => {
+        const fetchHospitalInfo = async () => {
+            if (!userId) {
+                setError("User not logged in");
+                setLoading(false);
+                return;
+            }
 
-  const fetchPatientsData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await request(
-        `/api/patients/hospital/${hospitalId}/nurse-view`,
-        {
-          method: "GET",
-        },
-      );
-      setPatients(response);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching patients:", err);
-      setError("Failed to load patients data");
-      setLoading(false);
-    }
-  }, [hospitalId]);
+            try {
+                // Get all hospitals and find the one where this nurse is assigned
+                const hospitals = (await request("/api/hospital", {
+                    method: "GET",
+                })) as Hospital[];
 
-  useEffect(() => {
-    if (hospitalId) {
-      fetchPatientsData();
-    }
-  }, [fetchPatientsData]);
+                const nurseHospital = hospitals.find((hospital) =>
+                    hospital.nurses.includes(userId),
+                );
 
-  useEffect(() => {
-    const socket = SocketClient.connect();
+                if (nurseHospital) {
+                    setHospitalId(nurseHospital.hospitalId);
+                    setHospitalName(nurseHospital.hospitalName);
+                } else {
+                    setError("Nurse is not assigned to any hospital");
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error("Error fetching hospital info:", err);
+                setError("Failed to load hospital information");
+                setLoading(false);
+            }
+        };
 
-    SocketClient.on("patientUpdated", (payload) => {
-      console.log("Received patientUpdated from server:", payload);
-      fetchPatientsData();
-    });
+        fetchHospitalInfo();
+    }, [userId]);
 
-    return () => {
-      SocketClient.off("patientUpdated");
-    };
-  }, [hospitalId]);
+    const fetchPatientsData = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await request(
+                `/api/patients/hospital/${hospitalId}/nurse-view`,
+                {
+                    method: "GET",
+                },
+            );
+            setPatients(response);
+            setLoading(false);
+        } catch (err) {
+            console.error("Error fetching patients:", err);
+            setError("Failed to load patients data");
+            setLoading(false);
+        }
+    }, [hospitalId]);
 
-  // Navigate to patient detail page
-  const handlePatientClick = async (patientId: string) => {
-    // Fetch patient data to get username
-    const patients = await request("/api/patients", {
-      method: "GET",
-    });
+    useEffect(() => {
+        if (hospitalId) {
+            fetchPatientsData();
+        }
+    }, [fetchPatientsData]);
 
-    // Find the patient with matching patientId
-    const patient = patients.find(
-      (p: PatientItem) => p.patientId === patientId,
-    );
+    useEffect(() => {
+        const socket = SocketClient.connect();
 
-    // Navigate using username
-    navigate(`/patients/admit?username=${patient.username}`);
-  };
-
-  // Navigate to patient admission page
-  const handleAddPatient = () => {
-    navigate("/patients/admit");
-  };
-
-  // Handle drag start
-  const handleDragStart =
-    (patient: PatientItem, category: string) => (e: React.DragEvent) => {
-      setDraggedPatient(patient);
-      setDragCategory(category);
-      e.currentTarget.classList.add("dragging");
-
-      // Set drag data
-      e.dataTransfer.setData(
-        "text/plain",
-        JSON.stringify({
-          patientId: patient.patientId,
-          fromCategory: category,
-        }),
-      );
-      e.dataTransfer.effectAllowed = "move";
-    };
-
-  // Handle drag end
-  const handleDragEnd = (e: React.DragEvent) => {
-    e.currentTarget.classList.remove("dragging");
-    setDraggedPatient(null);
-    setDragCategory(null);
-  };
-
-  // Handle drop on a category
-  const handleDrop =
-    (targetCategory: "requesting" | "ready" | "inUse" | "discharged") =>
-    async (e: React.DragEvent) => {
-      e.preventDefault();
-
-      const data = e.dataTransfer.getData("text/plain");
-      if (!data) return;
-
-      try {
-        const { patientId, fromCategory } = JSON.parse(data);
-
-        // Skip if dropping in the same category
-        if (fromCategory === targetCategory) return;
-
-        // Update the erStatus in the database
-        await request("/api/patients/erStatus", {
-          method: "PUT",
-          body: JSON.stringify({
-            patientId,
-            erStatus: targetCategory,
-          }),
+        SocketClient.on("patientUpdated", (payload) => {
+            console.log("Received patientUpdated from server:", payload);
+            fetchPatientsData();
         });
 
-        // Update the local state
-        setPatients((prev) => {
-          // Find the patient to move
-          const patientToMove = prev[
-            fromCategory as keyof PatientsByCategory
-          ].find((p) => p.patientId === patientId);
+        return () => {
+            SocketClient.off("patientUpdated");
+        };
+    }, [hospitalId]);
 
-          if (!patientToMove) return prev;
-
-          // Create a new state object
-          const newState = { ...prev };
-
-          // Remove from old category
-          newState[fromCategory as keyof PatientsByCategory] = prev[
-            fromCategory as keyof PatientsByCategory
-          ].filter((p) => p.patientId !== patientId);
-
-          // Add to new category
-          newState[targetCategory] = [...prev[targetCategory], patientToMove];
-
-          return newState;
+    // Navigate to patient detail page
+    const handlePatientClick = async (patientId: string) => {
+        // Fetch patient data to get username
+        const patients = await request("/api/patients", {
+            method: "GET",
         });
 
-        setNotification(
-          `Patient moved to ${targetCategory.replace(/([A-Z])/g, " $1").toLowerCase()}`,
+        // Find the patient with matching patientId
+        const patient = patients.find(
+            (p: PatientItem) => p.patientId === patientId,
         );
-      } catch (err) {
-        console.error("Error moving patient:", err);
-        setNotification("Failed to move patient");
-      }
+
+        // Navigate using username
+        navigate(`/patients/admit?username=${patient.username}`);
     };
 
-  // Handle dragover event
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
+    // Navigate to patient admission page
+    const handleAddPatient = () => {
+        navigate("/patients/admit");
+    };
 
-  // Close notification
-  const handleCloseNotification = () => {
-    setNotification(null);
-  };
+    // Handle drag start
+    const handleDragStart =
+        (patient: PatientItem, category: string) => (e: React.DragEvent) => {
+            setDraggedPatient(patient);
+            setDragCategory(category);
+            e.currentTarget.classList.add("dragging");
 
-  if (loading) {
+            // Set drag data
+            e.dataTransfer.setData(
+                "text/plain",
+                JSON.stringify({
+                    patientId: patient.patientId,
+                    fromCategory: category,
+                }),
+            );
+            e.dataTransfer.effectAllowed = "move";
+        };
+
+    // Handle drag end
+    const handleDragEnd = (e: React.DragEvent) => {
+        e.currentTarget.classList.remove("dragging");
+        setDraggedPatient(null);
+        setDragCategory(null);
+    };
+
+    // Handle drop on a category
+    const handleDrop =
+        (targetCategory: "requesting" | "ready" | "inUse" | "discharged") =>
+            async (e: React.DragEvent) => {
+                e.preventDefault();
+
+                const data = e.dataTransfer.getData("text/plain");
+                if (!data) return;
+
+                try {
+                    const { patientId, fromCategory } = JSON.parse(data);
+
+                    // Skip if dropping in the same category
+                    if (fromCategory === targetCategory) return;
+
+                    // Update the erStatus in the database
+                    await request("/api/patients/erStatus", {
+                        method: "PUT",
+                        body: JSON.stringify({
+                            patientId,
+                            erStatus: targetCategory,
+                        }),
+                    });
+
+                    // Update the local state
+                    setPatients((prev) => {
+                        // Find the patient to move
+                        const patientToMove = prev[
+                            fromCategory as keyof PatientsByCategory
+                        ].find((p) => p.patientId === patientId);
+
+                        if (!patientToMove) return prev;
+
+                        // Create a new state object
+                        const newState = { ...prev };
+
+                        // Remove from old category
+                        newState[fromCategory as keyof PatientsByCategory] = prev[
+                            fromCategory as keyof PatientsByCategory
+                        ].filter((p) => p.patientId !== patientId);
+
+                        // Add to new category
+                        newState[targetCategory] = [...prev[targetCategory], patientToMove];
+
+                        return newState;
+                    });
+
+                    setNotification(
+                        `Patient moved to ${targetCategory.replace(/([A-Z])/g, " $1").toLowerCase()}`,
+                    );
+                } catch (err) {
+                    console.error("Error moving patient:", err);
+                    setNotification("Failed to move patient");
+                }
+            };
+
+    // Handle dragover event
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+    };
+
+    // Close notification
+    const handleCloseNotification = () => {
+        setNotification(null);
+    };
+
+    if (loading) {
+        return (
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                height="100%"
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                height="100%"
+            >
+                <Typography color="error">{error}</Typography>
+            </Box>
+        );
+    }
+
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100%"
-      >
-        <CircularProgress />
-      </Box>
+        <Box sx={{ height: "100%", padding: 2, position: "relative", pb: 10 }}>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+                Drag patients to change category:
+            </Typography>
+
+            {/* Requesting an ER Bed */}
+            <CategoryHeader>
+                <Typography variant="subtitle1" fontWeight="bold" color="white">
+                    Requesting an ER Bed
+                </Typography>
+            </CategoryHeader>
+            <List
+                sx={{ width: "100%" }}
+                onDrop={handleDrop("requesting")}
+                onDragOver={handleDragOver}
+            >
+                {patients.requesting.length === 0 ? (
+                    <ListItem>
+                        <ListItemText primary="No patients in this category" />
+                    </ListItem>
+                ) : (
+                    patients.requesting.map((patient) => (
+                        <DraggablePatientItem
+                            key={patient.patientId}
+                            onClick={() => handlePatientClick(patient.patientId)}
+                            draggable
+                            onDragStart={handleDragStart(patient, "requesting")}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <ListItemText primary={patient.name} sx={{ flex: "3 1 auto" }} />
+                            <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
+                                <Typography variant="body1">{patient.priority}</Typography>
+                            </Box>
+                            <IconButton
+                                edge="end"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(
+                                        `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                                    );
+                                }}
+                            >
+                                <DescriptionIcon />
+                            </IconButton>
+                            <IconButton edge="end">
+                                <ChevronRightIcon />
+                            </IconButton>
+                        </DraggablePatientItem>
+                    ))
+                )}
+            </List>
+
+            {/* With an ER Bed Ready */}
+            <CategoryHeader>
+                <Typography variant="subtitle1" fontWeight="bold" color="white">
+                    With an ER Bed Ready
+                </Typography>
+            </CategoryHeader>
+            <List
+                sx={{ width: "100%" }}
+                onDrop={handleDrop("ready")}
+                onDragOver={handleDragOver}
+            >
+                {patients.ready.length === 0 ? (
+                    <ListItem>
+                        <ListItemText primary="No patients in this category" />
+                    </ListItem>
+                ) : (
+                    patients.ready.map((patient) => (
+                        <DraggablePatientItem
+                            key={patient.patientId}
+                            onClick={() => handlePatientClick(patient.patientId)}
+                            draggable
+                            onDragStart={handleDragStart(patient, "ready")}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <ListItemText primary={patient.name} sx={{ flex: "3 1 auto" }} />
+                            <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
+                                <Typography variant="body1">{patient.priority}</Typography>
+                            </Box>
+                            <IconButton
+                                edge="end"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(
+                                        `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                                    );
+                                }}
+                            >
+                                <DescriptionIcon />
+                            </IconButton>
+                            <IconButton edge="end">
+                                <ChevronRightIcon />
+                            </IconButton>
+                        </DraggablePatientItem>
+                    ))
+                )}
+            </List>
+
+            {/* In an ER Bed */}
+            <CategoryHeader>
+                <Typography variant="subtitle1" fontWeight="bold" color="white">
+                    In an ER Bed
+                </Typography>
+            </CategoryHeader>
+            <List
+                sx={{ width: "100%" }}
+                onDrop={handleDrop("inUse")}
+                onDragOver={handleDragOver}
+            >
+                {patients.inUse.length === 0 ? (
+                    <ListItem>
+                        <ListItemText primary="No patients in this category" />
+                    </ListItem>
+                ) : (
+                    patients.inUse.map((patient) => (
+                        <DraggablePatientItem
+                            key={patient.patientId}
+                            onClick={() => handlePatientClick(patient.patientId)}
+                            draggable
+                            onDragStart={handleDragStart(patient, "inUse")}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <ListItemText primary={patient.name} sx={{ flex: "3 1 auto" }} />
+                            <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
+                                <Typography variant="body1">{patient.priority}</Typography>
+                            </Box>
+                            <IconButton
+                                edge="end"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(
+                                        `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                                    );
+                                }}
+                            >
+                                <DescriptionIcon />
+                            </IconButton>
+                            <IconButton edge="end">
+                                <ChevronRightIcon />
+                            </IconButton>
+                        </DraggablePatientItem>
+                    ))
+                )}
+            </List>
+
+            {/* Discharged from ER */}
+            <CategoryHeader>
+                <Typography variant="subtitle1" fontWeight="bold" color="white">
+                    Discharged from ER
+                </Typography>
+            </CategoryHeader>
+            <List
+                sx={{ width: "100%" }}
+                onDrop={handleDrop("discharged")}
+                onDragOver={handleDragOver}
+            >
+                {patients.discharged.length === 0 ? (
+                    <ListItem>
+                        <ListItemText primary="No patients in this category" />
+                    </ListItem>
+                ) : (
+                    patients.discharged.map((patient) => (
+                        <DraggablePatientItem
+                            key={patient.patientId}
+                            onClick={() => handlePatientClick(patient.patientId)}
+                            draggable
+                            onDragStart={handleDragStart(patient, "discharged")}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <ListItemText primary={patient.name} sx={{ flex: "3 1 auto" }} />
+                            <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
+                                <Typography variant="body1">{patient.priority}</Typography>
+                            </Box>
+                            <IconButton
+                                edge="end"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(
+                                        `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                                    );
+                                }}
+                            >
+                                <DescriptionIcon />
+                            </IconButton>
+                            <IconButton edge="end">
+                                <ChevronRightIcon />
+                            </IconButton>
+                            <Box mt={1} ml={1}>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(
+                                            `/patients/plan?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
+                                        );
+                                    }}
+                                    style={{
+                                        backgroundColor: "#1976d2",
+                                        color: "white",
+                                        padding: "6px 12px",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    Exercise and Medication Plan
+                                </button>
+                            </Box>
+                        </DraggablePatientItem>
+                    ))
+                )}
+            </List>
+
+            {/* Add Patient FAB - positioned at bottom right */}
+            <Fab
+                color="primary"
+                aria-label="add"
+                onClick={handleAddPatient}
+                sx={{
+                    position: "absolute",
+                    bottom: 16,
+                    right: 16,
+                }}
+            >
+                <AddIcon />
+            </Fab>
+
+            {/* Notification Snackbar */}
+            <Snackbar
+                open={!!notification}
+                autoHideDuration={3000}
+                onClose={handleCloseNotification}
+                message={notification}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            />
+        </Box>
     );
-  }
-
-  if (error) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100%"
-      >
-        <Typography color="error">{error}</Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <Box sx={{ height: "100%", padding: 2, position: "relative", pb: 10 }}>
-      <Typography variant="body1" sx={{ mb: 2 }}>
-        Drag patients to change category:
-      </Typography>
-
-      {/* Requesting an ER Bed */}
-      <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold" color="white">
-          Requesting an ER Bed
-        </Typography>
-      </CategoryHeader>
-      <List
-        sx={{ width: "100%" }}
-        onDrop={handleDrop("requesting")}
-        onDragOver={handleDragOver}
-      >
-        {patients.requesting.length === 0 ? (
-          <ListItem>
-            <ListItemText primary="No patients in this category" />
-          </ListItem>
-        ) : (
-          patients.requesting.map((patient) => (
-            <DraggablePatientItem
-              key={patient.patientId}
-              onClick={() => handlePatientClick(patient.patientId)}
-              draggable
-              onDragStart={handleDragStart(patient, "requesting")}
-              onDragEnd={handleDragEnd}
-            >
-              <ListItemText primary={patient.name} sx={{ flex: "3 1 auto" }} />
-              <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
-                <Typography variant="body1">{patient.priority}</Typography>
-              </Box>
-              <IconButton
-                edge="end"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(
-                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
-                  );
-                }}
-              >
-                <DescriptionIcon />
-              </IconButton>
-              <IconButton edge="end">
-                <ChevronRightIcon />
-              </IconButton>
-            </DraggablePatientItem>
-          ))
-        )}
-      </List>
-
-      {/* With an ER Bed Ready */}
-      <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold" color="white">
-          With an ER Bed Ready
-        </Typography>
-      </CategoryHeader>
-      <List
-        sx={{ width: "100%" }}
-        onDrop={handleDrop("ready")}
-        onDragOver={handleDragOver}
-      >
-        {patients.ready.length === 0 ? (
-          <ListItem>
-            <ListItemText primary="No patients in this category" />
-          </ListItem>
-        ) : (
-          patients.ready.map((patient) => (
-            <DraggablePatientItem
-              key={patient.patientId}
-              onClick={() => handlePatientClick(patient.patientId)}
-              draggable
-              onDragStart={handleDragStart(patient, "ready")}
-              onDragEnd={handleDragEnd}
-            >
-              <ListItemText primary={patient.name} sx={{ flex: "3 1 auto" }} />
-              <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
-                <Typography variant="body1">{patient.priority}</Typography>
-              </Box>
-              <IconButton
-                edge="end"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(
-                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
-                  );
-                }}
-              >
-                <DescriptionIcon />
-              </IconButton>
-              <IconButton edge="end">
-                <ChevronRightIcon />
-              </IconButton>
-            </DraggablePatientItem>
-          ))
-        )}
-      </List>
-
-      {/* In an ER Bed */}
-      <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold" color="white">
-          In an ER Bed
-        </Typography>
-      </CategoryHeader>
-      <List
-        sx={{ width: "100%" }}
-        onDrop={handleDrop("inUse")}
-        onDragOver={handleDragOver}
-      >
-        {patients.inUse.length === 0 ? (
-          <ListItem>
-            <ListItemText primary="No patients in this category" />
-          </ListItem>
-        ) : (
-          patients.inUse.map((patient) => (
-            <DraggablePatientItem
-              key={patient.patientId}
-              onClick={() => handlePatientClick(patient.patientId)}
-              draggable
-              onDragStart={handleDragStart(patient, "inUse")}
-              onDragEnd={handleDragEnd}
-            >
-              <ListItemText primary={patient.name} sx={{ flex: "3 1 auto" }} />
-              <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
-                <Typography variant="body1">{patient.priority}</Typography>
-              </Box>
-              <IconButton
-                edge="end"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(
-                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
-                  );
-                }}
-              >
-                <DescriptionIcon />
-              </IconButton>
-              <IconButton edge="end">
-                <ChevronRightIcon />
-              </IconButton>
-            </DraggablePatientItem>
-          ))
-        )}
-      </List>
-
-      {/* Discharged from ER */}
-      <CategoryHeader>
-        <Typography variant="subtitle1" fontWeight="bold" color="white">
-          Discharged from ER
-        </Typography>
-      </CategoryHeader>
-      <List
-        sx={{ width: "100%" }}
-        onDrop={handleDrop("discharged")}
-        onDragOver={handleDragOver}
-      >
-        {patients.discharged.length === 0 ? (
-          <ListItem>
-            <ListItemText primary="No patients in this category" />
-          </ListItem>
-        ) : (
-          patients.discharged.map((patient) => (
-            <DraggablePatientItem
-              key={patient.patientId}
-              onClick={() => handlePatientClick(patient.patientId)}
-              draggable
-              onDragStart={handleDragStart(patient, "discharged")}
-              onDragEnd={handleDragEnd}
-            >
-              <ListItemText primary={patient.name} sx={{ flex: "3 1 auto" }} />
-              <Box sx={{ flex: "1 1 auto", textAlign: "center" }}>
-                <Typography variant="body1">{patient.priority}</Typography>
-              </Box>
-              <IconButton
-                edge="end"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(
-                    `/patients/report?patientId=${patient.patientId}&name=${encodeURIComponent(patient.name)}`,
-                  );
-                }}
-              >
-                <DescriptionIcon />
-              </IconButton>
-              <IconButton edge="end">
-                <ChevronRightIcon />
-              </IconButton>
-            </DraggablePatientItem>
-          ))
-        )}
-      </List>
-
-      {/* Add Patient FAB - positioned at bottom right */}
-      <Fab
-        color="primary"
-        aria-label="add"
-        onClick={handleAddPatient}
-        sx={{
-          position: "absolute",
-          bottom: 16,
-          right: 16,
-        }}
-      >
-        <AddIcon />
-      </Fab>
-
-      {/* Notification Snackbar */}
-      <Snackbar
-        open={!!notification}
-        autoHideDuration={3000}
-        onClose={handleCloseNotification}
-        message={notification}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      />
-    </Box>
-  );
 };
 
 export default NursePatientsPage;

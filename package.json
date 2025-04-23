@@ -37,12 +37,15 @@
     }
   },
   "dependencies": {
+    "@date-io/dayjs": "^3.2.0",
     "@google-cloud/translate": "^9.0.1",
-    "@mui/icons-material": "^5.15.14",
+    "@mui/icons-material": "^5.17.1",
     "@mui/lab": "^5.0.0-alpha.162",
     "@mui/material": "^5.15.14",
+    "@mui/x-date-pickers": "^8.0.0",
     "@types/react": "^18.3.0",
     "browser-image-compression": "^2.0.2",
+    "dayjs": "^1.11.13",
     "heic2any": "^0.0.4",
     "prettier": "^3.5.3",
     "react": "^18.2.0",

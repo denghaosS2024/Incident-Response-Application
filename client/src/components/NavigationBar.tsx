@@ -229,6 +229,14 @@ const NavigationBar: FunctionComponent<IProps> = ({
     }
     closeMenu();
   };
+  const navigateToMedicationPlan = () => {
+    const patientId = localStorage.getItem("uid")
+    if (patientId) {
+      navigate(`/patients/plan/view?patientId=${patientId}`)
+    } else {
+      console.error("No uid found in localStorage")
+    }
+  }
 
   const nurseHooks: IPageHook[] = [
     {
@@ -330,6 +338,7 @@ const NavigationBar: FunctionComponent<IProps> = ({
               </MenuItem>
             )),
           }} */}
+          <MenuItem onClick={navigateToMedicationPlan}>Medication Plan</MenuItem>
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
         </Menu>

@@ -194,6 +194,17 @@ export default class NavBarHelper {
     if (pathname.startsWith("/shifts/mine")) {
       title = "Nurse Shift Selector";
     }
+    if (pathname === "/patients/plan") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const name = urlParams.get("name");
+      title = name ? `${name}'s Medical Plan` : "Medical Plan";
+    }
+    if (pathname.startsWith( "/patients/plan/view")) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const name = urlParams.get("name");
+      title = name ? `${name}'s Medical Plan` : "Medical Plan";
+    }
+    
 
     if (pathname.startsWith("/your-appointment")) {
       title = "Your Appointment";

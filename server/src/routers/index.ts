@@ -37,6 +37,8 @@ import profileRouter from "./profile";
 import taskRouter from "./sartask";
 import truckRouter from "./truck";
 import wildfireAreaRouter from "./WildfireArea";
+import patientPlanRouter from "./patientPlan";
+import checkInRoutes from "./checkin"
 
 import missingPersonFollowUpRouter from "./missingPersonFollowUp";
 import spendingRouter from "./spending";
@@ -57,6 +59,8 @@ export default Router()
   .use("/wildfire", wildfireAreaRouter)
   .use("/hospital", HospitalRouter)
   .use("/patients", patientRouter)
+  .use("/patientPlan", patientPlanRouter)
+  .use('/checkin', checkInRoutes)
   .use("/users", user)
   .use("/login", login)
   .use("/channels", channel)
