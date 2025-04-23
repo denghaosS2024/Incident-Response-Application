@@ -62,7 +62,7 @@ const FundingHistoryList: React.FC<Props> = ({ fundingHistory }) => {
             >
               {record.type === "Assign"
                 ? `+$${Math.abs(record.amount).toLocaleString()}`
-                : `-$${Math.abs(record.amount).toLocaleString()}`}
+                : ` $${Math.abs(record.amount).toLocaleString()}`}
             </Typography>
           </Stack>
           <Typography variant="body2" sx={{ mt: 0.5 }}>
