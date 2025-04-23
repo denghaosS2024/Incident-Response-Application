@@ -611,6 +611,17 @@ class IncidentController {
         await TruckController.updateIncident(v.name, incidentId);
       }
 
+      // Update the incident funding left
+      const incidentFunding = await Incident.findOne({
+        incidentId: incidentId,
+      });
+      console.log("incidentFunding", incidentFunding);
+      console.log("incident find left", incidentFunding?.fund_left);
+      if (incidentFunding) {
+        incidentFunding.fund_left -= assignmentCost;
+        await incidentFunding.save();
+      }
+
       //Notify the first responder
       v.usernames.forEach(async (username) => {
         const user = await User.findOne({ username });
@@ -648,6 +659,15 @@ class IncidentController {
         now,
         `Return of ${v.type} ${v.name} from incident`,
       );
+
+      // Update the incident funding left
+      const incidentFunding = await Incident.findOne({
+        incidentId: incidentId,
+      });
+      if (incidentFunding) {
+        incidentFunding.fund_left -= returnCredit;
+        await incidentFunding.save();
+      }
 
       if (v.type == "Car") {
         await CarController.updateIncident(v.name, null);
