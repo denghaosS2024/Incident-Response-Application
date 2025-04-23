@@ -139,7 +139,7 @@ class AppointmentController {
       .sort({ dayOfWeek: 1, startHour: 1 })
       .exec();
 
-    const sorted = allShifts
+    const orderedShifts = allShifts
       .filter((s) => {
         if (s.dayOfWeek > currentDay) return true;
         if (s.dayOfWeek === currentDay && s.startHour > currentHour)
@@ -153,15 +153,31 @@ class AppointmentController {
             return true;
           return false;
         }),
-      )
-      .slice(0, 6);
+      );
 
-    return sorted.map((shift) => ({
-      nurseId: shift.nurseId,
-      dayOfWeek: shift.dayOfWeek,
-      startHour: shift.startHour,
-      endHour: shift.endHour,
-    }));
+    const uniqueTimeSet = new Set<string>();
+    const uniqueSlots: {
+      nurseId: string;
+      dayOfWeek: number;
+      startHour: number;
+      endHour: number;
+    }[] = [];
+
+    for (const shift of orderedShifts) {
+      const key = `${shift.dayOfWeek}-${shift.startHour}`;
+      if (!uniqueTimeSet.has(key)) {
+        uniqueTimeSet.add(key);
+        uniqueSlots.push({
+          nurseId: shift.nurseId,
+          dayOfWeek: shift.dayOfWeek,
+          startHour: shift.startHour,
+          endHour: shift.endHour,
+        });
+      }
+      if (uniqueSlots.length === 6) break;
+    }
+
+    return uniqueSlots;
   }
 
   /**
