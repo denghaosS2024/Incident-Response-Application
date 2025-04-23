@@ -22,10 +22,6 @@ export default function NurseShiftPage() {
         minHeight: "100vh",
       }}
     >
-      <Typography variant="h5" fontWeight="bold" gutterBottom>
-        Nurse Shifts
-      </Typography>
-
       <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
         Don't leave your patients behind!
       </Typography>
