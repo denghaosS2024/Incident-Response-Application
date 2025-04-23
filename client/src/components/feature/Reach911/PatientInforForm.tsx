@@ -128,15 +128,8 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
             dispatch(addPatient(patient));
             dispatch(setPatient(patient));
             setcurrentUsername(response.username);
-
-            const newContact: IUser = {
-              _id: response.userId,
-              username: response.username,
-              role: "Citizen",
-            };
             console.log("Let's see username", response.username);
-            searchParams.set("username", response.username);
-            navigate(`/patients/admit?${searchParams.toString()}`);
+            navigate(`/patients/admit?username=${response.username}`);
 
             alert(
               `A new user account has been created for the Patient.\nTemporary Username: ${response.username}, Password: 1234`,
@@ -166,8 +159,7 @@ const PatientInforForm: React.FC<{ username?: string; sex?: string }> = ({
       }
       setcurrentUsername(value);
       console.log("Current username set to:", value);
-      searchParams.set("username", value);
-      navigate(`/patients/admit?${searchParams.toString()}`);
+      setSearchParams({ username: value });
     } else {
       dispatch(
         setPatient({

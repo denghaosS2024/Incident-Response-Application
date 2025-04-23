@@ -149,6 +149,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
             dispatch(
               setPatient({
                 _id: response.patientId,
+                patientId: response.patientId,
                 username: response.username,
                 name: "",
                 sex: propSex ?? "",
@@ -174,6 +175,10 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
                 durationMs: 3000,
               }),
             );
+            navigate(`/patients/admit?username=${response.username}`);
+            setTimeout(() => {
+              window.location.reload();
+            }, 200);
           } else {
             dispatch(
               setSnackbar({
@@ -209,6 +214,7 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
       console.log("Current username set to:", value);
       searchParams.set("username", value);
       navigate(`/patients/admit?${searchParams.toString()}`);
+
       // setSearchParams(searchParams);// Update the URL search params
     } else {
       dispatch(
