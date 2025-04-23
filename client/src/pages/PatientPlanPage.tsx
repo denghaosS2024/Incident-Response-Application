@@ -181,7 +181,7 @@ const PatientPlanPage: React.FC = () => {
           Save Exercises
         </Button>
 
-        {selectedExerciseIds.length > 0 && (
+         
           <Button
             variant="contained"
             color="success"
@@ -189,7 +189,7 @@ const PatientPlanPage: React.FC = () => {
           >
             Generate Plan
           </Button>
-        )}
+        
       </Box>
 
       <Snackbar
