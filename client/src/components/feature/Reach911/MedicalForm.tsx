@@ -18,6 +18,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import IIncident from "../../../models/Incident";
 import IUser from "../../../models/User";
 import { loadContacts } from "../../../redux/contactSlice";
@@ -36,8 +37,8 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
   formIndex,
   onRemove,
 }) => {
-  console.log(isCreatedByFirstResponder);
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const incident: IIncident = useSelector(
     (state: RootState) => state.incidentState.incident,
   );
@@ -453,18 +454,6 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                     fontSize: "16px",
                   }}
                   onClick={() => {
-                    if (
-                      userRole !== "Fire" &&
-                      userRole !== "Police" &&
-                      userRole !== "Nurse" &&
-                      userRole !== "Dispatch"
-                    ) {
-                      alert(
-                        "You do not have permission to treat this patient.  Only First Responders or Nurses can perform this action.",
-                      );
-                      return;
-                    }
-
                     const selectedUsername = isPatient
                       ? currentUser?.username || ""
                       : username || "";
@@ -472,8 +461,7 @@ const MedicalForm: React.FC<MedicalFormProps> = ({
                     const targetUrl = selectedUsername
                       ? `/patients/admit?username=${encodeURIComponent(selectedUsername)}`
                       : "/patients/admit";
-
-                    window.location.href = targetUrl;
+                    navigate(targetUrl);
                   }}
                 >
                   Treat Patient

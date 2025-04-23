@@ -121,11 +121,9 @@ const Reach911Page: React.FC = () => {
   useEffect(() => {
     if (!incident._id || activeStep == STEP_CHAT) return;
     console.log("CULPRIT3");
-    const timer = setTimeout(() => {
-      updateIncidentCall();
-    }, 3000); // Increased debounce time
+    updateIncidentCall();
 
-    return () => clearTimeout(timer);
+    return;
   }, [incident]); // Triggers on any incident data change
 
   // If the user is first responder and viewing an incident
@@ -224,6 +222,7 @@ const Reach911Page: React.FC = () => {
       }
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/incidents/update`;
+      console.log("send update Incident request");
       const response = await fetch(url, {
         method: "PUT",
         headers: {

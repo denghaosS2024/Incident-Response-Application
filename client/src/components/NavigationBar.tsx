@@ -208,6 +208,11 @@ const NavigationBar: FunctionComponent<IProps> = ({
       navigate("patients");
     }
   };
+  const navigateToPatientAdmitPage = () => {
+    if (["Fire", "Police", "Nurse", "Dispatch"].includes(role)) {
+      navigate("patients/admit");
+    }
+  };
 
   const navigateToFundingCenter = () => {
     if (["Fire Chief", "Police Chief", "City Director"].includes(role)) {
@@ -230,13 +235,13 @@ const NavigationBar: FunctionComponent<IProps> = ({
     closeMenu();
   };
   const navigateToMedicationPlan = () => {
-    const patientId = localStorage.getItem("uid")
+    const patientId = localStorage.getItem("uid");
     if (patientId) {
-      navigate(`/patients/plan/view?patientId=${patientId}`)
+      navigate(`/patients/plan/view?patientId=${patientId}`);
     } else {
-      console.error("No uid found in localStorage")
+      console.error("No uid found in localStorage");
     }
-  }
+  };
 
   const nurseHooks: IPageHook[] = [
     {
@@ -338,7 +343,10 @@ const NavigationBar: FunctionComponent<IProps> = ({
               </MenuItem>
             )),
           }} */}
-          <MenuItem onClick={navigateToMedicationPlan}>Medication Plan</MenuItem>
+          <MenuItem onClick={navigateToMedicationPlan}>
+            Medication Plan
+          </MenuItem>
+          <MenuItem onClick={navigateToPatientAdmitPage}>Patients</MenuItem>
           <MenuItem onClick={profile}>Profile</MenuItem>
           <MenuItem onClick={quit}>Logout</MenuItem>
         </Menu>
