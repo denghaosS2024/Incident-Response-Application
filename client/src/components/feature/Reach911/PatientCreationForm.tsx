@@ -1,4 +1,3 @@
-import BirthdayField from "@/components/common/BirthdayField";
 import IPatient from "@/models/Patient";
 import {
   addPatient,
@@ -234,24 +233,6 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
     validateField(field, newValue);
   };
 
-  // function onSelectUser(userId: string) {
-  //     patients.find
-  // }
-
-  const onUpdateBirthday = (dob: Date) => {
-    dispatch(
-      setPatient({
-        ...patient,
-        dob: dob.toISOString(),
-      }),
-    );
-    dispatch(
-      updatePatient({
-        ...patient,
-        dob: dob.toISOString(),
-      }),
-    );
-  };
   // Validates field to set certain error messages
   const validateField = (field: string, value: string | boolean) => {
     if (field === "username") {
@@ -351,7 +332,18 @@ const PatientCreationForm: React.FC<{ username?: string; sex?: string }> = ({
           <div className="flex flex-row w-full gap-5 items-center justify-center">
             <p className="text-lg font-bold text-center py-0 my-auto">DOB: </p>
 
-            <BirthdayField onChangeDob={(dob) => onUpdateBirthday(dob)} />
+            <div className="flex flex-col w-full max-w-500px my-2">
+              <TextField
+                label="Date of Birth"
+                type="date"
+                fullWidth
+                value={dob}
+                onChange={(e) => onChange("dob", e)}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </div>
           </div>
 
           {/* Sex */}
