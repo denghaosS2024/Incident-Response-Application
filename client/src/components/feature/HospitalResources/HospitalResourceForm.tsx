@@ -252,7 +252,7 @@ const HospitalResourceForm: React.FC = () => {
             label: "Quantity",
             name: "Quantity",
             value: hospitalResourceData.inStockQuantity,
-            type: "number",
+            type: "Number",
             onChange: (e) => {
               const inStockQuantity = Number(e.target.value);
               setErrors({
@@ -271,7 +271,7 @@ const HospitalResourceForm: React.FC = () => {
             label: "Stock Alert Threshold",
             name: "Stock Alert Threshold",
             value: hospitalResourceData.inStockAlertThreshold,
-            type: "number",
+            type: "Number",
             onChange: (e) => {
               const inStockAlertThreshold = Number(e.target.value);
               setErrors({
