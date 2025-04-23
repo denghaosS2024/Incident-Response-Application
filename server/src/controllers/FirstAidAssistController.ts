@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import AiSession from "../models/AiSession";
 import FirstAidReport from "../models/FirstAidReport";
 import HttpError from "../utils/HttpError";
-import { getOpenAIClient } from "../utils/openAiClient";
+import { getOpenAIClient } from "../utils/openaiClient";
 
 class FirstAidReportController {
   /**
@@ -58,16 +58,25 @@ Example Output:
       const parsed = JSON.parse(content);
 
       // Ensure array↔string normalization
-      const primarySymptom    = this.ensureString(parsed.primarySymptom, "Not provided");
-      const onsetTime         = this.ensureString(parsed.onsetTime,      "Not provided");
-      const severity          = this.ensureString(parsed.severity,       "Not provided");
-      const additionalSymptoms= this.ensureString(parsed.additionalSymptoms, "Not provided");
-      const remediesTaken     = this.ensureString(parsed.remediesTaken,  "Not provided");
+      const primarySymptom = this.ensureString(
+        parsed.primarySymptom,
+        "Not provided",
+      );
+      const onsetTime = this.ensureString(parsed.onsetTime, "Not provided");
+      const severity = this.ensureString(parsed.severity, "Not provided");
+      const additionalSymptoms = this.ensureString(
+        parsed.additionalSymptoms,
+        "Not provided",
+      );
+      const remediesTaken = this.ensureString(
+        parsed.remediesTaken,
+        "Not provided",
+      );
 
       const newReport = new FirstAidReport({
         sessionId,
         questions: data.questions,
-        answers:   data.answers,
+        answers: data.answers,
         primarySymptom,
         onsetTime,
         severity,
@@ -112,7 +121,8 @@ Example Output:
 
     const systemPrompt: ChatCompletionMessageParam = {
       role: "system",
-      content: "You are a medical assistant guiding a responder through first aid.",
+      content:
+        "You are a medical assistant guiding a responder through first aid.",
     };
 
     const userPrompt: ChatCompletionMessageParam = {
@@ -162,7 +172,7 @@ Respond in JSON format as an array of objects with fields: id and text.`,
             },
           },
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true },
       );
 
       return parsed;
@@ -178,23 +188,23 @@ Respond in JSON format as an array of objects with fields: id and text.`,
   async generateReportPDF(sessionId: string) {
     try {
       const report = await this.getReportBySessionId(sessionId);
-      
+
       if (!report) {
         throw new HttpError("No report found for this session", 404);
       }
-      
+
       // Generate PDF in memory as a buffer
       const pdfBuffer = await this.createPDFBuffer(report);
-      
+
       // Convert to Base64
-      const base64Pdf = pdfBuffer.toString('base64');
-      
+      const base64Pdf = pdfBuffer.toString("base64");
+
       // Create a data URL for direct downloading
       const dataUrl = `data:application/pdf;base64,${base64Pdf}`;
-      
+
       return {
         pdfDataUrl: dataUrl,
-        filename: `report-${report.reportId}.pdf`
+        filename: `report-${report.reportId}.pdf`,
       };
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -202,166 +212,172 @@ Respond in JSON format as an array of objects with fields: id and text.`,
     }
   }
 
-/**
+  /**
    * Create a PDF document as a buffer in memory
    */
-private createPDFBuffer(report: any): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    try {
-      // Create a PDF document with an in-memory buffer
-      const doc = new PDFDocument({ margin: 50 });
-      const chunks: Buffer[] = [];
-      
-      // Capture chunks of data
-      doc.on('data', (chunk) => chunks.push(chunk));
-      
-      // When document is finished, resolve with the complete buffer
-      doc.on('end', () => {
-        const result = Buffer.concat(chunks);
-        resolve(result);
-      });
-      
-      // Add content to the PDF
-      this.addHeader(doc);
-      this.addMetadata(doc, report);
-      this.addAssessment(doc, report);
-      this.addQAndA(doc, report);
-      
-      // Finalize the PDF
-      doc.end();
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
+  private createPDFBuffer(report: any): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      try {
+        // Create a PDF document with an in-memory buffer
+        const doc = new PDFDocument({ margin: 50 });
+        const chunks: Buffer[] = [];
+
+        // Capture chunks of data
+        doc.on("data", (chunk) => chunks.push(chunk));
+
+        // When document is finished, resolve with the complete buffer
+        doc.on("end", () => {
+          const result = Buffer.concat(chunks);
+          resolve(result);
+        });
+
+        // Add content to the PDF
+        this.addHeader(doc);
+        this.addMetadata(doc, report);
+        this.addAssessment(doc, report);
+        this.addQAndA(doc, report);
+
+        // Finalize the PDF
+        doc.end();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
 
   /**
    * Add header to the PDF
    */
   private addHeader(doc: typeof PDFDocument.prototype): void {
-    doc.fontSize(24)
-       .fillColor('#202124')
-       .text('First Aid Report', { align: 'center' })
-       .moveDown();
+    doc
+      .fontSize(24)
+      .fillColor("#202124")
+      .text("First Aid Report", { align: "center" })
+      .moveDown();
   }
-  
+
   /**
    * Add metadata to the PDF
    */
   private addMetadata(doc: typeof PDFDocument.prototype, report: any): void {
-    doc.fontSize(12)
-       .fillColor('#5f6368')
-       .text(`Report ID: ${report.reportId}`)
-       .text(`Session ID: ${report.sessionId}`)
-       .text(`Generated: ${this.formatDate(report.createdAt)}`)
-       .moveDown();
+    doc
+      .fontSize(12)
+      .fillColor("#5f6368")
+      .text(`Report ID: ${report.reportId}`)
+      .text(`Session ID: ${report.sessionId}`)
+      .text(`Generated: ${this.formatDate(report.createdAt)}`)
+      .moveDown();
   }
-  
+
   /**
    * Add patient assessment to the PDF
    */
   private addAssessment(doc: typeof PDFDocument.prototype, report: any): void {
-    doc.fontSize(16)
-       .fillColor('#202124')
-       .text('Patient Assessment', { underline: true })
-       .moveDown(0.5);
-       
+    doc
+      .fontSize(16)
+      .fillColor("#202124")
+      .text("Patient Assessment", { underline: true })
+      .moveDown(0.5);
+
     // Create a simple table for assessment data
     const assessmentData = [
-      { label: 'Primary Symptoms', value: report.primarySymptom },
-      { label: 'Onset Time', value: report.onsetTime },
-      { label: 'Severity', value: report.severity },
-      { label: 'Additional Symptoms', value: report.additionalSymptoms },
-      { label: 'Remedies Taken', value: report.remediesTaken }
+      { label: "Primary Symptoms", value: report.primarySymptom },
+      { label: "Onset Time", value: report.onsetTime },
+      { label: "Severity", value: report.severity },
+      { label: "Additional Symptoms", value: report.additionalSymptoms },
+      { label: "Remedies Taken", value: report.remediesTaken },
     ];
-    
+
     // Table settings
     const startX = 50;
     const startY = doc.y;
     const rowHeight = 30;
-    const colWidth = 450 / 3; 
-    
+    const colWidth = 450 / 3;
+
     // Draw table
     assessmentData.forEach((row, i) => {
       const y = startY + i * rowHeight;
-      
+
       // Add a light background for even rows
       if (i % 2 === 0) {
-        doc.rect(startX, y, 450, rowHeight)
-           .fillAndStroke('#f8f9fa', '#e0e0e0');
+        doc.rect(startX, y, 450, rowHeight).fillAndStroke("#f8f9fa", "#e0e0e0");
       }
-      
+
       // Add label
-      doc.fontSize(10)
-         .fillColor('#5f6368')
-         .text(row.label, startX + 10, y + 10, { width: colWidth });
-      
+      doc
+        .fontSize(10)
+        .fillColor("#5f6368")
+        .text(row.label, startX + 10, y + 10, { width: colWidth });
+
       // Add value
-      doc.fontSize(10)
-         .fillColor('#202124')
-         .text(row.value, startX + colWidth + 10, y + 10, { width: colWidth * 2 });
+      doc
+        .fontSize(10)
+        .fillColor("#202124")
+        .text(row.value, startX + colWidth + 10, y + 10, {
+          width: colWidth * 2,
+        });
     });
-    
+
     // Add some space after the table
     doc.moveDown(2);
   }
-  
-/**
- * Add Q&A record to the PDF, flush‐left to the page margins
- */
-private addQAndA(doc: typeof PDFDocument.prototype, report: any): void {
-  // grab your PDF margins
-  const startX = doc.page.margins.left;
-  const pageWidth =
-    doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
-  // Section title, underlined, at left margin
-  doc
-    .fontSize(16)
-    .fillColor('#202124')
-    .text('Question and Answer Record', startX, doc.y, {
-      width: pageWidth,
-      underline: true,
-    })
-    .moveDown(0.5);
+  /**
+   * Add Q&A record to the PDF, flush‐left to the page margins
+   */
+  private addQAndA(doc: typeof PDFDocument.prototype, report: any): void {
+    // grab your PDF margins
+    const startX = doc.page.margins.left;
+    const pageWidth =
+      doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
-  report.questions.forEach((question: string, index: number) => {
-    // Question line
+    // Section title, underlined, at left margin
     doc
-      .fontSize(12)
-      .fillColor('#202124')
-      .text(`Q: ${question}`, startX, doc.y, {
+      .fontSize(16)
+      .fillColor("#202124")
+      .text("Question and Answer Record", startX, doc.y, {
         width: pageWidth,
-        align: 'left',
+        underline: true,
       })
-      .moveDown(0.2);
+      .moveDown(0.5);
 
-    // Answer line
-    doc
-      .fontSize(10)
-      .fillColor('#5f6368')
-      .text(`A: ${report.answers[index]}`, startX + 10, doc.y, {
-        width: pageWidth - 10,
-        align: 'left',
-      })
-      .moveDown(0.8);
-  });
-}
+    report.questions.forEach((question: string, index: number) => {
+      // Question line
+      doc
+        .fontSize(12)
+        .fillColor("#202124")
+        .text(`Q: ${question}`, startX, doc.y, {
+          width: pageWidth,
+          align: "left",
+        })
+        .moveDown(0.2);
+
+      // Answer line
+      doc
+        .fontSize(10)
+        .fillColor("#5f6368")
+        .text(`A: ${report.answers[index]}`, startX + 10, doc.y, {
+          width: pageWidth - 10,
+          align: "left",
+        })
+        .moveDown(0.8);
+    });
+  }
 
   /**
    * Format date for display
    */
   private formatDate(date: Date): string {
-    return new Date(date).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true
+    return new Date(date).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
     });
   }
-  
+
   /**
    * Get the path to a generated PDF file
    * @param filename string
@@ -369,7 +385,7 @@ private addQAndA(doc: typeof PDFDocument.prototype, report: any): void {
    */
   getReportPDFPath(filename: string) {
     try {
-      const pdfPath = path.join(process.cwd(), 'uploads', filename);
+      const pdfPath = path.join(process.cwd(), "uploads", filename);
       return pdfPath;
     } catch (error) {
       console.error("Error getting PDF path:", error);
@@ -387,7 +403,8 @@ private addQAndA(doc: typeof PDFDocument.prototype, report: any): void {
   }) {
     const { sessionId, sender, content } = data;
     const session = await AiSession.findOne({ sessionId });
-    if (!session) throw new HttpError("Session not found. Generate guidance first.", 400);
+    if (!session)
+      throw new HttpError("Session not found. Generate guidance first.", 400);
 
     session.messages.push({ role: sender, content });
     await session.save();
@@ -395,9 +412,12 @@ private addQAndA(doc: typeof PDFDocument.prototype, report: any): void {
     const messages = session.messages.map((m) => {
       const base = { role: m.role as any, content: m.content as string };
       switch (m.role) {
-        case "system":    return base as ChatCompletionSystemMessageParam;
-        case "user":      return base as ChatCompletionUserMessageParam;
-        default:          return base as ChatCompletionAssistantMessageParam;
+        case "system":
+          return base as ChatCompletionSystemMessageParam;
+        case "user":
+          return base as ChatCompletionUserMessageParam;
+        default:
+          return base as ChatCompletionAssistantMessageParam;
       }
     });
 
