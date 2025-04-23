@@ -298,28 +298,41 @@ const MissingPersonManagePage: React.FC = () => {
           <title>Missing Person Report: ${formData.name}</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; margin-bottom: 30px; }
+            .header { text-align: center; margin-bottom: 20px; }
             .report-container { max-width: 800px; margin: 0 auto; }
-            .photo-container { text-align: center; margin: 20px 0; }
-            .photo { max-width: 300px; max-height: 300px; }
-            .data-row { margin: 10px 0; }
-            .label { font-weight: bold; }
+            .photo-container { text-align: center; margin-bottom: 20px; }
+            .photo { max-width: 250px; max-height: 250px; border: 1px solid #ccc; }
+            .columns-container { display: flex; justify-content: space-between; }
+            .column { width: 48%; }
+            .data-row { margin: 8px 0; padding: 5px; }
+            .label { font-weight: bold; color: #333; }
+            .section { margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 4px; }
+            .section-title { font-weight: bold; color: #2c3e50; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; }
             h1 { color: #2c3e50; }
-            .status { padding: 5px 10px; border-radius: 4px; display: inline-block; }
+            .status { padding: 5px 10px; border-radius: 4px; display: inline-block; margin: 5px; }
             .status-open { background-color: #e74c3c; color: white; }
             .status-closed { background-color: #27ae60; color: white; }
+            .footer { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; font-size: 0.9em; color: #666; }
+            .urgent-notice { background-color: #ffecb3; padding: 10px; border-left: 4px solid #ffc107; margin-bottom: 15px; }
           </style>
         </head>
         <body>
           <div class="report-container">
             <div class="header">
-              <h1>Missing Person Report</h1>
-              <div class="status ${formData.reportStatus === "open" ? "status-open" : "status-closed"}">
-                Case Status: ${formData.reportStatus === "open" ? "Open" : "Closed"}
+              <h1>MISSING PERSON REPORT</h1>
+              <div>
+                <span class="status ${formData.reportStatus === "open" ? "status-open" : "status-closed"}">
+                  Case Status: ${formData.reportStatus === "open" ? "OPEN" : "CLOSED"}
+                </span>
+                <span class="status ${formData.personStatus === "missing" ? "status-open" : "status-closed"}">
+                  Person Status: ${formData.personStatus === "missing" ? "MISSING" : "FOUND"}
+                </span>
               </div>
-              <div class="status ${formData.personStatus === "missing" ? "status-open" : "status-closed"}" style="margin-top: 10px;">
-                Person Status: ${formData.personStatus === "missing" ? "Missing" : "Found"}
-              </div>
+              ${
+                formData.personStatus !== "missing"
+                  ? `<div style="margin-top: 10px;"><span class="label">Status:</span> Found</div>`
+                  : `<div class="urgent-notice">This person is currently missing.</div>`
+              }
             </div>
             
             <div class="photo-container">
@@ -330,30 +343,48 @@ const MissingPersonManagePage: React.FC = () => {
               }
             </div>
             
-            <div class="data-row"><span class="label">Name:</span> ${formData.name}</div>
-            <div class="data-row"><span class="label">Age:</span> ${formData.age}</div>
-            <div class="data-row"><span class="label">Gender:</span> ${formData.gender}</div>
-            <div class="data-row"><span class="label">Race:</span> ${formData.race}</div>
-            ${formData.height ? `<div class="data-row"><span class="label">Height:</span> ${formData.height}</div>` : ""}
-            ${formData.weight ? `<div class="data-row"><span class="label">Weight:</span> ${formData.weight} lbs</div>` : ""}
-            ${formData.eyeColor ? `<div class="data-row"><span class="label">Eye Color:</span> ${formData.eyeColor}</div>` : ""}
-            <div class="data-row"><span class="label">Date Last Seen:</span> ${formatDate(formData.dateLastSeen)}</div>
-            ${formData.locationLastSeen ? `<div class="data-row"><span class="label">Location Last Seen:</span> ${formData.locationLastSeen}</div>` : ""}
-            
-            ${
-              formData.description
-                ? `<div class="data-row">
-                <span class="label">Description:</span>
-                <p>${formData.description}</p>
-              </div>`
-                : ""
-            }
-            
-            <div class="data-row">
-              <span class="label">Report ID:</span> ${formData._id}
+            <div class="columns-container">
+              <!-- Left Column -->
+              <div class="column">
+                <div class="section">
+                  <div class="section-title">Personal Information</div>
+                  <div class="data-row"><span class="label">Name:</span> ${formData.name}</div>
+                  <div class="data-row"><span class="label">Age:</span> ${formData.age}</div>
+                  <div class="data-row"><span class="label">Gender:</span> ${formData.gender}</div>
+                  <div class="data-row"><span class="label">Race:</span> ${formData.race}</div>
+                  ${formData.height ? `<div class="data-row"><span class="label">Height:</span> ${formData.height}</div>` : ""}
+                  ${formData.weight ? `<div class="data-row"><span class="label">Weight:</span> ${formData.weight} lbs</div>` : ""}
+                  ${formData.eyeColor ? `<div class="data-row"><span class="label">Eye Color:</span> ${formData.eyeColor}</div>` : ""}
+
+                </div>
+                
+                <div class="section">
+                  <div class="section-title">Case Information</div>
+                  <div class="data-row"><span class="label">Report ID:</span> ${formData._id}</div>
+                  <div class="data-row"><span class="label">Date Reported:</span> ${formatDate(new Date())}</div>
+                </div>
+              </div>
+              
+              <!-- Right Column -->
+              <div class="column">
+                <div class="section">
+                  <div class="section-title">Last Seen Information</div>
+                  <div class="data-row"><span class="label">Date Last Seen:</span> ${formatDate(formData.dateLastSeen)}</div>
+                  <div class="data-row"><span class="label">Location Last Seen:</span> ${formData.locationLastSeen || "Unknown"}</div>
+                </div>
+                
+                ${
+                  formData.description
+                    ? `<div class="section">
+                        <div class="section-title">Additional Description</div>
+                        <p>${formData.description}</p>
+                      </div>`
+                    : ""
+                }
+              </div>
             </div>
             
-            <div class="data-row">
+            <div class="footer">
               <p>This report was generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
             </div>
           </div>
@@ -685,109 +716,107 @@ const MissingPersonManagePage: React.FC = () => {
                 }
               />
 
-              {/* Upload photo and Generate PDF row */}
-
-              {(currentUserRole.toLowerCase() === "police" &&
-                formData.reportStatus?.toLowerCase() == "open") && (
-                <Box
-                  sx={{ display: "flex", alignItems: "center", mt: 3, mb: 2 }}
-                >
-                  <Typography variant="body1" sx={{ mr: 1 }}>
-                    Upload a New Photo:
-                  </Typography>
-
-                  <IconButton
-                    color="primary"
-                    component="label"
-                    aria-label="upload photo"
+              {currentUserRole.toLowerCase() === "police" &&
+                formData.reportStatus?.toLowerCase() == "open" && (
+                  <Box
+                    sx={{ display: "flex", alignItems: "center", mt: 3, mb: 2 }}
                   >
-                    <PhotoCameraIcon />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      onChange={handlePhotoUpload}
-                    />
-                  </IconButton>
+                    <Typography variant="body1" sx={{ mr: 1 }}>
+                      Upload a New Photo:
+                    </Typography>
 
-                  <Box sx={{ flexGrow: 1 }} />
+                    <IconButton
+                      color="primary"
+                      component="label"
+                      aria-label="upload photo"
+                    >
+                      <PhotoCameraIcon />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={handlePhotoUpload}
+                      />
+                    </IconButton>
 
-                  {(currentUserRole.toLowerCase() == "police" &&
-                    formData.reportStatus?.toLowerCase() == "open") && (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleGeneratePDF}
-                        sx={{ mr: 2 }}
-                      >
-                        GENERATE PDF
-                      </Button>
-                    )}
-                </Box>
-              )}
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    {currentUserRole.toLowerCase() == "police" &&
+                      formData.reportStatus?.toLowerCase() == "open" && (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={handleGeneratePDF}
+                          sx={{ mr: 2 }}
+                        >
+                          GENERATE PDF
+                        </Button>
+                      )}
+                  </Box>
+                )}
 
               {/* Mark person as found checkbox */}
-              {(currentUserRole.toLowerCase() == "police" &&
-                formData.reportStatus?.toLowerCase() == "open") && (
-                <Box
-                  sx={{ display: "flex", alignItems: "center", mt: 1, mb: 2 }}
-                >
-                  <input
-                    type="checkbox"
-                    id="foundCheckbox"
-                    checked={formData.personStatus === "found"}
-                    onChange={handleFoundStatusChange}
-                    style={{ transform: "scale(1.5)", marginRight: "10px" }}
-                  />
-                  <label htmlFor="foundCheckbox">
-                    <Typography variant="body1">
-                      Mark Person as Found
-                    </Typography>
-                  </label>
-                </Box>
-              )}
+              {currentUserRole.toLowerCase() == "police" &&
+                formData.reportStatus?.toLowerCase() == "open" && (
+                  <Box
+                    sx={{ display: "flex", alignItems: "center", mt: 1, mb: 2 }}
+                  >
+                    <input
+                      type="checkbox"
+                      id="foundCheckbox"
+                      checked={formData.personStatus === "found"}
+                      onChange={handleFoundStatusChange}
+                      style={{ transform: "scale(1.5)", marginRight: "10px" }}
+                    />
+                    <label htmlFor="foundCheckbox">
+                      <Typography variant="body1">
+                        Mark Person as Found
+                      </Typography>
+                    </label>
+                  </Box>
+                )}
 
               {/* Action buttons row */}
-              {(currentUserRole.toLowerCase() == "police" &&
-                formData.reportStatus?.toLowerCase() == "open") && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 2,
-                    mt: 3,
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    onClick={handleCancel}
-                    sx={{ minWidth: 100 }}
-                  >
-                    CANCEL
-                  </Button>
-
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => {
-                      if (formData) handleUpdate(formData);
+              {currentUserRole.toLowerCase() == "police" &&
+                formData.reportStatus?.toLowerCase() == "open" && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 2,
+                      mt: 3,
                     }}
-                    sx={{ minWidth: 100 }}
                   >
-                    UPDATE
-                  </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={handleCancel}
+                      sx={{ minWidth: 100 }}
+                    >
+                      CANCEL
+                    </Button>
 
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={handleCloseCase}
-                    disabled={formData.reportStatus?.toLowerCase() !== "open"}
-                    sx={{ minWidth: 100 }}
-                  >
-                    CLOSE
-                  </Button>
-                </Box>
-              )}
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => {
+                        if (formData) handleUpdate(formData);
+                      }}
+                      sx={{ minWidth: 100 }}
+                    >
+                      UPDATE
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      color="error"
+                      onClick={handleCloseCase}
+                      disabled={formData.reportStatus?.toLowerCase() !== "open"}
+                      sx={{ minWidth: 100 }}
+                    >
+                      CLOSE
+                    </Button>
+                  </Box>
+                )}
             </Box>
           )}
         </Grid>
