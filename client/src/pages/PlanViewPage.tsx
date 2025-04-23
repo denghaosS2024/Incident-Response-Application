@@ -122,15 +122,15 @@ const PlanViewPage: React.FC = () => {
             key={ex._id}
             elevation={2}
             sx={{ padding: 2, borderRadius: 2, cursor: 'default', '&:hover': { backgroundColor: '#f1f1f1' } }}
-            
+
           >
             <Box onClick={() => navigate(`/exercise/${ex._id}`)}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              {ex.name}
-            </Typography>
-            <Typography variant="body2">Condition: {ex.condition}</Typography>
-            <Typography variant="body2">Recovery Stage: {ex.recoveryStage}</Typography>
-            <Typography variant="body2" gutterBottom>Body Region: {ex.bodyRegion}</Typography>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {ex.name}
+              </Typography>
+              <Typography variant="body2">Condition: {ex.condition}</Typography>
+              <Typography variant="body2">Recovery Stage: {ex.recoveryStage}</Typography>
+              <Typography variant="body2" gutterBottom>Body Region: {ex.bodyRegion}</Typography>
             </Box>
             {ex.blocks?.map((block: any, idx: number) => {
               const url = block.videoUrl
@@ -183,10 +183,15 @@ const PlanViewPage: React.FC = () => {
                 onChange={(newVal) => {
                   if (newVal) setSelectedDate(newVal)
                 }}
+                onMonthChange={(newMonth) => {
+                  if (newMonth) setSelectedDate(newMonth)
+                }}
                 slots={{
                   day: (props) => {
                     const dateStr = props.day.format('YYYY-MM-DD')
-                    const isChecked = (exerciseCheckInDates[ex._id] || []).includes(dateStr)
+                    const checkedDates = exerciseCheckInDates[ex._id] || []
+                    const isChecked = checkedDates.includes(dateStr)
+
                     return (
                       <Badge
                         key={dateStr}
@@ -211,6 +216,7 @@ const PlanViewPage: React.FC = () => {
                 }}
               />
             </LocalizationProvider>
+
 
             <Typography variant="body2" color="text.secondary" mt={1}>
               Click **only today** to check in; red dot = completed.
