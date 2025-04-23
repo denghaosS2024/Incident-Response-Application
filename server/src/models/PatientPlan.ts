@@ -1,17 +1,18 @@
-import mongoose, { Schema, Document } from "mongoose"
+import mongoose, { Document, Schema } from "mongoose";
+import { ExerciseSchema, IExercise } from "./Exercise";
 
 export interface IMedicationPlan {
-  name: string
-  frequency: string
-  timeOfDay: string
-  route: string
-  notes: string
+  name: string;
+  frequency: string;
+  timeOfDay: string;
+  route: string;
+  notes: string;
 }
 
 export interface IPatientPlan extends Document {
-  patientId: string
-  medications: IMedicationPlan[]
-  exercises: any[]
+  patientId: string;
+  medications: IMedicationPlan[];
+  exercises: IExercise[];
 }
 
 const MedicationPlanSchema = new Schema<IMedicationPlan>(
@@ -22,16 +23,16 @@ const MedicationPlanSchema = new Schema<IMedicationPlan>(
     route: String,
     notes: String,
   },
-  { _id: false }
-)
+  { _id: false },
+);
 
 const PatientPlanSchema = new Schema<IPatientPlan>({
   patientId: { type: String, required: true, unique: true },
   medications: [MedicationPlanSchema],
   exercises: {
-    type: [Schema.Types.Mixed as any],
+    type: [ExerciseSchema],
     default: [],
-  }  
-})
+  },
+});
 
-export default mongoose.model<IPatientPlan>("PatientPlan", PatientPlanSchema)
+export default mongoose.model<IPatientPlan>("PatientPlan", PatientPlanSchema);

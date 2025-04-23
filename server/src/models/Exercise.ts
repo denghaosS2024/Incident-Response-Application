@@ -7,7 +7,7 @@ const ExerciseBlockSchema = new Schema({
 
 export type IExerciseBlock = InferSchemaType<typeof ExerciseBlockSchema>;
 
-const ExerciseSchema = new Schema(
+export const ExerciseSchema = new Schema(
   {
     userId: { type: String, required: true }, //nurseId
     name: { type: String, required: true },

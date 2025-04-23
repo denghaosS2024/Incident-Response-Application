@@ -63,7 +63,7 @@ const ExerciseLibraryPage = () => {
 
   const handleView = (exercise: IExercise) => {
     // Handle view logic here
-    console.log("Viewing exercise:", exercise);
+    navigate(`/exercise/${exercise._id}`);
   };
 
   const handleAddExercise = () => {
