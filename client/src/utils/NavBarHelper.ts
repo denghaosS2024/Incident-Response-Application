@@ -6,8 +6,8 @@ export default class NavBarHelper {
     "/groups": "Groups",
     "/reach911": "911 Call",
     "/incidents": "Incidents",
-    "/patients/first-responder": "Patient",
-    "/patients/nurse": "Patient",
+    "/patients/first-responder": "Patients",
+    "/patients/nurse": "Patients",
     "/patient-visit": "Patient Visit",
     "/organization": "Organization",
     "/organization/view": "Organization",
@@ -199,12 +199,11 @@ export default class NavBarHelper {
       const name = urlParams.get("name");
       title = name ? `${name}'s Medical Plan` : "Medical Plan";
     }
-    if (pathname.startsWith( "/patients/plan/view")) {
+    if (pathname.startsWith("/patients/plan/view")) {
       const urlParams = new URLSearchParams(window.location.search);
       const name = urlParams.get("name");
       title = name ? `${name}'s Medical Plan` : "Medical Plan";
     }
-    
 
     if (pathname.startsWith("/your-appointment")) {
       title = "Your Appointment";
