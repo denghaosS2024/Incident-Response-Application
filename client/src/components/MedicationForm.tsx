@@ -6,6 +6,7 @@ import {
   Typography
 } from '@mui/material'
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router'
 
 interface MedicationFormProps {
   data?: {
@@ -37,7 +38,10 @@ const MedicationForm: React.FC<MedicationFormProps> = ({
     time: false,
     route: false
   })
-
+  const navigate=useNavigate()
+  const handleCancel = () => {
+    navigate(-1)
+  }
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
@@ -131,16 +135,18 @@ const MedicationForm: React.FC<MedicationFormProps> = ({
         disabled={readOnly}
       />
 
-      {!readOnly && (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSave}
-          sx={{ mt: 2 }}
-        >
-          Save
-        </Button>
-      )}
+
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleSave}
+       
+      >
+        Save
+      </Button>
+      <Button variant="outlined" color="secondary" onClick={handleCancel}>
+        Cancel
+      </Button>
     </Box>
   )
 }
