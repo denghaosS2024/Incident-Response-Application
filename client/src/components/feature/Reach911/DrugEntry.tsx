@@ -32,11 +32,12 @@ export interface DrugEntryHandle {
 
 interface DrugEntryProps {
   isReadOnly?: boolean;
+  drugs?: DrugItem[];
 }
 
 const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
-  ({ isReadOnly = false }, ref) => {
-    const [drugs, setDrugs] = useState<DrugItem[]>([]);
+  ({ isReadOnly = false, drugs: initialDrugs = [] }, ref) => {
+    const [drugs, setDrugs] = useState<DrugItem[]>(initialDrugs);
     const [open, setOpen] = useState(false);
     const [openDetailView, setOpenDetailView] = useState(false);
     const [currentDrug, setCurrentDrug] = useState<DrugItem>({
@@ -51,6 +52,10 @@ const DrugEntry = forwardRef<DrugEntryHandle, DrugEntryProps>(
       getDrugsData: () => [...drugs],
       setDrugsData: (items: DrugItem[]) => setDrugs(items),
     }));
+
+    useEffect(() => {
+      setDrugs(initialDrugs);
+    }, [initialDrugs]); 
 
     const handleClickOpen = () => {
       setOpen(true);

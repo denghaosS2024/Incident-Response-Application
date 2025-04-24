@@ -37,6 +37,12 @@ const getCurrentDateTime = () => {
   return formattedDate;
 };
 
+type DrugItem = {
+  name: string;
+  dosage: string;
+  route: string;
+};
+
 const VisitLogForm: React.FC<{
   username?: string;
   visitLogId?: string;
@@ -258,6 +264,19 @@ const VisitLogForm: React.FC<{
           setIncidentId(incidentId ?? "");
           setIsLocalReadOnly(visitLogActive === false);
 
+          const drugItems: DrugItem[] = drugs.map((str:string) => {
+            const match = str.match(/^(.+?)\s*\(\s*(.+?)\s*,\s*(.+?)\s*\)$/);
+            if (!match) {
+              return { name: str, dosage: "", route: "" };
+            }
+            const [, name, dosage, route] = match;
+            return {
+              name: name.trim(),
+              dosage: dosage.trim(),
+              route: route.trim(),
+            };
+          });
+
           setFormData((prev) => ({
             ...prev,
             ...(priority && { priority }),
@@ -267,7 +286,7 @@ const VisitLogForm: React.FC<{
             ...(breathing && { breathing }),
             ...(chiefComplaint && { chiefComplaint }),
             ...(condition && { condition }),
-            ...(drugs ? { drugs: drugs.join(", ") } : {}),
+            ...(drugItems.length > 0 ? { drugs: drugItems } : {}),
             ...(allergies ? { allergies: allergies.join(", ") } : {}),
             ...(hospitalId && { hospitalId }),
             ...(hospitalName && { hospitalName }),
@@ -517,7 +536,7 @@ const VisitLogForm: React.FC<{
         <Box display="flex" alignItems="center" gap={2}>
           <Typography sx={{ width: 120, flexShrink: 0 }}>Drugs:</Typography>
           <Box sx={{ flex: 1, width: 200 }}>
-            <DrugEntry isReadOnly={isReadOnly} ref={drugEntryRef} />
+            <DrugEntry isReadOnly={isReadOnly} drugs={formData.drugs} ref={drugEntryRef} />
           </Box>
         </Box>
       </FormControl>
