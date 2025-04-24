@@ -101,15 +101,12 @@ const PatientPlanPage: React.FC = () => {
 
   const handleGeneratePlan = async () => {
     setOpenSnackbar(true)
-    // setTimeout(() => {
-    //   navigate(`/patients/plan/view?patientId=${patientId}`)
-    // }, 1200)
   }
 
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h6" fontWeight="bold" gutterBottom>
-        Medication Plan for {patientName}
+        Medication Plan {patientName}
       </Typography>
 
       <List>
