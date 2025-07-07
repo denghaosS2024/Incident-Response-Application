@@ -8,6 +8,7 @@
     "deploy": "ts-node src/index.ts",
     "start-zeabur": "ts-node --project ./tsconfig-zeabur.json src/index.ts",
     "build": "tsc",
+    "start": "node build/index.js",
     "test": "jest --coverage",
     "test:debug": "node --inspect-brk ./node_modules/.bin/jest --runInBand",
     "lint": "eslint 'src/**/*.ts'",
