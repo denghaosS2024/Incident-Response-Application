@@ -8,11 +8,11 @@
 import { Server as SocketIO } from "socket.io";
 
 import * as Http from "node:http";
-import * as TestDatabase from "../test/utils/TestDatabase";
 import app from "./app";
 import Socket from "./socket";
 import * as Database from "./utils/Database";
 import Env from "./utils/Env";
+import * as TestDatabase from "./utils/TestDatabase";
 
 // Set the port for the server to listen on
 const PORT = parseInt(process.env.PORT || Env.getParam("PORT", "3001"));
