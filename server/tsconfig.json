@@ -4,6 +4,6 @@
     "outDir": "build",
     "module": "commonjs"
   },
-  "include": ["test", "src"],
-  "exclude": ["node_modules"]
+  "include": ["src"],
+  "exclude": ["node_modules", "test", "**/*.spec.ts"]
 }
